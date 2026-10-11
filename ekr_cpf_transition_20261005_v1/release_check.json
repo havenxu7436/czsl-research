@@ -1,0 +1,20 @@
+{
+  "version": "ekr_cpf_transition_20261005_v1",
+  "date": "2026-10-05",
+  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+  "test_environment": "Isolated local CPU torch2.5.1; server Python3.8/torch1.13.1/CUDA not executed",
+  "python38_syntax": "passed",
+  "bash_blocks_checked": 33,
+  "cli_invocations_flag_checked": 46,
+  "tests": [
+    "router_cpu",
+    "integration_cpu"
+  ],
+  "real_UT_bias0_recheck": {
+    "wrong_to_correct": 43,
+    "correct_to_wrong": 39,
+    "net_corrected": 4,
+    "unseen_net_corrected": -3
+  },
+  "no_server_training": true
+}
