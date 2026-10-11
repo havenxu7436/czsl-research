@@ -1,0 +1,990 @@
+{
+  "passed": true,
+  "checks": 8839,
+  "archive_sha256": "912eab8a6bba1b957f185ec28fa754ff60ec14d1505fc3165bb61c2569150a07",
+  "members": 46,
+  "scientific_source_matches_release": true,
+  "independent_pooled_replay_exact": true,
+  "unit_replay_with_near_tie_tolerance_passed": true,
+  "unit_views_total": 36,
+  "unit_views_confusion_exact": 33,
+  "unit_rounding_differences": [
+    {
+      "view": "Sentence:OE_AE:0:T_perm1",
+      "local_correct": 2454,
+      "reported_correct": 2455,
+      "confusion_l1_difference": 2,
+      "near_tie_rows_1e_minus6": 2,
+      "micro_difference_pp": -0.004348204191668259,
+      "macro_difference_pp": -0.000540277702736347,
+      "near_tie_examples": [
+        {
+          "index": 4208,
+          "image": "Synthetic_Boots.Knee.High/7696133.24781.jpg",
+          "score_gap": 2.384185791015625e-07
+        },
+        {
+          "index": 8225,
+          "image": "Leather_Sandals/7895789.56815.jpg",
+          "score_gap": 5.960464477539063e-08
+        }
+      ]
+    },
+    {
+      "view": "Sentence:OE_AE:3:T_K",
+      "local_correct": 3365,
+      "reported_correct": 3365,
+      "confusion_l1_difference": 2,
+      "near_tie_rows_1e_minus6": 4,
+      "micro_difference_pp": 0.0,
+      "macro_difference_pp": 0.0,
+      "near_tie_examples": [
+        {
+          "index": 2533,
+          "image": "Sheepskin_Boots.Mid-Calf/7555745.3.jpg",
+          "score_gap": 2.9802322387695312e-08
+        },
+        {
+          "index": 12328,
+          "image": "Leather_Shoes.Sneakers.and.Athletic.Shoes/7988043.3.jpg",
+          "score_gap": 2.8312206268310547e-07
+        },
+        {
+          "index": 19845,
+          "image": "Leather_Boots.Knee.High/8051299.328.jpg",
+          "score_gap": 2.086162567138672e-07
+        },
+        {
+          "index": 20135,
+          "image": "Leather_Sandals/8055646.381493.jpg",
+          "score_gap": 5.960464477539063e-08
+        }
+      ]
+    },
+    {
+      "view": "Sentence:OE_AE:5:T_perm1",
+      "local_correct": 3570,
+      "reported_correct": 3570,
+      "confusion_l1_difference": 2,
+      "near_tie_rows_1e_minus6": 5,
+      "micro_difference_pp": 0.0,
+      "macro_difference_pp": 0.0,
+      "near_tie_examples": [
+        {
+          "index": 1566,
+          "image": "Leather_Shoes.Oxfords/7398161.3.jpg",
+          "score_gap": 1.4901161193847656e-08
+        },
+        {
+          "index": 5229,
+          "image": "Leather_Sandals/7774400.407581.jpg",
+          "score_gap": 3.8743019104003906e-07
+        },
+        {
+          "index": 6465,
+          "image": "Leather_Shoes.Heels/7828910.521.jpg",
+          "score_gap": 7.748603820800781e-07
+        },
+        {
+          "index": 12521,
+          "image": "Full.grain.leather_Boots.Mid-Calf/7990709.3.jpg",
+          "score_gap": 5.513429641723633e-07
+        },
+        {
+          "index": 15818,
+          "image": "Suede_Boots.Knee.High/8014972.11.jpg",
+          "score_gap": 9.5367431640625e-07
+        }
+      ]
+    }
+  ],
+  "mean_text_exact_match_all_seven": true,
+  "replay": {
+    "T_name": {
+      "text_difference": 0.0,
+      "cosine_difference": 2.980232238769531e-07,
+      "top1_mismatches": 0
+    },
+    "T_K": {
+      "text_difference": 0.0,
+      "cosine_difference": 2.980232238769531e-07,
+      "top1_mismatches": 0
+    },
+    "T_perm1": {
+      "text_difference": 0.0,
+      "cosine_difference": 2.980232238769531e-07,
+      "top1_mismatches": 0
+    },
+    "T_perm2": {
+      "text_difference": 0.0,
+      "cosine_difference": 3.2782554626464844e-07,
+      "top1_mismatches": 0
+    },
+    "T_AE": {
+      "text_difference": 0.0,
+      "cosine_difference": 2.682209014892578e-07,
+      "top1_mismatches": 0
+    },
+    "T_AE_perm1": {
+      "text_difference": 0.0,
+      "cosine_difference": 2.980232238769531e-07,
+      "top1_mismatches": 0
+    },
+    "T_AE_perm2": {
+      "text_difference": 0.0,
+      "cosine_difference": 2.980232238769531e-07,
+      "top1_mismatches": 0
+    }
+  },
+  "train_images": 22998,
+  "train_pairs": 83,
+  "sample_images": 96,
+  "val_arrays_read": false,
+  "test_arrays_read": false,
+  "views": [
+    {
+      "family": "OE_AE",
+      "ae_1based": 1,
+      "oe_1based": 1,
+      "correct_micro_pct": 15.953561179232977,
+      "correct_macro_pct": 19.348897832929044,
+      "macro_deltas_pp": {
+        "name": -3.027660721326079,
+        "perm1": -1.0233780628085967,
+        "perm2": 1.938821318081967
+      }
+    },
+    {
+      "family": "OE_AE",
+      "ae_1based": 1,
+      "oe_1based": 2,
+      "correct_micro_pct": 17.62761979302548,
+      "correct_macro_pct": 20.603620863695397,
+      "macro_deltas_pp": {
+        "name": -1.7729376905597256,
+        "perm1": -0.213657171663165,
+        "perm2": 1.9403220950199724
+      }
+    },
+    {
+      "family": "OE_AE",
+      "ae_1based": 1,
+      "oe_1based": 3,
+      "correct_micro_pct": 15.514392555874423,
+      "correct_macro_pct": 19.000533079823438,
+      "macro_deltas_pp": {
+        "name": -3.3760254744316853,
+        "perm1": -0.714563613210558,
+        "perm2": 0.6554462124076004
+      }
+    },
+    {
+      "family": "OE_AE",
+      "ae_1based": 2,
+      "oe_1based": 1,
+      "correct_micro_pct": 14.631707104965649,
+      "correct_macro_pct": 19.746206715757726,
+      "macro_deltas_pp": {
+        "name": -2.630351838497397,
+        "perm1": 1.6174160778996836,
+        "perm2": 1.918665239691009
+      }
+    },
+    {
+      "family": "OE_AE",
+      "ae_1based": 2,
+      "oe_1based": 2,
+      "correct_micro_pct": 13.901208800765282,
+      "correct_macro_pct": 19.7329024368768,
+      "macro_deltas_pp": {
+        "name": -2.643656117378324,
+        "perm1": 2.5911515826368294,
+        "perm2": 3.025220689918523
+      }
+    },
+    {
+      "family": "OE_AE",
+      "ae_1based": 2,
+      "oe_1based": 3,
+      "correct_micro_pct": 12.892425428298113,
+      "correct_macro_pct": 21.14987059895886,
+      "macro_deltas_pp": {
+        "name": -1.2266879552962635,
+        "perm1": 3.3400648703561657,
+        "perm2": 3.1419694225210826
+      }
+    },
+    {
+      "family": "OE_AE",
+      "ae_1based": 3,
+      "oe_1based": 1,
+      "correct_micro_pct": 16.853639446908428,
+      "correct_macro_pct": 19.961159583512384,
+      "macro_deltas_pp": {
+        "name": -2.4153989707427392,
+        "perm1": 4.231774740890646,
+        "perm2": 2.450437459270823
+      }
+    },
+    {
+      "family": "OE_AE",
+      "ae_1based": 3,
+      "oe_1based": 2,
+      "correct_micro_pct": 20.401774067310203,
+      "correct_macro_pct": 20.09551997313585,
+      "macro_deltas_pp": {
+        "name": -2.2810385811192724,
+        "perm1": 3.887273941493909,
+        "perm2": 3.130645471457459
+      }
+    },
+    {
+      "family": "OE_AE",
+      "ae_1based": 3,
+      "oe_1based": 3,
+      "correct_micro_pct": 15.218714670840944,
+      "correct_macro_pct": 21.293553703353687,
+      "macro_deltas_pp": {
+        "name": -1.0830048509014354,
+        "perm1": 5.898697480966003,
+        "perm2": 5.2709597846972684
+      }
+    },
+    {
+      "family": "AE_only",
+      "ae_1based": 1,
+      "oe_1based": null,
+      "correct_micro_pct": 9.700843551613184,
+      "correct_macro_pct": 19.270334390180548,
+      "macro_deltas_pp": {
+        "name": -3.1062241640745754,
+        "perm1": 0.1900082505522498,
+        "perm2": 0.15758379237953335
+      }
+    },
+    {
+      "family": "AE_only",
+      "ae_1based": 2,
+      "oe_1based": null,
+      "correct_micro_pct": 8.13983824680407,
+      "correct_macro_pct": 18.32560226414971,
+      "macro_deltas_pp": {
+        "name": -4.050956290105415,
+        "perm1": -0.9675663634510272,
+        "perm2": -1.4863161908986129
+      }
+    },
+    {
+      "family": "AE_only",
+      "ae_1based": 3,
+      "oe_1based": null,
+      "correct_micro_pct": 25.193495086529268,
+      "correct_macro_pct": 23.427994187456427,
+      "macro_deltas_pp": {
+        "name": 1.0514356332013044,
+        "perm1": 5.288840637149907,
+        "perm2": 5.861429009575641
+      }
+    }
+  ],
+  "ae_third": {
+    "metrics": {
+      "images": 22998,
+      "pairs": 83,
+      "correct": 5794,
+      "micro_pct": 25.193495086529268,
+      "pair_macro_pct": 23.427994187456427,
+      "mean_gt_margin": -0.010629110038280487,
+      "confusion": [
+        [
+          4,
+          349,
+          27,
+          75,
+          67,
+          4,
+          110,
+          42,
+          46,
+          19,
+          8,
+          1,
+          0,
+          25,
+          19,
+          85
+        ],
+        [
+          1,
+          12,
+          1,
+          4,
+          1,
+          1,
+          3,
+          2,
+          3,
+          8,
+          0,
+          1,
+          2,
+          7,
+          1,
+          8
+        ],
+        [
+          0,
+          3,
+          29,
+          1,
+          0,
+          0,
+          2,
+          0,
+          0,
+          2,
+          0,
+          0,
+          0,
+          0,
+          2,
+          6
+        ],
+        [
+          0,
+          10,
+          5,
+          53,
+          8,
+          1,
+          89,
+          5,
+          17,
+          135,
+          7,
+          2,
+          0,
+          32,
+          21,
+          1
+        ],
+        [
+          1,
+          18,
+          13,
+          109,
+          140,
+          0,
+          223,
+          17,
+          82,
+          76,
+          4,
+          0,
+          0,
+          36,
+          8,
+          1
+        ],
+        [
+          0,
+          0,
+          18,
+          15,
+          0,
+          2,
+          0,
+          0,
+          1,
+          10,
+          0,
+          0,
+          0,
+          8,
+          0,
+          2
+        ],
+        [
+          5,
+          376,
+          183,
+          2183,
+          1572,
+          29,
+          3296,
+          311,
+          1387,
+          2756,
+          141,
+          28,
+          11,
+          542,
+          313,
+          71
+        ],
+        [
+          0,
+          8,
+          4,
+          17,
+          22,
+          0,
+          17,
+          13,
+          36,
+          11,
+          1,
+          0,
+          0,
+          54,
+          5,
+          6
+        ],
+        [
+          4,
+          14,
+          37,
+          10,
+          0,
+          0,
+          6,
+          2,
+          99,
+          4,
+          1,
+          1,
+          2,
+          1,
+          12,
+          11
+        ],
+        [
+          0,
+          3,
+          1,
+          75,
+          1,
+          0,
+          83,
+          5,
+          17,
+          477,
+          1,
+          3,
+          0,
+          6,
+          4,
+          1
+        ],
+        [
+          3,
+          44,
+          7,
+          34,
+          14,
+          0,
+          6,
+          10,
+          87,
+          170,
+          43,
+          0,
+          1,
+          5,
+          46,
+          1
+        ],
+        [
+          0,
+          5,
+          4,
+          74,
+          0,
+          0,
+          22,
+          5,
+          6,
+          92,
+          0,
+          32,
+          0,
+          67,
+          0,
+          0
+        ],
+        [
+          0,
+          4,
+          13,
+          1,
+          0,
+          0,
+          0,
+          20,
+          0,
+          1,
+          0,
+          0,
+          12,
+          14,
+          0,
+          20
+        ],
+        [
+          0,
+          218,
+          146,
+          331,
+          111,
+          18,
+          152,
+          236,
+          190,
+          194,
+          20,
+          6,
+          6,
+          1281,
+          86,
+          215
+        ],
+        [
+          0,
+          156,
+          86,
+          413,
+          37,
+          10,
+          215,
+          38,
+          222,
+          727,
+          47,
+          14,
+          3,
+          145,
+          201,
+          43
+        ],
+        [
+          0,
+          3,
+          6,
+          1,
+          0,
+          0,
+          1,
+          3,
+          8,
+          2,
+          0,
+          0,
+          4,
+          5,
+          5,
+          100
+        ]
+      ]
+    },
+    "vs_name": {
+      "repair": 4668,
+      "damage": 896,
+      "net": 3772
+    },
+    "per_attribute": [
+      {
+        "attr": "Canvas",
+        "images": 881,
+        "pairs": 6,
+        "name_correct": 2,
+        "ae3_correct": 4,
+        "net": 2,
+        "name_class_pair_macro": 2.7777777777777777,
+        "ae3_class_pair_macro": 5.555555555555555,
+        "contribution_to_total_macro_delta_pp": 0.2008032128514056,
+        "name_predictions_all_train": 26,
+        "ae3_predictions_all_train": 18
+      },
+      {
+        "attr": "Cotton",
+        "images": 55,
+        "pairs": 4,
+        "name_correct": 3,
+        "ae3_correct": 12,
+        "net": 9,
+        "name_class_pair_macro": 6.25,
+        "ae3_class_pair_macro": 20.416666666666668,
+        "contribution_to_total_macro_delta_pp": 0.6827309236947792,
+        "name_predictions_all_train": 137,
+        "ae3_predictions_all_train": 1223
+      },
+      {
+        "attr": "Faux.Fur",
+        "images": 45,
+        "pairs": 2,
+        "name_correct": 30,
+        "ae3_correct": 29,
+        "net": -1,
+        "name_class_pair_macro": 67.42788461538461,
+        "ae3_class_pair_macro": 65.86538461538461,
+        "contribution_to_total_macro_delta_pp": -0.03765060240963856,
+        "name_predictions_all_train": 361,
+        "ae3_predictions_all_train": 580
+      },
+      {
+        "attr": "Faux.Leather",
+        "images": 386,
+        "pairs": 6,
+        "name_correct": 152,
+        "ae3_correct": 53,
+        "net": -99,
+        "name_class_pair_macro": 43.87687074829933,
+        "ae3_class_pair_macro": 17.76145124716553,
+        "contribution_to_total_macro_delta_pp": -1.887861650684371,
+        "name_predictions_all_train": 6929,
+        "ae3_predictions_all_train": 3396
+      },
+      {
+        "attr": "Full.grain.leather",
+        "images": 728,
+        "pairs": 8,
+        "name_correct": 191,
+        "ae3_correct": 140,
+        "net": -51,
+        "name_class_pair_macro": 25.23483188469716,
+        "ae3_class_pair_macro": 16.56880457536587,
+        "contribution_to_total_macro_delta_pp": -0.8352797406584377,
+        "name_predictions_all_train": 3008,
+        "ae3_predictions_all_train": 1973
+      },
+      {
+        "attr": "Hair.Calf",
+        "images": 56,
+        "pairs": 4,
+        "name_correct": 0,
+        "ae3_correct": 2,
+        "net": 2,
+        "name_class_pair_macro": 0.0,
+        "ae3_class_pair_macro": 2.941176470588235,
+        "contribution_to_total_macro_delta_pp": 0.14174344436569808,
+        "name_predictions_all_train": 25,
+        "ae3_predictions_all_train": 65
+      },
+      {
+        "attr": "Leather",
+        "images": 13204,
+        "pairs": 10,
+        "name_correct": 3,
+        "ae3_correct": 3296,
+        "net": 3293,
+        "name_class_pair_macro": 0.02772857388431729,
+        "ae3_class_pair_macro": 24.97643851230096,
+        "contribution_to_total_macro_delta_pp": 3.0058686672791133,
+        "name_predictions_all_train": 3,
+        "ae3_predictions_all_train": 4225
+      },
+      {
+        "attr": "Nubuck",
+        "images": 194,
+        "pairs": 7,
+        "name_correct": 100,
+        "ae3_correct": 13,
+        "net": -87,
+        "name_class_pair_macro": 58.05182522395638,
+        "ae3_class_pair_macro": 7.824675324675325,
+        "contribution_to_total_macro_delta_pp": -4.236024690300812,
+        "name_predictions_all_train": 5273,
+        "ae3_predictions_all_train": 709
+      },
+      {
+        "attr": "Nylon",
+        "images": 204,
+        "pairs": 4,
+        "name_correct": 22,
+        "ae3_correct": 99,
+        "net": 77,
+        "name_class_pair_macro": 3.6666666666666665,
+        "ae3_class_pair_macro": 29.578947368421048,
+        "contribution_to_total_macro_delta_pp": 1.2487846121327413,
+        "name_predictions_all_train": 356,
+        "ae3_predictions_all_train": 2201
+      },
+      {
+        "attr": "Patent.Leather",
+        "images": 677,
+        "pairs": 6,
+        "name_correct": 386,
+        "ae3_correct": 477,
+        "net": 91,
+        "name_class_pair_macro": 59.02722198300923,
+        "ae3_class_pair_macro": 70.6258710356614,
+        "contribution_to_total_macro_delta_pp": 0.838456558023049,
+        "name_predictions_all_train": 2696,
+        "ae3_predictions_all_train": 4684
+      },
+      {
+        "attr": "Rubber",
+        "images": 471,
+        "pairs": 4,
+        "name_correct": 37,
+        "ae3_correct": 43,
+        "net": 6,
+        "name_class_pair_macro": 3.410815939278937,
+        "ae3_class_pair_macro": 10.249051233396585,
+        "contribution_to_total_macro_delta_pp": 0.32955350815024814,
+        "name_predictions_all_train": 85,
+        "ae3_predictions_all_train": 273
+      },
+      {
+        "attr": "Satin",
+        "images": 307,
+        "pairs": 2,
+        "name_correct": 152,
+        "ae3_correct": 32,
+        "net": -120,
+        "name_class_pair_macro": 41.75141242937853,
+        "ae3_class_pair_macro": 5.423728813559322,
+        "contribution_to_total_macro_delta_pp": -0.8753658702607039,
+        "name_predictions_all_train": 885,
+        "ae3_predictions_all_train": 88
+      },
+      {
+        "attr": "Sheepskin",
+        "images": 85,
+        "pairs": 2,
+        "name_correct": 11,
+        "ae3_correct": 12,
+        "net": 1,
+        "name_class_pair_macro": 17.741935483870968,
+        "ae3_class_pair_macro": 18.667861409796892,
+        "contribution_to_total_macro_delta_pp": 0.022311468094600575,
+        "name_predictions_all_train": 123,
+        "ae3_predictions_all_train": 41
+      },
+      {
+        "attr": "Suede",
+        "images": 3210,
+        "pairs": 8,
+        "name_correct": 297,
+        "ae3_correct": 1281,
+        "net": 984,
+        "name_class_pair_macro": 11.330390949742519,
+        "ae3_class_pair_macro": 35.26633655619039,
+        "contribution_to_total_macro_delta_pp": 2.307079094597385,
+        "name_predictions_all_train": 361,
+        "ae3_predictions_all_train": 2228
+      },
+      {
+        "attr": "Synthetic",
+        "images": 2357,
+        "pairs": 8,
+        "name_correct": 609,
+        "ae3_correct": 201,
+        "net": -408,
+        "name_class_pair_macro": 20.29687798768028,
+        "ae3_class_pair_macro": 12.553686233709893,
+        "contribution_to_total_macro_delta_pp": -0.7463317353224469,
+        "name_predictions_all_train": 2655,
+        "ae3_predictions_all_train": 723
+      },
+      {
+        "attr": "Wool",
+        "images": 138,
+        "pairs": 2,
+        "name_correct": 27,
+        "ae3_correct": 100,
+        "net": 73,
+        "name_class_pair_macro": 27.236936292054402,
+        "ae3_class_pair_macro": 64.28060128847531,
+        "contribution_to_total_macro_delta_pp": 0.8926184336486965,
+        "name_predictions_all_train": 75,
+        "ae3_predictions_all_train": 571
+      }
+    ],
+    "leave_one_attribute_out_descriptive_only": [
+      {
+        "excluded_attr": "Canvas",
+        "remaining_images": 22117,
+        "name_macro_pct": 23.903736277097515,
+        "ae3_macro_pct": 24.82065174318896,
+        "delta_macro_name_pp": 0.9169154660914458,
+        "delta_macro_controls_pp": {
+          "T_AE_perm1": 6.1679899624719035,
+          "T_AE_perm2": 5.900622452773341
+        }
+      },
+      {
+        "excluded_attr": "Cotton",
+        "remaining_images": 22943,
+        "name_macro_pct": 23.193093164597155,
+        "ae3_macro_pct": 23.580466466990085,
+        "delta_macro_name_pp": 0.38737330239293044,
+        "delta_macro_controls_pp": {
+          "T_AE_perm1": 4.522874762237667,
+          "T_AE_perm2": 5.124454950988756
+        }
+      },
+      {
+        "excluded_attr": "Faux.Fur",
+        "remaining_images": 22953,
+        "name_macro_pct": 21.264180132992664,
+        "ae3_macro_pct": 22.38015738676684,
+        "delta_macro_name_pp": 1.115977253774176,
+        "delta_macro_controls_pp": {
+          "T_AE_perm1": 5.458009541770888,
+          "T_AE_perm2": 6.427570656535723
+        }
+      },
+      {
+        "excluded_attr": "Faux.Leather",
+        "remaining_images": 22612,
+        "name_macro_pct": 20.701209552121806,
+        "ae3_macro_pct": 23.869542987998578,
+        "delta_macro_name_pp": 3.1683334358767716,
+        "delta_macro_controls_pp": {
+          "T_AE_perm1": 6.874889826592401,
+          "T_AE_perm2": 6.706363519671861
+        }
+      },
+      {
+        "excluded_attr": "Full.grain.leather",
+        "remaining_images": 22270,
+        "name_macro_pct": 22.071676065674637,
+        "ae3_macro_pct": 24.159641079412747,
+        "delta_macro_name_pp": 2.08796501373811,
+        "delta_macro_controls_pp": {
+          "T_AE_perm1": 5.424779577690696,
+          "T_AE_perm2": 7.053177887147427
+        }
+      },
+      {
+        "excluded_attr": "Hair.Calf",
+        "remaining_images": 22942,
+        "name_macro_pct": 23.509548860799683,
+        "ae3_macro_pct": 24.465301413626964,
+        "delta_macro_name_pp": 0.9557525528272812,
+        "delta_macro_controls_pp": {
+          "T_AE_perm1": 5.728461183758558,
+          "T_AE_perm2": 6.158210225250354
+        }
+      },
+      {
+        "excluded_attr": "Leather",
+        "remaining_images": 9794,
+        "name_macro_pct": 25.43804211321003,
+        "ae3_macro_pct": 23.215878526518818,
+        "delta_macro_name_pp": -2.222163586691213,
+        "delta_macro_controls_pp": {
+          "T_AE_perm1": 2.690530371893839,
+          "T_AE_perm2": 3.3235009496322654
+        }
+      },
+      {
+        "excluded_attr": "Nubuck",
+        "remaining_images": 22804,
+        "name_macro_pct": 19.09067872941421,
+        "ae3_macro_pct": 24.865141977449422,
+        "delta_macro_name_pp": 5.774463248035211,
+        "delta_macro_controls_pp": {
+          "T_AE_perm1": 7.833549118275137,
+          "T_AE_perm2": 5.89782661052428
+        }
+      },
+      {
+        "excluded_attr": "Nylon",
+        "remaining_images": 22794,
+        "name_macro_pct": 23.32389485236087,
+        "ae3_macro_pct": 23.11655352006581,
+        "delta_macro_name_pp": -0.20734133229505858,
+        "delta_macro_controls_pp": {
+          "T_AE_perm1": 4.724740185288965,
+          "T_AE_perm2": 4.7280525525876875
+        }
+      },
+      {
+        "excluded_attr": "Patent.Leather",
+        "remaining_images": 22321,
+        "name_macro_pct": 19.520662702663888,
+        "ae3_macro_pct": 19.750237549933967,
+        "delta_macro_name_pp": 0.22957484727007937,
+        "delta_macro_controls_pp": {
+          "T_AE_perm1": 4.413703186869128,
+          "T_AE_perm2": 3.4837805181915584
+        }
+      },
+      {
+        "excluded_attr": "Rubber",
+        "remaining_images": 22527,
+        "name_macro_pct": 23.336849319570373,
+        "ae3_macro_pct": 24.095282438294895,
+        "delta_macro_name_pp": 0.7584331187245219,
+        "delta_macro_controls_pp": {
+          "T_AE_perm1": 5.146498650339247,
+          "T_AE_perm2": 6.433072313817917
+        }
+      },
+      {
+        "excluded_attr": "Satin",
+        "remaining_images": 22691,
+        "name_macro_pct": 21.89816710054837,
+        "ae3_macro_pct": 23.872543949774872,
+        "delta_macro_name_pp": 1.974376849226502,
+        "delta_macro_controls_pp": {
+          "T_AE_perm1": 6.930554355888209,
+          "T_AE_perm2": 6.1526298095609775
+        }
+      },
+      {
+        "excluded_attr": "Sheepskin",
+        "remaining_images": 22913,
+        "name_macro_pct": 22.49099369179547,
+        "ae3_macro_pct": 23.545528330114685,
+        "delta_macro_name_pp": 1.0545346383192147,
+        "delta_macro_controls_pp": {
+          "T_AE_perm1": 6.187899876151469,
+          "T_AE_perm2": 5.926506109772252
+        }
+      },
+      {
+        "excluded_attr": "Suede",
+        "remaining_images": 19788,
+        "name_macro_pct": 23.5548164320698,
+        "ae3_macro_pct": 22.165237668124803,
+        "delta_macro_name_pp": -1.3895787639449964,
+        "delta_macro_controls_pp": {
+          "T_AE_perm1": 2.533761047279885,
+          "T_AE_perm2": 7.808705987075545
+        }
+      },
+      {
+        "excluded_attr": "Synthetic",
+        "remaining_images": 20641,
+        "name_macro_pct": 22.598391148023104,
+        "ae3_macro_pct": 24.58792036918939,
+        "delta_macro_name_pp": 1.9895292211662863,
+        "delta_macro_controls_pp": {
+          "T_AE_perm1": 5.949650157153627,
+          "T_AE_perm2": 8.306111514943655
+        }
+      },
+      {
+        "excluded_attr": "Wool",
+        "remaining_images": 22860,
+        "name_macro_pct": 22.256549227395872,
+        "ae3_macro_pct": 22.41928783928312,
+        "delta_macro_name_pp": 0.1627386118872458,
+        "delta_macro_controls_pp": {
+          "T_AE_perm1": 3.84197496149746,
+          "T_AE_perm2": 4.418980311331204
+        }
+      }
+    ]
+  },
+  "limits": [
+    "No fresh GPU encoder forward or image-byte reread",
+    "PNG provenance checked; original TRAIN pixels were not independently re-rendered",
+    "All views are same TRAIN combinations; no held-out result or significance claim",
+    "A best sentence position selected after this audit is a post-hoc candidate, not a new validated teacher",
+    "Single-unit cross-runtime discrete differences bounded by 1e-6 near-tied rows; no fresh server raw unit-score replay"
+  ]
+}

@@ -1,0 +1,60 @@
+<!doctype html><meta charset="utf-8"><title>TRAIN knowledge audit</title>
+<style>body{font-family:system-ui;max-width:1080px;margin:30px auto;padding:0 20px}table{border-collapse:collapse}td,th{border:1px solid #bbb;padding:7px}img{width:100%;height:auto}section{margin:35px 0}code{word-break:break-all}</style>
+<h1>TRAIN-only 知识落地审查</h1>
+<p>零优化步骤，不访问 VAL/TEST；逐句结果是同组合描述性诊断，不是组合迁移验证。不得按本页最高点直接挑新提示词。抽样每属性最多六张，并按对象轮转、固定图像哈希排序；不依据预测对错。图片保留完整画面，标注行是 GT-object 属性诊断。</p>
+<h2>旧均值配方的 TRAIN 复核</h2><table><tr><th>组</th><th>micro %</th><th>pair macro %</th><th>纠正/破坏（相对名称）</th></tr>
+<tr><td>T_name</td><td>8.7921</td><td>22.3766</td><td>0 / 0</td></tr>
+<tr><td>T_K</td><td>15.1231</td><td>22.4856</td><td>2428 / 972</td></tr>
+<tr><td>T_perm1</td><td>13.5447</td><td>19.9470</td><td>2091 / 998</td></tr>
+<tr><td>T_perm2</td><td>16.2840</td><td>20.9552</td><td>2654 / 931</td></tr>
+<tr><td>T_AE</td><td>11.2662</td><td>22.6919</td><td>1197 / 628</td></tr>
+<tr><td>T_AE_perm1</td><td>9.3921</td><td>21.4685</td><td>957 / 819</td></tr>
+<tr><td>T_AE_perm2</td><td>12.7924</td><td>20.2453</td><td>1660 / 740</td></tr>
+</table><h2>固定句子位置诊断</h2><p>每个位置在全部候选上使用，不是为真实类别挑选专属最佳句子。AE-only 有三种独立位置，OE＋AE 有九种组合位置。</p>
+<h3>OE_AE</h3><table><tr><th>AE/OE 位置（从 0 起）</th><th>正确 macro %</th><th>正确−名称 pp</th><th>正确−错配1 pp</th><th>正确−错配2 pp</th></tr>
+<tr><td>0 / 0</td><td>19.3489</td><td>-3.0277</td><td>-1.0239</td><td>+1.9388</td></tr>
+<tr><td>0 / 1</td><td>20.6036</td><td>-1.7729</td><td>-0.2137</td><td>+1.9403</td></tr>
+<tr><td>0 / 2</td><td>19.0005</td><td>-3.3760</td><td>-0.7146</td><td>+0.6554</td></tr>
+<tr><td>1 / 0</td><td>19.7462</td><td>-2.6304</td><td>+1.6174</td><td>+1.9187</td></tr>
+<tr><td>1 / 1</td><td>19.7329</td><td>-2.6437</td><td>+2.5912</td><td>+3.0252</td></tr>
+<tr><td>1 / 2</td><td>21.1499</td><td>-1.2267</td><td>+3.3401</td><td>+3.1420</td></tr>
+<tr><td>2 / 0</td><td>19.9612</td><td>-2.4154</td><td>+4.2318</td><td>+2.4504</td></tr>
+<tr><td>2 / 1</td><td>20.0955</td><td>-2.2810</td><td>+3.8873</td><td>+3.1306</td></tr>
+<tr><td>2 / 2</td><td>21.2936</td><td>-1.0830</td><td>+5.8987</td><td>+5.2710</td></tr>
+</table>
+<h3>AE_only</h3><table><tr><th>AE/OE 位置（从 0 起）</th><th>正确 macro %</th><th>正确−名称 pp</th><th>正确−错配1 pp</th><th>正确−错配2 pp</th></tr>
+<tr><td>0 / None</td><td>19.2703</td><td>-3.1062</td><td>+0.1900</td><td>+0.1576</td></tr>
+<tr><td>1 / None</td><td>18.3256</td><td>-4.0510</td><td>-0.9676</td><td>-1.4863</td></tr>
+<tr><td>2 / None</td><td>23.4280</td><td>+1.0514</td><td>+5.2888</td><td>+5.8614</td></tr>
+</table>
+<h2>固定 TRAIN 图片与描述</h2><p>请检查是否可见、是否区分其他材质、是否描述的是标签目标而非仅鞋底/内衬/装饰。只有六张图不能估计整类可见比例。</p>
+<section><h3>Canvas</h3><ol><li>woven canvas fabric</li><li>matte textile upper panels</li><li>fabric panels with stitched edges</li></ol><img src="contact_sheets/attr_00.png"></section>
+<section><h3>Cotton</h3><ol><li>cotton textile fibers</li><li>cloth upper panels</li><li>woven or knitted cotton fabric</li></ol><img src="contact_sheets/attr_01.png"></section>
+<section><h3>Faux.Fur</h3><ol><li>fluffy synthetic fur</li><li>raised fur like pile</li><li>fur trim around footwear openings</li></ol><img src="contact_sheets/attr_02.png"></section>
+<section><h3>Faux.Leather</h3><ol><li>imitation leather</li><li>synthetic leather upper panels</li><li>leather like surface finish</li></ol><img src="contact_sheets/attr_03.png"></section>
+<section><h3>Full.grain.leather</h3><ol><li>natural full grain hide</li><li>smooth or textured leather surface</li><li>stitched leather upper panels</li></ol><img src="contact_sheets/attr_04.png"></section>
+<section><h3>Hair.Calf</h3><ol><li>short haired calfskin</li><li>hair bearing leather surface</li><li>plain or patterned hide panels</li></ol><img src="contact_sheets/attr_05.png"></section>
+<section><h3>Leather</h3><ol><li>genuine leather</li><li>leather upper panels and straps</li><li>smooth or textured leather finish</li></ol><img src="contact_sheets/attr_06.png"></section>
+<section><h3>Nubuck</h3><ol><li>sanded leather</li><li>fine napped leather surface</li><li>matte brushed hide</li></ol><img src="contact_sheets/attr_07.png"></section>
+<section><h3>Nylon</h3><ol><li>nylon textile fibers</li><li>synthetic fabric panels</li><li>fabric straps and padded panels</li></ol><img src="contact_sheets/attr_08.png"></section>
+<section><h3>Patent.Leather</h3><ol><li>glossy coated leather</li><li>bright specular surface highlights</li><li>smooth finished upper panels</li></ol><img src="contact_sheets/attr_09.png"></section>
+<section><h3>Rubber</h3><ol><li>flexible rubber material</li><li>molded rubber components</li><li>rubber soles or smooth outer shells</li></ol><img src="contact_sheets/attr_10.png"></section>
+<section><h3>Satin</h3><ol><li>smooth satin fabric</li><li>lustrous fabric surface</li><li>fabric folds and gathered edges</li></ol><img src="contact_sheets/attr_11.png"></section>
+<section><h3>Sheepskin</h3><ol><li>sheepskin hide</li><li>fleece at collars and openings</li><li>matte hide panels</li></ol><img src="contact_sheets/attr_12.png"></section>
+<section><h3>Suede</h3><ol><li>brushed suede leather</li><li>napped leather surface</li><li>suede upper panels and straps</li></ol><img src="contact_sheets/attr_13.png"></section>
+<section><h3>Synthetic</h3><ol><li>man made material</li><li>synthetic fabric or polymer components</li><li>textile and molded upper surfaces</li></ol><img src="contact_sheets/attr_14.png"></section>
+<section><h3>Wool</h3><ol><li>wool textile fibers</li><li>fuzzy natural fibers</li><li>felted or knitted fabric surface</li></ol><img src="contact_sheets/attr_15.png"></section>
+<h2>对象描述（仅角色审查，不据此优化权重）</h2>
+<h3>Boots.Ankle</h3><ol><li>shaft ending at the ankle</li><li>boot upper covering the foot and ankle</li><li>low boot collar</li></ol>
+<h3>Boots.Knee.High</h3><ol><li>shaft reaching the knee</li><li>tall boot shaft</li><li>closed full foot upper</li></ol>
+<h3>Boots.Mid-Calf</h3><ol><li>shaft ending at mid calf</li><li>medium height boot leg</li><li>closed boot construction</li></ol>
+<h3>Sandals</h3><ol><li>open toe construction</li><li>exposed foot with straps</li><li>upper openings around the foot</li></ol>
+<h3>Shoes.Boat.Shoes</h3><ol><li>moccasin style stitched toe</li><li>low profile lace up upper</li><li>laces threaded through side eyelets</li></ol>
+<h3>Shoes.Clogs.and.Mules</h3><ol><li>low cut upper with a broad toe box</li><li>upper covering the front of the foot</li><li>slip on clog and mule silhouette</li></ol>
+<h3>Shoes.Flats</h3><ol><li>very low or no heel</li><li>shallow low cut upper</li><li>low sole and enclosed toe</li></ol>
+<h3>Shoes.Heels</h3><ol><li>raised heel or wedge</li><li>arched sole profile</li><li>dress shoe silhouette</li></ol>
+<h3>Shoes.Loafers</h3><ol><li>laceless slip on upper</li><li>upper covering the instep</li><li>low cut collar around the foot</li></ol>
+<h3>Shoes.Oxfords</h3><ol><li>laced or slip on low shoe upper</li><li>enclosed toe and low shoe collar</li><li>low heel or flat sole profile</li></ol>
+<h3>Shoes.Sneakers.and.Athletic.Shoes</h3><ol><li>flat or treaded athletic sole</li><li>laced or slip on sporty upper</li><li>low or high athletic shoe collar</li></ol>
+<h3>Slippers</h3><ol><li>indoor slipper footwear</li><li>slip on or strap fastened opening</li><li>low heel sole profile</li></ol>
+<p>下一步：先读取 TRAIN 审查；若无明确问题及可证伪修正，停止扩大当前教师配方。任何后续改动须另锁定 TRAIN 组合留出协议，不能直接追加 VAL 提示词搜索。</p>
