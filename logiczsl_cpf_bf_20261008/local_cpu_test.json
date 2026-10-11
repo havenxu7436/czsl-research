@@ -1,0 +1,24 @@
+{
+  "passed": true,
+  "tests": [
+    "all release scripts parse as Python 3.8 syntax",
+    "all five logit families receive finite nonzero gradients",
+    "zero violation has exact zero value and finite zero gradient",
+    "numerically matches author logicloss.py p=3 beta=0.01",
+    "aligned object reorder leaves the logic loss invariant",
+    "OE softmax and batch aggregation axes match author code",
+    "uncovered/empty parent rejected",
+    "UT knowledge covers exactly 12 objects / 16 attributes / 3 descriptions",
+    "adapter connects each rule to visual features; beta once; no added parameters/state keys",
+    "beta=0 adapter exact-zero bypass",
+    "actual CPF forward AST + tensor-stub backbone: native loss preserved, beta0 exact identity, active backward, inference exact identity",
+    "installer validates original hashes, copies independently, and keeps original train.py unchanged",
+    "synthetic end-to-end fixture: prepare idempotent, protocol verification, original F lambda=0.1, paired summary signs/units correct"
+  ],
+  "n_checks": 13,
+  "device": "CPU",
+  "limitations": [
+    "synthetic tensor gradients/identity are not real-image CUDA smoke or training results",
+    "full GPU B/F training has not been run by this test"
+  ]
+}
