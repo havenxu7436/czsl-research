@@ -1,0 +1,2914 @@
+{
+  "passed": true,
+  "checks": 54355,
+  "archive_sha256": "7fb5d14a81e83b8b0c62fba93ec441bc3f056e0c04cf2749246d31acc6a4bb9f",
+  "members": 162,
+  "max_cosine_replay_abs_diff": 2.980232238769531e-07,
+  "max_q_replay_abs_diff": 0.0,
+  "max_nll_abs_diff_float64_vs_reported": 2.917642922817265e-07,
+  "all_top1_micro_macro_confusion_replays_match": true,
+  "train_val_image_id_overlap": 0,
+  "train_val_exact_image_byte_hash_overlap": 0,
+  "unique_image_byte_hashes": {
+    "train": 22995,
+    "val": 3214
+  },
+  "scientific_source_matches_local_r2": true,
+  "gates": {
+    "OE_AE_primary": {
+      "passed": false,
+      "macro_deltas_pp": {
+        "T_name": 0.3859418015443232,
+        "T_perm1": -0.8699072356747735,
+        "T_perm2": -2.6172179018525306
+      },
+      "micro_minus_name_pp": -12.96534017971759,
+      "train_macro_minus_name_pp": 0.10903553801426114
+    },
+    "AE_only_secondary": {
+      "passed": false,
+      "macro_deltas_pp": {
+        "T_name": -0.9792598549798086,
+        "T_AE_perm1": -1.576839761685381,
+        "T_AE_perm2": -4.703893868489491
+      },
+      "micro_minus_name_pp": -2.481814291827135,
+      "train_macro_minus_name_pp": 0.31532247452063444
+    }
+  },
+  "metrics": {
+    "T_name": {
+      "train": {
+        "all": {
+          "images": 22998,
+          "pairs": 83,
+          "accuracy_pct": 8.792068875554396,
+          "pair_macro_accuracy_pct": 22.376558554255123,
+          "nll": 2.654867091834895,
+          "correct": 2022
+        }
+      },
+      "val": {
+        "all": {
+          "images": 3214,
+          "pairs": 30,
+          "accuracy_pct": 22.744243932794024,
+          "pair_macro_accuracy_pct": 25.714563194187622,
+          "nll": 2.497506448767489,
+          "correct": 731
+        },
+        "seen": {
+          "images": 877,
+          "pairs": 15,
+          "accuracy_pct": 7.8677309007981755,
+          "pair_macro_accuracy_pct": 28.349299308203417,
+          "nll": 2.598135865108572,
+          "correct": 69
+        },
+        "unseen": {
+          "images": 2337,
+          "pairs": 15,
+          "accuracy_pct": 28.326914848095853,
+          "pair_macro_accuracy_pct": 23.07982708017183,
+          "nll": 2.4597435056219474,
+          "correct": 662
+        }
+      }
+    },
+    "T_K": {
+      "train": {
+        "all": {
+          "images": 22998,
+          "pairs": 83,
+          "accuracy_pct": 15.12305417862423,
+          "pair_macro_accuracy_pct": 22.485594092269384,
+          "nll": 2.54986894488978,
+          "correct": 3478
+        }
+      },
+      "val": {
+        "all": {
+          "images": 3214,
+          "pairs": 30,
+          "accuracy_pct": 13.56565028002489,
+          "pair_macro_accuracy_pct": 20.586494396066207,
+          "nll": 2.5736159517933266,
+          "correct": 436
+        },
+        "seen": {
+          "images": 877,
+          "pairs": 15,
+          "accuracy_pct": 8.779931584948688,
+          "pair_macro_accuracy_pct": 17.707219910416256,
+          "nll": 2.5154991965669593,
+          "correct": 77
+        },
+        "unseen": {
+          "images": 2337,
+          "pairs": 15,
+          "accuracy_pct": 15.361574668378264,
+          "pair_macro_accuracy_pct": 23.465768881716155,
+          "nll": 2.595425277567192,
+          "correct": 359
+        }
+      }
+    },
+    "T_perm1": {
+      "train": {
+        "all": {
+          "images": 22998,
+          "pairs": 83,
+          "accuracy_pct": 13.54465605704844,
+          "pair_macro_accuracy_pct": 19.94698984419288,
+          "nll": 2.614975579596114,
+          "correct": 3115
+        }
+      },
+      "val": {
+        "all": {
+          "images": 3214,
+          "pairs": 30,
+          "accuracy_pct": 22.930927193528312,
+          "pair_macro_accuracy_pct": 24.230187130176958,
+          "nll": 2.5749117617490573,
+          "correct": 737
+        },
+        "seen": {
+          "images": 877,
+          "pairs": 15,
+          "accuracy_pct": 23.3751425313569,
+          "pair_macro_accuracy_pct": 24.124698142962984,
+          "nll": 2.59794592129441,
+          "correct": 205
+        },
+        "unseen": {
+          "images": 2337,
+          "pairs": 15,
+          "accuracy_pct": 22.76422764227642,
+          "pair_macro_accuracy_pct": 24.33567611739093,
+          "nll": 2.5662677917356747,
+          "correct": 532
+        }
+      }
+    },
+    "T_perm2": {
+      "train": {
+        "all": {
+          "images": 22998,
+          "pairs": 83,
+          "accuracy_pct": 16.284024697799808,
+          "pair_macro_accuracy_pct": 20.95520160809251,
+          "nll": 2.5954363795108217,
+          "correct": 3745
+        }
+      },
+      "val": {
+        "all": {
+          "images": 3214,
+          "pairs": 30,
+          "accuracy_pct": 20.566272557560673,
+          "pair_macro_accuracy_pct": 18.12098902721605,
+          "nll": 2.5983454450495236,
+          "correct": 661
+        },
+        "seen": {
+          "images": 877,
+          "pairs": 15,
+          "accuracy_pct": 17.67388825541619,
+          "pair_macro_accuracy_pct": 10.158991270863417,
+          "nll": 2.6097709599141745,
+          "correct": 155
+        },
+        "unseen": {
+          "images": 2337,
+          "pairs": 15,
+          "accuracy_pct": 21.651690201112537,
+          "pair_macro_accuracy_pct": 26.082986783568685,
+          "nll": 2.594057821371176,
+          "correct": 506
+        }
+      }
+    },
+    "T_AE": {
+      "train": {
+        "all": {
+          "images": 22998,
+          "pairs": 83,
+          "accuracy_pct": 11.266197060613967,
+          "pair_macro_accuracy_pct": 22.691881028775757,
+          "nll": 2.5099880095655207,
+          "correct": 2591
+        }
+      },
+      "val": {
+        "all": {
+          "images": 3214,
+          "pairs": 30,
+          "accuracy_pct": 21.904169259489734,
+          "pair_macro_accuracy_pct": 22.68296597016421,
+          "nll": 2.451009688092335,
+          "correct": 704
+        },
+        "seen": {
+          "images": 877,
+          "pairs": 15,
+          "accuracy_pct": 11.402508551881414,
+          "pair_macro_accuracy_pct": 23.265364715136407,
+          "nll": 2.42668833269874,
+          "correct": 100
+        },
+        "unseen": {
+          "images": 2337,
+          "pairs": 15,
+          "accuracy_pct": 25.84510055626872,
+          "pair_macro_accuracy_pct": 22.100567225192023,
+          "nll": 2.4601367007924555,
+          "correct": 604
+        }
+      }
+    },
+    "T_AE_perm1": {
+      "train": {
+        "all": {
+          "images": 22998,
+          "pairs": 83,
+          "accuracy_pct": 9.392121054004695,
+          "pair_macro_accuracy_pct": 21.468508873358296,
+          "nll": 2.603353982052048,
+          "correct": 2160
+        }
+      },
+      "val": {
+        "all": {
+          "images": 3214,
+          "pairs": 30,
+          "accuracy_pct": 26.975731176104546,
+          "pair_macro_accuracy_pct": 22.42618799644832,
+          "nll": 2.5309990545187233,
+          "correct": 867
+        },
+        "seen": {
+          "images": 877,
+          "pairs": 15,
+          "accuracy_pct": 12.086659064994299,
+          "pair_macro_accuracy_pct": 21.174969006019236,
+          "nll": 2.5726397431092125,
+          "correct": 106
+        },
+        "unseen": {
+          "images": 2337,
+          "pairs": 15,
+          "accuracy_pct": 32.56311510483526,
+          "pair_macro_accuracy_pct": 23.677406986877404,
+          "nll": 2.515372660041248,
+          "correct": 761
+        }
+      }
+    },
+    "T_AE_perm2": {
+      "train": {
+        "all": {
+          "images": 22998,
+          "pairs": 83,
+          "accuracy_pct": 12.79241673188973,
+          "pair_macro_accuracy_pct": 20.24527264470942,
+          "nll": 2.5797455815483414,
+          "correct": 2942
+        }
+      },
+      "val": {
+        "all": {
+          "images": 3214,
+          "pairs": 30,
+          "accuracy_pct": 24.64219041692595,
+          "pair_macro_accuracy_pct": 20.402672164862288,
+          "nll": 2.499344818630047,
+          "correct": 792
+        },
+        "seen": {
+          "images": 877,
+          "pairs": 15,
+          "accuracy_pct": 9.007981755986318,
+          "pair_macro_accuracy_pct": 14.000883236043052,
+          "nll": 2.5900894738691167,
+          "correct": 79
+        },
+        "unseen": {
+          "images": 2337,
+          "pairs": 15,
+          "accuracy_pct": 30.509199828840394,
+          "pair_macro_accuracy_pct": 26.804461093681514,
+          "nll": 2.4652913044474776,
+          "correct": 713
+        }
+      }
+    }
+  },
+  "cpf_val_reference": {
+    "all": {
+      "images": 3214,
+      "pairs": 30,
+      "accuracy_pct": 33.10516490354698,
+      "pair_macro_accuracy_pct": 32.43698644980624,
+      "nll": 3.7593332751149156,
+      "correct": 1064
+    },
+    "seen": {
+      "images": 877,
+      "pairs": 15,
+      "accuracy_pct": 79.47548460661345,
+      "pair_macro_accuracy_pct": 49.167027797164785,
+      "nll": 1.008048962491984,
+      "correct": 697
+    },
+    "unseen": {
+      "images": 2337,
+      "pairs": 15,
+      "accuracy_pct": 15.703893881044074,
+      "pair_macro_accuracy_pct": 15.706945102447694,
+      "nll": 4.791800687254544,
+      "correct": 367
+    }
+  },
+  "name_transitions_val": {
+    "T_name": {
+      "all": {
+        "images": 3214,
+        "repaired": 0,
+        "damaged": 0,
+        "net_accuracy_pp": 0.0
+      },
+      "seen": {
+        "images": 877,
+        "repaired": 0,
+        "damaged": 0,
+        "net_accuracy_pp": 0.0
+      },
+      "unseen": {
+        "images": 2337,
+        "repaired": 0,
+        "damaged": 0,
+        "net_accuracy_pp": 0.0
+      }
+    },
+    "T_K": {
+      "all": {
+        "images": 3214,
+        "repaired": 209,
+        "damaged": 504,
+        "net_accuracy_pp": -9.178593652769136
+      },
+      "seen": {
+        "images": 877,
+        "repaired": 40,
+        "damaged": 32,
+        "net_accuracy_pp": 0.9122006841505131
+      },
+      "unseen": {
+        "images": 2337,
+        "repaired": 169,
+        "damaged": 472,
+        "net_accuracy_pp": -12.965340179717586
+      }
+    },
+    "T_perm1": {
+      "all": {
+        "images": 3214,
+        "repaired": 365,
+        "damaged": 359,
+        "net_accuracy_pp": 0.18668326073428748
+      },
+      "seen": {
+        "images": 877,
+        "repaired": 152,
+        "damaged": 16,
+        "net_accuracy_pp": 15.507411630558723
+      },
+      "unseen": {
+        "images": 2337,
+        "repaired": 213,
+        "damaged": 343,
+        "net_accuracy_pp": -5.562687205819427
+      }
+    },
+    "T_perm2": {
+      "all": {
+        "images": 3214,
+        "repaired": 332,
+        "damaged": 402,
+        "net_accuracy_pp": -2.177971375233354
+      },
+      "seen": {
+        "images": 877,
+        "repaired": 129,
+        "damaged": 43,
+        "net_accuracy_pp": 9.806157354618016
+      },
+      "unseen": {
+        "images": 2337,
+        "repaired": 203,
+        "damaged": 359,
+        "net_accuracy_pp": -6.675224646983312
+      }
+    },
+    "T_AE": {
+      "all": {
+        "images": 3214,
+        "repaired": 162,
+        "damaged": 189,
+        "net_accuracy_pp": -0.8400746733042938
+      },
+      "seen": {
+        "images": 877,
+        "repaired": 47,
+        "damaged": 16,
+        "net_accuracy_pp": 3.5347776510832385
+      },
+      "unseen": {
+        "images": 2337,
+        "repaired": 115,
+        "damaged": 173,
+        "net_accuracy_pp": -2.4818142918271286
+      }
+    },
+    "T_AE_perm1": {
+      "all": {
+        "images": 3214,
+        "repaired": 291,
+        "damaged": 155,
+        "net_accuracy_pp": 4.231487243310516
+      },
+      "seen": {
+        "images": 877,
+        "repaired": 54,
+        "damaged": 17,
+        "net_accuracy_pp": 4.218928164196123
+      },
+      "unseen": {
+        "images": 2337,
+        "repaired": 237,
+        "damaged": 138,
+        "net_accuracy_pp": 4.2362002567394095
+      }
+    },
+    "T_AE_perm2": {
+      "all": {
+        "images": 3214,
+        "repaired": 248,
+        "damaged": 187,
+        "net_accuracy_pp": 1.897946484131923
+      },
+      "seen": {
+        "images": 877,
+        "repaired": 46,
+        "damaged": 36,
+        "net_accuracy_pp": 1.1402508551881414
+      },
+      "unseen": {
+        "images": 2337,
+        "repaired": 202,
+        "damaged": 151,
+        "net_accuracy_pp": 2.1822849807445444
+      }
+    }
+  },
+  "cpf_transitions_val": {
+    "T_name": {
+      "all": {
+        "images": 3214,
+        "repaired": 678,
+        "damaged": 1011,
+        "net_accuracy_pp": -10.360920970752955
+      },
+      "seen": {
+        "images": 877,
+        "repaired": 41,
+        "damaged": 669,
+        "net_accuracy_pp": -71.60775370581528
+      },
+      "unseen": {
+        "images": 2337,
+        "repaired": 637,
+        "damaged": 342,
+        "net_accuracy_pp": 12.623020967051776
+      }
+    },
+    "T_K": {
+      "all": {
+        "images": 3214,
+        "repaired": 320,
+        "damaged": 948,
+        "net_accuracy_pp": -19.53951462352209
+      },
+      "seen": {
+        "images": 877,
+        "repaired": 31,
+        "damaged": 651,
+        "net_accuracy_pp": -70.69555302166476
+      },
+      "unseen": {
+        "images": 2337,
+        "repaired": 289,
+        "damaged": 297,
+        "net_accuracy_pp": -0.3423192126658109
+      }
+    },
+    "T_perm1": {
+      "all": {
+        "images": 3214,
+        "repaired": 545,
+        "damaged": 872,
+        "net_accuracy_pp": -10.174237710018668
+      },
+      "seen": {
+        "images": 877,
+        "repaired": 64,
+        "damaged": 556,
+        "net_accuracy_pp": -56.100342075256556
+      },
+      "unseen": {
+        "images": 2337,
+        "repaired": 481,
+        "damaged": 316,
+        "net_accuracy_pp": 7.060333761232349
+      }
+    },
+    "T_perm2": {
+      "all": {
+        "images": 3214,
+        "repaired": 462,
+        "damaged": 865,
+        "net_accuracy_pp": -12.53889234598631
+      },
+      "seen": {
+        "images": 877,
+        "repaired": 23,
+        "damaged": 565,
+        "net_accuracy_pp": -61.80159635119726
+      },
+      "unseen": {
+        "images": 2337,
+        "repaired": 439,
+        "damaged": 300,
+        "net_accuracy_pp": 5.947796320068464
+      }
+    },
+    "T_AE": {
+      "all": {
+        "images": 3214,
+        "repaired": 598,
+        "damaged": 958,
+        "net_accuracy_pp": -11.20099564405725
+      },
+      "seen": {
+        "images": 877,
+        "repaired": 34,
+        "damaged": 631,
+        "net_accuracy_pp": -68.07297605473204
+      },
+      "unseen": {
+        "images": 2337,
+        "repaired": 564,
+        "damaged": 327,
+        "net_accuracy_pp": 10.141206675224646
+      }
+    },
+    "T_AE_perm1": {
+      "all": {
+        "images": 3214,
+        "repaired": 801,
+        "damaged": 998,
+        "net_accuracy_pp": -6.129433727442439
+      },
+      "seen": {
+        "images": 877,
+        "repaired": 55,
+        "damaged": 646,
+        "net_accuracy_pp": -67.38882554161916
+      },
+      "unseen": {
+        "images": 2337,
+        "repaired": 746,
+        "damaged": 352,
+        "net_accuracy_pp": 16.859221223791184
+      }
+    },
+    "T_AE_perm2": {
+      "all": {
+        "images": 3214,
+        "repaired": 692,
+        "damaged": 964,
+        "net_accuracy_pp": -8.462974486621032
+      },
+      "seen": {
+        "images": 877,
+        "repaired": 29,
+        "damaged": 647,
+        "net_accuracy_pp": -70.46750285062714
+      },
+      "unseen": {
+        "images": 2337,
+        "repaired": 663,
+        "damaged": 317,
+        "net_accuracy_pp": 14.80530594779632
+      }
+    }
+  },
+  "pair_intervals_val": {
+    "T_K": {
+      "T_name": {
+        "macro_delta_pp": 0.3859418015443235,
+        "pair_cluster_bootstrap_95pct_pp": [
+          -12.1118908413549,
+          13.194913651052703
+        ],
+        "repeats": 2000,
+        "seed": 10102026,
+        "interval_is_descriptive": true
+      },
+      "T_perm1": {
+        "macro_delta_pp": -0.8699072356747782,
+        "pair_cluster_bootstrap_95pct_pp": [
+          -12.599542622318218,
+          12.609343564739985
+        ],
+        "repeats": 2000,
+        "seed": 10102026,
+        "interval_is_descriptive": true
+      },
+      "T_perm2": {
+        "macro_delta_pp": -2.617217901852534,
+        "pair_cluster_bootstrap_95pct_pp": [
+          -11.21877687800065,
+          6.811060273969676
+        ],
+        "repeats": 2000,
+        "seed": 10102026,
+        "interval_is_descriptive": true
+      }
+    },
+    "T_AE": {
+      "T_name": {
+        "macro_delta_pp": -0.9792598549798064,
+        "pair_cluster_bootstrap_95pct_pp": [
+          -10.075199832354892,
+          6.869525914885372
+        ],
+        "repeats": 2000,
+        "seed": 10102026,
+        "interval_is_descriptive": true
+      },
+      "T_AE_perm1": {
+        "macro_delta_pp": -1.5768397616853822,
+        "pair_cluster_bootstrap_95pct_pp": [
+          -13.989022490592227,
+          11.863354908312084
+        ],
+        "repeats": 2000,
+        "seed": 10102026,
+        "interval_is_descriptive": true
+      },
+      "T_AE_perm2": {
+        "macro_delta_pp": -4.703893868489488,
+        "pair_cluster_bootstrap_95pct_pp": [
+          -12.708127190264284,
+          2.73446570931397
+        ],
+        "repeats": 2000,
+        "seed": 10102026,
+        "interval_is_descriptive": true
+      }
+    }
+  },
+  "details": {
+    "per_pair": {
+      "train": [
+        {
+          "attr": "Canvas",
+          "object": "Boots.Ankle",
+          "images": 51,
+          "seen": true,
+          "correct": {
+            "T_name": 0,
+            "T_K": 7,
+            "T_perm1": 5,
+            "T_perm2": 0,
+            "T_AE": 4,
+            "T_AE_perm1": 5,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": 7,
+          "AE_net_vs_name": 4
+        },
+        {
+          "attr": "Faux.Fur",
+          "object": "Boots.Ankle",
+          "images": 13,
+          "seen": true,
+          "correct": {
+            "T_name": 9,
+            "T_K": 9,
+            "T_perm1": 9,
+            "T_perm2": 11,
+            "T_AE": 9,
+            "T_AE_perm1": 9,
+            "T_AE_perm2": 11
+          },
+          "K_net_vs_name": 0,
+          "AE_net_vs_name": 0
+        },
+        {
+          "attr": "Faux.Leather",
+          "object": "Boots.Ankle",
+          "images": 49,
+          "seen": true,
+          "correct": {
+            "T_name": 40,
+            "T_K": 28,
+            "T_perm1": 5,
+            "T_perm2": 35,
+            "T_AE": 40,
+            "T_AE_perm1": 2,
+            "T_AE_perm2": 31
+          },
+          "K_net_vs_name": -12,
+          "AE_net_vs_name": 0
+        },
+        {
+          "attr": "Hair.Calf",
+          "object": "Boots.Ankle",
+          "images": 14,
+          "seen": true,
+          "correct": {
+            "T_name": 0,
+            "T_K": 0,
+            "T_perm1": 0,
+            "T_perm2": 0,
+            "T_AE": 0,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": 0,
+          "AE_net_vs_name": 0
+        },
+        {
+          "attr": "Leather",
+          "object": "Boots.Ankle",
+          "images": 1728,
+          "seen": true,
+          "correct": {
+            "T_name": 0,
+            "T_K": 270,
+            "T_perm1": 46,
+            "T_perm2": 77,
+            "T_AE": 25,
+            "T_AE_perm1": 22,
+            "T_AE_perm2": 13
+          },
+          "K_net_vs_name": 270,
+          "AE_net_vs_name": 25
+        },
+        {
+          "attr": "Nubuck",
+          "object": "Boots.Ankle",
+          "images": 40,
+          "seen": true,
+          "correct": {
+            "T_name": 19,
+            "T_K": 7,
+            "T_perm1": 1,
+            "T_perm2": 11,
+            "T_AE": 4,
+            "T_AE_perm1": 8,
+            "T_AE_perm2": 19
+          },
+          "K_net_vs_name": -12,
+          "AE_net_vs_name": -15
+        },
+        {
+          "attr": "Patent.Leather",
+          "object": "Boots.Ankle",
+          "images": 19,
+          "seen": true,
+          "correct": {
+            "T_name": 11,
+            "T_K": 14,
+            "T_perm1": 12,
+            "T_perm2": 18,
+            "T_AE": 15,
+            "T_AE_perm1": 16,
+            "T_AE_perm2": 13
+          },
+          "K_net_vs_name": 3,
+          "AE_net_vs_name": 4
+        },
+        {
+          "attr": "Suede",
+          "object": "Boots.Ankle",
+          "images": 846,
+          "seen": true,
+          "correct": {
+            "T_name": 116,
+            "T_K": 465,
+            "T_perm1": 535,
+            "T_perm2": 495,
+            "T_AE": 267,
+            "T_AE_perm1": 121,
+            "T_AE_perm2": 394
+          },
+          "K_net_vs_name": 349,
+          "AE_net_vs_name": 151
+        },
+        {
+          "attr": "Full.grain.leather",
+          "object": "Boots.Knee.High",
+          "images": 78,
+          "seen": true,
+          "correct": {
+            "T_name": 29,
+            "T_K": 3,
+            "T_perm1": 40,
+            "T_perm2": 1,
+            "T_AE": 37,
+            "T_AE_perm1": 69,
+            "T_AE_perm2": 10
+          },
+          "K_net_vs_name": -26,
+          "AE_net_vs_name": 8
+        },
+        {
+          "attr": "Leather",
+          "object": "Boots.Knee.High",
+          "images": 989,
+          "seen": true,
+          "correct": {
+            "T_name": 0,
+            "T_K": 0,
+            "T_perm1": 9,
+            "T_perm2": 17,
+            "T_AE": 0,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": 0,
+          "AE_net_vs_name": 0
+        },
+        {
+          "attr": "Nylon",
+          "object": "Boots.Knee.High",
+          "images": 15,
+          "seen": true,
+          "correct": {
+            "T_name": 0,
+            "T_K": 1,
+            "T_perm1": 3,
+            "T_perm2": 0,
+            "T_AE": 1,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": 1,
+          "AE_net_vs_name": 1
+        },
+        {
+          "attr": "Rubber",
+          "object": "Boots.Knee.High",
+          "images": 85,
+          "seen": true,
+          "correct": {
+            "T_name": 2,
+            "T_K": 16,
+            "T_perm1": 8,
+            "T_perm2": 19,
+            "T_AE": 14,
+            "T_AE_perm1": 7,
+            "T_AE_perm2": 17
+          },
+          "K_net_vs_name": 14,
+          "AE_net_vs_name": 12
+        },
+        {
+          "attr": "Suede",
+          "object": "Boots.Knee.High",
+          "images": 258,
+          "seen": true,
+          "correct": {
+            "T_name": 9,
+            "T_K": 88,
+            "T_perm1": 124,
+            "T_perm2": 47,
+            "T_AE": 23,
+            "T_AE_perm1": 1,
+            "T_AE_perm2": 51
+          },
+          "K_net_vs_name": 79,
+          "AE_net_vs_name": 14
+        },
+        {
+          "attr": "Synthetic",
+          "object": "Boots.Knee.High",
+          "images": 179,
+          "seen": true,
+          "correct": {
+            "T_name": 3,
+            "T_K": 1,
+            "T_perm1": 0,
+            "T_perm2": 0,
+            "T_AE": 0,
+            "T_AE_perm1": 1,
+            "T_AE_perm2": 4
+          },
+          "K_net_vs_name": -2,
+          "AE_net_vs_name": -3
+        },
+        {
+          "attr": "Canvas",
+          "object": "Boots.Mid-Calf",
+          "images": 12,
+          "seen": true,
+          "correct": {
+            "T_name": 1,
+            "T_K": 2,
+            "T_perm1": 3,
+            "T_perm2": 0,
+            "T_AE": 1,
+            "T_AE_perm1": 4,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": 1,
+          "AE_net_vs_name": 0
+        },
+        {
+          "attr": "Cotton",
+          "object": "Boots.Mid-Calf",
+          "images": 15,
+          "seen": true,
+          "correct": {
+            "T_name": 0,
+            "T_K": 0,
+            "T_perm1": 0,
+            "T_perm2": 1,
+            "T_AE": 0,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": 0,
+          "AE_net_vs_name": 0
+        },
+        {
+          "attr": "Full.grain.leather",
+          "object": "Boots.Mid-Calf",
+          "images": 151,
+          "seen": true,
+          "correct": {
+            "T_name": 71,
+            "T_K": 17,
+            "T_perm1": 82,
+            "T_perm2": 0,
+            "T_AE": 62,
+            "T_AE_perm1": 107,
+            "T_AE_perm2": 51
+          },
+          "K_net_vs_name": -54,
+          "AE_net_vs_name": -9
+        },
+        {
+          "attr": "Leather",
+          "object": "Boots.Mid-Calf",
+          "images": 1053,
+          "seen": true,
+          "correct": {
+            "T_name": 0,
+            "T_K": 43,
+            "T_perm1": 2,
+            "T_perm2": 144,
+            "T_AE": 31,
+            "T_AE_perm1": 3,
+            "T_AE_perm2": 3
+          },
+          "K_net_vs_name": 43,
+          "AE_net_vs_name": 31
+        },
+        {
+          "attr": "Nubuck",
+          "object": "Boots.Mid-Calf",
+          "images": 11,
+          "seen": true,
+          "correct": {
+            "T_name": 6,
+            "T_K": 2,
+            "T_perm1": 1,
+            "T_perm2": 3,
+            "T_AE": 1,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 4
+          },
+          "K_net_vs_name": -4,
+          "AE_net_vs_name": -5
+        },
+        {
+          "attr": "Nylon",
+          "object": "Boots.Mid-Calf",
+          "images": 150,
+          "seen": true,
+          "correct": {
+            "T_name": 22,
+            "T_K": 105,
+            "T_perm1": 18,
+            "T_perm2": 41,
+            "T_AE": 60,
+            "T_AE_perm1": 23,
+            "T_AE_perm2": 4
+          },
+          "K_net_vs_name": 83,
+          "AE_net_vs_name": 38
+        },
+        {
+          "attr": "Patent.Leather",
+          "object": "Boots.Mid-Calf",
+          "images": 19,
+          "seen": true,
+          "correct": {
+            "T_name": 6,
+            "T_K": 5,
+            "T_perm1": 4,
+            "T_perm2": 9,
+            "T_AE": 8,
+            "T_AE_perm1": 9,
+            "T_AE_perm2": 9
+          },
+          "K_net_vs_name": -1,
+          "AE_net_vs_name": 2
+        },
+        {
+          "attr": "Rubber",
+          "object": "Boots.Mid-Calf",
+          "images": 310,
+          "seen": true,
+          "correct": {
+            "T_name": 35,
+            "T_K": 38,
+            "T_perm1": 147,
+            "T_perm2": 57,
+            "T_AE": 77,
+            "T_AE_perm1": 56,
+            "T_AE_perm2": 25
+          },
+          "K_net_vs_name": 3,
+          "AE_net_vs_name": 42
+        },
+        {
+          "attr": "Sheepskin",
+          "object": "Boots.Mid-Calf",
+          "images": 54,
+          "seen": true,
+          "correct": {
+            "T_name": 0,
+            "T_K": 0,
+            "T_perm1": 0,
+            "T_perm2": 9,
+            "T_AE": 7,
+            "T_AE_perm1": 6,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": 0,
+          "AE_net_vs_name": 7
+        },
+        {
+          "attr": "Canvas",
+          "object": "Sandals",
+          "images": 28,
+          "seen": true,
+          "correct": {
+            "T_name": 0,
+            "T_K": 3,
+            "T_perm1": 1,
+            "T_perm2": 0,
+            "T_AE": 1,
+            "T_AE_perm1": 1,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": 3,
+          "AE_net_vs_name": 1
+        },
+        {
+          "attr": "Faux.Leather",
+          "object": "Sandals",
+          "images": 125,
+          "seen": true,
+          "correct": {
+            "T_name": 44,
+            "T_K": 80,
+            "T_perm1": 5,
+            "T_perm2": 66,
+            "T_AE": 66,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 35
+          },
+          "K_net_vs_name": 36,
+          "AE_net_vs_name": 22
+        },
+        {
+          "attr": "Full.grain.leather",
+          "object": "Sandals",
+          "images": 86,
+          "seen": true,
+          "correct": {
+            "T_name": 21,
+            "T_K": 0,
+            "T_perm1": 30,
+            "T_perm2": 1,
+            "T_AE": 12,
+            "T_AE_perm1": 48,
+            "T_AE_perm2": 28
+          },
+          "K_net_vs_name": -21,
+          "AE_net_vs_name": -9
+        },
+        {
+          "attr": "Hair.Calf",
+          "object": "Sandals",
+          "images": 12,
+          "seen": true,
+          "correct": {
+            "T_name": 0,
+            "T_K": 0,
+            "T_perm1": 0,
+            "T_perm2": 0,
+            "T_AE": 0,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": 0,
+          "AE_net_vs_name": 0
+        },
+        {
+          "attr": "Leather",
+          "object": "Sandals",
+          "images": 2230,
+          "seen": true,
+          "correct": {
+            "T_name": 0,
+            "T_K": 18,
+            "T_perm1": 58,
+            "T_perm2": 15,
+            "T_AE": 17,
+            "T_AE_perm1": 4,
+            "T_AE_perm2": 1
+          },
+          "K_net_vs_name": 18,
+          "AE_net_vs_name": 17
+        },
+        {
+          "attr": "Nylon",
+          "object": "Sandals",
+          "images": 19,
+          "seen": true,
+          "correct": {
+            "T_name": 0,
+            "T_K": 5,
+            "T_perm1": 0,
+            "T_perm2": 6,
+            "T_AE": 0,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": 5,
+          "AE_net_vs_name": 0
+        },
+        {
+          "attr": "Suede",
+          "object": "Sandals",
+          "images": 151,
+          "seen": true,
+          "correct": {
+            "T_name": 5,
+            "T_K": 16,
+            "T_perm1": 16,
+            "T_perm2": 40,
+            "T_AE": 5,
+            "T_AE_perm1": 5,
+            "T_AE_perm2": 29
+          },
+          "K_net_vs_name": 11,
+          "AE_net_vs_name": 0
+        },
+        {
+          "attr": "Full.grain.leather",
+          "object": "Shoes.Boat.Shoes",
+          "images": 13,
+          "seen": true,
+          "correct": {
+            "T_name": 1,
+            "T_K": 0,
+            "T_perm1": 1,
+            "T_perm2": 0,
+            "T_AE": 2,
+            "T_AE_perm1": 7,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": -1,
+          "AE_net_vs_name": 1
+        },
+        {
+          "attr": "Suede",
+          "object": "Shoes.Boat.Shoes",
+          "images": 42,
+          "seen": true,
+          "correct": {
+            "T_name": 17,
+            "T_K": 32,
+            "T_perm1": 24,
+            "T_perm2": 21,
+            "T_AE": 15,
+            "T_AE_perm1": 5,
+            "T_AE_perm2": 24
+          },
+          "K_net_vs_name": 15,
+          "AE_net_vs_name": -2
+        },
+        {
+          "attr": "Canvas",
+          "object": "Shoes.Clogs.and.Mules",
+          "images": 17,
+          "seen": true,
+          "correct": {
+            "T_name": 0,
+            "T_K": 2,
+            "T_perm1": 2,
+            "T_perm2": 0,
+            "T_AE": 0,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": 2,
+          "AE_net_vs_name": 0
+        },
+        {
+          "attr": "Leather",
+          "object": "Shoes.Clogs.and.Mules",
+          "images": 435,
+          "seen": true,
+          "correct": {
+            "T_name": 0,
+            "T_K": 29,
+            "T_perm1": 0,
+            "T_perm2": 8,
+            "T_AE": 22,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": 29,
+          "AE_net_vs_name": 22
+        },
+        {
+          "attr": "Nubuck",
+          "object": "Shoes.Clogs.and.Mules",
+          "images": 11,
+          "seen": true,
+          "correct": {
+            "T_name": 7,
+            "T_K": 4,
+            "T_perm1": 2,
+            "T_perm2": 1,
+            "T_AE": 3,
+            "T_AE_perm1": 4,
+            "T_AE_perm2": 4
+          },
+          "K_net_vs_name": -3,
+          "AE_net_vs_name": -4
+        },
+        {
+          "attr": "Patent.Leather",
+          "object": "Shoes.Clogs.and.Mules",
+          "images": 44,
+          "seen": true,
+          "correct": {
+            "T_name": 31,
+            "T_K": 31,
+            "T_perm1": 17,
+            "T_perm2": 37,
+            "T_AE": 39,
+            "T_AE_perm1": 39,
+            "T_AE_perm2": 31
+          },
+          "K_net_vs_name": 0,
+          "AE_net_vs_name": 8
+        },
+        {
+          "attr": "Synthetic",
+          "object": "Shoes.Clogs.and.Mules",
+          "images": 90,
+          "seen": true,
+          "correct": {
+            "T_name": 48,
+            "T_K": 17,
+            "T_perm1": 1,
+            "T_perm2": 13,
+            "T_AE": 68,
+            "T_AE_perm1": 68,
+            "T_AE_perm2": 65
+          },
+          "K_net_vs_name": -31,
+          "AE_net_vs_name": 20
+        },
+        {
+          "attr": "Wool",
+          "object": "Shoes.Clogs.and.Mules",
+          "images": 11,
+          "seen": true,
+          "correct": {
+            "T_name": 4,
+            "T_K": 6,
+            "T_perm1": 2,
+            "T_perm2": 0,
+            "T_AE": 6,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": 2,
+          "AE_net_vs_name": 2
+        },
+        {
+          "attr": "Faux.Leather",
+          "object": "Shoes.Flats",
+          "images": 36,
+          "seen": true,
+          "correct": {
+            "T_name": 21,
+            "T_K": 8,
+            "T_perm1": 0,
+            "T_perm2": 11,
+            "T_AE": 10,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 1
+          },
+          "K_net_vs_name": -13,
+          "AE_net_vs_name": -11
+        },
+        {
+          "attr": "Full.grain.leather",
+          "object": "Shoes.Flats",
+          "images": 71,
+          "seen": true,
+          "correct": {
+            "T_name": 9,
+            "T_K": 0,
+            "T_perm1": 6,
+            "T_perm2": 0,
+            "T_AE": 2,
+            "T_AE_perm1": 49,
+            "T_AE_perm2": 12
+          },
+          "K_net_vs_name": -9,
+          "AE_net_vs_name": -7
+        },
+        {
+          "attr": "Hair.Calf",
+          "object": "Shoes.Flats",
+          "images": 17,
+          "seen": true,
+          "correct": {
+            "T_name": 0,
+            "T_K": 0,
+            "T_perm1": 0,
+            "T_perm2": 0,
+            "T_AE": 0,
+            "T_AE_perm1": 2,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": 0,
+          "AE_net_vs_name": 0
+        },
+        {
+          "attr": "Leather",
+          "object": "Shoes.Flats",
+          "images": 1236,
+          "seen": true,
+          "correct": {
+            "T_name": 2,
+            "T_K": 65,
+            "T_perm1": 19,
+            "T_perm2": 9,
+            "T_AE": 112,
+            "T_AE_perm1": 6,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": 63,
+          "AE_net_vs_name": 110
+        },
+        {
+          "attr": "Nubuck",
+          "object": "Shoes.Flats",
+          "images": 26,
+          "seen": true,
+          "correct": {
+            "T_name": 9,
+            "T_K": 0,
+            "T_perm1": 1,
+            "T_perm2": 1,
+            "T_AE": 0,
+            "T_AE_perm1": 3,
+            "T_AE_perm2": 2
+          },
+          "K_net_vs_name": -9,
+          "AE_net_vs_name": -9
+        },
+        {
+          "attr": "Rubber",
+          "object": "Shoes.Flats",
+          "images": 16,
+          "seen": true,
+          "correct": {
+            "T_name": 0,
+            "T_K": 0,
+            "T_perm1": 1,
+            "T_perm2": 2,
+            "T_AE": 0,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": 0,
+          "AE_net_vs_name": 0
+        },
+        {
+          "attr": "Satin",
+          "object": "Shoes.Flats",
+          "images": 12,
+          "seen": true,
+          "correct": {
+            "T_name": 4,
+            "T_K": 11,
+            "T_perm1": 10,
+            "T_perm2": 2,
+            "T_AE": 8,
+            "T_AE_perm1": 1,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": 7,
+          "AE_net_vs_name": 4
+        },
+        {
+          "attr": "Suede",
+          "object": "Shoes.Flats",
+          "images": 352,
+          "seen": true,
+          "correct": {
+            "T_name": 48,
+            "T_K": 73,
+            "T_perm1": 44,
+            "T_perm2": 142,
+            "T_AE": 55,
+            "T_AE_perm1": 8,
+            "T_AE_perm2": 213
+          },
+          "K_net_vs_name": 25,
+          "AE_net_vs_name": 7
+        },
+        {
+          "attr": "Synthetic",
+          "object": "Shoes.Flats",
+          "images": 527,
+          "seen": true,
+          "correct": {
+            "T_name": 16,
+            "T_K": 2,
+            "T_perm1": 0,
+            "T_perm2": 8,
+            "T_AE": 7,
+            "T_AE_perm1": 34,
+            "T_AE_perm2": 6
+          },
+          "K_net_vs_name": -14,
+          "AE_net_vs_name": -9
+        },
+        {
+          "attr": "Cotton",
+          "object": "Shoes.Heels",
+          "images": 20,
+          "seen": true,
+          "correct": {
+            "T_name": 1,
+            "T_K": 1,
+            "T_perm1": 0,
+            "T_perm2": 0,
+            "T_AE": 1,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": 0,
+          "AE_net_vs_name": 0
+        },
+        {
+          "attr": "Faux.Leather",
+          "object": "Shoes.Heels",
+          "images": 105,
+          "seen": true,
+          "correct": {
+            "T_name": 36,
+            "T_K": 30,
+            "T_perm1": 3,
+            "T_perm2": 41,
+            "T_AE": 34,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 34
+          },
+          "K_net_vs_name": -6,
+          "AE_net_vs_name": -2
+        },
+        {
+          "attr": "Full.grain.leather",
+          "object": "Shoes.Heels",
+          "images": 43,
+          "seen": true,
+          "correct": {
+            "T_name": 19,
+            "T_K": 10,
+            "T_perm1": 27,
+            "T_perm2": 5,
+            "T_AE": 22,
+            "T_AE_perm1": 38,
+            "T_AE_perm2": 21
+          },
+          "K_net_vs_name": -9,
+          "AE_net_vs_name": 3
+        },
+        {
+          "attr": "Leather",
+          "object": "Shoes.Heels",
+          "images": 1807,
+          "seen": true,
+          "correct": {
+            "T_name": 0,
+            "T_K": 257,
+            "T_perm1": 36,
+            "T_perm2": 46,
+            "T_AE": 12,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 1
+          },
+          "K_net_vs_name": 257,
+          "AE_net_vs_name": 12
+        },
+        {
+          "attr": "Nubuck",
+          "object": "Shoes.Heels",
+          "images": 30,
+          "seen": true,
+          "correct": {
+            "T_name": 23,
+            "T_K": 4,
+            "T_perm1": 0,
+            "T_perm2": 1,
+            "T_AE": 6,
+            "T_AE_perm1": 1,
+            "T_AE_perm2": 6
+          },
+          "K_net_vs_name": -19,
+          "AE_net_vs_name": -17
+        },
+        {
+          "attr": "Patent.Leather",
+          "object": "Shoes.Heels",
+          "images": 504,
+          "seen": true,
+          "correct": {
+            "T_name": 275,
+            "T_K": 282,
+            "T_perm1": 251,
+            "T_perm2": 323,
+            "T_AE": 287,
+            "T_AE_perm1": 313,
+            "T_AE_perm2": 332
+          },
+          "K_net_vs_name": 7,
+          "AE_net_vs_name": 12
+        },
+        {
+          "attr": "Satin",
+          "object": "Shoes.Heels",
+          "images": 295,
+          "seen": true,
+          "correct": {
+            "T_name": 148,
+            "T_K": 252,
+            "T_perm1": 255,
+            "T_perm2": 142,
+            "T_AE": 215,
+            "T_AE_perm1": 191,
+            "T_AE_perm2": 136
+          },
+          "K_net_vs_name": 104,
+          "AE_net_vs_name": 67
+        },
+        {
+          "attr": "Suede",
+          "object": "Shoes.Heels",
+          "images": 816,
+          "seen": true,
+          "correct": {
+            "T_name": 80,
+            "T_K": 444,
+            "T_perm1": 370,
+            "T_perm2": 619,
+            "T_AE": 277,
+            "T_AE_perm1": 150,
+            "T_AE_perm2": 561
+          },
+          "K_net_vs_name": 364,
+          "AE_net_vs_name": 197
+        },
+        {
+          "attr": "Synthetic",
+          "object": "Shoes.Heels",
+          "images": 586,
+          "seen": true,
+          "correct": {
+            "T_name": 34,
+            "T_K": 0,
+            "T_perm1": 0,
+            "T_perm2": 8,
+            "T_AE": 11,
+            "T_AE_perm1": 12,
+            "T_AE_perm2": 12
+          },
+          "K_net_vs_name": -34,
+          "AE_net_vs_name": -23
+        },
+        {
+          "attr": "Cotton",
+          "object": "Shoes.Loafers",
+          "images": 10,
+          "seen": true,
+          "correct": {
+            "T_name": 0,
+            "T_K": 0,
+            "T_perm1": 0,
+            "T_perm2": 0,
+            "T_AE": 0,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": 0,
+          "AE_net_vs_name": 0
+        },
+        {
+          "attr": "Faux.Leather",
+          "object": "Shoes.Loafers",
+          "images": 15,
+          "seen": true,
+          "correct": {
+            "T_name": 7,
+            "T_K": 4,
+            "T_perm1": 0,
+            "T_perm2": 4,
+            "T_AE": 4,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 1
+          },
+          "K_net_vs_name": -3,
+          "AE_net_vs_name": -3
+        },
+        {
+          "attr": "Hair.Calf",
+          "object": "Shoes.Loafers",
+          "images": 13,
+          "seen": true,
+          "correct": {
+            "T_name": 0,
+            "T_K": 0,
+            "T_perm1": 0,
+            "T_perm2": 0,
+            "T_AE": 0,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": 0,
+          "AE_net_vs_name": 0
+        },
+        {
+          "attr": "Leather",
+          "object": "Shoes.Loafers",
+          "images": 1332,
+          "seen": true,
+          "correct": {
+            "T_name": 0,
+            "T_K": 31,
+            "T_perm1": 83,
+            "T_perm2": 222,
+            "T_AE": 28,
+            "T_AE_perm1": 16,
+            "T_AE_perm2": 52
+          },
+          "K_net_vs_name": 31,
+          "AE_net_vs_name": 28
+        },
+        {
+          "attr": "Nubuck",
+          "object": "Shoes.Loafers",
+          "images": 15,
+          "seen": true,
+          "correct": {
+            "T_name": 14,
+            "T_K": 1,
+            "T_perm1": 7,
+            "T_perm2": 0,
+            "T_AE": 1,
+            "T_AE_perm1": 8,
+            "T_AE_perm2": 4
+          },
+          "K_net_vs_name": -13,
+          "AE_net_vs_name": -13
+        },
+        {
+          "attr": "Patent.Leather",
+          "object": "Shoes.Loafers",
+          "images": 59,
+          "seen": true,
+          "correct": {
+            "T_name": 40,
+            "T_K": 31,
+            "T_perm1": 37,
+            "T_perm2": 45,
+            "T_AE": 36,
+            "T_AE_perm1": 41,
+            "T_AE_perm2": 47
+          },
+          "K_net_vs_name": -9,
+          "AE_net_vs_name": -4
+        },
+        {
+          "attr": "Suede",
+          "object": "Shoes.Loafers",
+          "images": 348,
+          "seen": true,
+          "correct": {
+            "T_name": 19,
+            "T_K": 118,
+            "T_perm1": 82,
+            "T_perm2": 200,
+            "T_AE": 29,
+            "T_AE_perm1": 1,
+            "T_AE_perm2": 137
+          },
+          "K_net_vs_name": 99,
+          "AE_net_vs_name": 10
+        },
+        {
+          "attr": "Synthetic",
+          "object": "Shoes.Loafers",
+          "images": 94,
+          "seen": true,
+          "correct": {
+            "T_name": 18,
+            "T_K": 0,
+            "T_perm1": 0,
+            "T_perm2": 1,
+            "T_AE": 8,
+            "T_AE_perm1": 9,
+            "T_AE_perm2": 6
+          },
+          "K_net_vs_name": -18,
+          "AE_net_vs_name": -10
+        },
+        {
+          "attr": "Canvas",
+          "object": "Shoes.Oxfords",
+          "images": 12,
+          "seen": true,
+          "correct": {
+            "T_name": 1,
+            "T_K": 7,
+            "T_perm1": 8,
+            "T_perm2": 5,
+            "T_AE": 6,
+            "T_AE_perm1": 6,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": 6,
+          "AE_net_vs_name": 5
+        },
+        {
+          "attr": "Full.grain.leather",
+          "object": "Shoes.Oxfords",
+          "images": 141,
+          "seen": true,
+          "correct": {
+            "T_name": 22,
+            "T_K": 0,
+            "T_perm1": 29,
+            "T_perm2": 0,
+            "T_AE": 16,
+            "T_AE_perm1": 94,
+            "T_AE_perm2": 12
+          },
+          "K_net_vs_name": -22,
+          "AE_net_vs_name": -6
+        },
+        {
+          "attr": "Leather",
+          "object": "Shoes.Oxfords",
+          "images": 866,
+          "seen": true,
+          "correct": {
+            "T_name": 1,
+            "T_K": 21,
+            "T_perm1": 266,
+            "T_perm2": 295,
+            "T_AE": 36,
+            "T_AE_perm1": 34,
+            "T_AE_perm2": 65
+          },
+          "K_net_vs_name": 20,
+          "AE_net_vs_name": 35
+        },
+        {
+          "attr": "Patent.Leather",
+          "object": "Shoes.Oxfords",
+          "images": 32,
+          "seen": true,
+          "correct": {
+            "T_name": 23,
+            "T_K": 20,
+            "T_perm1": 20,
+            "T_perm2": 24,
+            "T_AE": 24,
+            "T_AE_perm1": 24,
+            "T_AE_perm2": 29
+          },
+          "K_net_vs_name": -3,
+          "AE_net_vs_name": 1
+        },
+        {
+          "attr": "Synthetic",
+          "object": "Shoes.Oxfords",
+          "images": 37,
+          "seen": true,
+          "correct": {
+            "T_name": 3,
+            "T_K": 1,
+            "T_perm1": 0,
+            "T_perm2": 0,
+            "T_AE": 0,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": -2,
+          "AE_net_vs_name": -3
+        },
+        {
+          "attr": "Canvas",
+          "object": "Shoes.Sneakers.and.Athletic.Shoes",
+          "images": 761,
+          "seen": true,
+          "correct": {
+            "T_name": 0,
+            "T_K": 91,
+            "T_perm1": 68,
+            "T_perm2": 24,
+            "T_AE": 3,
+            "T_AE_perm1": 81,
+            "T_AE_perm2": 1
+          },
+          "K_net_vs_name": 91,
+          "AE_net_vs_name": 3
+        },
+        {
+          "attr": "Cotton",
+          "object": "Shoes.Sneakers.and.Athletic.Shoes",
+          "images": 10,
+          "seen": true,
+          "correct": {
+            "T_name": 2,
+            "T_K": 1,
+            "T_perm1": 3,
+            "T_perm2": 3,
+            "T_AE": 1,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": -1,
+          "AE_net_vs_name": -1
+        },
+        {
+          "attr": "Faux.Leather",
+          "object": "Shoes.Sneakers.and.Athletic.Shoes",
+          "images": 56,
+          "seen": true,
+          "correct": {
+            "T_name": 4,
+            "T_K": 17,
+            "T_perm1": 9,
+            "T_perm2": 7,
+            "T_AE": 23,
+            "T_AE_perm1": 2,
+            "T_AE_perm2": 4
+          },
+          "K_net_vs_name": 13,
+          "AE_net_vs_name": 19
+        },
+        {
+          "attr": "Full.grain.leather",
+          "object": "Shoes.Sneakers.and.Athletic.Shoes",
+          "images": 145,
+          "seen": true,
+          "correct": {
+            "T_name": 19,
+            "T_K": 1,
+            "T_perm1": 45,
+            "T_perm2": 18,
+            "T_AE": 42,
+            "T_AE_perm1": 93,
+            "T_AE_perm2": 76
+          },
+          "K_net_vs_name": -18,
+          "AE_net_vs_name": 23
+        },
+        {
+          "attr": "Leather",
+          "object": "Shoes.Sneakers.and.Athletic.Shoes",
+          "images": 1528,
+          "seen": true,
+          "correct": {
+            "T_name": 0,
+            "T_K": 81,
+            "T_perm1": 66,
+            "T_perm2": 46,
+            "T_AE": 3,
+            "T_AE_perm1": 7,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": 81,
+          "AE_net_vs_name": 3
+        },
+        {
+          "attr": "Nubuck",
+          "object": "Shoes.Sneakers.and.Athletic.Shoes",
+          "images": 61,
+          "seen": true,
+          "correct": {
+            "T_name": 22,
+            "T_K": 10,
+            "T_perm1": 5,
+            "T_perm2": 7,
+            "T_AE": 2,
+            "T_AE_perm1": 4,
+            "T_AE_perm2": 9
+          },
+          "K_net_vs_name": -12,
+          "AE_net_vs_name": -20
+        },
+        {
+          "attr": "Nylon",
+          "object": "Shoes.Sneakers.and.Athletic.Shoes",
+          "images": 20,
+          "seen": true,
+          "correct": {
+            "T_name": 0,
+            "T_K": 2,
+            "T_perm1": 2,
+            "T_perm2": 1,
+            "T_AE": 1,
+            "T_AE_perm1": 2,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": 2,
+          "AE_net_vs_name": 1
+        },
+        {
+          "attr": "Rubber",
+          "object": "Shoes.Sneakers.and.Athletic.Shoes",
+          "images": 60,
+          "seen": true,
+          "correct": {
+            "T_name": 0,
+            "T_K": 0,
+            "T_perm1": 0,
+            "T_perm2": 4,
+            "T_AE": 1,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 1
+          },
+          "K_net_vs_name": 0,
+          "AE_net_vs_name": 1
+        },
+        {
+          "attr": "Suede",
+          "object": "Shoes.Sneakers.and.Athletic.Shoes",
+          "images": 397,
+          "seen": true,
+          "correct": {
+            "T_name": 3,
+            "T_K": 123,
+            "T_perm1": 61,
+            "T_perm2": 148,
+            "T_AE": 8,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 90
+          },
+          "K_net_vs_name": 120,
+          "AE_net_vs_name": 5
+        },
+        {
+          "attr": "Synthetic",
+          "object": "Shoes.Sneakers.and.Athletic.Shoes",
+          "images": 798,
+          "seen": true,
+          "correct": {
+            "T_name": 482,
+            "T_K": 5,
+            "T_perm1": 42,
+            "T_perm2": 92,
+            "T_AE": 193,
+            "T_AE_perm1": 226,
+            "T_AE_perm2": 159
+          },
+          "K_net_vs_name": -477,
+          "AE_net_vs_name": -289
+        },
+        {
+          "attr": "Faux.Fur",
+          "object": "Slippers",
+          "images": 32,
+          "seen": true,
+          "correct": {
+            "T_name": 21,
+            "T_K": 24,
+            "T_perm1": 29,
+            "T_perm2": 28,
+            "T_AE": 20,
+            "T_AE_perm1": 26,
+            "T_AE_perm2": 24
+          },
+          "K_net_vs_name": 3,
+          "AE_net_vs_name": -1
+        },
+        {
+          "attr": "Sheepskin",
+          "object": "Slippers",
+          "images": 31,
+          "seen": true,
+          "correct": {
+            "T_name": 11,
+            "T_K": 11,
+            "T_perm1": 4,
+            "T_perm2": 7,
+            "T_AE": 16,
+            "T_AE_perm1": 19,
+            "T_AE_perm2": 10
+          },
+          "K_net_vs_name": 0,
+          "AE_net_vs_name": 5
+        },
+        {
+          "attr": "Synthetic",
+          "object": "Slippers",
+          "images": 46,
+          "seen": true,
+          "correct": {
+            "T_name": 5,
+            "T_K": 0,
+            "T_perm1": 0,
+            "T_perm2": 0,
+            "T_AE": 9,
+            "T_AE_perm1": 3,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": -5,
+          "AE_net_vs_name": 4
+        },
+        {
+          "attr": "Wool",
+          "object": "Slippers",
+          "images": 127,
+          "seen": true,
+          "correct": {
+            "T_name": 23,
+            "T_K": 75,
+            "T_perm1": 13,
+            "T_perm2": 1,
+            "T_AE": 80,
+            "T_AE_perm1": 6,
+            "T_AE_perm2": 2
+          },
+          "K_net_vs_name": 52,
+          "AE_net_vs_name": 57
+        }
+      ],
+      "val": [
+        {
+          "attr": "Full.grain.leather",
+          "object": "Boots.Ankle",
+          "images": 259,
+          "seen": false,
+          "correct": {
+            "T_name": 91,
+            "T_K": 30,
+            "T_perm1": 73,
+            "T_perm2": 33,
+            "T_AE": 111,
+            "T_AE_perm1": 161,
+            "T_AE_perm2": 90
+          },
+          "K_net_vs_name": -61,
+          "AE_net_vs_name": 20
+        },
+        {
+          "attr": "Nubuck",
+          "object": "Boots.Ankle",
+          "images": 9,
+          "seen": true,
+          "correct": {
+            "T_name": 6,
+            "T_K": 0,
+            "T_perm1": 0,
+            "T_perm2": 1,
+            "T_AE": 0,
+            "T_AE_perm1": 2,
+            "T_AE_perm2": 2
+          },
+          "K_net_vs_name": -6,
+          "AE_net_vs_name": -6
+        },
+        {
+          "attr": "Rubber",
+          "object": "Boots.Ankle",
+          "images": 89,
+          "seen": false,
+          "correct": {
+            "T_name": 3,
+            "T_K": 5,
+            "T_perm1": 40,
+            "T_perm2": 6,
+            "T_AE": 12,
+            "T_AE_perm1": 10,
+            "T_AE_perm2": 4
+          },
+          "K_net_vs_name": 2,
+          "AE_net_vs_name": 9
+        },
+        {
+          "attr": "Nylon",
+          "object": "Boots.Knee.High",
+          "images": 3,
+          "seen": true,
+          "correct": {
+            "T_name": 0,
+            "T_K": 0,
+            "T_perm1": 0,
+            "T_perm2": 0,
+            "T_AE": 0,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": 0,
+          "AE_net_vs_name": 0
+        },
+        {
+          "attr": "Faux.Fur",
+          "object": "Boots.Mid-Calf",
+          "images": 13,
+          "seen": false,
+          "correct": {
+            "T_name": 12,
+            "T_K": 10,
+            "T_perm1": 13,
+            "T_perm2": 13,
+            "T_AE": 6,
+            "T_AE_perm1": 13,
+            "T_AE_perm2": 11
+          },
+          "K_net_vs_name": -2,
+          "AE_net_vs_name": -6
+        },
+        {
+          "attr": "Faux.Leather",
+          "object": "Boots.Mid-Calf",
+          "images": 115,
+          "seen": false,
+          "correct": {
+            "T_name": 52,
+            "T_K": 66,
+            "T_perm1": 8,
+            "T_perm2": 79,
+            "T_AE": 68,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 74
+          },
+          "K_net_vs_name": 14,
+          "AE_net_vs_name": 16
+        },
+        {
+          "attr": "Full.grain.leather",
+          "object": "Boots.Mid-Calf",
+          "images": 37,
+          "seen": true,
+          "correct": {
+            "T_name": 20,
+            "T_K": 2,
+            "T_perm1": 24,
+            "T_perm2": 0,
+            "T_AE": 15,
+            "T_AE_perm1": 30,
+            "T_AE_perm2": 9
+          },
+          "K_net_vs_name": -18,
+          "AE_net_vs_name": -5
+        },
+        {
+          "attr": "Rubber",
+          "object": "Boots.Mid-Calf",
+          "images": 77,
+          "seen": true,
+          "correct": {
+            "T_name": 8,
+            "T_K": 5,
+            "T_perm1": 54,
+            "T_perm2": 19,
+            "T_AE": 17,
+            "T_AE_perm1": 23,
+            "T_AE_perm2": 10
+          },
+          "K_net_vs_name": -3,
+          "AE_net_vs_name": 9
+        },
+        {
+          "attr": "Sheepskin",
+          "object": "Boots.Mid-Calf",
+          "images": 13,
+          "seen": true,
+          "correct": {
+            "T_name": 0,
+            "T_K": 0,
+            "T_perm1": 0,
+            "T_perm2": 2,
+            "T_AE": 3,
+            "T_AE_perm1": 3,
+            "T_AE_perm2": 1
+          },
+          "K_net_vs_name": 0,
+          "AE_net_vs_name": 3
+        },
+        {
+          "attr": "Nubuck",
+          "object": "Sandals",
+          "images": 79,
+          "seen": false,
+          "correct": {
+            "T_name": 21,
+            "T_K": 9,
+            "T_perm1": 0,
+            "T_perm2": 2,
+            "T_AE": 2,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 3
+          },
+          "K_net_vs_name": -12,
+          "AE_net_vs_name": -19
+        },
+        {
+          "attr": "Patent.Leather",
+          "object": "Sandals",
+          "images": 115,
+          "seen": false,
+          "correct": {
+            "T_name": 44,
+            "T_K": 20,
+            "T_perm1": 33,
+            "T_perm2": 57,
+            "T_AE": 40,
+            "T_AE_perm1": 57,
+            "T_AE_perm2": 52
+          },
+          "K_net_vs_name": -24,
+          "AE_net_vs_name": -4
+        },
+        {
+          "attr": "Rubber",
+          "object": "Sandals",
+          "images": 172,
+          "seen": false,
+          "correct": {
+            "T_name": 2,
+            "T_K": 27,
+            "T_perm1": 24,
+            "T_perm2": 8,
+            "T_AE": 8,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": 25,
+          "AE_net_vs_name": 6
+        },
+        {
+          "attr": "Synthetic",
+          "object": "Sandals",
+          "images": 767,
+          "seen": false,
+          "correct": {
+            "T_name": 386,
+            "T_K": 61,
+            "T_perm1": 229,
+            "T_perm2": 164,
+            "T_AE": 292,
+            "T_AE_perm1": 440,
+            "T_AE_perm2": 349
+          },
+          "K_net_vs_name": -325,
+          "AE_net_vs_name": -94
+        },
+        {
+          "attr": "Canvas",
+          "object": "Shoes.Boat.Shoes",
+          "images": 53,
+          "seen": false,
+          "correct": {
+            "T_name": 0,
+            "T_K": 0,
+            "T_perm1": 2,
+            "T_perm2": 0,
+            "T_AE": 0,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": 0,
+          "AE_net_vs_name": 0
+        },
+        {
+          "attr": "Leather",
+          "object": "Shoes.Boat.Shoes",
+          "images": 263,
+          "seen": false,
+          "correct": {
+            "T_name": 0,
+            "T_K": 17,
+            "T_perm1": 1,
+            "T_perm2": 3,
+            "T_AE": 1,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": 17,
+          "AE_net_vs_name": 1
+        },
+        {
+          "attr": "Leather",
+          "object": "Shoes.Clogs.and.Mules",
+          "images": 108,
+          "seen": true,
+          "correct": {
+            "T_name": 0,
+            "T_K": 4,
+            "T_perm1": 0,
+            "T_perm2": 2,
+            "T_AE": 4,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": 4,
+          "AE_net_vs_name": 4
+        },
+        {
+          "attr": "Nubuck",
+          "object": "Shoes.Clogs.and.Mules",
+          "images": 2,
+          "seen": true,
+          "correct": {
+            "T_name": 2,
+            "T_K": 1,
+            "T_perm1": 0,
+            "T_perm2": 0,
+            "T_AE": 1,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 1
+          },
+          "K_net_vs_name": -1,
+          "AE_net_vs_name": -1
+        },
+        {
+          "attr": "Suede",
+          "object": "Shoes.Clogs.and.Mules",
+          "images": 83,
+          "seen": false,
+          "correct": {
+            "T_name": 7,
+            "T_K": 17,
+            "T_perm1": 20,
+            "T_perm2": 28,
+            "T_AE": 5,
+            "T_AE_perm1": 1,
+            "T_AE_perm2": 29
+          },
+          "K_net_vs_name": 10,
+          "AE_net_vs_name": -2
+        },
+        {
+          "attr": "Wool",
+          "object": "Shoes.Clogs.and.Mules",
+          "images": 2,
+          "seen": true,
+          "correct": {
+            "T_name": 2,
+            "T_K": 2,
+            "T_perm1": 2,
+            "T_perm2": 0,
+            "T_AE": 2,
+            "T_AE_perm1": 1,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": 0,
+          "AE_net_vs_name": 0
+        },
+        {
+          "attr": "Leather",
+          "object": "Shoes.Flats",
+          "images": 308,
+          "seen": true,
+          "correct": {
+            "T_name": 0,
+            "T_K": 9,
+            "T_perm1": 1,
+            "T_perm2": 1,
+            "T_AE": 18,
+            "T_AE_perm1": 1,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": 9,
+          "AE_net_vs_name": 18
+        },
+        {
+          "attr": "Satin",
+          "object": "Shoes.Heels",
+          "images": 73,
+          "seen": true,
+          "correct": {
+            "T_name": 27,
+            "T_K": 49,
+            "T_perm1": 61,
+            "T_perm2": 36,
+            "T_AE": 33,
+            "T_AE_perm1": 38,
+            "T_AE_perm2": 28
+          },
+          "K_net_vs_name": 22,
+          "AE_net_vs_name": 6
+        },
+        {
+          "attr": "Faux.Leather",
+          "object": "Shoes.Loafers",
+          "images": 3,
+          "seen": true,
+          "correct": {
+            "T_name": 0,
+            "T_K": 0,
+            "T_perm1": 0,
+            "T_perm2": 0,
+            "T_AE": 0,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": 0,
+          "AE_net_vs_name": 0
+        },
+        {
+          "attr": "Full.grain.leather",
+          "object": "Shoes.Loafers",
+          "images": 124,
+          "seen": false,
+          "correct": {
+            "T_name": 33,
+            "T_K": 0,
+            "T_perm1": 30,
+            "T_perm2": 0,
+            "T_AE": 19,
+            "T_AE_perm1": 68,
+            "T_AE_perm2": 25
+          },
+          "K_net_vs_name": -33,
+          "AE_net_vs_name": -14
+        },
+        {
+          "attr": "Leather",
+          "object": "Shoes.Oxfords",
+          "images": 216,
+          "seen": true,
+          "correct": {
+            "T_name": 0,
+            "T_K": 3,
+            "T_perm1": 62,
+            "T_perm2": 93,
+            "T_AE": 3,
+            "T_AE_perm1": 4,
+            "T_AE_perm2": 25
+          },
+          "K_net_vs_name": 3,
+          "AE_net_vs_name": 3
+        },
+        {
+          "attr": "Suede",
+          "object": "Shoes.Oxfords",
+          "images": 165,
+          "seen": false,
+          "correct": {
+            "T_name": 9,
+            "T_K": 81,
+            "T_perm1": 55,
+            "T_perm2": 109,
+            "T_AE": 31,
+            "T_AE_perm1": 9,
+            "T_AE_perm2": 73
+          },
+          "K_net_vs_name": 72,
+          "AE_net_vs_name": 22
+        },
+        {
+          "attr": "Nylon",
+          "object": "Shoes.Sneakers.and.Athletic.Shoes",
+          "images": 4,
+          "seen": true,
+          "correct": {
+            "T_name": 0,
+            "T_K": 0,
+            "T_perm1": 0,
+            "T_perm2": 0,
+            "T_AE": 0,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": 0,
+          "AE_net_vs_name": 0
+        },
+        {
+          "attr": "Rubber",
+          "object": "Shoes.Sneakers.and.Athletic.Shoes",
+          "images": 15,
+          "seen": true,
+          "correct": {
+            "T_name": 0,
+            "T_K": 0,
+            "T_perm1": 0,
+            "T_perm2": 1,
+            "T_AE": 0,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": 0,
+          "AE_net_vs_name": 0
+        },
+        {
+          "attr": "Wool",
+          "object": "Shoes.Sneakers.and.Athletic.Shoes",
+          "images": 15,
+          "seen": false,
+          "correct": {
+            "T_name": 2,
+            "T_K": 3,
+            "T_perm1": 4,
+            "T_perm2": 3,
+            "T_AE": 5,
+            "T_AE_perm1": 2,
+            "T_AE_perm2": 3
+          },
+          "K_net_vs_name": 1,
+          "AE_net_vs_name": 3
+        },
+        {
+          "attr": "Nylon",
+          "object": "Slippers",
+          "images": 25,
+          "seen": false,
+          "correct": {
+            "T_name": 0,
+            "T_K": 13,
+            "T_perm1": 0,
+            "T_perm2": 1,
+            "T_AE": 4,
+            "T_AE_perm1": 0,
+            "T_AE_perm2": 0
+          },
+          "K_net_vs_name": 13,
+          "AE_net_vs_name": 4
+        },
+        {
+          "attr": "Sheepskin",
+          "object": "Slippers",
+          "images": 7,
+          "seen": true,
+          "correct": {
+            "T_name": 4,
+            "T_K": 2,
+            "T_perm1": 1,
+            "T_perm2": 0,
+            "T_AE": 4,
+            "T_AE_perm1": 4,
+            "T_AE_perm2": 3
+          },
+          "K_net_vs_name": -2,
+          "AE_net_vs_name": 0
+        }
+      ]
+    },
+    "class_bias": {
+      "train": {
+        "T_name": {
+          "Canvas": 26,
+          "Cotton": 137,
+          "Faux.Fur": 361,
+          "Faux.Leather": 6929,
+          "Full.grain.leather": 3008,
+          "Hair.Calf": 25,
+          "Leather": 3,
+          "Nubuck": 5273,
+          "Nylon": 356,
+          "Patent.Leather": 2696,
+          "Rubber": 85,
+          "Satin": 885,
+          "Sheepskin": 123,
+          "Suede": 361,
+          "Synthetic": 2655,
+          "Wool": 75
+        },
+        "T_K": {
+          "Canvas": 394,
+          "Cotton": 222,
+          "Faux.Fur": 450,
+          "Faux.Leather": 8546,
+          "Full.grain.leather": 497,
+          "Hair.Calf": 12,
+          "Leather": 967,
+          "Nubuck": 978,
+          "Nylon": 2519,
+          "Patent.Leather": 1533,
+          "Rubber": 150,
+          "Satin": 4113,
+          "Sheepskin": 50,
+          "Suede": 2168,
+          "Synthetic": 102,
+          "Wool": 297
+        },
+        "T_perm1": {
+          "Canvas": 285,
+          "Cotton": 168,
+          "Faux.Fur": 1484,
+          "Faux.Leather": 1872,
+          "Full.grain.leather": 4409,
+          "Hair.Calf": 37,
+          "Leather": 799,
+          "Nubuck": 731,
+          "Nylon": 900,
+          "Patent.Leather": 1906,
+          "Rubber": 890,
+          "Satin": 6414,
+          "Sheepskin": 89,
+          "Suede": 2303,
+          "Synthetic": 604,
+          "Wool": 107
+        },
+        "T_perm2": {
+          "Canvas": 89,
+          "Cotton": 104,
+          "Faux.Fur": 1103,
+          "Faux.Leather": 8161,
+          "Full.grain.leather": 475,
+          "Hair.Calf": 104,
+          "Leather": 1051,
+          "Nubuck": 623,
+          "Nylon": 1651,
+          "Patent.Leather": 4205,
+          "Rubber": 397,
+          "Satin": 1323,
+          "Sheepskin": 76,
+          "Suede": 3260,
+          "Synthetic": 331,
+          "Wool": 45
+        },
+        "T_AE": {
+          "Canvas": 85,
+          "Cotton": 125,
+          "Faux.Fur": 229,
+          "Faux.Leather": 9844,
+          "Full.grain.leather": 3525,
+          "Hair.Calf": 17,
+          "Leather": 356,
+          "Nubuck": 600,
+          "Nylon": 554,
+          "Patent.Leather": 2706,
+          "Rubber": 216,
+          "Satin": 2370,
+          "Sheepskin": 115,
+          "Suede": 853,
+          "Synthetic": 1048,
+          "Wool": 355
+        },
+        "T_AE_perm1": {
+          "Canvas": 226,
+          "Cotton": 8,
+          "Faux.Fur": 1411,
+          "Faux.Leather": 429,
+          "Full.grain.leather": 9988,
+          "Hair.Calf": 164,
+          "Leather": 117,
+          "Nubuck": 1310,
+          "Nylon": 471,
+          "Patent.Leather": 4217,
+          "Rubber": 227,
+          "Satin": 1369,
+          "Sheepskin": 445,
+          "Suede": 341,
+          "Synthetic": 2211,
+          "Wool": 64
+        },
+        "T_AE_perm2": {
+          "Canvas": 2,
+          "Cotton": 8,
+          "Faux.Fur": 741,
+          "Faux.Leather": 7016,
+          "Full.grain.leather": 3881,
+          "Hair.Calf": 12,
+          "Leather": 154,
+          "Nubuck": 1444,
+          "Nylon": 29,
+          "Patent.Leather": 5028,
+          "Rubber": 91,
+          "Satin": 600,
+          "Sheepskin": 38,
+          "Suede": 2553,
+          "Synthetic": 1360,
+          "Wool": 41
+        }
+      },
+      "val": {
+        "T_name": {
+          "Canvas": 1,
+          "Cotton": 4,
+          "Faux.Fur": 59,
+          "Faux.Leather": 955,
+          "Full.grain.leather": 318,
+          "Hair.Calf": 3,
+          "Leather": 0,
+          "Nubuck": 513,
+          "Nylon": 49,
+          "Patent.Leather": 332,
+          "Rubber": 17,
+          "Satin": 100,
+          "Sheepskin": 41,
+          "Suede": 50,
+          "Synthetic": 765,
+          "Wool": 7
+        },
+        "T_K": {
+          "Canvas": 50,
+          "Cotton": 10,
+          "Faux.Fur": 78,
+          "Faux.Leather": 1171,
+          "Full.grain.leather": 37,
+          "Hair.Calf": 1,
+          "Leather": 100,
+          "Nubuck": 96,
+          "Nylon": 474,
+          "Patent.Leather": 141,
+          "Rubber": 92,
+          "Satin": 592,
+          "Sheepskin": 4,
+          "Suede": 257,
+          "Synthetic": 88,
+          "Wool": 23
+        },
+        "T_perm1": {
+          "Canvas": 40,
+          "Cotton": 5,
+          "Faux.Fur": 203,
+          "Faux.Leather": 218,
+          "Full.grain.leather": 356,
+          "Hair.Calf": 12,
+          "Leather": 96,
+          "Nubuck": 88,
+          "Nylon": 103,
+          "Patent.Leather": 202,
+          "Rubber": 315,
+          "Satin": 975,
+          "Sheepskin": 11,
+          "Suede": 257,
+          "Synthetic": 325,
+          "Wool": 8
+        },
+        "T_perm2": {
+          "Canvas": 7,
+          "Cotton": 5,
+          "Faux.Fur": 187,
+          "Faux.Leather": 1055,
+          "Full.grain.leather": 43,
+          "Hair.Calf": 18,
+          "Leather": 141,
+          "Nubuck": 80,
+          "Nylon": 285,
+          "Patent.Leather": 557,
+          "Rubber": 67,
+          "Satin": 129,
+          "Sheepskin": 26,
+          "Suede": 343,
+          "Synthetic": 266,
+          "Wool": 5
+        },
+        "T_AE": {
+          "Canvas": 20,
+          "Cotton": 8,
+          "Faux.Fur": 47,
+          "Faux.Leather": 1261,
+          "Full.grain.leather": 369,
+          "Hair.Calf": 4,
+          "Leather": 41,
+          "Nubuck": 52,
+          "Nylon": 104,
+          "Patent.Leather": 348,
+          "Rubber": 60,
+          "Satin": 269,
+          "Sheepskin": 24,
+          "Suede": 64,
+          "Synthetic": 516,
+          "Wool": 27
+        },
+        "T_AE_perm1": {
+          "Canvas": 24,
+          "Cotton": 0,
+          "Faux.Fur": 198,
+          "Faux.Leather": 63,
+          "Full.grain.leather": 1016,
+          "Hair.Calf": 14,
+          "Leather": 13,
+          "Nubuck": 121,
+          "Nylon": 60,
+          "Patent.Leather": 519,
+          "Rubber": 75,
+          "Satin": 184,
+          "Sheepskin": 70,
+          "Suede": 17,
+          "Synthetic": 834,
+          "Wool": 6
+        },
+        "T_AE_perm2": {
+          "Canvas": 0,
+          "Cotton": 0,
+          "Faux.Fur": 101,
+          "Faux.Leather": 890,
+          "Full.grain.leather": 321,
+          "Hair.Calf": 0,
+          "Leather": 31,
+          "Nubuck": 174,
+          "Nylon": 6,
+          "Patent.Leather": 639,
+          "Rubber": 18,
+          "Satin": 52,
+          "Sheepskin": 8,
+          "Suede": 299,
+          "Synthetic": 671,
+          "Wool": 4
+        }
+      }
+    },
+    "text_norms": {
+      "T_name": {
+        "min": 0.9999998807907104,
+        "max": 1.0000001192092896,
+        "mean": 1.0
+      },
+      "T_K": {
+        "min": 0.9555026888847351,
+        "max": 0.9882754683494568,
+        "mean": 0.9787030220031738
+      },
+      "T_perm1": {
+        "min": 0.9259750247001648,
+        "max": 0.9884278774261475,
+        "mean": 0.9739026427268982
+      },
+      "T_perm2": {
+        "min": 0.9344441890716553,
+        "max": 0.9887852072715759,
+        "mean": 0.972675621509552
+      },
+      "T_AE": {
+        "min": 0.9569701552391052,
+        "max": 0.9950069189071655,
+        "mean": 0.984531819820404
+      },
+      "T_AE_perm1": {
+        "min": 0.9388164281845093,
+        "max": 0.9936292767524719,
+        "mean": 0.98152095079422
+      },
+      "T_AE_perm2": {
+        "min": 0.9388164281845093,
+        "max": 0.9936298131942749,
+        "mean": 0.9806192517280579
+      }
+    }
+  },
+  "scope_limits": [
+    "No fresh GPU image/text encoder replay",
+    "Remote current filesystem not inspected",
+    "TRAIN CPF absolute reference not independently replayed; local TRAIN cache is absent",
+    "GT-object attribute diagnostics are not deployable CPF CW/OW metrics",
+    "VAL is development data; no TEST evaluated"
+  ]
+}
