@@ -1,0 +1,106 @@
+{
+  "passed": true,
+  "variant": "P_perm2",
+  "completed_epoch": 10,
+  "protocol_sha256": "fe0b1d47a808c4f4bc0ae7faa5bb75fdb132c14bb845ebce816720eb305f09f0",
+  "initial_state_sha256": "3e2caaf89a6815271906842d00d3f590bb1a7e972e14e88deffac7d3300ac2de",
+  "formal_optimizer_steps": 900,
+  "backbone_optimizer_steps": 0,
+  "best_epoch": 0,
+  "selected": {
+    "epoch": 0,
+    "metrics_raw": {
+      "cw": {
+        "closed_attr_match": 0.6848164200782776,
+        "closed_obj_match": 0.7184194326400757,
+        "closed_match": 0.5301804542541504,
+        "closed_seen_match": 0.0,
+        "closed_unseen_match": 0.7291399240493774,
+        "closed_ca": 2.0,
+        "closed_seen_ca": 1.0,
+        "closed_unseen_ca": 1.0,
+        "closed_ub_attr_match": 0.3344741761684418,
+        "closed_ub_obj_match": 0.7934038639068604,
+        "closed_ub_match": 0.22650901973247528,
+        "closed_ub_seen_match": 0.6887115240097046,
+        "closed_ub_unseen_match": 0.05305947735905647,
+        "closed_ub_ca": 2.0,
+        "closed_ub_seen_ca": 1.0,
+        "closed_ub_unseen_ca": 1.0,
+        "biasterm": 0.37981531023979187,
+        "best_unseen": 0.7291399240493774,
+        "best_seen": 0.692132294178009,
+        "AUC": 0.45440386970321,
+        "hm_unseen": 0.654257595539093,
+        "hm_seen": 0.5222349166870117,
+        "best_hm": 0.5808386493709152
+      },
+      "ow": {
+        "closed_attr_match": 0.5308027267456055,
+        "closed_obj_match": 0.8291848301887512,
+        "closed_match": 0.4648413062095642,
+        "closed_seen_match": 0.0,
+        "closed_unseen_match": 0.639281153678894,
+        "closed_ca": 2.0,
+        "closed_seen_ca": 1.0,
+        "closed_unseen_ca": 1.0,
+        "closed_ub_attr_match": 0.3354075849056244,
+        "closed_ub_obj_match": 0.794959545135498,
+        "closed_ub_match": 0.22619788348674774,
+        "closed_ub_seen_match": 0.6887115240097046,
+        "closed_ub_unseen_match": 0.05263157933950424,
+        "closed_ub_ca": 2.0,
+        "closed_ub_seen_ca": 1.0,
+        "closed_ub_unseen_ca": 1.0,
+        "biasterm": 0.26438048481941223,
+        "best_unseen": 0.639281153678894,
+        "best_seen": 0.692132294178009,
+        "AUC": 0.34937344606543497,
+        "hm_unseen": 0.4433033764362335,
+        "hm_seen": 0.5359178781509399,
+        "best_hm": 0.48523089907196054
+      }
+    },
+    "conditional_diagnostics": {
+      "n_images": 3214,
+      "conditional_nll": 3.759333610534668,
+      "gt_object_attr_accuracy": 0.33105164766311646,
+      "macro_attr_accuracy": 0.2341646138312561,
+      "macro_attr_classes": 14,
+      "corrected_from_baseline": 0,
+      "damaged_from_baseline": 0,
+      "candidate_object_delta_std": 0.0,
+      "max_abs_delta": 0.0,
+      "probability_errors": {
+        "joint_sum_error": 4.76837158203125e-07,
+        "conditional_sum_error": 2.980232238769531e-07,
+        "object_marginal_error": 0.0,
+        "joint_factorization_error": 2.384185791015625e-07
+      },
+      "by_seen_pair": {
+        "seen_pair": {
+          "images": 877,
+          "conditional_nll": 1.0080488920211792,
+          "attr_accuracy": 0.7947548460661346
+        },
+        "unseen_pair": {
+          "images": 2337,
+          "conditional_nll": 4.791800498962402,
+          "attr_accuracy": 0.15703893881044073
+        }
+      }
+    },
+    "inference_uses_ground_truth_objects": false,
+    "gt_object_used_only_in_conditional_diagnostics": true,
+    "path": "epochs/epoch_0000/attempt_0000",
+    "files_sha256": {
+      "grid_scores.npy": "69e0d8f796f6a0844bb00849c8f649b3b0bc53807e9a2f2ef530c8028e006e14",
+      "evaluation.json": "1255e2f4c78db0e49c3e6867e88307a611aec1eb57d2dcf504fc3db5ba900fe4",
+      "conditional_predictions.npz": "a926d841a642571588ffe62e71c141886f66b08d5b70f3e7f491ddb8a0744319"
+    },
+    "train_epoch": null
+  },
+  "selected_checkpoint_replay_exact": true,
+  "last_checkpoint_sha256": "6f127603b605cb91d8cfb27369d6931a81b4ac7eb43f3010ef6c151d6beab153",
+  "best_checkpoint_sha256": "b21ea216a627dd38e112cadf22971301caa18732168bc645049d9a1c14cbc0bb"
+}

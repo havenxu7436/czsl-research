@@ -1,0 +1,62 @@
+{
+  "protocol_sha256": "fe0b1d47a808c4f4bc0ae7faa5bb75fdb132c14bb845ebce816720eb305f09f0",
+  "train_epoch": {
+    "mean_conditional_nll": 0.7944381826671549,
+    "images": 18426,
+    "steps": 72,
+    "epoch_order_sha256": "0ef4d2a42f3fc1e79ba634b1934cbaee85b659bb0f6e8d9334d46f07f0641cf5",
+    "nonzero_gradient_parameters": [
+      "attribute_knowledge.weight",
+      "attribute_name.weight",
+      "fusion.bias",
+      "fusion.weight",
+      "object_knowledge.weight",
+      "object_name.weight",
+      "object_query.weight",
+      "output.weight",
+      "query_norm.bias",
+      "query_norm.weight",
+      "relation_norm.bias",
+      "relation_norm.weight",
+      "visual.weight"
+    ]
+  },
+  "hold_before": {
+    "n_images": 4572,
+    "conditional_nll": 0.8313763737678528,
+    "gt_object_attr_accuracy": 0.782370924949646,
+    "macro_attr_accuracy": 0.5329335392452776,
+    "macro_attr_classes": 16,
+    "corrected_from_baseline": 0,
+    "damaged_from_baseline": 0,
+    "candidate_object_delta_std": 0.0,
+    "max_abs_delta": 0.0,
+    "probability_errors": {
+      "joint_sum_error": 4.76837158203125e-07,
+      "conditional_sum_error": 3.5762786865234375e-07,
+      "object_marginal_error": 0.0,
+      "joint_factorization_error": 2.980232238769531e-07
+    }
+  },
+  "hold_after": {
+    "n_images": 4572,
+    "conditional_nll": 0.7210512757301331,
+    "gt_object_attr_accuracy": 0.783245861530304,
+    "macro_attr_accuracy": 0.5597932058153674,
+    "macro_attr_classes": 16,
+    "corrected_from_baseline": 132,
+    "damaged_from_baseline": 128,
+    "candidate_object_delta_std": 0.00385625334456563,
+    "max_abs_delta": 0.039157722145318985,
+    "probability_errors": {
+      "joint_sum_error": 4.76837158203125e-07,
+      "conditional_sum_error": 2.980232238769531e-07,
+      "object_marginal_error": 1.1920928955078125e-06,
+      "joint_factorization_error": 1.1920928955078125e-06
+    }
+  },
+  "initial_state_sha256": "ba7d4895f684dff13f64961faef6f949c083950f4954f9cfe625aed3f89fdfa0",
+  "formal_training_started": false,
+  "val_forward_calls": 0,
+  "test_forward_calls": 0
+}

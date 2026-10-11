@@ -1,0 +1,439 @@
+{
+  "schema": "conditional_attribute_pilot_v1",
+  "release_manifest_sha256": "0860e87ceb083bb0f08953dd5cce4b412c3f7d4ea1f67fe761546192af3d48fe",
+  "stageA_zip_sha256": "72709f5f7bb39c5494caa596ceff1314006d1ab0ebfc91ce7c0e7d71e196a0c3",
+  "stageA_files": {
+    "/var/tmp/czsl_conditional_stageA_20261009/base/candidates_cw.json": "4f83bb7f11db0e3f1fd264c5240eaf52d423d8729b9231b72e72065a5facd5ea",
+    "/var/tmp/czsl_conditional_stageA_20261009/base/candidates_ow.json": "20fd4730a80c1e3f3ae831794ec50fc55cc0daf8f555d2783ae77b37f51a3108",
+    "/var/tmp/czsl_conditional_stageA_20261009/base/control_protocol.json": "655b5c634f41e0b25261884b576ba08eadeb3bcbb6236d39822e10f34d747e79",
+    "/var/tmp/czsl_conditional_stageA_20261009/base/head_smoke.json": "c287d3913e4417a9f4d4b4c5bcb5d45feb0b2eb7bcd6ac5a4f993270bb404849",
+    "/var/tmp/czsl_conditional_stageA_20261009/base/labels.json": "4f6d8140b814ac6a9237fab6889816290033d98d71897bfc33316675067905ec",
+    "/var/tmp/czsl_conditional_stageA_20261009/base/labels_cw.npz": "71aa0c4e639cc71e6da60f94680c37578f8b85cc7e9ac7a4376ef24ee62fb796",
+    "/var/tmp/czsl_conditional_stageA_20261009/base/labels_ow.npz": "794557c44182828fcdd7f32d6d7f3371b6f3f4708b5879599fcb432b2edc86b3",
+    "/var/tmp/czsl_conditional_stageA_20261009/base/replay_cw.json": "46e692e8a582673996ebf3b0b06eddf8b6325b9ad069206a8a5930841f0da46d",
+    "/var/tmp/czsl_conditional_stageA_20261009/base/replay_ow.json": "dbf843e5e59953481e04b96c9e5d69925bb2652c06cadb0ff676d302f7268a6c",
+    "/var/tmp/czsl_conditional_stageA_20261009/base/train.pt": "d9e91e273dec075794e13ca26f3d320ae4ec373c8b59507958ef8c0786e7ff0d",
+    "/var/tmp/czsl_conditional_stageA_20261009/base/train_image_ids.json": "3297083ba0a9c690c7c17479871345f30564823cdffab01621a2c4fcbd51b53f",
+    "/var/tmp/czsl_conditional_stageA_20261009/base/val.pt": "f5d5f78f019bbc2bbcb9e2431a0c7d53cec6d7594c7a134117923654f8a791d1",
+    "/var/tmp/czsl_conditional_stageA_20261009/base/val_image_ids.json": "7432d7988ab4b6a5d8f2d4bb3f6e0dae702c9f7959518e465129729f1347b7c7",
+    "/var/tmp/czsl_conditional_stageA_20261009/base/val_scores_cw.npy": "db95a00a64321ee332fffd3a5440e46109de2fa5486c76610879ceef7a74a47b",
+    "/var/tmp/czsl_conditional_stageA_20261009/base/val_scores_ow.npy": "f7f8e18080718c2f7321e31579459df50f55e122761daa474aa20cd1ece9e97e",
+    "/var/tmp/czsl_conditional_stageA_20261009/base/prepared.json": "e1ae716443526739fc4a76903c2ba9d15ba4aa06cd6dad7b7bc4ea0554882e39"
+  },
+  "anchor_checkpoint_sha256": "45de209c4c38af6d7cfa62f6ff51f62ec8f095ee18edc22d893f43184f3199a6",
+  "settings": {
+    "seed": 0,
+    "epochs": 10,
+    "batch_size": 256,
+    "rank": 32,
+    "temperature": 0.05,
+    "cap": 0.1,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "train_mechanics_epochs": 1,
+    "train_holdout_fraction": 0.2,
+    "fold_id": "sha256(image_id), sorted within TRAIN pair; lowest 20%, min 1",
+    "data_order_seed_base": 21009000,
+    "static_prior": 0,
+    "logic": 0,
+    "backbone_optimizer_steps": 0,
+    "selection": "first strict maximum VAL CW AUC over epochs 0..10"
+  },
+  "controls": {
+    "variants": [
+      "P_name",
+      "P_K",
+      "P_generic",
+      "P_perm1",
+      "P_perm2"
+    ],
+    "permutations": {
+      "P_name": {
+        "a": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "o": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ]
+      },
+      "P_K": {
+        "a": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "o": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ]
+      },
+      "P_generic": {
+        "a": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "o": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ]
+      },
+      "P_perm1": {
+        "a": [
+          10,
+          12,
+          3,
+          2,
+          11,
+          13,
+          14,
+          15,
+          1,
+          4,
+          0,
+          8,
+          6,
+          7,
+          5,
+          9
+        ],
+        "o": [
+          10,
+          9,
+          6,
+          7,
+          5,
+          2,
+          0,
+          11,
+          1,
+          8,
+          3,
+          4
+        ]
+      },
+      "P_perm2": {
+        "a": [
+          2,
+          12,
+          15,
+          0,
+          10,
+          8,
+          3,
+          14,
+          7,
+          11,
+          1,
+          4,
+          13,
+          6,
+          9,
+          5
+        ],
+        "o": [
+          7,
+          9,
+          6,
+          4,
+          11,
+          2,
+          5,
+          3,
+          10,
+          0,
+          1,
+          8
+        ]
+      }
+    },
+    "rank": 32,
+    "temperature": 0.05,
+    "evidence_cap": 0.1,
+    "pending_formal_epochs": 10,
+    "pending_batch_size": 256,
+    "pending_lr": 0.001,
+    "pending_weight_decay": 0.0001,
+    "selection": "first strict maximum VAL CW AUC over epochs 0..10",
+    "generic_active_extra_parameters": 3104,
+    "original_gates_unchanged": true
+  },
+  "initializations": {
+    "P_name": {
+      "initial_state_sha256": "3e2caaf89a6815271906842d00d3f590bb1a7e972e14e88deffac7d3300ac2de",
+      "parameter_count": 57760,
+      "permutations": {
+        "a": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "o": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ]
+      }
+    },
+    "P_K": {
+      "initial_state_sha256": "3e2caaf89a6815271906842d00d3f590bb1a7e972e14e88deffac7d3300ac2de",
+      "parameter_count": 57760,
+      "permutations": {
+        "a": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "o": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ]
+      }
+    },
+    "P_generic": {
+      "initial_state_sha256": "ba7d4895f684dff13f64961faef6f949c083950f4954f9cfe625aed3f89fdfa0",
+      "parameter_count": 60864,
+      "permutations": {
+        "a": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "o": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ]
+      }
+    },
+    "P_perm1": {
+      "initial_state_sha256": "3e2caaf89a6815271906842d00d3f590bb1a7e972e14e88deffac7d3300ac2de",
+      "parameter_count": 57760,
+      "permutations": {
+        "a": [
+          10,
+          12,
+          3,
+          2,
+          11,
+          13,
+          14,
+          15,
+          1,
+          4,
+          0,
+          8,
+          6,
+          7,
+          5,
+          9
+        ],
+        "o": [
+          10,
+          9,
+          6,
+          7,
+          5,
+          2,
+          0,
+          11,
+          1,
+          8,
+          3,
+          4
+        ]
+      }
+    },
+    "P_perm2": {
+      "initial_state_sha256": "3e2caaf89a6815271906842d00d3f590bb1a7e972e14e88deffac7d3300ac2de",
+      "parameter_count": 57760,
+      "permutations": {
+        "a": [
+          2,
+          12,
+          15,
+          0,
+          10,
+          8,
+          3,
+          14,
+          7,
+          11,
+          1,
+          4,
+          13,
+          6,
+          9,
+          5
+        ],
+        "o": [
+          7,
+          9,
+          6,
+          4,
+          11,
+          2,
+          5,
+          3,
+          10,
+          0,
+          1,
+          8
+        ]
+      }
+    }
+  },
+  "budget_gate": {
+    "pk_minus_baseline_cw_auc_pp": 0.2,
+    "pk_minus_name_cw_auc_pp": 0.1,
+    "pk_minus_mean_permutations_cw_auc_pp": 0.1,
+    "cw_hm_floor_pp": -0.5,
+    "ow_auc_floor_pp": -0.5,
+    "ow_best_unseen_floor_pp": -2.0,
+    "gate_is_budget_rule_not_significance": true
+  },
+  "work": "/var/tmp/czsl_conditional_pilot_20261009_r2",
+  "original_gates_unchanged": true,
+  "images_decoded": 0,
+  "test_evaluation_allowed": false,
+  "mechanism_fold_not_independent_because_base_saw_full_TRAIN": true
+}

@@ -1,0 +1,27 @@
+{
+  "schema": "fixed_mixture_replay_development_protocol_v1",
+  "alpha": 0.25,
+  "alpha_search": false,
+  "temperature": 0.05,
+  "mixture": "Arithmetic conditional-probability mixture; frozen baseline object marginal",
+  "source_protocol_sha256": "fe0b1d47a808c4f4bc0ae7faa5bb75fdb132c14bb845ebce816720eb305f09f0",
+  "prior_diagnostic_sha256": "b9d7b92f87a3ecca9451205626f81437e978f39c94f691e6ed6ee0d0d7a98195",
+  "script_sha256": "b2c39a27746c393a61bf45e2528f97d92baeabbf269b66f8168e7a41c883929e",
+  "source_score_evidence": "All five original head identities, epochs 0..10",
+  "selection": "First strict maximum VAL CW AUC over epochs 0..10; report OW at same epoch",
+  "development_only": true,
+  "not_preregistered": true,
+  "chosen_after_inspecting_original_VAL_and_partial_readout_diagnostics": true,
+  "new_optimizer_steps": 0,
+  "original_gates_unchanged": true,
+  "test_pair_file_used_only_for_original_candidate_vocabulary": true,
+  "test_images_labels_scores_used": false,
+  "budget_thresholds": {
+    "cw_baseline": 0.2,
+    "cw_name": 0.1,
+    "cw_mean_perm": 0.1,
+    "cw_hm_floor": -0.5,
+    "ow_auc_floor": -0.5,
+    "ow_unseen_floor": -2.0
+  }
+}

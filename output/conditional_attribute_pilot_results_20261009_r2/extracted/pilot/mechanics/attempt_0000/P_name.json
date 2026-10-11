@@ -1,0 +1,60 @@
+{
+  "protocol_sha256": "fe0b1d47a808c4f4bc0ae7faa5bb75fdb132c14bb845ebce816720eb305f09f0",
+  "train_epoch": {
+    "mean_conditional_nll": 0.7868202008888437,
+    "images": 18426,
+    "steps": 72,
+    "epoch_order_sha256": "0ef4d2a42f3fc1e79ba634b1934cbaee85b659bb0f6e8d9334d46f07f0641cf5",
+    "nonzero_gradient_parameters": [
+      "attribute_knowledge.weight",
+      "attribute_name.weight",
+      "object_knowledge.weight",
+      "object_name.weight",
+      "object_query.weight",
+      "output.weight",
+      "query_norm.bias",
+      "query_norm.weight",
+      "relation_norm.bias",
+      "relation_norm.weight",
+      "visual.weight"
+    ]
+  },
+  "hold_before": {
+    "n_images": 4572,
+    "conditional_nll": 0.8313763737678528,
+    "gt_object_attr_accuracy": 0.782370924949646,
+    "macro_attr_accuracy": 0.5329335392452776,
+    "macro_attr_classes": 16,
+    "corrected_from_baseline": 0,
+    "damaged_from_baseline": 0,
+    "candidate_object_delta_std": 0.0,
+    "max_abs_delta": 0.0,
+    "probability_errors": {
+      "joint_sum_error": 4.76837158203125e-07,
+      "conditional_sum_error": 3.5762786865234375e-07,
+      "object_marginal_error": 0.0,
+      "joint_factorization_error": 2.980232238769531e-07
+    }
+  },
+  "hold_after": {
+    "n_images": 4572,
+    "conditional_nll": 0.7026097178459167,
+    "gt_object_attr_accuracy": 0.7871828675270081,
+    "macro_attr_accuracy": 0.5447304147528484,
+    "macro_attr_classes": 16,
+    "corrected_from_baseline": 130,
+    "damaged_from_baseline": 108,
+    "candidate_object_delta_std": 0.004926716443151236,
+    "max_abs_delta": 0.04802671819925308,
+    "probability_errors": {
+      "joint_sum_error": 4.76837158203125e-07,
+      "conditional_sum_error": 2.980232238769531e-07,
+      "object_marginal_error": 1.430511474609375e-06,
+      "joint_factorization_error": 1.430511474609375e-06
+    }
+  },
+  "initial_state_sha256": "3e2caaf89a6815271906842d00d3f590bb1a7e972e14e88deffac7d3300ac2de",
+  "formal_training_started": false,
+  "val_forward_calls": 0,
+  "test_forward_calls": 0
+}
