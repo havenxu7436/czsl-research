@@ -1,0 +1,33 @@
+{
+  "execution_passed": true,
+  "gates": {
+    "OE_AE_primary": {
+      "passed": false,
+      "macro_deltas_pp": {
+        "T_name": 0.3859418015443232,
+        "T_perm1": -0.8699072356747735,
+        "T_perm2": -2.6172179018525306
+      },
+      "unseen_micro_minus_name_pp": -12.96534017971759,
+      "train_macro_minus_name_pp": 0.10903553801426114,
+      "rule": "VAL unseen pair macro >= name AND each wrong control +1.0pp; VAL unseen micro >= name; TRAIN pair macro >= name",
+      "budget_screen_not_significance": true
+    },
+    "AE_only_secondary": {
+      "passed": false,
+      "macro_deltas_pp": {
+        "T_name": -0.9792598549798086,
+        "T_AE_perm1": -1.576839761685381,
+        "T_AE_perm2": -4.703893868489491
+      },
+      "unseen_micro_minus_name_pp": -2.481814291827135,
+      "train_macro_minus_name_pp": 0.31532247452063444,
+      "rule": "VAL unseen pair macro >= name AND each wrong control +1.0pp; VAL unseen micro >= name; TRAIN pair macro >= name",
+      "budget_screen_not_significance": true
+    }
+  },
+  "recommendation": "stop_expanding_this_teacher_recipe_review_train_failures_once",
+  "optimizer_steps": 0,
+  "test_images_decoded": 0,
+  "historical_inputs_unchanged": true
+}

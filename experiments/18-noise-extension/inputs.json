@@ -1,0 +1,39 @@
+{
+  "stage": "18",
+  "knowledge": [],
+  "configs": [],
+  "data_files": [
+    "experiments/18-noise-extension/results/extend_0601_20261011/release_manifest.json"
+  ],
+  "external_inputs": [
+    "dataset images and official split/metadata",
+    "GloVe 300d",
+    "ViT pretrained weights",
+    "previous-stage checkpoints / caches; see README"
+  ],
+  "not_a_complete_offline_training_bundle": true,
+  "code_files": [
+    "experiments/18-noise-extension/code/extend_0601_20261011/extension.py",
+    "experiments/18-noise-extension/code/extend_0601_20261011/test_extension.py"
+  ],
+  "dependency_stages": [
+    "01",
+    "02",
+    "03",
+    "04",
+    "05",
+    "06",
+    "07",
+    "08",
+    "09",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "15",
+    "16",
+    "17"
+  ],
+  "dependency_policy": "Materialization includes prior-stage inputs; actual consumed files/weights are pinned by original package protocol. This is not an assertion that every prior training must rerun."
+}

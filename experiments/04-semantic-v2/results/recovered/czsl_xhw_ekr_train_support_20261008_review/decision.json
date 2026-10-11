@@ -1,0 +1,58 @@
+{
+  "stage": "TRAIN_cached_support_diagnostic",
+  "support_screen_passed": false,
+  "conditions": {
+    "correct_over_shuffle_macro_margin_at_least_0_01": true,
+    "correct_over_shuffle_positive_on_both_folds": true,
+    "correct_over_shuffle_positive_on_at_least_11_attributes": true,
+    "correct_not_below_name_macro_margin": false,
+    "correct_not_below_name_on_both_folds": false
+  },
+  "contrasts": {
+    "all_attributes/correct_mean-name": {
+      "macro_margin_delta": -0.003434217718752783,
+      "positive_attributes": 8,
+      "n_attributes": 16,
+      "fold_macro_margin_deltas": [
+        -0.0033253814575727094,
+        -0.0035430539799328606
+      ]
+    },
+    "all_attributes/correct_mean-shuffle_mean": {
+      "macro_margin_delta": 0.025029073392493856,
+      "positive_attributes": 12,
+      "n_attributes": 16,
+      "fold_macro_margin_deltas": [
+        0.026066488167561144,
+        0.02399165861742657
+      ]
+    },
+    "same_object_train_attributes/correct_mean-name": {
+      "macro_margin_delta": -0.0045761505529505675,
+      "positive_attributes": 8,
+      "n_attributes": 16,
+      "fold_macro_margin_deltas": [
+        -0.004609971023845791,
+        -0.004542330082055345
+      ]
+    },
+    "same_object_train_attributes/correct_mean-shuffle_mean": {
+      "macro_margin_delta": 0.026839064410392986,
+      "positive_attributes": 12,
+      "n_attributes": 16,
+      "fold_macro_margin_deltas": [
+        0.027765037027908373,
+        0.025913091792877596
+      ]
+    }
+  },
+  "n_images": 498,
+  "n_attributes": 16,
+  "old_v2_gate_proceed": false,
+  "official_EKR_confirmation_allowed": false,
+  "new_optimizer_steps": 0,
+  "val_or_test_features_used": false,
+  "new_model_performance_claim": false,
+  "note": "Same already-trained CPF; internal TRAIN folds are not independent model-validation data. Uniform fixed evidence only; a negative screen does not rule out learned attention or another representation.",
+  "next": "Stop blind tuning of this GloVe score-residual setup; inspect representation/data grounding before a new hypothesis"
+}

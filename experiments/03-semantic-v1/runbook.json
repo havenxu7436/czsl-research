@@ -1,0 +1,461 @@
+{
+  "stage": "03",
+  "primary_package": "ekr_cpf_transition_20261005_v1",
+  "commands": [
+    {
+      "source": "ekr_cpf_transition_20261005_v1/PLAN.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  EXP=${PROJECT}/experiments/ekr0601_transition_v1\n  mkdir -p \"$EXP/protocol\" \"$EXP/audit\" \"$EXP/reports\" \"$EXP/launch_logs\"\n  if [ ! -e \"$EXP/protocol/session_env.sh\" ]; then\n    cat > \"$EXP/protocol/session_env.sh\" <<'SH'\nexport ROOT=${PROJECT}\nexport SRC=\"$ROOT/src/KCC0601_v1\"\nexport LEGACY=\"$ROOT/experiments/kcc0601_glove_mvp_v1\"\nexport PROJ=\"$ROOT/src/EKR0601_transition_v1\"\nexport EXP=\"$ROOT/experiments/ekr0601_transition_v1\"\nexport KNOWLEDGE=\"$ROOT/knowledge/kcc0601_v1/trusted_v1\"\nexport OLD_CACHE=\"$ROOT/knowledge/kcc0601_v1/cache_trusted_v1\"\nexport BANK_ROOT=\"$ROOT/knowledge/ekr0601_transition_v1/description_bank_v1\"\nexport GLOVE=\"$ROOT/data/glove/glove.6B.300d.txt\"\nexport CPF_PY=\"$CPF_PY\"\nexport GPU=2\nexport CUDA_VISIBLE_DEVICES=\"$GPU\"\ncd \"$PROJ\"\nSH\n  fi\n  cat \"$EXP/protocol/session_env.sh\"\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "ekr_cpf_transition_20261005_v1/PLAN.md",
+      "language": "bash",
+      "text": "source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "ekr_cpf_transition_20261005_v1/PLAN.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n  \"$CPF_PY\" -u -m transition.cli preflight --root \"$ROOT\"\n  \"$CPF_PY\" -u tests/test_router_cpu.py\n  sha256sum \"$LEGACY/runs/mvp_ut-zappos_C_legacy_s3351_l0/checkpoints/best_auc.pth\"\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "ekr_cpf_transition_20261005_v1/PLAN.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n  \"$CPF_PY\" -u -m transition.cli build-bank \\\n    --project \"$PROJ\" --cache-root \"$OLD_CACHE\" \\\n    --knowledge-root \"$KNOWLEDGE\" --out-root \"$BANK_ROOT\" \\\n    --glove \"$GLOVE\" --datasets ut-zap50k mit-states cgqa \\\n    --permutation-seed 1729 \\\n    2>&1 | tee \"$EXP/launch_logs/build_bank_v1.log\"\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "ekr_cpf_transition_20261005_v1/PLAN.md",
+      "language": "bash",
+      "text": "source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n\"$CPF_PY\" -m json.tool \"$BANK_ROOT/ut-zap50k/report.json\"\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "ekr_cpf_transition_20261005_v1/PLAN.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n  \"$CPF_PY\" -m transition.cli make-configs \\\n    --root \"$ROOT\" --exp \"$EXP\" --legacy-exp \"$LEGACY\" --bank-root \"$BANK_ROOT\" \\\n    --stage semantic --datasets ut-zappos --seeds 3351 --epochs 10 \\\n    --variants A_raw A_unit C_text C_shuffle\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "ekr_cpf_transition_20261005_v1/PLAN.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n  \"$CPF_PY\" -u -m transition.cli smoke \\\n    --cfg \"$EXP/configs/semantic_ut-zappos_A_raw_s3351_e10.yml\" \\\n    --checkpoint \"$LEGACY/runs/mvp_ut-zappos_A_legacy_s3351_l0/checkpoints/best_auc.pth\" \\\n    --out \"$EXP/audit/semantic_A_fidelity_ut_v1.json\"\n  \"$CPF_PY\" -u -m transition.cli smoke \\\n    --cfg \"$EXP/configs/semantic_ut-zappos_C_text_s3351_e10.yml\" \\\n    --checkpoint \"$LEGACY/runs/mvp_ut-zappos_C_legacy_s3351_l0/checkpoints/best_auc.pth\" \\\n    --out \"$EXP/audit/semantic_C_fidelity_ut_v1.json\"\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "ekr_cpf_transition_20261005_v1/PLAN.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n  \"$CPF_PY\" -u -m transition.cli run-plan --configs \\\n    \"$EXP/configs/semantic_ut-zappos_A_unit_s3351_e10.yml\" \\\n    \"$EXP/configs/semantic_ut-zappos_C_shuffle_s3351_e10.yml\" \\\n    2>&1 | tee \"$EXP/launch_logs/semantic_ut_native_v1.log\"\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "ekr_cpf_transition_20261005_v1/PLAN.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n  \"$CPF_PY\" -m transition.cli summarize --exp \"$EXP\" --legacy-exp \"$LEGACY\" \\\n    --out \"$EXP/reports/semantic_ut_native_v1\"\n  cat \"$EXP/reports/semantic_ut_native_v1/paired_summary.csv\"\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "ekr_cpf_transition_20261005_v1/PLAN.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n  \"$CPF_PY\" -m transition.cli make-configs \\\n    --root \"$ROOT\" --exp \"$EXP\" --legacy-exp \"$LEGACY\" --bank-root \"$BANK_ROOT\" \\\n    --stage semantic --datasets ut-zappos --seeds 0 2026 --epochs 10 \\\n    --variants A_raw A_unit C_text C_shuffle\n  configs=()\n  for seed in 0 2026; do\n    for variant in A_raw A_unit C_text C_shuffle; do\n      configs+=(\"$EXP/configs/semantic_ut-zappos_${variant}_s${seed}_e10.yml\")\n    done\n  done\n  \"$CPF_PY\" -u -m transition.cli run-plan --configs \"${configs[@]}\" \\\n    2>&1 | tee \"$EXP/launch_logs/semantic_ut_remaining_v1.log\"\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "ekr_cpf_transition_20261005_v1/PLAN.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n  \"$CPF_PY\" -m transition.cli summarize --exp \"$EXP\" --legacy-exp \"$LEGACY\" \\\n    --out \"$EXP/reports/semantic_ut_3seed_v1\"\n  \"$CPF_PY\" -m transition.cli gate \\\n    --report \"$EXP/reports/semantic_ut_3seed_v1\" \\\n    --out \"$EXP/protocol/semantic_gate_ut_v1.json\" \\\n    --datasets ut-zappos --seeds 0 3351 2026\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "ekr_cpf_transition_20261005_v1/PLAN.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n  \"$CPF_PY\" -m transition.cli make-configs \\\n    --root \"$ROOT\" --exp \"$EXP\" --legacy-exp \"$LEGACY\" --bank-root \"$BANK_ROOT\" \\\n    --stage branch --datasets ut-zappos --seeds 3351 --epochs 3 \\\n    --variants R0 R3 R5 --use-legacy-anchor --smoke-only\n  for variant in R0 R3 R5; do\n    \"$CPF_PY\" -u -m transition.cli smoke \\\n      --cfg \"$EXP/configs/smoke_ut-zappos_${variant}_s3351_e3.yml\" \\\n      --out \"$EXP/audit/${variant}_gpu_smoke_ut_v1.json\"\n  done\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "ekr_cpf_transition_20261005_v1/PLAN.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n  \"$CPF_PY\" -m transition.cli make-configs \\\n    --root \"$ROOT\" --exp \"$EXP\" --legacy-exp \"$LEGACY\" --bank-root \"$BANK_ROOT\" \\\n    --stage branch --datasets ut-zappos --seeds 3351 --epochs 3 \\\n    --variants R0 R3 R5 --use-legacy-anchor \\\n    --gate \"$EXP/protocol/semantic_gate_ut_v1.json\"\n  \"$CPF_PY\" -u -m transition.cli run-plan --configs \\\n    \"$EXP/configs/branch_ut-zappos_R0_s3351_e3.yml\" \\\n    \"$EXP/configs/branch_ut-zappos_R3_s3351_e3.yml\" \\\n    \"$EXP/configs/branch_ut-zappos_R5_s3351_e3.yml\" \\\n    2>&1 | tee \"$EXP/launch_logs/branch_ut_pilot_e3_v1.log\"\n  \"$CPF_PY\" -m transition.cli summarize --exp \"$EXP\" --legacy-exp \"$LEGACY\" \\\n    --out \"$EXP/reports/branch_ut_pilot_e3_v1\"\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "ekr_cpf_transition_20261005_v1/PLAN.md",
+      "language": "bash",
+      "text": "source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n\"$CPF_PY\" -m json.tool \"$EXP/runs/branch_ut-zappos_R5_s3351_e3/selected_state.json\"\ncat \"$EXP/reports/branch_ut_pilot_e3_v1/paired_summary.csv\"\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "ekr_cpf_transition_20261005_v1/PLAN.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n  \"$CPF_PY\" -m transition.cli make-configs \\\n    --root \"$ROOT\" --exp \"$EXP\" --legacy-exp \"$LEGACY\" --bank-root \"$BANK_ROOT\" \\\n    --stage branch --datasets ut-zappos --seeds 3351 --epochs 5 \\\n    --variants R0 R3 R5 --use-legacy-anchor \\\n    --gate \"$EXP/protocol/semantic_gate_ut_v1.json\"\n  \"$CPF_PY\" -u -m transition.cli run-plan --configs \\\n    \"$EXP/configs/branch_ut-zappos_R0_s3351_e5.yml\" \\\n    \"$EXP/configs/branch_ut-zappos_R3_s3351_e5.yml\" \\\n    \"$EXP/configs/branch_ut-zappos_R5_s3351_e5.yml\"\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "ekr_cpf_transition_20261005_v1/PLAN.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n  \"$CPF_PY\" -m transition.cli make-configs \\\n    --root \"$ROOT\" --exp \"$EXP\" --legacy-exp \"$LEGACY\" --bank-root \"$BANK_ROOT\" \\\n    --stage branch --datasets ut-zappos --seeds 0 3351 2026 --epochs 10 \\\n    --variants R0 R3 R5 --use-legacy-anchor \\\n    --gate \"$EXP/protocol/semantic_gate_ut_v1.json\"\n  configs=()\n  for seed in 0 3351 2026; do\n    for variant in R0 R3 R5; do\n      configs+=(\"$EXP/configs/branch_ut-zappos_${variant}_s${seed}_e10.yml\")\n    done\n  done\n  \"$CPF_PY\" -u -m transition.cli run-plan --configs \"${configs[@]}\" \\\n    2>&1 | tee \"$EXP/launch_logs/branch_ut_3seed_e10_v1.log\"\n  \"$CPF_PY\" -m transition.cli summarize --exp \"$EXP\" --legacy-exp \"$LEGACY\" \\\n    --out \"$EXP/reports/branch_ut_3seed_e10_v1\"\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "ekr_cpf_transition_20261005_v1/PLAN.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n  \"$CPF_PY\" -m transition.cli make-configs \\\n    --root \"$ROOT\" --exp \"$EXP\" --legacy-exp \"$LEGACY\" --bank-root \"$BANK_ROOT\" \\\n    --stage branch --datasets ut-zappos --seeds 0 3351 2026 --epochs 10 \\\n    --variants R1 R2 R4 R7 Rname Rvalue --use-legacy-anchor \\\n    --gate \"$EXP/protocol/semantic_gate_ut_v1.json\"\n  configs=()\n  for seed in 0 3351 2026; do\n    for variant in R1 R2 R4 R7 Rname Rvalue; do\n      configs+=(\"$EXP/configs/branch_ut-zappos_${variant}_s${seed}_e10.yml\")\n    done\n  done\n  \"$CPF_PY\" -u -m transition.cli run-plan --configs \"${configs[@]}\"\n  \"$CPF_PY\" -m transition.cli summarize --exp \"$EXP\" --legacy-exp \"$LEGACY\" \\\n    --out \"$EXP/reports/branch_ut_mechanisms_v1\"\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "ekr_cpf_transition_20261005_v1/PLAN.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n  RID=branch_ut-zappos_R5_s3351_e10\n  \"$CPF_PY\" -m transition.cli bias0 \\\n    --reference \"$EXP/runs/$RID/anchor_val_ow\" \\\n    --treatment \"$EXP/runs/$RID/eval_val_ow\" \\\n    --train-pairs \"$ROOT/data/ut-zap50k/compositional-split-natural/train_pairs.txt\" \\\n    --out \"$EXP/reports/bias0_R5_minus_C0_ut_s3351_v1\"\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "ekr_cpf_transition_20261005_v1/PLAN.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n  for dataset in mit-states cgqa; do\n    seed=3351\n    if [ \"$dataset\" = mit-states ]; then seed=0; fi\n    \"$CPF_PY\" -m transition.cli make-configs \\\n      --root \"$ROOT\" --exp \"$EXP\" --legacy-exp \"$LEGACY\" --bank-root \"$BANK_ROOT\" \\\n      --stage semantic --datasets \"$dataset\" --seeds \"$seed\" --epochs 10 \\\n      --variants A_raw A_unit C_text C_shuffle\n    \"$CPF_PY\" -u -m transition.cli smoke \\\n      --cfg \"$EXP/configs/semantic_${dataset}_C_text_s${seed}_e10.yml\" \\\n      --checkpoint \"$LEGACY/runs/mvp_${dataset}_C_legacy_s${seed}_l0/checkpoints/best_auc.pth\" \\\n      --out \"$EXP/audit/semantic_C_fidelity_${dataset}_v1.json\"\n    \"$CPF_PY\" -u -m transition.cli run-plan --configs \\\n      \"$EXP/configs/semantic_${dataset}_A_unit_s${seed}_e10.yml\" \\\n      \"$EXP/configs/semantic_${dataset}_C_shuffle_s${seed}_e10.yml\"\n  done\n  \"$CPF_PY\" -m transition.cli summarize --exp \"$EXP\" --legacy-exp \"$LEGACY\" \\\n    --out \"$EXP/reports/semantic_all_native_v1\"\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "ekr_cpf_transition_20261005_v1/PLAN.md",
+      "language": "bash",
+      "text": "df -h ${PROJECT}\nfree -h\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "ekr_cpf_transition_20261005_v1/PLAN.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n  for dataset in mit-states cgqa; do\n    seeds=(0 2026)\n    if [ \"$dataset\" = mit-states ]; then seeds=(3351 2026); fi\n    \"$CPF_PY\" -m transition.cli make-configs \\\n      --root \"$ROOT\" --exp \"$EXP\" --legacy-exp \"$LEGACY\" --bank-root \"$BANK_ROOT\" \\\n      --stage semantic --datasets \"$dataset\" --seeds \"${seeds[@]}\" --epochs 10 \\\n      --variants A_raw A_unit C_text C_shuffle\n    configs=()\n    for seed in \"${seeds[@]}\"; do\n      for variant in A_raw A_unit C_text C_shuffle; do\n        configs+=(\"$EXP/configs/semantic_${dataset}_${variant}_s${seed}_e10.yml\")\n      done\n    done\n    \"$CPF_PY\" -u -m transition.cli run-plan --configs \"${configs[@]}\"\n  done\n  \"$CPF_PY\" -m transition.cli summarize --exp \"$EXP\" --legacy-exp \"$LEGACY\" \\\n    --out \"$EXP/reports/semantic_all_3seed_v1\"\n  \"$CPF_PY\" -m transition.cli gate \\\n    --report \"$EXP/reports/semantic_all_3seed_v1\" \\\n    --out \"$EXP/protocol/semantic_gate_all_v1.json\" \\\n    --datasets ut-zappos mit-states cgqa --seeds 0 3351 2026\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "ekr_cpf_transition_20261005_v1/PLAN.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n  for dataset in mit-states cgqa; do\n    seed=3351\n    if [ \"$dataset\" = mit-states ]; then seed=0; fi\n    \"$CPF_PY\" -m transition.cli make-configs \\\n      --root \"$ROOT\" --exp \"$EXP\" --legacy-exp \"$LEGACY\" --bank-root \"$BANK_ROOT\" \\\n      --stage branch --datasets \"$dataset\" --seeds \"$seed\" --epochs 10 \\\n      --variants R0 R3 R5 --use-legacy-anchor \\\n      --gate \"$EXP/protocol/semantic_gate_ut_v1.json\" --transfer-from ut-zappos\n    configs=()\n    for variant in R0 R3 R5; do\n      configs+=(\"$EXP/configs/branch_${dataset}_${variant}_s${seed}_e10.yml\")\n    done\n    \"$CPF_PY\" -u -m transition.cli run-plan --configs \"${configs[@]}\"\n  done\n  \"$CPF_PY\" -m transition.cli summarize --exp \"$EXP\" --legacy-exp \"$LEGACY\" \\\n    --out \"$EXP/reports/branch_transfer_native_v1\"\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "ekr_cpf_transition_20261005_v1/PLAN.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n  \"$CPF_PY\" -m transition.cli make-configs \\\n    --root \"$ROOT\" --exp \"$EXP\" --legacy-exp \"$LEGACY\" --bank-root \"$BANK_ROOT\" \\\n    --stage branch --datasets ut-zappos --seeds 3351 --epochs 10 \\\n    --variants R6 R0noise R3noise --use-legacy-anchor \\\n    --gate \"$EXP/protocol/semantic_gate_ut_v1.json\"\n  \"$CPF_PY\" -u -m transition.cli run-plan --configs \\\n    \"$EXP/configs/branch_ut-zappos_R6_s3351_e10.yml\" \\\n    \"$EXP/configs/branch_ut-zappos_R0noise_s3351_e10.yml\" \\\n    \"$EXP/configs/branch_ut-zappos_R3noise_s3351_e10.yml\"\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "ekr_cpf_transition_20261005_v1/PLAN.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n  for variant in R0 R3 R5 R6 R0noise R3noise; do\n    RID=\"branch_ut-zappos_${variant}_s3351_e10\"\n    for ratio in 0.1 0.3; do\n      for noise_seed in 11 22 33; do\n        for setting in cw ow; do\n          \"$CPF_PY\" -u -m transition.cli eval \\\n            --cfg \"$EXP/configs/$RID.yml\" \\\n            --load \"$EXP/runs/$RID/checkpoints/best_branch.pth\" \\\n            --phase val --setting \"$setting\" \\\n            --noise-ratio \"$ratio\" --noise-seed \"$noise_seed\" \\\n            --out \"$EXP/runs/$RID/noise_v1/p${ratio}_n${noise_seed}_${setting}\"\n        done\n      done\n    done\n  done\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "ekr_cpf_transition_20261005_v1/PLAN.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n  \"$CPF_PY\" -m transition.cli noise-summary --exp \"$EXP\" \\\n    --out \"$EXP/reports/noise_ut_s3351_v1\" --noise-version noise_v1 \\\n    --runs branch_ut-zappos_R0_s3351_e10 branch_ut-zappos_R3_s3351_e10 \\\n      branch_ut-zappos_R5_s3351_e10 branch_ut-zappos_R6_s3351_e10 \\\n      branch_ut-zappos_R0noise_s3351_e10 branch_ut-zappos_R3noise_s3351_e10\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "ekr_cpf_transition_20261005_v1/PLAN.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n  \"$CPF_PY\" -m transition.cli make-configs \\\n    --root \"$ROOT\" --exp \"$EXP\" --legacy-exp \"$LEGACY\" --bank-root \"$BANK_ROOT\" \\\n    --stage branch --regime joint --datasets ut-zappos --seeds 0 3351 2026 --epochs 10 \\\n    --variants C_budget R0 R3 R5 --use-legacy-anchor \\\n    --gate \"$EXP/protocol/semantic_gate_ut_v1.json\"\n  configs=()\n  for seed in 0 3351 2026; do\n    for variant in C_budget R0 R3 R5; do\n      configs+=(\"$EXP/configs/joint_ut-zappos_${variant}_s${seed}_e10.yml\")\n    done\n  done\n  \"$CPF_PY\" -u -m transition.cli run-plan --configs \"${configs[@]}\"\n  \"$CPF_PY\" -m transition.cli summarize --exp \"$EXP\" --legacy-exp \"$LEGACY\" \\\n    --out \"$EXP/reports/joint_ut_3seed_e10_v1\"\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "ekr_cpf_transition_20261005_v1/PLAN.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n  # 3351四项配置已在第4节生成；另两个seed在第5节生成。\n  runs=()\n  for seed in 0 3351 2026; do\n    for variant in A_raw A_unit C_text C_shuffle; do\n      runs+=(\"semantic_ut-zappos_${variant}_s${seed}_e10\")\n    done\n    for variant in R0 R3 R5; do\n      runs+=(\"branch_ut-zappos_${variant}_s${seed}_e10\")\n    done\n  done\n  \"$CPF_PY\" -m transition.cli freeze-final --exp \"$EXP\" --legacy-exp \"$LEGACY\" \\\n    --runs \"${runs[@]}\" --out \"$EXP/protocol/final_test_ut_v1.json\"\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "ekr_cpf_transition_20261005_v1/PLAN.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n  PROTOCOL=\"$EXP/protocol/final_test_ut_v1.json\"\n  \"$CPF_PY\" - \"$PROTOCOL\" <<'PY'\nimport json, os, subprocess, sys\nfrom pathlib import Path\nprotocol = Path(sys.argv[1])\nexp = Path(os.environ['EXP'])\nfor run in json.loads(protocol.read_text())['runs']:\n    for setting in ('cw', 'ow'):\n        out = exp / 'final_test_v1' / run['run_id'] / setting\n        subprocess.run([sys.executable, '-u', '-m', 'transition.cli', 'eval',\n            '--cfg', run['config'], '--load', run['checkpoint'],\n            '--phase', 'test', '--setting', setting, '--protocol', str(protocol),\n            '--out', str(out)], check=True)\nPY\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "ekr_cpf_transition_20261005_v1/PLAN.md",
+      "language": "bash",
+      "text": "source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\nRID=branch_ut-zappos_R5_s3351_e3\nps -u \"$USER\" -o pid,etime,pcpu,pmem,args\ntail -n 30 \"$EXP/runs/$RID/train.log\"\ncat \"$EXP/runs/$RID/status.json\"\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "ekr_cpf_transition_20261005_v1/PLAN.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n  RID=branch_ut-zappos_R5_s3351_e3\n  \"$CPF_PY\" -u -m transition.cli train-branch \\\n    --cfg \"$EXP/configs/$RID.yml\" --finish-only\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "ekr_cpf_transition_20261005_v1/PLAN.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n  RID=branch_ut-zappos_R5_s3351_e3\n  ITEM=\"$EXP/runs/$RID/eval_val_ow\"\n  test -d \"$ITEM\"\n  test ! -e \"$ITEM/metrics.json\"\n  mv -T -- \"$ITEM\" \"${ITEM}.interrupted_$(date +%Y%m%d_%H%M%S)\"\n  \"$CPF_PY\" -u -m transition.cli train-branch --cfg \"$EXP/configs/$RID.yml\" --finish-only\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "ekr_cpf_transition_20261005_v1/README.md",
+      "language": "bash",
+      "text": "\"$CPF_PY\" install.py \\\n  --source ${PROJECT}/src/KCC0601_v1 \\\n  --destination ${PROJECT}/src/EKR0601_transition_v1\ncd ${PROJECT}/src/EKR0601_transition_v1\n\"$CPF_PY\" -m transition.cli --help\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "semantic_gate_audit_20261006_v1/PLAN.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n  TOOL=\"$ROOT/tools/semantic_gate_audit_20261006_v1\"\n  REPORT=\"$EXP/reports/semantic_ut_3seed_diskretry_20261006_141852\"\n  test -s \"$REPORT/runs.csv\"\n  test -s \"$REPORT/collection.json\"\n\n  GATE=$(\"$CPF_PY\" - \"$EXP\" \"$REPORT\" <<'PY'\nimport json, sys\nfrom pathlib import Path\nexp, report = map(Path, sys.argv[1:])\nfingerprint = json.loads((report / 'collection.json').read_text())['fingerprint']\nmatches = []\nfor path in sorted((exp / 'protocol').glob('semantic_gate*.json')):\n    record = json.loads(path.read_text())\n    if record.get('report_fingerprint') == fingerprint:\n        matches.append(path)\nif len(matches) != 1:\n    print('STOP: expected one gate matching this report; found ' + str(len(matches)), file=sys.stderr)\n    for path in matches:\n        print(path, file=sys.stderr)\n    raise SystemExit(1)\nprint(matches[0])\nPY\n  )\n  printf 'MATCHED_GATE=%s\\n' \"$GATE\"\n  STAMP=$(date +%Y%m%d_%H%M%S)\n  AUDIT=\"$EXP/diagnostics/semantic_gate_audit_${STAMP}\"\n  mkdir -p \"$EXP/launch_logs\"\n\n  set +e\n  \"$CPF_PY\" -I -u \"$TOOL/audit_semantic_gate.py\" \\\n    --root \"$ROOT\" --project \"$PROJ\" --exp \"$EXP\" --legacy-exp \"$LEGACY\" \\\n    --report \"$REPORT\" --gate \"$GATE\" \\\n    --out \"$AUDIT\" \\\n    2>&1 | tee \"$EXP/launch_logs/semantic_gate_audit_${STAMP}.log\"\n  pipeline_codes=(\"${PIPESTATUS[@]}\")\n  RC=${pipeline_codes[0]}\n  if [ \"$RC\" -eq 0 ] && [ \"${pipeline_codes[1]}\" -ne 0 ]; then\n    RC=${pipeline_codes[1]}\n  fi\n  set -e\n\n  printf 'AUDIT_EXIT_CODE=%s\\nAUDIT_DIRECTORY=%s\\n' \"$RC\" \"$AUDIT\"\n  if [ -s \"$AUDIT/audit_summary.md\" ]; then\n    cat \"$AUDIT/audit_summary.md\"\n  fi\n  if [ \"$RC\" -ne 0 ]; then\n    printf '%s\\n' 'STOP: inspect the audit failure. Do not retrain or change the gate yet.'\n    exit \"$RC\"\n  fi\n  printf '%s\\n' 'Audit finished. Integrity pass does not imply research gate pass.'\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "semantic_gate_audit_20261006_v1/PLAN.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  EXP=${PROJECT}/experiments/ekr0601_transition_v1\n  CPF_PY=\"$CPF_PY\"\n  \"$CPF_PY\" - \"$EXP\" <<'PY'\nimport json, sys\nfrom pathlib import Path\nfiles = sorted((Path(sys.argv[1]) / 'diagnostics').glob('semantic_gate_audit_*/audit.json'))\nif not files:\n    raise SystemExit('STOP: no completed audit JSON found')\npath = files[-1]\nx = json.loads(path.read_text())\nprint('AUDIT_FILE:', path)\nprint('INTEGRITY_PASSED:', x['integrity_passed'])\nprint('FAILED_CHECKS:', [c for c in x['checks'] if c['status'] != 'PASS'])\nprint('GATE:', json.dumps(x.get('gate_recomputed'), indent=2))\nprint('BANK:', json.dumps(x.get('bank_audit'), indent=2))\nprint('BEST_EPOCHS:')\nfor r in x['run_audits']:\n    print(r['seed'], r['variant'], r['curve']['best_epoch'],\n          'boundary=' + str(r['curve']['best_at_budget_boundary']))\nprint('C_MINUS_SHUFFLE_BIAS0_ERRORS:')\nfor p in x['paired_bias0']:\n    if p['comparison'] == 'C_text-C_shuffle':\n        print(p['seed'], p['setting'], 'all=', p['all'],\n              'seen=', p['seen'], 'unseen=', p['unseen'])\nPY\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "semantic_gate_audit_20261006_v1/PLAN.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  EXP=${PROJECT}/experiments/ekr0601_transition_v1\n  CPF_PY=\"$CPF_PY\"\n  REPORT=\"$EXP/reports/semantic_ut_3seed_diskretry_20261006_141852\"\n  AUDIT=$(\"$CPF_PY\" - \"$EXP\" <<'PY'\nimport sys\nfrom pathlib import Path\nfiles = sorted((Path(sys.argv[1]) / 'diagnostics').glob('semantic_gate_audit_*/audit.json'))\nif not files:\n    raise SystemExit('STOP: no audit JSON found')\nprint(files[-1].parent)\nPY\n  )\n  for name in runs.csv paired_deltas.csv paired_summary.csv collection.json; do\n    cp -n -- \"$REPORT/$name\" \"$AUDIT/report_$name\"\n  done\n  GATE=$(\"$CPF_PY\" - \"$AUDIT/audit.json\" <<'PY'\nimport json, sys\nprint(json.load(open(sys.argv[1]))['inputs']['gate'])\nPY\n  )\n  cp -n -- \"$GATE\" \"$AUDIT/original_gate.json\"\n  ARCHIVE=\"$EXP/reports/$(basename \"$AUDIT\").tar.gz\"\n  test ! -e \"$ARCHIVE\"\n  tar -czf \"$ARCHIVE\" -C \"$AUDIT\" .\n  sha256sum \"$ARCHIVE\"\n  du -h \"$ARCHIVE\"\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "semantic_gate_audit_20261006_v1/PLAN.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n  STAMP=$(date +%Y%m%d_%H%M%S)\n  SMOKE_OUT=\"$EXP/audit/ekr_interface_recheck_${STAMP}\"\n  mkdir -p \"$SMOKE_OUT\"\n  \"$CPF_PY\" -m transition.cli make-configs \\\n    --root \"$ROOT\" --exp \"$EXP\" --legacy-exp \"$LEGACY\" --bank-root \"$BANK_ROOT\" \\\n    --stage branch --datasets ut-zappos --seeds 3351 --epochs 3 \\\n    --variants R0 R3 R5 --use-legacy-anchor --smoke-only\n  for variant in R0 R3 R5; do\n    CUDA_VISIBLE_DEVICES=\"$GPU\" \"$CPF_PY\" -u -m transition.cli smoke \\\n      --cfg \"$EXP/configs/smoke_ut-zappos_${variant}_s3351_e3.yml\" \\\n      --out \"$SMOKE_OUT/${variant}.json\" \\\n      2>&1 | tee \"$SMOKE_OUT/${variant}.log\"\n  done\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "磁盘空间不足_UT归因实验恢复_20261006.md",
+      "language": "bash",
+      "text": "ROOT=${PROJECT}\ndf -h \"$ROOT\" /tmp\ndf -i \"$ROOT\" /tmp\ndu -xhd1 /data/xhw 2>/dev/null | sort -h\ndu -xhd1 \"$ROOT/experiments\" 2>/dev/null | sort -h\ndu -sh /data/xhw/.cache/pip /data/xhw/miniconda3/pkgs 2>/dev/null\nquota -s 2>/dev/null || true\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "磁盘空间不足_UT归因实验恢复_20261006.md",
+      "language": "bash",
+      "text": "CPF_PY=\"$CPF_PY\"\n\"$CPF_PY\" -m pip cache dir\n\"$CPF_PY\" -m pip cache info\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "磁盘空间不足_UT归因实验恢复_20261006.md",
+      "language": "bash",
+      "text": "\"$CPF_PY\" -m pip cache purge\ndf -h ${PROJECT}\ndf -i ${PROJECT}\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "磁盘空间不足_UT归因实验恢复_20261006.md",
+      "language": "bash",
+      "text": "ps -u \"$USER\" -o pid,ppid,etime,pcpu,pmem,args | grep -E 'train_semantic.py|transition.cli' | grep -v grep\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "磁盘空间不足_UT归因实验恢复_20261006.md",
+      "language": "bash",
+      "text": "# 将下方示例PID替换为上一条输出中该失败任务的实际PID。\n# 仅在确认该任务仍运行时执行。\nkill -TERM 实际PID\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "磁盘空间不足_UT归因实验恢复_20261006.md",
+      "language": "bash",
+      "text": "source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n\"$CPF_PY\" - \"$EXP\" <<'PY'\nimport json, sys\nfrom pathlib import Path\nexp = Path(sys.argv[1])\nfor seed in (0, 2026):\n    for variant in (\"A_raw\", \"A_unit\", \"C_text\", \"C_shuffle\"):\n        rid = \"semantic_ut-zappos_{}_s{}_e10\".format(variant, seed)\n        run = exp / \"runs\" / rid\n        status = \"not_started\"\n        if run.exists():\n            status = \"partial_no_status\"\n        if (run / \"status.json\").is_file():\n            try:\n                status = json.loads((run / \"status.json\").read_text())[\"status\"]\n            except (ValueError, KeyError):\n                status = \"status_file_incomplete\"\n        print(rid, \"status=\" + status,\n              \"train_complete=\" + str((run / \"train_complete.json\").is_file()))\nPY\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "磁盘空间不足_UT归因实验恢复_20261006.md",
+      "language": "bash",
+      "text": "source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n\"$CPF_PY\" - \"$EXP\" <<'PY'\nimport os, shutil, sys, tempfile\nroot = sys.argv[1]\nfree = shutil.disk_usage(root).free\nprint(\"AVAILABLE_GiB:\", round(free / 2**30, 3))\nif free < 5 * 2**30:\n    raise SystemExit(\"STOP: release more space before restarting this UT run\")\nwith tempfile.TemporaryFile(dir=root) as f:\n    f.write(b\"\\0\" * 1024 * 1024)\n    f.flush()\n    os.fsync(f.fileno())\nprint(\"WRITE PROBE PASSED\")\nPY\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "磁盘空间不足_UT归因实验恢复_20261006.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n  RID=semantic_ut-zappos_C_shuffle_s2026_e10\n  RUN=\"$EXP/runs/$RID\"\n  CFG=\"$EXP/configs/$RID.yml\"\n  STAMP=$(date +%Y%m%d_%H%M%S)\n  SAVED=\"$EXP/interrupted_runs/${RID}.diskfull_${STAMP}\"\n\n  test -s \"$CFG\"\n  test -d \"$RUN\"\n  if [ -e \"$RUN/train_complete.json\" ]; then\n    printf '%s\\n' 'STOP: training completion record exists; use finish-only instead of retraining.'\n    exit 1\n  fi\n\n  \"$CPF_PY\" - \"$EXP\" \"$CFG\" <<'PY'\nimport shutil, sys\nfrom pathlib import Path\nimport yaml\nexp, filename = map(Path, sys.argv[1:])\ncfg = yaml.safe_load(filename.read_text())\nexpected = exp / \"runs/semantic_ut-zappos_C_shuffle_s2026_e10\"\nif Path(cfg[\"TRAIN\"][\"kcc_run_dir\"]).resolve() != expected.resolve():\n    raise SystemExit(\"STOP: config points to another run\")\nif cfg[\"TRAIN\"][\"seed\"] != 2026 or cfg[\"TRAIN\"][\"max_epoch\"] != 10:\n    raise SystemExit(\"STOP: seed or budget mismatch\")\nif cfg[\"TRAIN\"][\"start_epoch\"] != 1 or cfg[\"TRAIN\"][\"kcc_variant\"] != \"C_shuffle\":\n    raise SystemExit(\"STOP: configuration is not the expected fresh C_shuffle run\")\nif shutil.disk_usage(exp).free < 5 * 2**30:\n    raise SystemExit(\"STOP: less than 5 GiB available\")\nPY\n\n  mkdir -p \"$EXP/interrupted_runs\" \"$EXP/protocol\" \"$EXP/launch_logs\"\n  test ! -e \"$SAVED\"\n  mv -T -- \"$RUN\" \"$SAVED\"\n  {\n    printf 'reason=ENOSPC during native training\\n'\n    printf 'failed_attempt=%s\\n' \"$SAVED\"\n    printf 'retry_run=%s\\n' \"$RUN\"\n    printf 'retry_type=fresh training, same configuration and seed\\n'\n    sha256sum -- \"$CFG\"\n  } > \"$EXP/protocol/${RID}.diskfull_retry_${STAMP}.txt\"\n\n  \"$CPF_PY\" -u -m transition.cli run-semantic --cfg \"$CFG\" \\\n    2>&1 | tee \"$EXP/launch_logs/${RID}.diskfull_retry_${STAMP}.log\"\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "磁盘空间不足_UT归因实验恢复_20261006.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n  \"$CPF_PY\" -u -m transition.cli run-semantic \\\n    --cfg \"$EXP/configs/semantic_ut-zappos_C_shuffle_s2026_e10.yml\" --finish-only\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "磁盘空间不足_UT归因实验恢复_20261006.md",
+      "language": "bash",
+      "text": "source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\ncat \"$EXP/runs/semantic_ut-zappos_C_shuffle_s2026_e10/status.json\"\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "磁盘空间不足_UT归因实验恢复_20261006.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n  STAMP=$(date +%Y%m%d_%H%M%S)\n  REPORT=\"$EXP/reports/semantic_ut_3seed_diskretry_${STAMP}\"\n  \"$CPF_PY\" -m transition.cli summarize --exp \"$EXP\" --legacy-exp \"$LEGACY\" \\\n    --out \"$REPORT\"\n  \"$CPF_PY\" -m transition.cli gate --report \"$REPORT\" \\\n    --out \"$EXP/protocol/semantic_gate_ut_diskretry_${STAMP}.json\" \\\n    --datasets ut-zappos --seeds 0 3351 2026\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "第五步_文本收益归因到EKR-CPF_完整操作方案.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  source ${PROJECT}/experiments/ekr0601_transition_v1/protocol/session_env.sh\n  \"$CPF_PY\" -u -m transition.cli preflight --root \"$ROOT\"\n  \"$CPF_PY\" -u tests/test_router_cpu.py\n  \"$CPF_PY\" -u \"$ROOT/tools/normalize_legacy_checkpoints.py\" \\\n    --legacy-exp \"$LEGACY\" --apply \\\n    2>&1 | tee \"$EXP/audit/legacy_checkpoint_paths_v1.log\"\n  sha256sum \"$LEGACY/runs/mvp_ut-zappos_C_legacy_s3351_l0/checkpoints/best_auc.pth\"\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "output/截至20261007_CPF_KCC_语义归因与EKR完整实验记录.md",
+      "language": "python",
+      "text": "obj_pred = self.classifier(vis_obj_new, obj_weight, scale=False)\nattr_pred = self.classifier(attr_emb, attr_weight, scale=False)\ncomp_pred = self.classifier(vis_comp, concept, scale=False)\n\npred = comp_pred + attr_pred + obj_pred\npred = self._kcc_calibrate(pred, self.val_objs, self.val_attrs)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "output/截至20261007_CPF_KCC_语义归因与EKR完整实验记录.md",
+      "language": "python",
+      "text": "def _kcc_calibrate(self, scores, obj_ids, attr_ids):\n    if not self.kcc_calib or self.kcc_lambda == 0.0:\n        return scores\n    prior = self.K_oa_prior[obj_ids, attr_ids]\n    return scores + self.kcc_lambda * prior.unsqueeze(0)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "output/截至20261007_CPF_KCC_语义归因与EKR完整实验记录.md",
+      "language": "json",
+      "text": "{\n  \"OI示例\": {\"boot\": [\"Boots.Ankle\", \"Boots.Knee.High\", \"Boots.Mid-Calf\"]},\n  \"OE示例\": {\"Boots.Ankle\": [\"shaft ending at the ankle\", \"closed toe boot silhouette\", \"low boot collar\"]},\n  \"AE示例\": {\"Canvas\": [\"woven canvas fabric\", \"coarse textile surface\", \"matte cloth finish\"]}\n}\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "output/截至20261007_CPF_KCC_语义归因与EKR完整实验记录.md",
+      "language": "python",
+      "text": "def description_tokens(text):\n    return re.findall(r\"[a-z0-9]+(?:'[a-z]+)?\", text.lower())\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "output/截至20261007_CPF_KCC_语义归因与EKR完整实验记录.md",
+      "language": "python",
+      "text": "raw_name = torch.stack([glove[t] for t in label_tokens[label]]).mean(0)\nsentence_vectors = [normalize(raw_name)]\nfor text in descriptions[label]:\n    known = [glove[t] for t in description_tokens(text) if t in glove]\n    sentence = torch.stack(known).mean(0) if known else torch.zeros(300)\n    if sentence.norm() < EPS:\n        sentence = raw_name\n    sentence_vectors.append(normalize(sentence))\nknowledge_vector = normalize(torch.stack(sentence_vectors).mean(0))\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "output/截至20261007_CPF_KCC_语义归因与EKR完整实验记录.md",
+      "language": "python",
+      "text": "raw_k[oi] = (pair_embeddings * proto).sum(-1)\ntorch.save(pair_embeddings, stage / \"W_ao_K\" / (\"obj_{:05d}.pt\".format(oi)))\n\ndegenerate = ((raw_k.max() - raw_k.min()).item() < EPS\n              or raw_k.std(unbiased=False).item() < EPS)\ntemplate_k = (torch.full_like(raw_k, 0.5) if degenerate else\n              (raw_k - raw_k.min()) / (raw_k.max() - raw_k.min()))\nk = template_k\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "output/截至20261007_CPF_KCC_语义归因与EKR完整实验记录.md",
+      "language": "python",
+      "text": "def centered_prior(k, eps=1e-8):\n    k = k.float()\n    if not torch.isfinite(k).all():\n        raise ValueError(\"non-finite K\")\n    std = k.std(unbiased=False)\n    if std < eps:\n        return torch.zeros_like(k)\n    return (k - k.mean()) / std\n\nprior = P[obj_ids, attr_ids]  # 一维候选pair顺序由这两个索引明确给出\ncalibrated = scores + kcc_lambda * prior.unsqueeze(0)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "output/截至20261007_CPF_KCC_语义归因与EKR完整实验记录.md",
+      "language": "python",
+      "text": "def derangement(n, seed):\n    order = np.random.RandomState(seed).permutation(n)\n    result = np.empty(n, dtype=np.int64)\n    result[order] = np.roll(order, 1)\n    assert not np.any(result == np.arange(n))\n    return result.tolist()\n\nmean = (units * mask[..., None]).sum(1) / mask.sum(1, keepdim=True)\nresidual = (units - mean[:, None]) * mask[..., None]\nfor i, donor in enumerate(permutation):\n    shuffled[i, 0] = units[i, 0]\n    shuffled[i, 1:4] = units[donor, 1:4]\nshuffle = normalize(shuffled.mean(1))  # 当前每类恰好4个有效槽\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "output/截至20261007_CPF_KCC_语义归因与EKR完整实验记录.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  CPF_PY=\"$CPF_PY\"\n  ROOT=${PROJECT}\n  PROJECT=\"$ROOT/src/KCC0601_v1\"\n  KNOWLEDGE_SOURCE=\"$ROOT/knowledge/kcc0601_v1/trusted_v1/ut-zap50k\"\n  BUILD_STAMP=$(date +%Y%m%d_%H%M%S)\n  NEW_CACHE=\"/var/tmp/czsl_xhw_knowledge_rebuild_${BUILD_STAMP}/cache/ut-zap50k\"\n\n  \"$CPF_PY\" \"$PROJECT/tools/build_knowledge.py\" \\\n    --project-root \"$PROJECT\" \\\n    --cfg \"$PROJECT/config/ut-zappos.yml\" \\\n    --data-root \"$ROOT/data/ut-zap50k\" \\\n    --knowledge-dir \"$KNOWLEDGE_SOURCE\" \\\n    --glove-file \"$ROOT/data/glove/glove.6B.300d.txt\" \\\n    --output-dir \"$NEW_CACHE\" \\\n    --encoder glove --descriptions-per-class 3 --pair-mode template \\\n    --prior-source template --knowledge-status bulk_trusted_unverified --seed 91001\n\n  \"$CPF_PY\" \"$PROJECT/tools/build_knowledge.py\" \\\n    --verify-only --output-dir \"$NEW_CACHE\"\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "output/截至20261007_CPF_KCC_语义归因与EKR完整实验记录.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  CPF_PY=\"$CPF_PY\"\n  ROOT=${PROJECT}\n  UT_V2_WORK=/var/tmp/czsl_xhw_ut_v2_20261006\n  cd \"$UT_V2_WORK/src\"\n\n  \"$CPF_PY\" tools/build_knowledge.py \\\n    --verify-only --output-dir \"$UT_V2_WORK/cache/ut-zap50k\"\n\n  \"$CPF_PY\" -m transition.v2_prepare \\\n    --root \"$ROOT\" --work \"$UT_V2_WORK\" --verify-only\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "output/截至20261007_CPF_KCC_语义归因与EKR完整实验记录.md",
+      "language": "bash",
+      "text": "CPF_PY=\"$CPF_PY\"\nUT_V2_WORK=/var/tmp/czsl_xhw_ut_v2_20261006\n\"$CPF_PY\" -m json.tool \"$UT_V2_WORK/cache/ut-zap50k/manifest.json\"\n\"$CPF_PY\" -m json.tool \"$UT_V2_WORK/cache/ut-zap50k/report.json\"\n\"$CPF_PY\" -m json.tool \"$UT_V2_WORK/bank/ut-zap50k/report.json\"\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "output/截至20261007_CPF_KCC_语义归因与EKR完整实验记录.md",
+      "language": "python",
+      "text": "mean = (units * mask[..., None]).sum(1) / mask.sum(1, keepdim=True)\nresidual = (units - mean[:, None]) * mask[..., None]\n\nshuffled[i, 0] = units[i, 0]          # 保留本类名称\nshuffled[i, 1:donor_n] = units[donor, 1:donor_n]\n\ntable[\"correct\"] = normalize(mean)\ntable[\"shuffle\"] = normalize(shuffled_mean)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "output/截至20261007_CPF_KCC_语义归因与EKR完整实验记录.md",
+      "language": "python",
+      "text": "query = normalize(qx[:, None, :] * sigmoid(qo(object_source))[None, :, :])\nlogits = einsum(\"bnk,mrk->bnmr\", query, keys) / temperature\n\nnull = einsum(\"bnk,k->bn\", query, normalize(null_key))\nlogits = cat([null, logits], dim=-1)\nweights = logits.softmax(-1)\n\ndelta = (weights[..., 1:] * evidence[:, None]).sum(-1)\nresidual = output * eta\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "output/截至20261007_CPF_KCC_语义归因与EKR完整实验记录.md",
+      "language": "python",
+      "text": "with torch.no_grad():\n    values = self.base.raw_forward(batch)\nbase, feature = values[\"pred\"], values[\"attr_feature\"]\n\nresidual = self.router(feature, attr_ids, obj_ids, force_off=force_off)\nreturn base + residual\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "output/截至20261007_CPF_KCC_语义归因与EKR完整实验记录.md",
+      "language": "python",
+      "text": "# 对象条件只用对象名称，不让 OE 描述泄漏进名称控制\nself.object_source = bank['o']['unit'].float().clone()\n\nif mode == 'name_only':\n    # 重复名称保持四个 slot 和相同参数规模\n    names = bank['a']['unit'][:, None, :].expand(-1, 4, -1).clone()\n    self.key_source = names\n    self.value_source = names / 2\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    }
+  ],
+  "warning": "Experiment command templates, not an automatic runner. Navigation/interpreter paths are parameterized; scientific numeric settings remain unchanged. Inspect package defaults and frozen input hashes before execution. Historical absolute artifact paths are evidence, not portable defaults. Never tune TEST.",
+  "variables": {
+    "CPF_PY": "Python executable in the matching CPF environment",
+    "REPLAY": "Independent layout generated by tools/reproduce.py materialize",
+    "PROJECT": "Verified compatible source/data/knowledge root; frozen paths may require mapping"
+  },
+  "readme_recipes": [
+    {
+      "source": "experiments/03-semantic-v1/README.md",
+      "language": "bash",
+      "text": "\"$CPF_PY\" install.py \\\n  --source ${PROJECT}/src/KCC0601_v1 \\\n  --destination ${PROJECT}/src/EKR0601_transition_v1\ncd ${PROJECT}/src/EKR0601_transition_v1\n\"$CPF_PY\" -m transition.cli --help\n",
+      "template_paths": true
+    }
+  ]
+}

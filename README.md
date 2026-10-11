@@ -1,53 +1,59 @@
-# CZSL 私人研究档案
+# CZSL 研究：实验记录与复现
 
-截至 **2026-10-11（北京时间）**。本仓库保存 CPF / KCC / EKR / LogiCZSL 相关研究的代码版本、知识资产、实验配置、结果、复核和研究决策。原始文件保持原位置和原字节；通过研究阶段索引组织阅读。
+代码、配置、知识与原始结果，按研究依赖顺序组织。实验状态截至 2026-10-11；仓库整理不改变已有实验结果。
 
-## 从哪里开始
+```text
+experiments/01–18/   每阶段一个 README，配套 code/、configs/、results/、inputs.json
+src/                有身份区分的 CPF / LogiCZSL 基础源码快照
+knowledge/          按数据集、知识类型和版本集中管理的原始知识资产
+environment/        运行环境、外部输入与历史路径兼容要求
+tools/              完整性校验、运行目录生成与依赖预检
+provenance/         原路径映射、SHA256、数据身份与删除记录
+```
 
-1. [研究阶段索引](docs/EXPERIMENTS.md)：按研究依赖顺序，查阅每次修改的动机、实际执行、证据、结论和后续决策。
-2. [截至 10 月 10 日的完整实验总档案](docs/history_20261010.md)：包含逐步骤公式、完整结果表、训练/诊断/复用的区别和负结果。
-3. [知识来源、恢复与构建档案](docs/knowledge_history_20261010.md)：OI/OE/AE、名称、模板 prior、知识缓存的来源与处理。
-4. [两条 0601 路线对照](docs/ROUTES.md)：区分已训练的 residual 版与主公式对齐版。
-5. [统一指标索引](docs/METRICS.md)及 [metrics_index.csv](provenance/metrics_index.csv)：保留阶段、数据集、seed、VAL/TEST、CW/OW和原始文件身份，不跨协议拼成排行榜。
+## 开始复现
 
-## 两条路线分别保留
-
-| 路线 | 代码入口 | 结果/状态入口 |
-|---|---|---|
-| `residual-0601`：旧 native CPF + residual 实现 | [reproduce_0601_20261010](reproduce_0601_20261010/README.md) | [12 组实际训练结果](output/0601_priority_results_20261011/extracted/summary/0601_实际训练与汇总.md)、[结果与公式复核](docs/residual_review_20261011.md) |
-| `formula-aligned-0601`：主评分/损失公式对齐 r2 | [faithful_0601_20261011](faithful_0601_20261011/README.md) | [完整代码与配置归档](archive_inputs/formula_aligned_bundle/README.md)、[历史 CPU 验证记录](archive_inputs/formula_aligned_bundle/verification/desktop_bundle_verification.json)；截至归档未收集到本版本正式服务器训练结果 |
-
-两个版本均保留。主公式对齐版不继承旧 residual 版的研究成绩；CPU 测试通过也不计为研究实验完成。原方案、接口选择、剩余项和具体公式见路线对照。
-
-## 文件布局
-
-| 位置 | 内容 |
-|---|---|
-| `docs/` | 新增的可在 GitHub 浏览的研究导航、阶段卡和相对链接报告副本 |
-| 各带日期的根目录 | 已有代码包、模型/审计实现、运行脚本和知识文件，原样保留 |
-| `output/` | 原始实验结果、CSV/JSON、逐轮日志、预测数组、审计、失败记录和发布 ZIP |
-| `archive_inputs/desktop_experiments/` | 从桌面早期研究归档补入的科学资料；按原目录结构保存 |
-| `archive_inputs/formula_aligned_bundle/` | 桌面上已交付的主公式对齐版本完整包，包含其原始 manifest |
-| `archive_inputs/referenced_sources/` | 原报告引用的其他已存在来源，逐文件映射 |
-| `provenance/` | SHA256 清单、外部来源映射、未上传的大资源清单、指标索引及归档验证 |
-| `archive_tools/` | 归档构建、只读验证和使用既有 Git 登录凭据的私人仓库操作工具 |
-
-提交历史是 **2026-10-11 按研究依赖顺序进行的回溯归档提交**，不是当时实验当天的开发提交。每项实际时间、seed、预算、是否续训/回放以协议和原始结果为准。
-
-## 下载与后续使用
-
-本仓库的结果压缩包、分数数组和图像使用 Git LFS。第一次下载：
-
-```powershell
+```bash
 git lfs install
 git clone -c core.longpaths=true https://github.com/havenxu7436/czsl-research.git
 cd czsl-research
 git lfs pull
-python archive_tools/archive.py verify
+python tools/reproduce.py verify
 ```
 
-`git lfs pull` 下载真实证据文件；仅下载 GitHub 的普通源码 ZIP 可能得到 LFS 指针。数据集原图全集、GloVe 大文件、预训练模型和大型训练 checkpoint 保留原存储位置，仓库清单明确标注。不能据此声称本仓库可无外部输入从零复现实验。
+先读 [运行环境与外部输入](environment/README.md) 和 [知识版本说明](knowledge/README.md)，再按下面的阶段进入。用 `materialize` 在独立目录恢复完整包内布局和必要兼容文件，不能直接在当前的分区展示目录里启动旧脚本。
 
-新增实验请遵循 [实验记录与 Git 使用约定](docs/WORKFLOW.md)。不要把旧报告中的启动命令当作当前待执行任务；这次归档没有连接服务器或启动训练。
+这不是无外部输入的离线训练包：图像全集、GloVe、ViT 预训练权重及部分历史训练 checkpoint 仍需准备。已存储的知识、配置和结果可按 SHA256 校验；CPU/结构校验不等于已经复现 GPU 训练指标。
 
-本机的大输出、依赖和归档缓存已迁至 D 盘，原 C 盘路径保持可用，详见 [本机存储位置说明](docs/STORAGE.md)。这不影响其他电脑克隆仓库。
+## 实验顺序
+
+| 阶段 | 入口 | 状态 |
+|---|---|---|
+| 01 | [基线与原始知识](experiments/01-baseline/README.md) | 历史基线；多数据集 |
+| 02 | [MVP 与固定 prior 校准](experiments/02-mvp-calibration/README.md) | 已训练＋后处理 |
+| 03 | [语义归因 v1](experiments/03-semantic-v1/README.md) | 保留历史缺项边界 |
+| 04 | [审核知识与语义归因 v2](experiments/04-semantic-v2/README.md) | 三 seed 实验与逐图诊断 |
+| 05 | [名称锚点 EKR](experiments/05-name-anchor-ekr/README.md) | 三组各 3 轮 |
+| 06 | [EKR 机制诊断](experiments/06-ekr-diagnostics/README.md) | 既有权重回放 |
+| 07 | [共享值对齐 EKR v2](experiments/07-ekr-v2/README.md) | 四组各 3 轮 |
+| 08 | [TRAIN 支持探针与 SG-EKR](experiments/08-support-sgekr/README.md) | 诊断＋三组训练 |
+| 09 | [3→10 轮预算回溯](experiments/09-budget10/README.md) | 续训，非新 run |
+| 10 | [CPF＋LogiCZSL](experiments/10-cpf-logiczsl/README.md) | 四组各 10 轮 |
+| 11 | [条件属性预检与缓存](experiments/11-conditional-preflight/README.md) | 工程/梯度检查 |
+| 12 | [条件属性 pilot](experiments/12-conditional-pilot/README.md) | r1 失败、r2 五组训练 |
+| 13 | [Generic 同结构知识对照](experiments/13-generic-controls/README.md) | 三项新训练＋一项复用 |
+| 14 | [冻结 CLIP 探针](experiments/14-clip-probe/README.md) | r2 七配方，无 optimizer |
+| 15 | [TRAIN 逐句知识审查](experiments/15-train-knowledge-audit/README.md) | 诊断，不是泛化实验 |
+| 16 | [residual-0601](experiments/16-residual-0601/README.md) | 12 组×10 轮、48 份评价 |
+| 17 | [formula-aligned-0601](experiments/17-formula-aligned-0601/README.md) | 代码与 CPU 验证；42 次训练为计划 |
+| 18 | [residual 描述删除扩展](experiments/18-noise-extension/README.md) | 仅代码，尚无正式结果 |
+
+两条 0601 路线分开保存。第 17 阶段不能继承第 16 阶段的成绩。每阶段的 `inputs.json` 定位知识、配置和原始结果；`runbook.json` 保存实验命令模板及来源，使用前须按环境说明核对路径和包内默认值。
+
+## 完整性与历史
+
+本次只改变展示布局、合并说明和去除重复容器，没有修改保留代码、配置、知识或数值结果的字节。所有原路径均在 [layout.json](provenance/layout.json) 标明新位置或移除理由。
+
+旧版完整保留于 [archive-20261011](https://github.com/havenxu7436/czsl-research/tree/archive-20261011)。历史 README/PLAN 等校验依赖由工具从该标签恢复到独立运行目录；不要使用缺少此标签的浅克隆。重复 ZIP、排版中间文件及机器专属操作说明不再出现在当前版本，不重写 Git 历史。
+
+新增实验建立新的阶段目录，记录假设、变更、数据/知识版本、seed、预算、选模、结果和决策。续训、回放、失败和计划分别标注，TEST 不参与选模或调参。

@@ -1,70 +1,0 @@
-DATASET:
-  name: cgqa
-  root_dir: /data/xhw/czsl_repro/data/cgqa
-  splitname: compositional-split-natural
-EVAL:
-  open_world: True
-  topk: 1
-MODEL:
-  attn_normalized: True
-  classifier: cosine
-  cosine_cls_temp: 0.05
-  emb_dim: 300
-  img_emb_dim: 768
-  img_emb_drop: 0.35
-  lambda_attn: 10.0
-  load_checkpoint: None
-  name: OADIS
-  optim_weights: 
-  use_attr_loss: True
-  use_composed_pair_loss: True
-  use_emb_pair_loss: True
-  use_obj_loss: True
-  weights: 
-  wordemb_compose: obj-conditioned-cgqa
-  wordemb_compose_dropout: 0.2
-  wordembs: glove
-TRAIN:
-  aug_epoch: 37
-  batch_size: 64
-  checkpoint_dir: /data/xhw/czsl_repro/runs/cpf_cgqa_seed3351_gpu2/checkpoints
-  comb_features: False
-  decay_factor: 0.1
-  decay_strategy: milestone
-  disp_interval: 283
-  eval_every_epoch: 1
-  final_max_epoch: 10
-  finetune_backbone: True
-  log_dir: /data/xhw/czsl_repro/runs/cpf_cgqa_seed3351_gpu2/logs
-  lr: 0.0001
-  lr_decay_milestones: [23, 30]
-  lr_encoder: 1e-05
-  lr_word_embedding: 2.5e-06
-  max_epoch: 10
-  num_workers: 4
-  save_every_epoch: 1
-  seed: 3351
-  start_epoch: 1
-  start_epoch_validate: 1
-  test_batch_size: 64
-  train_name: final_prediction
-  use_precomputed_features: False
-  wd: 5e-05
-config_name: cgqa-czsl
-Prepare dataset
-# train pairs: 5592 | # val pairs: 2292 | # test pairs: 1811
-# train images: 26920 | # val images: 7280 | # test images: 5098
-# train pairs: 5592 | # val pairs: 2292 | # test pairs: 1811
-# train images: 26920 | # val images: 7280 | # test images: 5098
-Loaded embeddings from file /data/xhw/czsl_repro/data/cgqa/../glove/glove.6B.300d.txt torch.Size([413, 300])
-Loaded embeddings from file /data/xhw/czsl_repro/data/cgqa/../glove/glove.6B.300d.txt torch.Size([674, 300])
-Loaded pretrained weights.
-Evaluating with test pairs
-Test set:
-Testing:   0%|          | 0/80 [00:00<?, ?it/s]Testing:   1%|▏         | 1/80 [00:11<15:13, 11.57s/it]Testing:   2%|▎         | 2/80 [00:16<09:39,  7.44s/it]Testing:   4%|▍         | 3/80 [00:19<07:24,  5.78s/it]Testing:   5%|▌         | 4/80 [00:23<06:27,  5.10s/it]Testing:   6%|▋         | 5/80 [00:30<06:48,  5.44s/it]Testing:   8%|▊         | 6/80 [00:32<05:36,  4.55s/it]Testing:   9%|▉         | 7/80 [00:38<05:47,  4.75s/it]Testing:  10%|█         | 8/80 [00:43<06:09,  5.14s/it]Testing:  11%|█▏        | 9/80 [00:46<05:13,  4.41s/it]Testing:  12%|█▎        | 10/80 [00:49<04:34,  3.92s/it]Testing:  14%|█▍        | 11/80 [00:56<05:35,  4.86s/it]Testing:  15%|█▌        | 12/80 [00:59<04:53,  4.31s/it]Testing:  16%|█▋        | 13/80 [01:08<06:15,  5.61s/it]Testing:  18%|█▊        | 14/80 [01:11<05:19,  4.84s/it]Testing:  19%|█▉        | 15/80 [01:14<04:36,  4.26s/it]Testing:  20%|██        | 16/80 [01:17<04:04,  3.81s/it]Testing:  21%|██▏       | 17/80 [01:26<05:54,  5.62s/it]Testing:  22%|██▎       | 18/80 [01:29<05:00,  4.84s/it]Testing:  24%|██▍       | 19/80 [01:32<04:16,  4.21s/it]Testing:  25%|██▌       | 20/80 [01:35<03:47,  3.79s/it]Testing:  26%|██▋       | 21/80 [01:48<06:24,  6.52s/it]Testing:  28%|██▊       | 22/80 [01:51<05:12,  5.38s/it]Testing:  29%|██▉       | 23/80 [01:53<04:19,  4.56s/it]Testing:  30%|███       | 24/80 [01:56<03:46,  4.04s/it]Testing:  31%|███▏      | 25/80 [01:59<03:21,  3.67s/it]Testing:  32%|███▎      | 26/80 [02:13<06:16,  6.97s/it]Testing:  34%|███▍      | 27/80 [02:16<05:02,  5.70s/it]Testing:  35%|███▌      | 28/80 [02:19<04:09,  4.80s/it]Testing:  36%|███▋      | 29/80 [02:22<03:38,  4.29s/it]Testing:  38%|███▊      | 30/80 [02:25<03:20,  4.01s/it]Testing:  39%|███▉      | 31/80 [02:28<02:57,  3.62s/it]Testing:  40%|████      | 32/80 [02:31<02:41,  3.37s/it]Testing:  41%|████▏     | 33/80 [02:48<05:50,  7.45s/it]Testing:  42%|████▎     | 34/80 [02:51<04:38,  6.04s/it]Testing:  44%|████▍     | 35/80 [02:53<03:47,  5.06s/it]Testing:  45%|████▌     | 36/80 [02:56<03:12,  4.37s/it]Testing:  46%|████▋     | 37/80 [02:59<02:49,  3.94s/it]Testing:  48%|████▊     | 38/80 [03:02<02:38,  3.78s/it]Testing:  49%|████▉     | 39/80 [03:05<02:22,  3.48s/it]Testing:  50%|█████     | 40/80 [03:08<02:11,  3.29s/it]Testing:  51%|█████▏    | 41/80 [03:11<02:01,  3.11s/it]Testing:  52%|█████▎    | 42/80 [03:30<05:02,  7.97s/it]Testing:  54%|█████▍    | 43/80 [03:33<03:55,  6.37s/it]Testing:  55%|█████▌    | 44/80 [03:35<03:09,  5.25s/it]Testing:  56%|█████▋    | 45/80 [03:38<02:38,  4.52s/it]Testing:  57%|█████▊    | 46/80 [03:41<02:16,  4.02s/it]Testing:  59%|█████▉    | 47/80 [03:44<02:01,  3.69s/it]Testing:  60%|██████    | 48/80 [03:47<01:48,  3.39s/it]Testing:  61%|██████▏   | 49/80 [03:49<01:39,  3.22s/it]Testing:  62%|██████▎   | 50/80 [03:52<01:33,  3.11s/it]Testing:  64%|██████▍   | 51/80 [03:55<01:28,  3.04s/it]Testing:  65%|██████▌   | 52/80 [04:21<04:35,  9.83s/it]Testing:  66%|██████▋   | 53/80 [04:24<03:27,  7.69s/it]Testing:  68%|██████▊   | 54/80 [04:26<02:41,  6.22s/it]Testing:  69%|██████▉   | 55/80 [04:29<02:09,  5.19s/it]Testing:  70%|███████   | 56/80 [04:32<01:46,  4.45s/it]Testing:  71%|███████▏  | 57/80 [04:35<01:34,  4.12s/it]Testing:  72%|███████▎  | 58/80 [04:38<01:21,  3.69s/it]Testing:  74%|███████▍  | 59/80 [04:41<01:11,  3.42s/it]Testing:  75%|███████▌  | 60/80 [04:43<01:04,  3.21s/it]Testing:  76%|███████▋  | 61/80 [04:46<00:58,  3.10s/it]Testing:  78%|███████▊  | 62/80 [04:49<00:54,  3.04s/it]Testing:  79%|███████▉  | 63/80 [04:52<00:50,  2.99s/it]Testing:  80%|████████  | 64/80 [04:55<00:47,  2.97s/it]Testing:  81%|████████▏ | 65/80 [05:23<02:37, 10.51s/it]Testing:  82%|████████▎ | 66/80 [05:26<01:54,  8.16s/it]Testing:  84%|████████▍ | 67/80 [05:28<01:24,  6.52s/it]Testing:  85%|████████▌ | 68/80 [05:31<01:04,  5.37s/it]Testing:  86%|████████▋ | 69/80 [05:34<00:50,  4.59s/it]Testing:  88%|████████▊ | 70/80 [05:37<00:40,  4.03s/it]Testing:  89%|████████▉ | 71/80 [05:39<00:32,  3.63s/it]Testing:  90%|█████████ | 72/80 [05:42<00:27,  3.38s/it]Testing:  91%|█████████▏| 73/80 [05:45<00:22,  3.19s/it]Testing:  92%|█████████▎| 74/80 [05:48<00:18,  3.04s/it]Testing:  94%|█████████▍| 75/80 [05:50<00:14,  2.92s/it]Testing:  95%|█████████▌| 76/80 [05:53<00:11,  2.85s/it]Testing:  96%|█████████▋| 77/80 [05:55<00:08,  2.79s/it]Testing:  98%|█████████▊| 78/80 [05:58<00:05,  2.74s/it]Testing:  99%|█████████▉| 79/80 [06:01<00:02,  2.70s/it]Testing: 100%|██████████| 80/80 [06:03<00:00,  2.67s/it]Testing: 100%|██████████| 80/80 [06:04<00:00,  4.55s/it]
-Top 1
-closed_attr_match  0.2256| closed_obj_match  0.3937| best_unseen  0.0498| best_seen  0.3842| AUC  0.0158| best_hm  0.0727| 
-Top 2
-closed_attr_match  0.308| closed_obj_match  0.4976| best_unseen  0.0865| best_seen  0.4982| AUC  0.0355| best_hm  0.12| 
-Top 3
-closed_attr_match  0.3641| closed_obj_match  0.5543| best_unseen  0.1136| best_seen  0.5584| AUC  0.0524| best_hm  0.1502| 

@@ -1,244 +1,182 @@
 [
   {
-    "stage": "01",
+    "id": "01",
     "title": "原方案、三数据集基线与知识重建",
     "status": "已归档历史实验",
-    "change": "以 CPF 为视觉底座，恢复 OI/OE/AE、名称、GloVe 与模板组合资产；先建立基线和输入身份。",
-    "finding": "历史 TEST 与后续 VAL 分开；知识重建不等于恢复原作者遗失资产。",
-    "sources": [
-      "archive_inputs/referenced_sources",
-      "archive_inputs/desktop_experiments/20261004归档",
-      "archive_inputs/desktop_experiments/CPF_all_results（20261005）",
-      "output/week5_evidence_20261005_verified/tables/historical_baseline_test_reference.csv"
-    ]
+    "path": "experiments/01-baseline",
+    "primary_package": null,
+    "knowledge_assets": 1018,
+    "configs": 85,
+    "data_files": 144
   },
   {
-    "stage": "02",
+    "id": "02",
     "title": "早期 MVP、跨数据集验证与固定 prior 校准",
     "status": "已训练＋无训练后处理",
-    "change": "UT A/C/D/E 与 MIT、C-GQA A/C；固定 A/C checkpoint 扫 λ，以分离文本和静态 prior。",
-    "finding": "UT 文本有信号；后处理选择 λ=0。20 次评价不计20次新训练。",
-    "sources": [
-      "cpf_stage_report_tools_20261004_v1",
-      "cpf_stage_report_tools_20261004_v2",
-      "output/week5_evidence_20261005",
-      "output/week5_evidence_20261005_verified",
-      "第四步_UT结果冻结_K校准诊断与跨数据集验证.md",
-      "第四步补充_lambda0后扩展AC操作.md"
-    ]
+    "path": "experiments/02-mvp-calibration",
+    "primary_package": "cpf_stage_report_tools_20261004_v2",
+    "knowledge_assets": 24,
+    "configs": 100,
+    "data_files": 260
   },
   {
-    "stage": "03",
+    "id": "03",
     "title": "UT v1 三 seed 语义归因与工程修复",
     "status": "已执行历史归因；保留缺项边界",
-    "change": "补 A_raw/A_unit/C_text/C_shuffle，检查文本收益是否需要正确对应；修复审计兼容和运行故障。",
-    "finding": "技术修复不改变研究 gate；v1 未保存的绝对指标不从 v2 反推。",
-    "sources": [
-      "ekr_cpf_transition_20261005_v1",
-      "ekr_checkpoint_path_fix_v1",
-      "semantic_gate_audit_20261006_v1",
-      "semantic_gate_audit_20261006_v2",
-      "第五步_文本收益归因到EKR-CPF_完整操作方案.md",
-      "第六步_归因门槛未通过_复核与EKR决策.md",
-      "归因复核输出解读与v2修复_20261006.md",
-      "磁盘空间不足_UT归因实验恢复_20261006.md"
-    ]
+    "path": "experiments/03-semantic-v1",
+    "primary_package": "ekr_cpf_transition_20261005_v1",
+    "knowledge_assets": 0,
+    "configs": 0,
+    "data_files": 9
   },
   {
-    "stage": "04",
+    "id": "04",
     "title": "TRAIN 描述审核、UT v2 与逐图分析",
     "status": "已训练＋诊断",
-    "change": "一次 TRAIN 审核修订后，四组×三 seed 从初始化训练；随后导出既有预测与回放。",
-    "finding": "C_text−A_unit 平均 CW +3.0670pp，C_text−shuffle CW +0.3789pp，未过预定0.5pp；OW信号保留。",
-    "sources": [
-      "ut_semantic_v2_20261006",
-      "ut_train_review_20261006_v1",
-      "ut_train_review_20261006_v2",
-      "ut_train_review_20261006_v3",
-      "output/ut_description_review_20261006",
-      "output/ut_v2_results_audit_20261007",
-      "output/ut_v2_prediction_analysis_20261007",
-      "output/ut_v2_formula_revision_20261007",
-      "archive_inputs/desktop_experiments/UT_description_review"
-    ]
+    "path": "experiments/04-semantic-v2",
+    "primary_package": "ut_semantic_v2_20261006",
+    "knowledge_assets": 11,
+    "configs": 12,
+    "data_files": 122
   },
   {
-    "stage": "05",
+    "id": "05",
     "title": "名称锚点 EKR",
     "status": "已训练：seed0、三组各3轮",
-    "change": "将零增量回退锚点改为 A_unit，避免关闭动态分支仍保留静态描述混淆。",
-    "finding": "正确描述未胜名称和错配；先诊断机制，再决定是否扩跑。",
-    "sources": [
-      "name_anchor_ekr_20261007",
-      "output/name_anchor_ekr_20261007",
-      "output/name_ekr_pilot_review_20261007"
-    ]
+    "path": "experiments/05-name-anchor-ekr",
+    "primary_package": "name_anchor_ekr_20261007",
+    "knowledge_assets": 0,
+    "configs": 0,
+    "data_files": 15
   },
   {
-    "stage": "06",
+    "id": "06",
     "title": "EKR 机制诊断",
     "status": "既有权重回放；0新训练",
-    "change": "检查 value、null、对象上下文、置换与margin；保护名称基底并确认退化原因。",
-    "finding": "弱对象依赖和null拒识问题促成共享value对齐；诊断不能直接证明知识泛化。",
-    "sources": [
-      "name_ekr_mechanism_diag_20261007_v1",
-      "output/name_ekr_mechanism_diag_20261007_v1",
-      "output/name_ekr_mechanism_review_20261007"
-    ]
+    "path": "experiments/06-ekr-diagnostics",
+    "primary_package": "name_ekr_mechanism_diag_20261007_v1",
+    "knowledge_assets": 0,
+    "configs": 0,
+    "data_files": 161
   },
   {
-    "stage": "07",
+    "id": "07",
     "title": "共享值对齐 EKR v2：3轮",
     "status": "已训练：4组各3轮",
-    "change": "建立同容量名称/正确/错配对照与固定value消融，修正槽表示和共享value映射。",
-    "finding": "对齐主组选择epoch0；固定value微增。后续10轮属于这些run的续训。",
-    "sources": [
-      "ekr_v2_anchor_alignment_20261007",
-      "output/ekr_v2_anchor_alignment_20261007",
-      "output/ekr_v2_review_20261008"
-    ]
+    "path": "experiments/07-ekr-v2",
+    "primary_package": "ekr_v2_anchor_alignment_20261007",
+    "knowledge_assets": 0,
+    "configs": 26,
+    "data_files": 89
   },
   {
-    "stage": "08",
+    "id": "08",
     "title": "TRAIN 支持探针、SG-EKR与视觉原型诊断",
     "status": "支持诊断＋3组3轮；VP仅方案",
-    "change": "双半折 TRAIN 证据筛支持槽，固定value；另检查排除查询组合的视觉原型。",
-    "finding": "SG支持描述未优于控制；原型仅开发诊断，不填写为正式VP训练成绩。",
-    "sources": [
-      "ekr_train_support_probe_20261008",
-      "sgekr_support_mask_20261008",
-      "output/ekr_train_support_review_20261008",
-      "output/sgekr_support_mask_20261008",
-      "output/sgekr_review_20261008"
-    ]
+    "path": "experiments/08-support-sgekr",
+    "primary_package": "sgekr_support_mask_20261008",
+    "knowledge_assets": 0,
+    "configs": 20,
+    "data_files": 88
   },
   {
-    "stage": "09",
+    "id": "09",
     "title": "EKR v2 训练预算回溯：3→10轮",
     "status": "续训；不是4个新run",
-    "change": "保持模型/optimizer/RNG和资产，四组从epoch3续至10，检验短训是否漏掉延迟收益。",
-    "finding": "名称组epoch6改善；正确描述仍选epoch0。SG没有10轮结果。",
-    "sources": [
-      "ekr_v2_budget10_20261008",
-      "output/ekr_v2_budget10_20261008",
-      "output/ekr_v2_budget10_review_20261008"
-    ]
+    "path": "experiments/09-budget10",
+    "primary_package": "ekr_v2_budget10_20261008",
+    "knowledge_assets": 0,
+    "configs": 58,
+    "data_files": 202
   },
   {
-    "stage": "10",
+    "id": "10",
     "title": "CPF＋LogiCZSL B/F直接结合",
     "status": "已训练：UT3351、四组10轮",
-    "change": "补A_ref/B/E_ref/F，确保逻辑损失实际加入反传，冻结β=0.01、q=3。",
-    "finding": "当前直接结合未产生稳定配对正增量；逻辑方向以实际服务器源码为准。",
-    "sources": [
-      "logiczsl_cpf_bf_20261008",
-      "output/BF_server_results_20261008",
-      "output/LogiCZSL论文方法重建_CPF-BF训练完整手册_20261008.md"
-    ]
+    "path": "experiments/10-cpf-logiczsl",
+    "primary_package": "logiczsl_cpf_bf_20261008",
+    "knowledge_assets": 1,
+    "configs": 0,
+    "data_files": 4
   },
   {
-    "stage": "11",
+    "id": "11",
     "title": "B/F梯度复核与条件属性 StageA",
     "status": "诊断/缓存/丢弃式检查；非正式pilot",
-    "change": "检查真实TRAIN图像的逻辑梯度，构建C_text缓存并检查条件head接线。",
-    "finding": "弱且部分冲突的逻辑信号促成直接条件目标；StageA自检步数不当正式训练。",
-    "sources": [
-      "bf_conditional_preflight_20261009",
-      "conditional_attribute_stageA_20261009",
-      "output/BF_conditional_preflight_20261009",
-      "output/conditional_attribute_stageA_results_20261009",
-      "output/BF审计与条件属性StageA实践命令_20261009.md"
-    ]
+    "path": "experiments/11-conditional-preflight",
+    "primary_package": "conditional_attribute_stageA_20261009",
+    "knowledge_assets": 26,
+    "configs": 29,
+    "data_files": 89
   },
   {
-    "stage": "12",
+    "id": "12",
     "title": "条件属性 pilot r1→r2与固定混合回放",
     "status": "r1工程失败；r2五组10轮＋回放",
-    "change": "改为GT-object条件属性目标，保持对象边缘；修复Torch1.13安全checkpoint兼容，另做固定25%混合回放。",
-    "finding": "已见拟合与unseen迁移分开；固定读出回放不是新训练；保留失败r1。",
-    "sources": [
-      "conditional_attribute_pilot_20261009",
-      "pilot_review_20261009",
-      "output/conditional_attribute_pilot_results_20261009_r2"
-    ]
+    "path": "experiments/12-conditional-pilot",
+    "primary_package": "conditional_attribute_pilot_20261009",
+    "knowledge_assets": 1,
+    "configs": 0,
+    "data_files": 209
   },
   {
-    "stage": "13",
+    "id": "13",
     "title": "Generic同结构知识对照＋25%混合",
     "status": "三项新训练＋G_K复用",
-    "change": "控制容量和读出，只改名称、正确和两置换内容，区分工程增益与正确知识贡献。",
-    "finding": "四组CW均提升，内容归因未成立；不能把复用G_K列为第四项新训练。",
-    "sources": [
-      "generic_mixture_controls_20261009",
-      "generic_controls_review_20261010",
-      "output/generic_mixture_controls_results_20261010"
-    ]
+    "path": "experiments/13-generic-controls",
+    "primary_package": "generic_mixture_controls_20261009",
+    "knowledge_assets": 1,
+    "configs": 0,
+    "data_files": 210
   },
   {
-    "stage": "14",
+    "id": "14",
     "title": "冻结 CLIP 探针 v1→r2",
     "status": "v1检查失败；r2七配方、0optimizer",
-    "change": "修正广义seen/unseen划分assert，检查图像隔离；以冻结CLIP判断知识教师信号。",
-    "finding": "OE+AE与AE-only继续gate均False；七种配方不算七个训练模型。",
-    "sources": [
-      "clip_knowledge_probe_20261010",
-      "clip_knowledge_probe_20261010_r2",
-      "clip_probe_review_20261010",
-      "output/clip_knowledge_probe_results_20261010_r2"
-    ]
+    "path": "experiments/14-clip-probe",
+    "primary_package": "clip_knowledge_probe_20261010_r2",
+    "knowledge_assets": 2,
+    "configs": 0,
+    "data_files": 8
   },
   {
-    "stage": "15",
+    "id": "15",
     "title": "TRAIN逐句审查、知识来源与研究回溯",
     "status": "36逐句视图＋图片审查；0新训练",
-    "change": "检查均值是否隐藏局部信号，保留研究目标与实现完成度的解释修正。",
-    "finding": "AE第三条有局部信号但净收益集中Leather；不把TRAIN审查当unseen泛化证据。",
-    "sources": [
-      "train_knowledge_audit_20261010",
-      "train_knowledge_audit_review_20261010",
-      "output/train_knowledge_audit_results_20261010",
-      "experiment_history_20261010",
-      "knowledge_history_20261010"
-    ]
+    "path": "experiments/15-train-knowledge-audit",
+    "primary_package": "train_knowledge_audit_20261010",
+    "knowledge_assets": 2,
+    "configs": 0,
+    "data_files": 39
   },
   {
-    "stage": "16",
+    "id": "16",
     "title": "residual-0601：统一A–H与sanity",
     "status": "已完成12组×10轮、48份评价",
-    "change": "以旧native CPF＋residual接口补齐八主组与四独立对照，统一VAL选模与VAL/TEST评价。",
-    "finding": "核心工程范围完成，完整H低于A；先验、文本、逻辑与head影响按配对和边界解释。",
-    "sources": [
-      "reproduce_0601_20261010",
-      "review_0601_20261011",
-      "output/0601_priority_results_20261011",
-      "output/0601_result_review_20261011",
-      "output/0601结果分析与下一步实践命令_20261011.md"
-    ]
+    "path": "experiments/16-residual-0601",
+    "primary_package": "reproduce_0601_20261010",
+    "knowledge_assets": 18,
+    "configs": 91,
+    "data_files": 320
   },
   {
-    "stage": "17",
+    "id": "17",
     "title": "formula-aligned-0601：逐公式修正r2",
     "status": "代码/交付/CPU验证；未收集正式训练结果",
-    "change": "按公式审计修正G/H原始head评分、GT-object CE、逻辑grounding、prior及train/infer共用接口。",
-    "finding": "保留接口选择与未覆盖项；42次×30轮为新训练计划，不继承residual旧表。",
-    "sources": [
-      "faithful_0601_20261011",
-      "review_0601_formula_20261011",
-      "desktop_bundle_0601_20261011",
-      "archive_inputs/formula_aligned_bundle",
-      "output/0601逐公式复刻审计_20261011.md",
-      "output/0601主公式复刻_实践命令与时间预估_20261011.md"
-    ]
+    "path": "experiments/17-formula-aligned-0601",
+    "primary_package": "faithful_0601_20261011",
+    "knowledge_assets": 12,
+    "configs": 9,
+    "data_files": 11
   },
   {
-    "stage": "18",
+    "id": "18",
     "title": "residual描述删除扩展与后续候选",
     "status": "仅代码交付；本地未收集正式结果",
-    "change": "保留H_noise10/30/50追加协议和代码，明确描述槽删除范围及与主公式对齐版的不同。",
-    "finding": "没有对应complete/metrics证据前不标成已训练；其他共享视觉/教师/多seed方案也保持待执行。",
-    "sources": [
-      "extend_0601_20261011",
-      "output/0601_noise_extension_release_20261011.zip"
-    ]
+    "path": "experiments/18-noise-extension",
+    "primary_package": "extend_0601_20261011",
+    "knowledge_assets": 0,
+    "configs": 0,
+    "data_files": 1
   }
 ]

@@ -1,0 +1,54 @@
+{
+  "stage": "03",
+  "knowledge": [],
+  "configs": [],
+  "data_files": [
+    "experiments/03-semantic-v1/results/ekr_cpf_transition_20261005_v1/SHA256SUMS.txt",
+    "experiments/03-semantic-v1/results/ekr_cpf_transition_20261005_v1/audited_source_sha256.json",
+    "experiments/03-semantic-v1/results/ekr_cpf_transition_20261005_v1/release_check.json",
+    "experiments/03-semantic-v1/results/ekr_cpf_transition_20261005_v1/release_tests/integration_cpu.log",
+    "experiments/03-semantic-v1/results/ekr_cpf_transition_20261005_v1/release_tests/router_cpu.log",
+    "experiments/03-semantic-v1/results/semantic_gate_audit_20261006_v1/SHA256SUMS",
+    "experiments/03-semantic-v1/results/semantic_gate_audit_20261006_v1/fixtures/legacy_C_s3351_curve.txt",
+    "experiments/03-semantic-v1/results/semantic_gate_audit_20261006_v2/SHA256SUMS",
+    "experiments/03-semantic-v1/results/semantic_gate_audit_20261006_v2/fixtures/legacy_C_s3351_labels_excerpt.npz"
+  ],
+  "external_inputs": [
+    "dataset images and official split/metadata",
+    "GloVe 300d",
+    "ViT pretrained weights"
+  ],
+  "not_a_complete_offline_training_bundle": true,
+  "code_files": [
+    "experiments/03-semantic-v1/code/ekr_checkpoint_path_fix_v1/normalize_legacy_checkpoints.py",
+    "experiments/03-semantic-v1/code/ekr_checkpoint_path_fix_v1/test_fix.py",
+    "experiments/03-semantic-v1/code/ekr_cpf_transition_20261005_v1/install.py",
+    "experiments/03-semantic-v1/code/ekr_cpf_transition_20261005_v1/models/semantic_control.py",
+    "experiments/03-semantic-v1/code/ekr_cpf_transition_20261005_v1/prepare_reference.py",
+    "experiments/03-semantic-v1/code/ekr_cpf_transition_20261005_v1/tests/test_integration_cpu.py",
+    "experiments/03-semantic-v1/code/ekr_cpf_transition_20261005_v1/tests/test_router_cpu.py",
+    "experiments/03-semantic-v1/code/ekr_cpf_transition_20261005_v1/transition/__init__.py",
+    "experiments/03-semantic-v1/code/ekr_cpf_transition_20261005_v1/transition/bank.py",
+    "experiments/03-semantic-v1/code/ekr_cpf_transition_20261005_v1/transition/cli.py",
+    "experiments/03-semantic-v1/code/ekr_cpf_transition_20261005_v1/transition/common.py",
+    "experiments/03-semantic-v1/code/ekr_cpf_transition_20261005_v1/transition/configs.py",
+    "experiments/03-semantic-v1/code/ekr_cpf_transition_20261005_v1/transition/diagnostics.py",
+    "experiments/03-semantic-v1/code/ekr_cpf_transition_20261005_v1/transition/evaluate.py",
+    "experiments/03-semantic-v1/code/ekr_cpf_transition_20261005_v1/transition/noise_summary.py",
+    "experiments/03-semantic-v1/code/ekr_cpf_transition_20261005_v1/transition/queue.py",
+    "experiments/03-semantic-v1/code/ekr_cpf_transition_20261005_v1/transition/router.py",
+    "experiments/03-semantic-v1/code/ekr_cpf_transition_20261005_v1/transition/run.py",
+    "experiments/03-semantic-v1/code/ekr_cpf_transition_20261005_v1/transition/runtime.py",
+    "experiments/03-semantic-v1/code/ekr_cpf_transition_20261005_v1/transition/smoke.py",
+    "experiments/03-semantic-v1/code/ekr_cpf_transition_20261005_v1/transition/summary.py",
+    "experiments/03-semantic-v1/code/semantic_gate_audit_20261006_v1/audit_semantic_gate.py",
+    "experiments/03-semantic-v1/code/semantic_gate_audit_20261006_v1/test_audit.py",
+    "experiments/03-semantic-v1/code/semantic_gate_audit_20261006_v2/audit_semantic_gate.py",
+    "experiments/03-semantic-v1/code/semantic_gate_audit_20261006_v2/test_audit.py"
+  ],
+  "dependency_stages": [
+    "01",
+    "02"
+  ],
+  "dependency_policy": "Materialization includes prior-stage inputs; actual consumed files/weights are pinned by original package protocol. This is not an assertion that every prior training must rerun."
+}

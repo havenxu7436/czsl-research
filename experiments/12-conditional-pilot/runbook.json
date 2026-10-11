@@ -1,0 +1,132 @@
+{
+  "stage": "12",
+  "primary_package": "conditional_attribute_pilot_20261009",
+  "commands": [
+    {
+      "source": "archive_inputs/desktop_experiments/20261009-1010归档/StageA审阅与五组条件属性训练命令_20261009.md",
+      "language": "bash",
+      "text": "tail -n 40 /tmp/czsl_conditional_pilot_20261009_driver.log\npgrep -af 'conditional_attribute_pilot_20261009/pilot.py'\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "archive_inputs/desktop_experiments/20261009-1010归档/Torch1.13兼容错误说明与r2重跑命令_20261009.md",
+      "language": "bash",
+      "text": "pgrep -af 'conditional_attribute_pilot_20261009/pilot.py'\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "archive_inputs/desktop_experiments/20261009-1010归档/Torch1.13兼容错误说明与r2重跑命令_20261009.md",
+      "language": "bash",
+      "text": "tail -n 50 /tmp/czsl_conditional_pilot_20261009_r2_driver.log\npgrep -af 'conditional_attribute_pilot_20261009/pilot.py'\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "archive_inputs/desktop_experiments/20261009-1010归档/条件属性Head_实现公式与代码说明_20261009.md",
+      "language": "python",
+      "text": "values = model.raw_forward({'img': batch['img'].cuda()})\nscore, feature = values['pred'], values['attr_feature']\ncache['scores'][offset:end] = score.reshape(-1, 16, 12).permute(0, 2, 1).cpu()\ncache['features'][offset:end] = feature.cpu()\ncache['attrs'][offset:end], cache['objects'][offset:end] = batch['attr'], batch['obj']\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "archive_inputs/desktop_experiments/20261009-1010归档/条件属性Head_实现公式与代码说明_20261009.md",
+      "language": "python",
+      "text": "rows = torch.arange(len(base), device=base.device)\nloss = F.cross_entropy((base + delta)[rows, objects] / TEMPERATURE, attrs)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "archive_inputs/desktop_experiments/20261009-1010归档/条件属性Head_实现公式与代码说明_20261009.md",
+      "language": "python",
+      "text": "\"\"\"Candidate-object-conditioned OE/AE evidence; no pair lookup parameters.\"\"\"\nimport math\nimport torch\nfrom torch import nn\nfrom torch.nn import functional as F\n\nVARIANTS = ('P_name', 'P_K', 'P_generic', 'P_perm1', 'P_perm2')\nRANK, TEMPERATURE, CAP = 32, 0.05, 0.10\n\n\ndef derangement(size, seed):\n    # Independent RNG: input controls never advance parameter/data-order RNG.\n    generator = torch.Generator().manual_seed(seed)\n    for _ in range(10000):\n        value = torch.randperm(size, generator=generator)\n        if (value != torch.arange(size)).all():\n            return value\n    raise RuntimeError('Could not construct a derangement')\n\n\ndef inputs(bank, variant):\n    if variant not in VARIANTS:\n        raise ValueError('Unknown head variant')\n    result, permutations = {}, {}\n    for axis in ('a', 'o'):\n        table = bank[axis]\n        units, mask = table['units'].float(), table['mask'].float()\n        if units.ndim != 3 or units.shape[1:] != (4, 300) or mask.shape != units.shape[:2]:\n            raise ValueError('Expected one name slot and three description slots')\n        if not torch.equal(mask, torch.ones_like(mask)):\n            raise ValueError('This matched-slot pilot requires complete reviewed OE/AE')\n        if not torch.isfinite(units).all():\n            raise ValueError('Invalid knowledge vectors')\n        name = units[:, 0].clone()\n        knowledge = units[:, 1:].mean(1)\n        permutation = torch.arange(len(name))\n        if variant == 'P_name':\n            knowledge = name.clone()\n        elif variant.startswith('P_perm'):\n            seed = (910011 if variant == 'P_perm1' else 910029) + (0 if axis == 'a' else 1000)\n            permutation = derangement(len(name), seed)\n            knowledge = knowledge[permutation]\n        result[axis + '_name'] = name\n        result[axis + '_knowledge'] = knowledge\n        permutations[axis] = permutation.tolist()\n    return result, permutations\n\n\nclass ConditionalHead(nn.Module):\n    def __init__(self, bank, variant, rank=RANK):\n        super().__init__()\n        self.variant, self.rank = variant, rank\n        tables, self.permutations = inputs(bank, variant)\n        for name, table in tables.items():\n            self.register_buffer(name, table, persistent=False)\n        self.visual = nn.Linear(300, rank, bias=False)\n        self.object_query = nn.Linear(300, rank, bias=False)\n        self.object_name = nn.Linear(300, rank, bias=False)\n        self.object_knowledge = nn.Linear(300, rank, bias=False)\n        self.attribute_name = nn.Linear(300, rank, bias=False)\n        self.attribute_knowledge = nn.Linear(300, rank, bias=False)\n        self.query_norm = nn.LayerNorm(rank)\n        self.relation_norm = nn.LayerNorm(rank)\n        if variant == 'P_generic':\n            # Same six input projections and an ordinary concatenation MLP.\n            # Additional ACTIVE parameters are explicitly reported, not fake-matched.\n            self.fusion = nn.Linear(3 * rank, rank)\n        self.output = nn.Linear(rank, 1, bias=False)\n        nn.init.zeros_(self.output.weight)\n\n    def evidence(self, visual):\n        q = self.query_norm(self.visual(visual)[:, None, :] + self.object_query(self.o_name)[None, :, :])\n        o = self.object_name(self.o_name) + self.object_knowledge(self.o_knowledge)\n        a = self.attribute_name(self.a_name) + self.attribute_knowledge(self.a_knowledge)\n        if self.variant == 'P_generic':\n            b, no, na = len(visual), len(o), len(a)\n            combined = torch.cat((q[:, :, None, :].expand(b, no, na, -1),\n                                  o[None, :, None, :].expand(b, no, na, -1),\n                                  a[None, None, :, :].expand(b, no, na, -1)), dim=-1)\n            hidden = self.relation_norm(F.gelu(self.fusion(combined)))\n        else:\n            relation = self.relation_norm(o[:, None, :] * a[None, :, :])\n            hidden = q[:, :, None, :] * relation[None, :, :, :]\n        raw = self.output(hidden).squeeze(-1) / math.sqrt(self.rank)\n        return CAP * torch.tanh(raw)\n\n    def forward(self, visual, base, force_off=False):\n        if force_off:\n            return base\n        return corrected_scores(base, self.evidence(visual))\n\n\ndef corrected_scores(base, delta, temperature=TEMPERATURE):\n    if base.shape != delta.shape or base.ndim != 3:\n        raise ValueError('Full [batch, object, attribute] grid required')\n    offset = temperature * (torch.logsumexp((base + delta) / temperature, dim=-1, keepdim=True)\n                            - torch.logsumexp(base / temperature, dim=-1, keepdim=True))\n    return base + delta - offset\n\n\ndef conditional_loss(base, delta, attrs, objects):\n    rows = torch.arange(len(base), device=base.device)\n    return F.cross_entropy((base + delta)[rows, objects] / TEMPERATURE, attrs)\n\n\ndef probability_checks(base, delta):\n    corrected = corrected_scores(base, delta)\n    pb = torch.softmax(base.flatten(1) / TEMPERATURE, dim=1).reshape_as(base)\n    joint = torch.softmax(corrected.flatten(1) / TEMPERATURE, dim=1).reshape_as(base)\n    conditional = torch.softmax((base + delta) / TEMPERATURE, dim=-1)\n    expected = pb.sum(-1, keepdim=True) * conditional\n    return {'joint_sum_error': float((joint.sum((1, 2)) - 1).abs().max()),\n            'conditional_sum_error': float((conditional.sum(-1) - 1).abs().max()),\n            'object_marginal_error': float((joint.sum(-1) - pb.sum(-1)).abs().max()),\n            'joint_factorization_error': float((joint - expected).abs().max())}\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "archive_inputs/desktop_experiments/20261009-1010归档/条件属性Head_实现公式与代码说明_20261009.md",
+      "language": "python",
+      "text": "def fresh_head(bank, variant, controls, device):\n    seed_all(0)\n    head = ConditionalHead(bank, variant)\n    if head.permutations != controls['permutations'][variant]:\n        raise ValueError('Fixed Stage A knowledge permutation differs')\n    return head.to(device)\n\n\ndef matched_initializations(bank, controls):\n    shared, reports = None, {}\n    for variant in VARIANTS:\n        head = fresh_head(bank, variant, controls, 'cpu')\n        state = head.state_dict()\n        if shared is None:\n            shared = copy.deepcopy(state)\n        else:\n            for k, value in shared.items():\n                if not torch.equal(state[k], value):\n                    raise ValueError('Common initialization differs: ' + variant + '/' + k)\n        reports[variant] = dict(initial_state_sha256=state_sha(head),\n                                parameter_count=sum(p.numel() for p in head.parameters()),\n                                permutations=head.permutations)\n    return reports\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "archive_inputs/desktop_experiments/20261009-1010归档/条件属性Head_实现公式与代码说明_20261009.md",
+      "language": "python",
+      "text": "def epoch_order(indices, epoch):\n    generator = torch.Generator().manual_seed(21009000 + epoch)\n    return indices[torch.randperm(len(indices), generator=generator)]\n\n\ndef train_epoch(head, optimizer, cache, indices, epoch, device, batch_size=256):\n    head.train()\n    order = epoch_order(indices, epoch)\n    total, steps, active = 0.0, 0, set()\n    for selected in order.split(batch_size):\n        x, base = cache['features'][selected].to(device), cache['scores'][selected].to(device)\n        attrs, objects = cache['attrs'][selected].to(device), cache['objects'][selected].to(device)\n        optimizer.zero_grad(set_to_none=True)\n        delta = head.evidence(x)\n        finite(delta, 'TRAIN/evidence')\n        loss = conditional_loss(base, delta, attrs, objects)\n        finite(loss, 'TRAIN/nll')\n        loss.backward()\n        for name, p in head.named_parameters():\n            if p.grad is None:\n                raise ValueError('Disconnected parameter: ' + name)\n            finite(p.grad, 'TRAIN/gradient/' + name)\n            if float(p.grad.norm()) > 0:\n                active.add(name)\n        optimizer.step()\n        total += float(loss.detach()) * len(selected)\n        steps += 1\n    for name, p in head.named_parameters():\n        finite(p, 'TRAIN/parameter/' + name)\n    return dict(mean_conditional_nll=total/len(order), images=len(order), steps=steps,\n                epoch_order_sha256=hashlib.sha256(order.numpy().tobytes()).hexdigest(),\n                nonzero_gradient_parameters=sorted(active))\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "archive_inputs/desktop_experiments/20261009-1010归档/条件属性Head_实现公式与代码说明_20261009.md",
+      "language": "python",
+      "text": "def optimizer(head, settings):\n    return torch.optim.AdamW(head.parameters(), lr=settings['lr'], weight_decay=settings['weight_decay'])\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "archive_inputs/desktop_experiments/20261009-1010归档/条件属性Head_实现公式与代码说明_20261009.md",
+      "language": "python",
+      "text": "def scores_and_diagnostics(head, cache, device, indices=None):\n    if indices is None:\n        indices = torch.arange(len(cache['features']))\n    head.eval()\n    scores, deltas = [], []\n    with torch.no_grad():\n        for selected in indices.split(256):\n            x, base = cache['features'][selected].to(device), cache['scores'][selected].to(device)\n            delta = head.evidence(x)\n            value = corrected_scores(base, delta)\n            finite(value, 'evaluation/score')\n            finite(delta, 'evaluation/delta')\n            scores.append(value.cpu())\n            deltas.append(delta.cpu())\n    grid, delta = torch.cat(scores), torch.cat(deltas)\n    base = cache['scores'][indices]\n    errors = probability_checks(base, delta)\n    if max(errors.values()) > 1e-5:\n        raise ValueError('Full-grid probability/marginal identity failed')\n    if float(delta.abs().max()) > 0.100001:\n        raise ValueError('Evidence cap violated')\n    attrs, objects = cache['attrs'][indices], cache['objects'][indices]\n    rows = torch.arange(len(indices))\n    conditional = (base + delta)[rows, objects] / TEMPERATURE\n    nll = torch.nn.functional.cross_entropy(conditional, attrs, reduction='none')\n    predicted = conditional.argmax(1)\n    correct = predicted.eq(attrs)\n    base_correct = base[rows, objects].argmax(1).eq(attrs)\n    per_attr = [float(correct[attrs == i].float().mean()) for i in range(16) if (attrs == i).any()]\n    diagnostics = dict(n_images=len(indices), conditional_nll=float(nll.mean()),\n                       gt_object_attr_accuracy=float(correct.float().mean()),\n                       macro_attr_accuracy=float(np.mean(per_attr)), macro_attr_classes=len(per_attr),\n                       corrected_from_baseline=int((correct & ~base_correct).sum()),\n                       damaged_from_baseline=int((~correct & base_correct).sum()),\n                       candidate_object_delta_std=float(delta.std(1, unbiased=False).mean()),\n                       max_abs_delta=float(delta.abs().max()), probability_errors=errors)\n    vectors = dict(indices=indices.numpy(), attrs=attrs.numpy(), objects=objects.numpy(),\n                   conditional_prediction=predicted.numpy(), baseline_correct=base_correct.numpy(),\n                   correct=correct.numpy(), conditional_nll=nll.numpy())\n    return grid, diagnostics, vectors\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "archive_inputs/desktop_experiments/20261009-1010归档/条件属性Head_实现公式与代码说明_20261009.md",
+      "language": "python",
+      "text": "def native_metrics(grid, attrs, objects, ds, evaluator_class):\n    \"\"\"Full [N,O,A] distribution first, unchanged native candidate order/masks second.\"\"\"\n    ai = torch.tensor([ds.attr2idx[a] for a, o in ds.pairs])\n    oi = torch.tensor([ds.obj2idx[o] for a, o in ds.pairs])\n    matrix = grid.detach().cpu()[:, oi, ai].contiguous()\n    prediction = {pair: matrix[:, i] for i, pair in enumerate(ds.pairs)}\n    gt_pair = torch.tensor([ds.pair2idx[(ds.attrs[int(a)], ds.objs[int(o)])] for a, o in zip(attrs, objects)])\n    evaluator = evaluator_class(ds, None)\n    result = evaluator.score_model(prediction, objects, bias=1e3, topk=1)\n    stats = evaluator.evaluate_predictions(result, attrs, objects, gt_pair, prediction, topk=1)\n    metrics = {k: float(v) for k, v in stats.items()}\n    if any(not np.isfinite(metrics[k]) or not 0 <= metrics[k] <= 1 for k in FIELDS):\n        raise ValueError('Invalid native AUC/HM/accuracy')\n    return metrics\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "archive_inputs/desktop_experiments/20261009-1010归档/条件属性Head_实现公式与代码说明_20261009.md",
+      "language": "python",
+      "text": "def checkpoint_commit(run, head, opt, epoch, steps, ledger, best, best_state, protocol_sha, variant, initial_sha):\n    \"\"\"last.pt is the atomic commit point; derived best/history repaired on resume.\"\"\"\n    saved = dict(schema='conditional_attribute_pilot_checkpoint_v1', protocol_sha256=protocol_sha,\n                 variant=variant, initial_state_sha256=initial_sha, completed_epoch=epoch,\n                 cumulative_optimizer_steps=steps, head_state=cpu_state(head), optimizer_state=opt.state_dict(),\n                 rng=rng_state(), ledger=ledger, best=best, best_state=best_state)\n    tensor_save(run / 'last.pt', saved)\n    repair_derived(run, saved)\n    return saved\n\n\ndef repair_derived(run, saved):\n    tensor_save(run / 'best_auc.pt', dict(schema=saved['schema'], protocol_sha256=saved['protocol_sha256'],\n                variant=saved['variant'], initial_state_sha256=saved['initial_state_sha256'],\n                best=saved['best'], head_state=saved['best_state']))\n    write_json(run / 'history.json', dict(protocol_sha256=saved['protocol_sha256'], variant=saved['variant'],\n                                         completed_epoch=saved['completed_epoch'],\n                                         cumulative_optimizer_steps=saved['cumulative_optimizer_steps'],\n                                         ledger=saved['ledger'], best=saved['best']))\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "archive_inputs/desktop_experiments/20261009-1010归档/条件属性Head_实现公式与代码说明_20261009.md",
+      "language": "python",
+      "text": "        if evaluated['metrics_raw']['cw']['AUC'] > best['metrics_raw']['cw']['AUC']:\n            best, best_state = copy.deepcopy(evaluated), cpu_state(head)\n        checkpoint_commit(run, head, opt, epoch, steps, ledger, best, best_state, protocol_sha, variant, initial_sha)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "archive_inputs/desktop_experiments/20261009-1010归档/条件属性Head_实现公式与代码说明_20261009.md",
+      "language": "python",
+      "text": "    selected = torch.load(run / 'best_auc.pt', map_location='cpu', weights_only=True)\n    head.load_state_dict(selected['head_state'], strict=True)\n    replay, _, _ = scores_and_diagnostics(head, caches['val'], device)\n    import numpy as np\n    selected_scores = np.load(owned_child(run, best['path'] + '/grid_scores.npy'), allow_pickle=False)\n    if not np.array_equal(replay.numpy(), selected_scores):\n        raise ValueError('Selected checkpoint score replay differs')\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "archive_inputs/desktop_experiments/20261009-1010归档/条件属性Head_实现公式与代码说明_20261009.md",
+      "language": "json",
+      "text": "{\n  \"seed\": 0,\n  \"epochs\": 10,\n  \"batch_size\": 256,\n  \"rank\": 32,\n  \"temperature\": 0.05,\n  \"cap\": 0.1,\n  \"lr\": 0.001,\n  \"weight_decay\": 0.0001,\n  \"train_mechanics_epochs\": 1,\n  \"train_holdout_fraction\": 0.2,\n  \"fold_id\": \"sha256(image_id), sorted within TRAIN pair; lowest 20%, min 1\",\n  \"data_order_seed_base\": 21009000,\n  \"static_prior\": 0,\n  \"logic\": 0,\n  \"backbone_optimizer_steps\": 0,\n  \"selection\": \"first strict maximum VAL CW AUC over epochs 0..10\"\n}\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "archive_inputs/desktop_experiments/20261009-1010归档/条件属性Head_实现公式与代码说明_20261009.md",
+      "language": "json",
+      "text": "{\n  \"pk_minus_baseline_cw_auc_pp\": 0.2,\n  \"pk_minus_name_cw_auc_pp\": 0.1,\n  \"pk_minus_mean_permutations_cw_auc_pp\": 0.1,\n  \"cw_hm_floor_pp\": -0.5,\n  \"ow_auc_floor_pp\": -0.5,\n  \"ow_best_unseen_floor_pp\": -2,\n  \"gate_is_budget_rule_not_significance\": true\n}\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    }
+  ],
+  "warning": "Experiment command templates, not an automatic runner. Navigation/interpreter paths are parameterized; scientific numeric settings remain unchanged. Inspect package defaults and frozen input hashes before execution. Historical absolute artifact paths are evidence, not portable defaults. Never tune TEST.",
+  "variables": {
+    "CPF_PY": "Python executable in the matching CPF environment",
+    "REPLAY": "Independent layout generated by tools/reproduce.py materialize",
+    "PROJECT": "Verified compatible source/data/knowledge root; frozen paths may require mapping"
+  },
+  "readme_recipes": [
+    {
+      "source": "experiments/12-conditional-pilot/README.md",
+      "language": "bash",
+      "text": "WORK=/srv/czsl-runs/conditional-pilot-new\n\"$CPF_PY\" \"$REPLAY/conditional_attribute_pilot_20261009/pilot.py\" \\\n  --work \"$WORK\" --export \"$WORK.zip\"\n",
+      "template_paths": true
+    }
+  ]
+}

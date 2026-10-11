@@ -1,0 +1,52 @@
+{
+  "stage": "05",
+  "knowledge": [],
+  "configs": [],
+  "data_files": [
+    "experiments/05-name-anchor-ekr/results/archive_audit.json",
+    "experiments/05-name-anchor-ekr/results/delivery_checks.json",
+    "experiments/05-name-anchor-ekr/results/epoch_metrics.csv",
+    "experiments/05-name-anchor-ekr/results/final_metrics.csv",
+    "experiments/05-name-anchor-ekr/results/frozen_replay_checks.csv",
+    "experiments/05-name-anchor-ekr/results/local_checks.json",
+    "experiments/05-name-anchor-ekr/results/name_anchor_ekr_20261007/SHA256SUMS",
+    "experiments/05-name-anchor-ekr/results/name_anchor_ekr_20261007/reference.json",
+    "experiments/05-name-anchor-ekr/results/ow_bias0_changed_predictions.csv",
+    "experiments/05-name-anchor-ekr/results/ow_bias0_object_groups.csv",
+    "experiments/05-name-anchor-ekr/results/ow_bias0_point_metrics.csv",
+    "experiments/05-name-anchor-ekr/results/score_audit_checks.json",
+    "experiments/05-name-anchor-ekr/results/training_audit.json",
+    "experiments/05-name-anchor-ekr/results/training_logged_batches.csv",
+    "experiments/05-name-anchor-ekr/results/zip_inventory.json"
+  ],
+  "external_inputs": [
+    "dataset images and official split/metadata",
+    "GloVe 300d",
+    "ViT pretrained weights",
+    "previous-stage checkpoints / caches; see README"
+  ],
+  "not_a_complete_offline_training_bundle": true,
+  "code_files": [
+    "experiments/05-name-anchor-ekr/code/name_anchor_ekr_20261007/env.sh",
+    "experiments/05-name-anchor-ekr/code/name_anchor_ekr_20261007/install.py",
+    "experiments/05-name-anchor-ekr/code/name_anchor_ekr_20261007/prepare.sh",
+    "experiments/05-name-anchor-ekr/code/name_anchor_ekr_20261007/replay_scores.sh",
+    "experiments/05-name-anchor-ekr/code/name_anchor_ekr_20261007/run_ablations.sh",
+    "experiments/05-name-anchor-ekr/code/name_anchor_ekr_20261007/run_confirm.sh",
+    "experiments/05-name-anchor-ekr/code/name_anchor_ekr_20261007/run_noise.sh",
+    "experiments/05-name-anchor-ekr/code/name_anchor_ekr_20261007/run_pilot.sh",
+    "experiments/05-name-anchor-ekr/code/name_anchor_ekr_20261007/tests/test_name_protocol.py",
+    "experiments/05-name-anchor-ekr/code/name_anchor_ekr_20261007/tests/test_name_router.py",
+    "experiments/05-name-anchor-ekr/code/name_anchor_ekr_20261007/transition/name_plan.py",
+    "experiments/05-name-anchor-ekr/code/name_anchor_ekr_20261007/transition/name_router.py",
+    "experiments/05-name-anchor-ekr/code/name_anchor_ekr_20261007/transition/name_smoke.py",
+    "experiments/05-name-anchor-ekr/code/name_anchor_ekr_20261007/verify_release.py"
+  ],
+  "dependency_stages": [
+    "01",
+    "02",
+    "03",
+    "04"
+  ],
+  "dependency_policy": "Materialization includes prior-stage inputs; actual consumed files/weights are pinned by original package protocol. This is not an assertion that every prior training must rerun."
+}

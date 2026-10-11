@@ -1,28 +1,19 @@
-# Local dependencies and disposable rendering/cache workspaces
-/tmp/
+# Generated state, caches and credentials
 **/__pycache__/
 *.py[cod]
-**/*_deps/
-**/math_render_deps/
-**/node_modules/
+**/.pytest_cache/
 **/.venv/
-**/venv/
-.pytest_cache/
-.mypy_cache/
-
-# Credentials never belong in the archive
+**/node_modules/
+**/*_deps/
+/tmp/
+/output/
+/archive_inputs/
 .env
 .env.*
 !.env.example
 *.pem
 *.key
 .git-credentials
-
-# OS/editor local state
-.DS_Store
 Thumbs.db
-.idea/
-/archive_inputs/referenced_sources/**/downloads/glove.*.zip
+.DS_Store
 
-# Scientific output/, runs, score arrays and small tensor evidence are retained.
-# Large external weights/downloads are listed in provenance/external_excluded.csv.

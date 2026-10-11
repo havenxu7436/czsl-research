@@ -1,0 +1,237 @@
+{
+  "stage": "02",
+  "primary_package": "cpf_stage_report_tools_20261004_v2",
+  "commands": [
+    {
+      "source": "cpf_stage_report_tools_20261004_v2/知识文件结构与模型使用说明.md",
+      "language": "json",
+      "text": "{\n  \"boot\": [\"Boots.Ankle\", \"Boots.Knee.High\", \"Boots.Mid-Calf\"]\n}\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "cpf_stage_report_tools_20261004_v2/知识文件结构与模型使用说明.md",
+      "language": "json",
+      "text": "{\n  \"Boots.Ankle\": [\n    \"shaft ending at the ankle\",\n    \"closed toe boot silhouette\",\n    \"low boot collar\"\n  ]\n}\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "cpf_stage_report_tools_20261004_v2/知识文件结构与模型使用说明.md",
+      "language": "json",
+      "text": "{\n  \"Canvas\": [\n    \"woven canvas fabric\",\n    \"coarse textile surface\",\n    \"matte cloth finish\"\n  ]\n}\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "截至AC跨数据集验证_实验报告记录与分析流程.md",
+      "language": "bash",
+      "text": "ROOT=${PROJECT}\nEXP=\"$ROOT/experiments/kcc0601_glove_mvp_v1\"\nTOOLS=\"$EXP/report_tools_20261004_v2\"\nCPF_PY=\"$CPF_PY\"\nREPORT=\"$EXP/reports/stage_$(date +%Y%m%d_%H%M%S)\"\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "截至AC跨数据集验证_实验报告记录与分析流程.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  \"$CPF_PY\" \"$TOOLS/collect_stage_report.py\" \\\n    --experiment \"$EXP\" \\\n    --cache-root \"$ROOT/knowledge/kcc0601_v1/cache_trusted_v1\" \\\n    --lambda-dir \"$EXP/diagnostics/lambda_post_v1\" \\\n    --audit-dir \"$EXP/audit/ac_transfer_v1\" \\\n    --out \"$REPORT\" \\\n    --require-complete\n)\nprintf 'REPORT=%s\\n' \"$REPORT\"\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "截至AC跨数据集验证_实验报告记录与分析流程.md",
+      "language": "bash",
+      "text": "\"$CPF_PY\" - \"$ROOT/knowledge/kcc0601_v1/cache_trusted_v1\" <<'PY'\nimport json, sys\nfrom pathlib import Path\nroot = Path(sys.argv[1])\nfor ds in ('ut-zap50k', 'mit-states', 'cgqa'):\n    man = json.loads((root/ds/'cache_manifest.json').read_text())\n    print('\\nDATASET:', ds, 'status:', man.get('knowledge_status'))\n    for path, digest in man.get('input_sha256', {}).items():\n        if Path(path).name in ('oi_dict.json','oe_dict.json','ae_dict.json','review_status.csv','manifest.json'):\n            print(digest, path)\nPY\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "截至AC跨数据集验证_实验报告记录与分析流程.md",
+      "language": "bash",
+      "text": "\"$CPF_PY\" - \"$REPORT\" <<'PY'\nimport csv, json, sys\nfrom pathlib import Path\nroot = Path(sys.argv[1])\nprint(json.dumps(json.loads((root/'collection.json').read_text()), ensure_ascii=False, indent=2))\nwith (root/'tables/issues.csv').open(encoding='utf-8-sig', newline='') as f:\n    for row in csv.DictReader(f):\n        print(row)\nPY\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "截至AC跨数据集验证_实验报告记录与分析流程.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  \"$CPF_PY\" \"$TOOLS/analyze_bias0_errors.py\" \\\n    --report \"$REPORT\" \\\n    --data-root \"$ROOT/data\" \\\n    --setting ow \\\n    --out \"$REPORT/bias0_ow_v1\"\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "截至AC跨数据集验证_实验报告记录与分析流程.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  test -s \"$REPORT/collection.json\"\n  test ! -e \"$REPORT.tar.gz\" || { printf 'Archive already exists: %s\\n' \"$REPORT.tar.gz\"; exit 2; }\n  tar -czf \"$REPORT.tar.gz\" -C \"$(dirname \"$REPORT\")\" \"$(basename \"$REPORT\")\"\n  sha256sum \"$REPORT.tar.gz\"\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "第四步_UT结果冻结_K校准诊断与跨数据集验证.md",
+      "language": "bash",
+      "text": "(\n    set -euo pipefail\n    conda activate cpf\n\n    ROOT=${PROJECT}\n    EXP=\"$ROOT/experiments/kcc0601_glove_mvp_v1\"\n    PROTOCOL=\"$EXP/protocol\"\n    mkdir -p \"$PROTOCOL\"\n\n    stamp=$(date +%Y%m%d_%H%M%S)\n    manifest=\"$PROTOCOL/ut_acde_s3351_l0.1_${stamp}.sha256\"\n\n    for variant in A C D E; do\n        lam=0\n        if [ \"$variant\" = D ] || [ \"$variant\" = E ]; then\n            lam=0.1\n        fi\n\n        run=\"$EXP/runs/mvp_ut-zappos_${variant}_legacy_s3351_l${lam}\"\n        cfg=\"$EXP/configs/mvp_ut-zappos_${variant}_legacy_s3351_l${lam}.yml\"\n\n        test -s \"$run/status.txt\"\n        test \"$(tr -d '\\r\\n' < \"$run/status.txt\")\" = train_and_val_complete\n        test -s \"$run/eval_val_cw/metrics.json\"\n        test -s \"$run/eval_val_ow/metrics.json\"\n        test -s \"$cfg\"\n\n        ck=$(python - \"$cfg\" <<'PY'\nimport sys, yaml\nc=yaml.safe_load(open(sys.argv[1]))\nprint(c['TRAIN']['checkpoint_dir']+'/'+c['config_name']+'_'+c['TRAIN']['train_name']+'/best_auc.pth')\nPY\n        )\n        test -s \"$ck\"\n\n        sha256sum \"$cfg\" \"$run/status.txt\" \"$run/train.log\" \"$ck\" \\\n            \"$run/eval_val_cw/metrics.json\" \"$run/eval_val_ow/metrics.json\" \\\n            >> \"$manifest\"\n    done\n\n    test -s \"$manifest\"\n    echo \"Frozen manifest: $manifest\"\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "第四步_UT结果冻结_K校准诊断与跨数据集验证.md",
+      "language": "bash",
+      "text": "(\n    set -euo pipefail\n    ROOT=${PROJECT}\n    EXP=\"$ROOT/experiments/kcc0601_glove_mvp_v1\"\n    mkdir -p \"$EXP/protocol\"\n\n    rule=\"$EXP/protocol/lambda_post_selection_rule_v1.txt\"\n    test ! -e \"$rule\" || {\n        echo \"Rule file already exists: $rule\"\n        exit 2\n    }\n\n    printf '%s\\n' \\\n      'dataset=ut-zappos' \\\n      'phase=val_only' \\\n      'candidates=0,0.025,0.05,0.1,0.2' \\\n      'primary=maximize_CW_AUC' \\\n      'constraint_CW_HM_delta_pp>=-0.5' \\\n      'constraint_OW_AUC_delta_pp>=-0.5' \\\n      'constraint_OW_unseen_delta_pp>=-2.0' \\\n      'tie_break=smaller_lambda' \\\n      'Dpost_baseline=A' \\\n      'Epost_baseline=C' \\\n      > \"$rule\"\n\n    sha256sum \"$rule\"\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "第四步_UT结果冻结_K校准诊断与跨数据集验证.md",
+      "language": "bash",
+      "text": "ps -eo pid,etime,cmd | grep '[p]ython.*train.py' || true\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "第四步_UT结果冻结_K校准诊断与跨数据集验证.md",
+      "language": "bash",
+      "text": "(\n    set -euo pipefail\n    conda activate cpf\n\n    ROOT=${PROJECT}\n    PROJ=\"$ROOT/src/KCC0601_v1\"\n    EXP=\"$ROOT/experiments/kcc0601_glove_mvp_v1\"\n    DIAG=\"$EXP/diagnostics/lambda_post_v1\"\n    GPU=2\n\n    cd \"$PROJ\"\n    mkdir -p \"$DIAG\"\n    export CUDA_VISIBLE_DEVICES=\"$GPU\"\n\n    for base in A C; do\n        if [ \"$base\" = A ]; then\n            label=Dpost\n        else\n            label=Epost\n        fi\n\n        cfg=\"$EXP/configs/mvp_ut-zappos_${base}_legacy_s3351_l0.yml\"\n        test -s \"$cfg\"\n\n        ck=$(python - \"$cfg\" <<'PY'\nimport sys, yaml\nc=yaml.safe_load(open(sys.argv[1]))\nprint(c['TRAIN']['checkpoint_dir']+'/'+c['config_name']+'_'+c['TRAIN']['train_name']+'/best_auc.pth')\nPY\n        )\n        test -s \"$ck\"\n\n        for lam in 0.0 0.025 0.05 0.1 0.2; do\n            for setting in cw ow; do\n                ow=False\n                if [ \"$setting\" = ow ]; then ow=True; fi\n\n                tag=\"${label}_l${lam}_${setting}\"\n                out=\"$DIAG/$tag\"\n                log=\"$DIAG/${tag}.log\"\n\n                if [ -s \"$out/metrics.json\" ]; then\n                    echo \"Already complete, skip: $out\"\n                    continue\n                fi\n                test ! -e \"$out\" || {\n                    echo \"Partial output exists; inspect it and use a new DIAG version: $out\"\n                    exit 2\n                }\n\n                python tools/eval_mvp.py \\\n                    --cfg \"$cfg\" --load \"$ck\" --phase val \\\n                    --setting \"$setting\" --out \"$out\" \\\n                    EVAL.open_world \"$ow\" \\\n                    MODEL.kcc_calib True \\\n                    MODEL.kcc_lambda \"$lam\" \\\n                    TRAIN.kcc_variant \"$label\" \\\n                    TRAIN.kcc_stage tune_lambda_post \\\n                    2>&1 | tee \"$log\"\n            done\n        done\n    done\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "第四步_UT结果冻结_K校准诊断与跨数据集验证.md",
+      "language": "bash",
+      "text": "ROOT=${PROJECT}\nEXP=\"$ROOT/experiments/kcc0601_glove_mvp_v1\"\nDIAG=\"$EXP/diagnostics/lambda_post_v1\"\n\npython - \"$EXP\" \"$DIAG\" <<'PY'\nimport csv, json, sys\nfrom pathlib import Path\n\nexp, diag = map(Path, sys.argv[1:])\nlambdas = [0.0, 0.025, 0.05, 0.1, 0.2]\ndefinitions = {\n    'Dpost': ('A', 'mvp_ut-zappos_A_legacy_s3351_l0'),\n    'Epost': ('C', 'mvp_ut-zappos_C_legacy_s3351_l0'),\n}\n\ndef read(path):\n    if not path.is_file():\n        raise FileNotFoundError(path)\n    return json.loads(path.read_text())['metrics_raw']\n\nrows=[]\nselection={}\nfor label,(baseline_name,run_id) in definitions.items():\n    base={s:read(exp/'runs'/run_id/f'eval_val_{s}'/'metrics.json')\n          for s in ('cw','ow')}\n    candidates=[]\n    for lam in lambdas:\n        got={s:read(diag/f'{label}_l{lam}_{s}'/'metrics.json')\n             for s in ('cw','ow')}\n        row={\n            'diagnostic':label,\n            'baseline':baseline_name,\n            'lambda':lam,\n            'cw_auc_pct':100*got['cw']['AUC'],\n            'cw_hm_pct':100*got['cw']['best_hm'],\n            'ow_auc_pct':100*got['ow']['AUC'],\n            'ow_hm_pct':100*got['ow']['best_hm'],\n            'ow_unseen_pct':100*got['ow']['best_unseen'],\n            'delta_cw_auc_pp':100*(got['cw']['AUC']-base['cw']['AUC']),\n            'delta_cw_hm_pp':100*(got['cw']['best_hm']-base['cw']['best_hm']),\n            'delta_ow_auc_pp':100*(got['ow']['AUC']-base['ow']['AUC']),\n            'delta_ow_hm_pp':100*(got['ow']['best_hm']-base['ow']['best_hm']),\n            'delta_ow_unseen_pp':100*(got['ow']['best_unseen']-base['ow']['best_unseen']),\n        }\n        row['eligible']=(row['delta_cw_hm_pp'] >= -0.5 and\n                         row['delta_ow_auc_pp'] >= -0.5 and\n                         row['delta_ow_unseen_pp'] >= -2.0)\n        rows.append(row)\n        if row['eligible']:\n            candidates.append(row)\n\n    zero=next(r for r in rows if r['diagnostic']==label and r['lambda']==0.0)\n    for key in ('delta_cw_auc_pp','delta_cw_hm_pp','delta_ow_auc_pp',\n                'delta_ow_hm_pp','delta_ow_unseen_pp'):\n        if abs(zero[key]) > 1e-6:\n            raise AssertionError(f'{label} lambda=0 identity failed: {key}={zero[key]}')\n\n    if not candidates:\n        raise AssertionError(label+' has no eligible candidate; lambda=0 should be eligible')\n    chosen=max(candidates,key=lambda r:(r['cw_auc_pct'],-r['lambda']))\n    selection[label]={\n        'selected_lambda':chosen['lambda'],\n        'selection_metric':'val_cw_auc',\n        'selected_row':chosen,\n        'positive_lambda_selected':chosen['lambda'] > 0,\n    }\n\ndest=diag/'lambda_post_results.csv'\nwith dest.open('w',newline='',encoding='utf-8') as f:\n    writer=csv.DictWriter(f,fieldnames=list(rows[0]))\n    writer.writeheader(); writer.writerows(rows)\n(diag/'lambda_selection.json').write_text(\n    json.dumps(selection,ensure_ascii=False,indent=2)+'\\n',encoding='utf-8')\n\nfor row in rows:\n    print(json.dumps(row,ensure_ascii=False))\nprint('\\nSELECTION')\nprint(json.dumps(selection,ensure_ascii=False,indent=2))\nprint('\\nCSV:',dest)\nprint('JSON:',diag/'lambda_selection.json')\nPY\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "第四步_UT结果冻结_K校准诊断与跨数据集验证.md",
+      "language": "bash",
+      "text": "ROOT=${PROJECT}\nEXP=\"$ROOT/experiments/kcc0601_glove_mvp_v1\"\nDIAG=\"$EXP/diagnostics/lambda_post_v1\"\nstamp=$(date +%Y%m%d_%H%M%S)\n\nfind \"$DIAG\" -type f -print0 | sort -z | xargs -0 sha256sum \\\n    > \"$EXP/protocol/lambda_post_v1_${stamp}.sha256\"\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "第四步_UT结果冻结_K校准诊断与跨数据集验证.md",
+      "language": "bash",
+      "text": "ROOT=${PROJECT}\nCACHE=\"$ROOT/knowledge/kcc0601_v1/cache_trusted_v1/ut-zap50k\"\n\npython - \"$CACHE\" <<'PY'\nimport json,sys\nfrom pathlib import Path\np=Path(sys.argv[1])\nr=json.loads((p/'report.json').read_text(encoding='utf-8'))\nfor key in ('raw_template_K','K_oa_text','centered_prior',\n            'description_OOV_fraction','description_fallback_sentences',\n            'top_bottom_pairs'):\n    print('\\n'+key)\n    print(json.dumps(r[key],ensure_ascii=False,indent=2))\nPY\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "第四步_UT结果冻结_K校准诊断与跨数据集验证.md",
+      "language": "bash",
+      "text": "(\n    set -euo pipefail\n    conda activate cpf\n    ROOT=${PROJECT}\n    CACHE=\"$ROOT/knowledge/kcc0601_v1/cache_trusted_v1/ut-zap50k\"\n    DATA=\"$ROOT/data/ut-zap50k/compositional-split-natural\"\n\n    python - \"$CACHE\" \"$DATA\" <<'PY'\nimport json,sys,torch\nfrom pathlib import Path\ncache,data=map(Path,sys.argv[1:])\nlabels=json.loads((cache/'labels.json').read_text())\nattrs,objs=labels['attrs'],labels['objs']\nai={x:i for i,x in enumerate(attrs)}\noi={x:i for i,x in enumerate(objs)}\nk=torch.load(cache/'K_oa_prior_centered.pt',map_location='cpu').float()\n\ndef pairs(name):\n    out=[]\n    for line in (data/(name+'_pairs.txt')).read_text().splitlines():\n        if line.strip():\n            a,o=line.split()\n            out.append((a,o))\n    return out\n\ndef report(name,items):\n    v=torch.tensor([k[oi[o],ai[a]].item() for a,o in items])\n    print(name,{\n        'count':len(items),\n        'mean':v.mean().item(),\n        'population_std':v.std(unbiased=False).item(),\n        'min':v.min().item(),\n        'median':v.median().item(),\n        'max':v.max().item(),\n    })\n\nreport('train',pairs('train'))\nreport('val',pairs('val'))\nprint('full_cartesian',{\n    'count':k.numel(),\n    'mean':k.mean().item(),\n    'population_std':k.std(unbiased=False).item(),\n    'min':k.min().item(),\n    'median':k.median().item(),\n    'max':k.max().item(),\n})\nPY\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "第四步_UT结果冻结_K校准诊断与跨数据集验证.md",
+      "language": "bash",
+      "text": "ROOT=${PROJECT}\nEXP=\"$ROOT/experiments/kcc0601_glove_mvp_v1\"\npython -m json.tool \"$EXP/diagnostics/lambda_post_v1/lambda_selection.json\"\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "第四步_UT结果冻结_K校准诊断与跨数据集验证.md",
+      "language": "bash",
+      "text": "(\n    set -euo pipefail\n    conda activate cpf\n    ROOT=${PROJECT}\n    PROJ=\"$ROOT/src/KCC0601_v1\"\n    EXP=\"$ROOT/experiments/kcc0601_glove_mvp_v1\"\n    CACHE_ROOT=\"$ROOT/knowledge/kcc0601_v1/cache_trusted_v1\"\n\n    cd \"$PROJ\"\n    python tools/make_mvp_configs.py \\\n        --root \"$ROOT\" --exp \"$EXP\" --cache-root \"$CACHE_ROOT\" \\\n        --dataset mit-states --seed 0 --lambda-k 0.1\n\n    python tools/make_mvp_configs.py \\\n        --root \"$ROOT\" --exp \"$EXP\" --cache-root \"$CACHE_ROOT\" \\\n        --dataset cgqa --seed 3351 --lambda-k 0.1\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "第四步_UT结果冻结_K校准诊断与跨数据集验证.md",
+      "language": "bash",
+      "text": "(\n    set -euo pipefail\n    conda activate cpf\n    ROOT=${PROJECT}\n    PROJ=\"$ROOT/src/KCC0601_v1\"\n    EXP=\"$ROOT/experiments/kcc0601_glove_mvp_v1\"\n    CACHE_ROOT=\"$ROOT/knowledge/kcc0601_v1/cache_trusted_v1\"\n    GPU=2\n\n    CK_M=\"$ROOT/runs/cpf_mit_states_seed0/checkpoints/mit-states-czsl_tttt/best_auc.pth\"\n    CK_G=\"$ROOT/runs/cpf_cgqa_seed3351_gpu2/checkpoints/cgqa-czsl_final_prediction/best_auc.pth\"\n\n    cd \"$PROJ\"\n    test -s \"$CK_M\"\n    test -s \"$CK_G\"\n\n    CUDA_VISIBLE_DEVICES=\"$GPU\" python tests/smoke_mvp.py \\\n        --cfg \"$EXP/configs/mvp_mit-states_A_legacy_s0_l0.yml\" \\\n        --checkpoint \"$CK_M\" --cache \"$CACHE_ROOT/mit-states\" \\\n        --out \"$EXP/audit/smoke_mit-states_s0.json\" --batch-size 2 \\\n        2>&1 | tee \"$EXP/audit/smoke_mit-states_s0.log\"\n\n    CUDA_VISIBLE_DEVICES=\"$GPU\" python tests/smoke_mvp.py \\\n        --cfg \"$EXP/configs/mvp_cgqa_A_legacy_s3351_l0.yml\" \\\n        --checkpoint \"$CK_G\" --cache \"$CACHE_ROOT/cgqa\" \\\n        --out \"$EXP/audit/smoke_cgqa_s3351.json\" --batch-size 2 \\\n        2>&1 | tee \"$EXP/audit/smoke_cgqa_s3351.log\"\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "第四步_UT结果冻结_K校准诊断与跨数据集验证.md",
+      "language": "bash",
+      "text": "(\n    set -euo pipefail\n    conda activate cpf\n    ROOT=${PROJECT}\n    PROJ=\"$ROOT/src/KCC0601_v1\"\n    EXP=\"$ROOT/experiments/kcc0601_glove_mvp_v1\"\n    GPU=2\n\n    cd \"$PROJ\"\n\n    python - \"$EXP/audit/smoke_mit-states_s0.json\" \"$EXP/audit/smoke_cgqa_s3351.json\" <<'PY'\nimport json,sys\nfor path in sys.argv[1:]:\n    r=json.load(open(path))\n    assert r['status']=='MVP_SMOKE_PASSED', path\nprint('MIT/C-GQA smoke gates passed')\nPY\n\n    for spec in \"mit-states 0\" \"cgqa 3351\"; do\n        set -- $spec\n        ds=$1\n        seed=$2\n\n        for variant in A C; do\n            cfg=\"$EXP/configs/mvp_${ds}_${variant}_legacy_s${seed}_l0.yml\"\n            bash tools/run_mvp.sh \"$cfg\" \"$GPU\"\n        done\n    done\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "第四步_UT结果冻结_K校准诊断与跨数据集验证.md",
+      "language": "bash",
+      "text": "ROOT=${PROJECT}\nEXP=\"$ROOT/experiments/kcc0601_glove_mvp_v1\"\n\npython - \"$EXP\" <<'PY'\nimport csv,json,sys\nfrom pathlib import Path\nexp=Path(sys.argv[1])\ndatasets={\n    'ut-zappos':3351,\n    'mit-states':0,\n    'cgqa':3351,\n}\nrows=[]\nfor ds,seed in datasets.items():\n    for setting in ('cw','ow'):\n        values={}\n        for variant in ('A','C'):\n            run=f'mvp_{ds}_{variant}_legacy_s{seed}_l0'\n            path=exp/'runs'/run/f'eval_val_{setting}'/'metrics.json'\n            if not path.is_file(): raise FileNotFoundError(path)\n            values[variant]=json.loads(path.read_text())['metrics_raw']\n        a,c=values['A'],values['C']\n        row={\n            'dataset':ds,'seed':seed,'setting':setting,\n            'A_AUC_pct':100*a['AUC'],'C_AUC_pct':100*c['AUC'],\n            'delta_AUC_pp':100*(c['AUC']-a['AUC']),\n            'A_HM_pct':100*a['best_hm'],'C_HM_pct':100*c['best_hm'],\n            'delta_HM_pp':100*(c['best_hm']-a['best_hm']),\n            'A_unseen_pct':100*a['best_unseen'],\n            'C_unseen_pct':100*c['best_unseen'],\n            'delta_unseen_pp':100*(c['best_unseen']-a['best_unseen']),\n        }\n        rows.append(row)\n        print(json.dumps(row,ensure_ascii=False))\n\ndest=exp/'audit/ac_transfer_single_seed.csv'\nwith dest.open('w',newline='',encoding='utf-8') as f:\n    w=csv.DictWriter(f,fieldnames=list(rows[0]))\n    w.writeheader();w.writerows(rows)\nprint('CSV:',dest)\nPY\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "第四步补充_lambda0后扩展AC操作.md",
+      "language": "bash",
+      "text": "(\n    set -euo pipefail\n    source /data/xhw/miniconda3/etc/profile.d/conda.sh\n    conda activate cpf\n    ROOT=${PROJECT}\n    EXP=\"$ROOT/experiments/kcc0601_glove_mvp_v1\"\n    DIAG=\"$EXP/diagnostics/lambda_post_v1\"\n    mkdir -p \"$EXP/protocol\"\n\n    python - \"$DIAG\" \"$EXP/protocol\" <<'PY'\nimport csv, hashlib, json, sys\nfrom datetime import datetime\nfrom pathlib import Path\n\ndiag, protocol = map(Path, sys.argv[1:])\nselection = json.loads((diag/'lambda_selection.json').read_text())\nrows = list(csv.DictReader((diag/'lambda_post_results.csv').open()))\nlambdas = [0.0, 0.025, 0.05, 0.1, 0.2]\nexpected = {(label, lam) for label in ('Dpost', 'Epost') for lam in lambdas}\nactual = {(row['diagnostic'], float(row['lambda'])) for row in rows}\nif len(rows) != 10 or actual != expected:\n    raise ValueError('lambda grid CSV incomplete or duplicated')\nfor label in ('Dpost', 'Epost'):\n    if float(selection[label]['selected_lambda']) != 0.0:\n        raise ValueError(label + ' does not belong to lambda0 branch')\n\nprint('diagnostic lambda CW_AUC OW_AUC delta_CW_AUC eligible')\nfor row in rows:\n    print(row['diagnostic'], row['lambda'], row['cw_auc_pct'],\n          row['ow_auc_pct'], row['delta_cw_auc_pp'], row['eligible'])\n\nfiles = [diag/'lambda_selection.json', diag/'lambda_post_results.csv']\nfiles += [diag/f'{label}_l{lam}_{setting}'/'metrics.json'\n          for label in ('Dpost', 'Epost') for lam in lambdas\n          for setting in ('cw', 'ow')]\nlines = []\nfor path in files:\n    if not path.is_file():\n        raise FileNotFoundError(path)\n    lines.append(hashlib.sha256(path.read_bytes()).hexdigest()+'  '+str(path)+'\\n')\n\nstamp = datetime.now().strftime('%Y%m%d_%H%M%S_%f')\nrecord = {\n    'scope': 'UT-Zappos seed3351 legacy template K, validation diagnostic',\n    'decision': 'expand A/C only to MIT-States and C-GQA',\n    'selection': selection,\n    'keep_old_D_E_lambda_0_1_as_negative_results': True,\n    'evaluate_test_for_selection': False,\n}\ndecision = protocol/f'lambda0_branch_{stamp}.json'\ndecision.write_text(json.dumps(record, ensure_ascii=False, indent=2)+'\\n')\nchecksum = protocol/f'lambda_post_v1_{stamp}.sha256'\nchecksum.write_text(''.join(lines))\nprint('DECISION:', decision)\nprint('CHECKSUM:', checksum)\nPY\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "第四步补充_lambda0后扩展AC操作.md",
+      "language": "bash",
+      "text": "(\n    set -euo pipefail\n    source /data/xhw/miniconda3/etc/profile.d/conda.sh\n    conda activate cpf\n    ROOT=${PROJECT}\n    PROJ=\"$ROOT/src/KCC0601_v1\"\n    EXP=\"$ROOT/experiments/kcc0601_glove_mvp_v1\"\n    CACHE_ROOT=\"$ROOT/knowledge/kcc0601_v1/cache_trusted_v1\"\n\n    cd \"$PROJ\"\n    python tools/make_mvp_configs.py \\\n        --root \"$ROOT\" --exp \"$EXP\" --cache-root \"$CACHE_ROOT\" \\\n        --dataset mit-states --seed 0 --lambda-k 0.1\n    python tools/make_mvp_configs.py \\\n        --root \"$ROOT\" --exp \"$EXP\" --cache-root \"$CACHE_ROOT\" \\\n        --dataset cgqa --seed 3351 --lambda-k 0.1\n\n    python - \"$EXP\" <<'PY'\nimport sys, yaml\nfrom pathlib import Path\nexp = Path(sys.argv[1])\nfor ds, seed in [('mit-states', 0), ('cgqa', 3351)]:\n    for variant in ['A', 'C']:\n        path = exp/'configs'/f'mvp_{ds}_{variant}_legacy_s{seed}_l0.yml'\n        cfg = yaml.safe_load(path.read_text())\n        assert cfg['MODEL']['kcc_text'] == (variant == 'C'), path\n        assert cfg['MODEL']['kcc_calib'] is False, path\n        assert float(cfg['MODEL']['kcc_lambda']) == 0.0, path\n        assert cfg['TRAIN']['kcc_test_at_end'] is False, path\n        assert int(cfg['TRAIN']['max_epoch']) == 10, path\n        print('A/C CONFIG PASSED:', path)\nPY\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "第四步补充_lambda0后扩展AC操作.md",
+      "language": "bash",
+      "text": "(\n    set -euo pipefail\n    source /data/xhw/miniconda3/etc/profile.d/conda.sh\n    conda activate cpf\n    ROOT=${PROJECT}\n    PROJ=\"$ROOT/src/KCC0601_v1\"\n    EXP=\"$ROOT/experiments/kcc0601_glove_mvp_v1\"\n    CACHE_ROOT=\"$ROOT/knowledge/kcc0601_v1/cache_trusted_v1\"\n    AUDIT=\"$EXP/audit/ac_transfer_v1\"\n    GPU=2\n    CK_M=\"$ROOT/runs/cpf_mit_states_seed0/checkpoints/mit-states-czsl_tttt/best_auc.pth\"\n    CK_G=\"$ROOT/runs/cpf_cgqa_seed3351_gpu2/checkpoints/cgqa-czsl_final_prediction/best_auc.pth\"\n\n    cd \"$PROJ\"\n    test -s \"$CK_M\"\n    test -s \"$CK_G\"\n    mkdir -p \"$AUDIT\"\n    for ds in mit-states cgqa; do\n        if [ -e \"$AUDIT/smoke_${ds}.json\" ] || [ -e \"$AUDIT/smoke_${ds}.log\" ]; then\n            printf 'Audit output exists; inspect it before reuse: %s\\n' \"$AUDIT\"\n            exit 2\n        fi\n    done\n\n    CUDA_VISIBLE_DEVICES=\"$GPU\" python -u tests/smoke_mvp.py \\\n        --cfg \"$EXP/configs/mvp_mit-states_A_legacy_s0_l0.yml\" \\\n        --checkpoint \"$CK_M\" --cache \"$CACHE_ROOT/mit-states\" \\\n        --out \"$AUDIT/smoke_mit-states.json\" --batch-size 2 \\\n        2>&1 | tee \"$AUDIT/smoke_mit-states.log\"\n\n    CUDA_VISIBLE_DEVICES=\"$GPU\" python -u tests/smoke_mvp.py \\\n        --cfg \"$EXP/configs/mvp_cgqa_A_legacy_s3351_l0.yml\" \\\n        --checkpoint \"$CK_G\" --cache \"$CACHE_ROOT/cgqa\" \\\n        --out \"$AUDIT/smoke_cgqa.json\" --batch-size 2 \\\n        2>&1 | tee \"$AUDIT/smoke_cgqa.log\"\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "第四步补充_lambda0后扩展AC操作.md",
+      "language": "bash",
+      "text": "python - <<'PY'\nimport json\nfrom pathlib import Path\naudit = Path('${PROJECT}/experiments/kcc0601_glove_mvp_v1/audit/ac_transfer_v1')\nfor ds in ['mit-states', 'cgqa']:\n    path = audit/f'smoke_{ds}.json'\n    result = json.loads(path.read_text())\n    if result.get('status') != 'MVP_SMOKE_PASSED':\n        raise ValueError(path)\n    print(ds, result['status'])\nPY\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "第四步补充_lambda0后扩展AC操作.md",
+      "language": "bash",
+      "text": "(\n    set -euo pipefail\n    source /data/xhw/miniconda3/etc/profile.d/conda.sh\n    conda activate cpf\n    ROOT=${PROJECT}\n    PROJ=\"$ROOT/src/KCC0601_v1\"\n    EXP=\"$ROOT/experiments/kcc0601_glove_mvp_v1\"\n    AUDIT=\"$EXP/audit/ac_transfer_v1\"\n    GPU=2\n    cd \"$PROJ\"\n\n    python - \"$AUDIT\" <<'PY'\nimport json, sys\nfrom pathlib import Path\naudit = Path(sys.argv[1])\nfor ds in ['mit-states', 'cgqa']:\n    path = audit/f'smoke_{ds}.json'\n    if json.loads(path.read_text()).get('status') != 'MVP_SMOKE_PASSED':\n        raise ValueError(path)\nprint('MIT/C-GQA smoke gates passed')\nPY\n\n    for spec in \"mit-states 0\" \"cgqa 3351\"; do\n        set -- $spec\n        ds=$1\n        seed=$2\n        for variant in A C; do\n            cfg=\"$EXP/configs/mvp_${ds}_${variant}_legacy_s${seed}_l0.yml\"\n            bash tools/run_mvp.sh \"$cfg\" \"$GPU\"\n        done\n    done\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "第四步补充_lambda0后扩展AC操作.md",
+      "language": "bash",
+      "text": "python - <<'PY'\nimport csv, json\nfrom pathlib import Path\nexp = Path('${PROJECT}/experiments/kcc0601_glove_mvp_v1')\nrows = []\nfor ds, seed in [('ut-zappos', 3351), ('mit-states', 0), ('cgqa', 3351)]:\n    for setting in ['cw', 'ow']:\n        values = {}\n        for variant in ['A', 'C']:\n            run = exp/'runs'/f'mvp_{ds}_{variant}_legacy_s{seed}_l0'\n            if (run/'status.txt').read_text().strip() != 'train_and_val_complete':\n                raise ValueError('Incomplete run: '+str(run))\n            values[variant] = json.loads(\n                (run/f'eval_val_{setting}'/'metrics.json').read_text())['metrics_raw']\n        a, c = values['A'], values['C']\n        row = {'dataset': ds, 'seed': seed, 'setting': setting}\n        for name, key in [('AUC', 'AUC'), ('HM', 'best_hm'), ('unseen', 'best_unseen')]:\n            row[f'A_{name}_pct'] = 100*a[key]\n            row[f'C_{name}_pct'] = 100*c[key]\n            row[f'delta_{name}_pp'] = 100*(c[key]-a[key])\n        rows.append(row)\n        print(json.dumps(row, ensure_ascii=False))\ndest = exp/'audit'/'ac_transfer_single_seed.csv'\nif dest.exists():\n    raise FileExistsError('Summary already exists; preserve it: '+str(dest))\ndest.parent.mkdir(parents=True, exist_ok=True)\nwith dest.open('w', newline='', encoding='utf-8') as f:\n    writer = csv.DictWriter(f, fieldnames=list(rows[0]))\n    writer.writeheader()\n    writer.writerows(rows)\nprint('SUMMARY:', dest)\nPY\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "阶段实验报告_截至AC跨数据集验证_填写模板.md",
+      "language": "json",
+      "text": "{\n  \"OI示例\": {\"boot\": [\"Boots.Ankle\", \"Boots.Knee.High\", \"Boots.Mid-Calf\"]},\n  \"OE示例\": {\"Boots.Ankle\": [\"shaft ending at the ankle\", \"closed toe boot silhouette\", \"low boot collar\"]},\n  \"AE示例\": {\"Canvas\": [\"woven canvas fabric\", \"coarse textile surface\", \"matte cloth finish\"]}\n}\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "output/backup/截至第四步补充_服务器全部结果下载与归档.md",
+      "language": "bash",
+      "text": "\"$CPF_PY\" -u ${PROJECT}/backup_czsl_all_results.py --root ${PROJECT}\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "output/backup/截至第四步补充_服务器全部结果下载与归档.md",
+      "language": "bash",
+      "text": "(\n  set -euo pipefail\n  cd ${PROJECT}/exports/czsl_all_completed_实际时间戳_进程号\n  sha256sum -c SHA256SUMS\n)\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    },
+    {
+      "source": "output/backup/截至第四步补充_服务器全部结果下载与归档.md",
+      "language": "bash",
+      "text": "\"$CPF_PY\" -u ${PROJECT}/backup_czsl_all_results.py --root ${PROJECT} --out-root /你有写权限的磁盘/czsl_exports\n",
+      "historical_paths_require_configuration": true,
+      "template_paths": true
+    }
+  ],
+  "warning": "Experiment command templates, not an automatic runner. Navigation/interpreter paths are parameterized; scientific numeric settings remain unchanged. Inspect package defaults and frozen input hashes before execution. Historical absolute artifact paths are evidence, not portable defaults. Never tune TEST.",
+  "variables": {
+    "CPF_PY": "Python executable in the matching CPF environment",
+    "REPLAY": "Independent layout generated by tools/reproduce.py materialize",
+    "PROJECT": "Verified compatible source/data/knowledge root; frozen paths may require mapping"
+  },
+  "readme_recipes": []
+}

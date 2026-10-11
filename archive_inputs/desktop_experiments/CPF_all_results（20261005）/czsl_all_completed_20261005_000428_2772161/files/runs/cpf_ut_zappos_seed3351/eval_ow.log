@@ -1,99 +1,0 @@
-DATASET:
-  name: ut-zappos
-  root_dir: /data/xhw/czsl_repro/data/ut-zap50k
-  splitname: compositional-split-natural
-EVAL:
-  open_world: True
-  topk: 1
-MODEL:
-  attn_normalized: True
-  classifier: cosine
-  cosine_cls_temp: 0.05
-  emb_dim: 300
-  img_emb_dim: 768
-  img_emb_drop: 0.35
-  lambda_attn: 10.0
-  load_checkpoint: None
-  name: OADIS
-  optim_weights: 
-  use_attr_loss: True
-  use_composed_pair_loss: True
-  use_emb_pair_loss: True
-  use_obj_loss: True
-  weights: 
-  wordemb_compose: 
-  wordemb_compose_dropout: 0.2
-  wordembs: glove
-TRAIN:
-  aug_epoch: 37
-  batch_size: 64
-  checkpoint_dir: /data/wupeng/myProject/CZSL/CRMask/checkpoints
-  comb_features: False
-  decay_factor: 0.1
-  decay_strategy: milestone
-  disp_interval: 283
-  eval_every_epoch: 1
-  final_max_epoch: 10
-  finetune_backbone: True
-  log_dir: /data/wupeng/myProject/CZSL/CRMask/log_file
-  lr: 0.0001
-  lr_decay_milestones: [23, 30]
-  lr_encoder: 1e-05
-  lr_word_embedding: 2.5e-06
-  max_epoch: 10
-  num_workers: 4
-  save_every_epoch: 1
-  seed: 3351
-  start_epoch: 1
-  start_epoch_validate: 1
-  test_batch_size: 64
-  train_name: final_predcition_mul
-  use_precomputed_features: False
-  wd: 5e-05
-config_name: ut-zappos-czsl
-Prepare dataset
-# train pairs: 83 | # val pairs: 30 | # test pairs: 36
-# train images: 22998 | # val images: 3214 | # test images: 2914
-# train pairs: 83 | # val pairs: 30 | # test pairs: 36
-# train images: 22998 | # val images: 3214 | # test images: 2914
-Change Faux.Fur to fake_fur
-fake_fur
-Change Faux.Leather to fake_leather
-fake_leather
-Change Full.grain.leather to thick_leather
-thick_leather
-Change Hair.Calf to hair_leather
-hair_leather
-Change Nubuck to grainy_leather
-grainy_leather
-Change Patent.Leather to shiny_leather
-shiny_leather
-Loaded embeddings from file /data/xhw/czsl_repro/data/ut-zap50k/../glove/glove.6B.300d.txt torch.Size([16, 300])
-Change Boots.Ankle to ankle_boots
-ankle_boots
-Change Boots.Knee.High to knee_high_boots
-knee_high_boots
-Change Boots.Mid-Calf to midcalf_boots
-midcalf_boots
-Change Shoes.Boat.Shoes to boat_shoes
-boat_shoes
-Change Shoes.Clogs.and.Mules to clogs_shoes
-clogs_shoes
-Change Shoes.Flats to flats_shoes
-flats_shoes
-Change Shoes.Heels to heels
-Change Shoes.Loafers to loafers
-Change Shoes.Oxfords to oxford_shoes
-oxford_shoes
-Change Shoes.Sneakers.and.Athletic.Shoes to sneakers
-Loaded embeddings from file /data/xhw/czsl_repro/data/ut-zap50k/../glove/glove.6B.300d.txt torch.Size([12, 300])
-Loaded pretrained weights.
-Evaluating with test pairs
-Test set:
-Testing:   0%|          | 0/46 [00:00<?, ?it/s]Testing:   2%|▏         | 1/46 [00:12<09:07, 12.16s/it]Testing:   4%|▍         | 2/46 [00:12<03:44,  5.10s/it]Testing:   7%|▋         | 3/46 [00:12<02:02,  2.86s/it]Testing:   9%|▊         | 4/46 [00:12<01:15,  1.80s/it]Testing:  11%|█         | 5/46 [00:12<00:49,  1.21s/it]Testing:  13%|█▎        | 6/46 [00:13<00:35,  1.14it/s]Testing:  15%|█▌        | 7/46 [00:13<00:25,  1.53it/s]Testing:  17%|█▋        | 8/46 [00:13<00:19,  1.99it/s]Testing:  20%|█▉        | 9/46 [00:13<00:14,  2.49it/s]Testing:  22%|██▏       | 10/46 [00:13<00:12,  2.99it/s]Testing:  24%|██▍       | 11/46 [00:14<00:10,  3.46it/s]Testing:  26%|██▌       | 12/46 [00:14<00:09,  3.65it/s]Testing:  28%|██▊       | 13/46 [00:14<00:07,  4.16it/s]Testing:  30%|███       | 14/46 [00:14<00:07,  4.43it/s]Testing:  33%|███▎      | 15/46 [00:14<00:06,  4.69it/s]Testing:  35%|███▍      | 16/46 [00:14<00:06,  4.87it/s]Testing:  37%|███▋      | 17/46 [00:15<00:05,  5.09it/s]Testing:  39%|███▉      | 18/46 [00:15<00:05,  5.18it/s]Testing:  41%|████▏     | 19/46 [00:15<00:05,  5.27it/s]Testing:  43%|████▎     | 20/46 [00:15<00:04,  5.36it/s]Testing:  46%|████▌     | 21/46 [00:15<00:04,  5.40it/s]Testing:  48%|████▊     | 22/46 [00:16<00:04,  5.40it/s]Testing:  50%|█████     | 23/46 [00:16<00:04,  5.41it/s]Testing:  52%|█████▏    | 24/46 [00:16<00:04,  5.46it/s]Testing:  54%|█████▍    | 25/46 [00:16<00:03,  5.48it/s]Testing:  57%|█████▋    | 26/46 [00:16<00:03,  5.44it/s]Testing:  59%|█████▊    | 27/46 [00:16<00:03,  5.46it/s]Testing:  61%|██████    | 28/46 [00:17<00:03,  5.49it/s]Testing:  63%|██████▎   | 29/46 [00:17<00:03,  5.50it/s]Testing:  65%|██████▌   | 30/46 [00:17<00:02,  5.48it/s]Testing:  67%|██████▋   | 31/46 [00:17<00:02,  5.15it/s]Testing:  70%|██████▉   | 32/46 [00:17<00:02,  5.27it/s]Testing:  72%|███████▏  | 33/46 [00:18<00:02,  5.20it/s]Testing:  74%|███████▍  | 34/46 [00:18<00:02,  5.32it/s]Testing:  76%|███████▌  | 35/46 [00:18<00:02,  5.35it/s]Testing:  78%|███████▊  | 36/46 [00:18<00:01,  5.36it/s]Testing:  80%|████████  | 37/46 [00:18<00:01,  5.46it/s]Testing:  83%|████████▎ | 38/46 [00:19<00:01,  5.40it/s]Testing:  85%|████████▍ | 39/46 [00:19<00:01,  5.43it/s]Testing:  87%|████████▋ | 40/46 [00:19<00:01,  5.48it/s]Testing:  89%|████████▉ | 41/46 [00:19<00:00,  5.51it/s]Testing:  91%|█████████▏| 42/46 [00:19<00:00,  5.48it/s]Testing:  93%|█████████▎| 43/46 [00:19<00:00,  5.48it/s]Testing:  96%|█████████▌| 44/46 [00:20<00:00,  5.51it/s]Testing:  98%|█████████▊| 45/46 [00:20<00:00,  5.52it/s]Testing: 100%|██████████| 46/46 [00:20<00:00,  5.64it/s]Testing: 100%|██████████| 46/46 [00:20<00:00,  2.22it/s]
-Top 1
-closed_attr_match  0.3768| closed_obj_match  0.7347| best_unseen  0.513| best_seen  0.6149| AUC  0.2707| best_hm  0.4387| 
-Top 2
-closed_attr_match  0.5113| closed_obj_match  0.861| best_unseen  0.6965| best_seen  0.8045| AUC  0.4893| best_hm  0.6108| 
-Top 3
-closed_attr_match  0.6054| closed_obj_match  0.9221| best_unseen  0.7969| best_seen  0.8964| AUC  0.649| best_hm  0.716| 

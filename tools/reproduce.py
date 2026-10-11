@@ -1,0 +1,153 @@
+"""Verify the curated repository and materialize historical layouts without training."""
+import argparse
+import ast
+import base64
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import shutil
+import subprocess
+from urllib.parse import unquote
+
+ROOT = Path(__file__).resolve().parents[1]
+
+def read(path): return json.loads(path.read_text(encoding='utf8'))
+def sha(path):
+    h=hashlib.sha256()
+    with path.open('rb') as f:
+        for b in iter(lambda:f.read(1024**2),b''): h.update(b)
+    return h.hexdigest()
+
+def safe_child(parent,relative):
+    relative=Path(relative)
+    if relative.is_absolute() or relative.drive or '..' in relative.parts: raise ValueError('Unsafe relative path')
+    p=parent/relative
+    # Read-only canonical inputs may live behind directory junctions or symlinks.
+    # Newly created runtime targets must remain physically below their destination.
+    if parent.resolve()!=ROOT.resolve() and parent.resolve() not in p.resolve().parents: raise ValueError('Path outside target')
+    return p
+
+def verify():
+    records=read(ROOT/'provenance/layout.json')['files']
+    expected={r['current_path']:r['sha256'] for r in records if r['current_path']}
+    failures=[]
+    for rel,h in expected.items():
+        p=safe_child(ROOT,rel)
+        if not p.is_file() or sha(p)!=h: failures.append(rel)
+    manifest=ROOT/'provenance/current_manifest.json'
+    if manifest.exists():
+        for r in read(manifest):
+            p=safe_child(ROOT,r['path'])
+            if not p.is_file() or sha(p)!=r['sha256']: failures.append(r['path'])
+    syntax=[]; links=[]; formatting=[]
+    docs=[ROOT/'README.md',ROOT/'environment/README.md',ROOT/'knowledge/README.md']
+    docs.extend(ROOT.glob('experiments/*/README.md'))
+    for p in docs:
+        text=p.read_text(encoding='utf8')
+        if text.count('```')%2: formatting.append(str(p.relative_to(ROOT))+': unclosed fence')
+        for raw in re.findall(r'\]\((<[^>]+>|[^)\n]+)\)',text):
+            raw=unquote(raw.strip('<>')).split('#')[0]
+            if not raw or re.match(r'^[a-z]+://',raw): continue
+            if not (p.parent/raw).exists(): links.append({'file':str(p.relative_to(ROOT)),'target':raw})
+    for rel in expected:
+        if rel.endswith('.py'):
+            try: ast.parse((ROOT/rel).read_text(encoding='utf-8-sig'))
+            except (SyntaxError,UnicodeError) as exc: syntax.append({'file':rel,'error':str(exc)})
+    result={'passed':not(failures or links or formatting or syntax),'original_canonical_files':len(expected),
+      'changed_or_missing':failures,'broken_links':links,'formatting_errors':formatting,
+      'python_syntax_errors':syntax,'training_started':False}
+    print(json.dumps(result,ensure_ascii=False))
+    if not result['passed']: raise SystemExit(1)
+
+def materialize(stage,destination):
+    layout=read(ROOT/'provenance/layout.json'); destination=Path(destination).expanduser()
+    if not destination.is_absolute(): raise ValueError('Choose an absolute destination')
+    destination=destination.resolve()
+    if destination==ROOT or ROOT in destination.parents:
+        raise ValueError('Choose an absolute separate directory outside repository')
+    if destination.exists(): raise FileExistsError('Preserve existing directory: '+str(destination))
+    subprocess.check_call(['git','rev-parse','--verify',layout['source_tag']+'^{commit}'],cwd=ROOT,stdout=subprocess.DEVNULL)
+    selected=[r for r in layout['files'] if int(r['stage'])<=int(stage)]
+    expected={r['current_path']:r['sha256'] for r in selected if r['current_path']}
+    for relative,digest in expected.items():
+        source=safe_child(ROOT,relative)
+        if not source.is_file() or sha(source)!=digest:
+            raise ValueError('Canonical input changed or missing: '+relative)
+    documents=[r for r in selected if r['kind']=='historical_document' and
+      not r['original_path'].startswith(('docs/','output/')) and len(Path(r['original_path']).parts)>1]
+    # Restore documentation blobs in one Git process, not one process per file.
+    queries=[layout['source_tag']+':'+r['original_path'] for r in documents]
+    if any('\n' in q or '\r' in q for q in queries): raise ValueError('Unsafe Git blob query')
+    blobs={}
+    if queries:
+        output=subprocess.check_output(['git','cat-file','--batch'],cwd=ROOT,
+          input=('\n'.join(queries)+'\n').encode('utf8'))
+        offset=0
+        for r in documents:
+            end=output.index(b'\n',offset); header=output[offset:end].split()
+            if len(header)!=3 or header[1]!=b'blob': raise ValueError('Missing historical document')
+            size=int(header[2]); offset=end+1; payload=output[offset:offset+size]; offset+=size+1
+            if hashlib.sha256(payload).hexdigest()!=r['sha256']: raise ValueError('Historical document changed')
+            blobs[r['original_path']]=payload
+    destination.mkdir(parents=True)
+    receipts=[]
+    for r in selected:
+        old=r.get('runtime_path',r['original_path'])
+        if r['current_path']:
+            source=safe_child(ROOT,r['current_path'])
+            payload=None
+        elif r['kind']=='runtime_support':
+            payload=base64.b64decode(r['runtime_support_base64']); source=None
+            if hashlib.sha256(payload).hexdigest()!=r['sha256']: raise ValueError('Runtime support changed')
+        elif r['kind']=='historical_document':
+            # Runtime checksum guards depend on original package README/PLAN files.
+            # Restore exact bytes from the immutable Git tag, never from prose rewrites.
+            if old.startswith(('docs/','output/')) or len(Path(old).parts)==1: continue
+            payload=blobs[old]
+            source=None
+        else: continue
+        paths=[old]
+        if old.startswith(layout['project_prefix']): paths.append('project/'+old[len(layout['project_prefix']):])
+        for relative in paths:
+            target=safe_child(destination,relative); target.parent.mkdir(parents=True,exist_ok=True)
+            if payload is None: shutil.copy2(source,target)
+            else: target.write_bytes(payload)
+            if sha(target)!=r['sha256']: raise ValueError('Runtime copy corrupted')
+            if target.suffix=='.sh': target.chmod(target.stat().st_mode|0o111)
+        receipts.append({'original_path':old,'sha256':r['sha256']})
+    (destination/'materialization.json').write_text(json.dumps({'source_tag':layout['source_tag'],'stage':stage,
+      'files':receipts,'original_bytes_modified':False,'training_started':False},ensure_ascii=False,indent=2),encoding='utf8')
+    print(json.dumps({'stage':stage,'runtime':str(destination),'files_verified':len(receipts),'project':str(destination/'project'),
+      'note':'External inputs and frozen absolute paths still require setup; see environment/README.md'},ensure_ascii=False))
+
+def doctor(stage,project):
+    project=Path(project).resolve()
+    required=[project/'src/KCC0601_v1/train.py',project/'data/glove/glove.6B.300d.txt',
+      project/'data/ut-zap50k',project/'knowledge/kcc0601_v1/cache_trusted_v1/ut-zap50k/manifest.json']
+    issues=[str(p) for p in required if not p.exists()]
+    absolute=[]
+    for path in project.glob('knowledge/**/manifest.json'):
+        record=read(path)
+        for old,h in record.get('input_sha256',{}).items():
+            if isinstance(h,str) and re.fullmatch('[a-fA-F0-9]{64}',h):
+                p=Path(old)
+                if not p.is_file(): absolute.append({'path':old,'reason':'frozen path missing','manifest':str(path)})
+                elif sha(p)!=h: absolute.append({'path':old,'reason':'input SHA256 mismatch','manifest':str(path)})
+    print(json.dumps({'stage':stage,'project':str(project),'missing':issues,'frozen_path_issues':absolute,
+      'ready_for_package_preflight':not(issues or absolute),
+      'not_checked':['CUDA/GPU permissions','dataset split hashes beyond original package checks',
+       'previous-stage training checkpoints','full training/reproduced metrics'],'training_started':False},ensure_ascii=False))
+    if issues or absolute: raise SystemExit(2)
+
+if __name__=='__main__':
+    parser=argparse.ArgumentParser(description=__doc__)
+    commands=parser.add_subparsers(dest='action',required=True)
+    commands.add_parser('verify')
+    m=commands.add_parser('materialize'); m.add_argument('--stage',choices=['{:02d}'.format(x) for x in range(1,19)],required=True); m.add_argument('--dest',required=True)
+    d=commands.add_parser('doctor'); d.add_argument('--stage',required=True); d.add_argument('--project',required=True)
+    args=parser.parse_args()
+    if args.action=='verify': verify()
+    elif args.action=='materialize': materialize(args.stage,args.dest)
+    else: doctor(args.stage,args.project)
