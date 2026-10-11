@@ -1,0 +1,39 @@
+{
+  "version": "sgekr_support_mask_20261008",
+  "work": "/var/tmp/czsl_xhw_name_ekr_20261007",
+  "output": "/var/tmp/czsl_xhw_sgekr_20261008",
+  "release_sha256": "85c6b1e50e37cadb0f97a11d611a0efbb988169d6d437fdc6ac306f35117c540",
+  "reference_sha256": "8105e951d97fd87fd6a4ecbe40d2a08801a73f998fcfd2fc5c0bf6480d9a9fd4",
+  "settings": {
+    "seed": 0,
+    "epochs": 3,
+    "rank": 32,
+    "eta_max": 0.1,
+    "temperature": 0.2,
+    "score_temperature": 0.05,
+    "learning_rate": 0.001,
+    "weight_decay": 0.0001,
+    "batch_size": 64,
+    "support_threshold": 0.005
+  },
+  "variants": [
+    "G_name",
+    "G_support",
+    "G_shuffle"
+  ],
+  "old_pilot_proceed": false,
+  "old_v2_proceed": false,
+  "phase": "SG-EKR seed-0 exploratory pilot",
+  "test_allowed": false,
+  "common_anchor": "frozen A_unit + frozen reviewed N_name",
+  "primary": "G_support",
+  "epoch_selection": "first strict CW maximum among epochs 0,1,2,3",
+  "pilot_threshold_pp": 0.1,
+  "support_threshold": 0.005,
+  "guards": {
+    "cw_hm_pp": -0.5,
+    "ow_auc_pp": -0.5,
+    "ow_best_unseen_pp": -2
+  },
+  "note": "Fixed values; support mask uses TRAIN cache only; shuffle control is not a random semantic graph"
+}
