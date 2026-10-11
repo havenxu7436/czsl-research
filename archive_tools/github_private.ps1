@@ -1,5 +1,5 @@
 param(
-    [ValidateSet('check','create','verify')][string]$Mode = 'check',
+    [ValidateSet('check','create','privacy','verify')][string]$Mode = 'check',
     [string]$Repository = 'czsl-research'
 )
 $ErrorActionPreference = 'Stop'

@@ -343,8 +343,22 @@ def verify():
     if errors or links: sys.exit(1)
 
 def commit():
-    if subprocess.run(['git','rev-parse','--verify','HEAD'],cwd=str(ROOT),stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0:
-        raise RuntimeError('This import commit operation requires the inspected empty local history; existing history preserved.')
+    resumed=subprocess.run(['git','rev-parse','--verify','HEAD'],cwd=str(ROOT),stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0
+    plan=[]
+    if resumed:
+        # Only resume our exact consecutive retrospective import, never arbitrary history.
+        history=subprocess.check_output(['git','log','--reverse','--format=%H%x00%s'],cwd=str(ROOT)).decode('utf-8').splitlines()
+        expected=['Initialize private research navigation and provenance tools']+['Retrospective archive stage {:02d}: {}'.format(i+1,s[0]) for i,s in enumerate(STAGES)]
+        if len(history)>len(expected):
+            raise RuntimeError('Preserve already completed or unrelated history.')
+        for i,line in enumerate(history):
+            sha,title=line.split('\0',1)
+            if title!=expected[i]:
+                raise RuntimeError('Preserve unrelated history; cannot resume import.')
+            changed=subprocess.check_output(['git','diff-tree','--root','--no-commit-id','--name-only','-r','-z',sha],cwd=str(ROOT))
+            plan.append({'stage':'{:02d}'.format(i),'files':len([p for p in changed.split(b'\0') if p]),'commit':sha,'title':title})
+        if subprocess.check_output(['git','branch','--show-current'],cwd=str(ROOT)).decode().strip()!='main':
+            raise RuntimeError('Resume must preserve the existing main branch.')
     if subprocess.check_output(['git','diff','--cached','--name-only'],cwd=str(ROOT)).strip():
         raise RuntimeError('Preserve pre-existing staged files.')
     subprocess.check_call(['git','branch','-M','main'],cwd=str(ROOT))
@@ -352,8 +366,16 @@ def commit():
     paths=[x.decode('utf-8') for x in subprocess.check_output(['git','ls-files','--others','--exclude-standard','-z'],cwd=str(ROOT)).split(b'\0') if x]
     groups=defaultdict(list)
     for path in paths:
-        groups['00' if path in {'README.md','.gitignore','.gitattributes'} or path.startswith('archive_tools/') or (path.startswith('docs/') and not path.startswith('docs/stages/')) else stage_of(path)].append(path)
-    plan=[]
+        scaffold=path in {'README.md','.gitignore','.gitattributes'} or path.startswith('archive_tools/') or (path.startswith('docs/') and not path.startswith('docs/stages/'))
+        group=('19' if resumed else '00') if scaffold else stage_of(path)
+        if resumed and group!='19' and int(group)<len(plan):
+            raise RuntimeError('Unexpected new file in previously committed stage: '+path)
+        groups[group].append(path)
+    modified=[x.decode('utf-8') for x in subprocess.check_output(['git','diff','--name-only','-z'],cwd=str(ROOT)).split(b'\0') if x]
+    for path in modified:
+        if not (path=='README.md' or path.startswith(('docs/','archive_tools/','provenance/'))):
+            raise RuntimeError('Preserve unrelated tracked modification: '+path)
+        groups['19'].append(path)
     for group,files in sorted(groups.items()):
         subprocess.run(['git','add','--pathspec-from-file=-','--pathspec-file-nul'],cwd=str(ROOT),input=('\0'.join(files)+'\0').encode('utf-8'),check=True)
         title='Initialize private research navigation and provenance tools' if group=='00' else ('Retrospective archive stage '+group+': '+STAGES[int(group)-1][0] if group!='19' else 'Retrospective archive: remaining reports, releases and provenance')

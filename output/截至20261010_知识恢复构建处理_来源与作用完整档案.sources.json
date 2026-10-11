@@ -1,0 +1,826 @@
+{
+  "document": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\截至20261010_知识恢复构建处理_来源与作用完整档案.md",
+  "document_sha256": "f2600052282467956f699af7e5bb704864a472effab0d407a9f7da06ffb4b255",
+  "source_files": {
+    "plan": {
+      "path": "C:\\Users\\llenovo\\Desktop\\0601origin\\ZSCL实验设计0601.md",
+      "label": "最初 0601 方案",
+      "role": "设计来源，不是已执行事实",
+      "sha256": "ebf696dec79c7788eb2ee02c095ca44828429a7e48225db77d56d9b08125ec0c",
+      "bytes": 24842
+    },
+    "full_report": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\截至20261010_CZSL全部实验_公式修正_决策与数据分析总档案.md",
+      "label": "全部实验总档案",
+      "role": "已有实验与决策的配套报告，保持不变",
+      "sha256": "461a43645d03a677cbbe16d5f165fcf917fc22fdbde0389b24eb09870f311cea",
+      "bytes": 147229
+    },
+    "original_paper": {
+      "path": "C:\\Users\\llenovo\\Desktop\\CZSL\\Wu_LOGICZSL_Exploring_Logic-induced_Representation_for_Compositional_Zero-shot_Learning_CVPR_2025_paper.pdf",
+      "label": "LogiCZSL 原论文 PDF",
+      "role": "此前论文方法核对的原件；本次只索引与校验文件身份，不重新解析 PDF",
+      "sha256": "d74f41ea6f2c3fbd4f4c68dadc0354d12605ba2b12996220aa5dbb2c05df8fd6",
+      "bytes": 2401464
+    },
+    "author_copy": {
+      "path": "C:\\Users\\llenovo\\Desktop\\CZSL\\CZSL_code\\LogiCZSL_copy.tar.gz",
+      "label": "本地作者代码副本",
+      "role": "此前逻辑公式/接口审计来源；不包含原作者历史知识 JSON",
+      "sha256": "37ac9efdadfe8cfbd75e28beb2d2ed6c539ba384dea690daf7428957d8528b31",
+      "bytes": 2524773
+    },
+    "glove_archive": {
+      "path": "C:\\Users\\llenovo\\Desktop\\CZSL\\CZSL_code\\downloads\\glove.6B.zip",
+      "label": "本地 GloVe 6B 原始 ZIP",
+      "role": "可用词向量源包；实际编码成员身份以完整 glove.6B.300d.txt SHA 为准",
+      "sha256": "617afb2fe6cbd085c235baf7a465b96f4112bd7f7ccb2b2cbd649fed9cbcf2fb",
+      "bytes": 862182613
+    },
+    "wordnet_license": {
+      "path": "C:\\Users\\llenovo\\Desktop\\czsl_experiment\\20261004归档\\knowledge\\kcc_logic_3datasets_reconstructed_v1\\WORDNET_LICENSE.txt",
+      "label": "WordNet 原始许可",
+      "role": "初始知识生成包附带的 WordNet 许可",
+      "sha256": "c4163fc9f8aea62a084f355753bf6d0c54d2582384eae13574e8847aa6bc227e",
+      "bytes": 1656
+    },
+    "generate.py": {
+      "path": "C:\\Users\\llenovo\\Desktop\\czsl_experiment\\20261004归档\\knowledge\\kcc_logic_3datasets_reconstructed_v1\\scripts\\generate.py",
+      "label": "generate.py",
+      "role": "初期三数据集知识包的实际脚本",
+      "sha256": "b91fe61dc1bd958a67e7514ca5b4367193ce8c7ec8595875e9dc9bbbdedd25cb",
+      "bytes": 15075
+    },
+    "build_text_prior.py": {
+      "path": "C:\\Users\\llenovo\\Desktop\\czsl_experiment\\20261004归档\\knowledge\\kcc_logic_3datasets_reconstructed_v1\\scripts\\build_text_prior.py",
+      "label": "build_text_prior.py",
+      "role": "初期三数据集知识包的实际脚本",
+      "sha256": "0aae7f7166d1e9ad43619d63f68c8bfad3df1c8bb8c13e7cd28d6f51a01c33ac",
+      "bytes": 5502
+    },
+    "validate_server.py": {
+      "path": "C:\\Users\\llenovo\\Desktop\\czsl_experiment\\20261004归档\\knowledge\\kcc_logic_3datasets_reconstructed_v1\\scripts\\validate_server.py",
+      "label": "validate_server.py",
+      "role": "初期三数据集知识包的实际脚本",
+      "sha256": "6fe0890694d49cc48163806118b23310f2e19e6e397e48387a3564e1e7fa6808",
+      "bytes": 5516
+    },
+    "initial_generation_manifest.json": {
+      "path": "C:\\Users\\llenovo\\Desktop\\czsl_experiment\\CPF_all_results（20261005）\\czsl_all_completed_20261005_000428_2772161\\files\\reconstructed_knowledge\\ut-zap50k\\generation_manifest.json",
+      "label": "最早 UT / generation_manifest.json",
+      "role": "2026-09-29 非官方语义重建及旧候选掩码",
+      "sha256": "259451e32321d8561237f60160a192b7c39137ac842ec492192d34ac3a2c77ed",
+      "bytes": 1011
+    },
+    "initial_build_compatibility.py": {
+      "path": "C:\\Users\\llenovo\\Desktop\\czsl_experiment\\CPF_all_results（20261005）\\czsl_all_completed_20261005_000428_2772161\\files\\reconstructed_knowledge\\ut-zap50k\\build_compatibility.py",
+      "label": "最早 UT / build_compatibility.py",
+      "role": "2026-09-29 非官方语义重建及旧候选掩码",
+      "sha256": "06cee7ab3461b2eba744fbd0d800094c94c25c44df585998e6caa194926f2738",
+      "bytes": 2328
+    },
+    "initial_compatibility.csv": {
+      "path": "C:\\Users\\llenovo\\Desktop\\czsl_experiment\\CPF_all_results（20261005）\\czsl_all_completed_20261005_000428_2772161\\files\\reconstructed_knowledge\\ut-zap50k\\compatibility.csv",
+      "label": "最早 UT / compatibility.csv",
+      "role": "2026-09-29 非官方语义重建及旧候选掩码",
+      "sha256": "1379bde511958b67c71c734c9c82ff70a4907269753ddb321b727f59a2009603",
+      "bytes": 384
+    },
+    "initial_README.md": {
+      "path": "C:\\Users\\llenovo\\Desktop\\czsl_experiment\\CPF_all_results（20261005）\\czsl_all_completed_20261005_000428_2772161\\files\\reconstructed_knowledge\\ut-zap50k\\README.md",
+      "label": "最早 UT / README.md",
+      "role": "2026-09-29 非官方语义重建及旧候选掩码",
+      "sha256": "c68bf41dd2a3475e7165eeae64f0130b35e49f552e6c941ece65755ca271149b",
+      "bytes": 1261
+    },
+    "initial_oi_dict.json": {
+      "path": "C:\\Users\\llenovo\\Desktop\\czsl_experiment\\CPF_all_results（20261005）\\czsl_all_completed_20261005_000428_2772161\\files\\reconstructed_knowledge\\ut-zap50k\\oi_dict.json",
+      "label": "最早 UT / oi_dict.json",
+      "role": "2026-09-29 非官方语义重建及旧候选掩码",
+      "sha256": "af696e4612fa069555ea32d2b787e8ebf1c9d3eefec7b8e38cb5950a982172c8",
+      "bytes": 368
+    },
+    "initial_oe_dict.json": {
+      "path": "C:\\Users\\llenovo\\Desktop\\czsl_experiment\\CPF_all_results（20261005）\\czsl_all_completed_20261005_000428_2772161\\files\\reconstructed_knowledge\\ut-zap50k\\oe_dict.json",
+      "label": "最早 UT / oe_dict.json",
+      "role": "2026-09-29 非官方语义重建及旧候选掩码",
+      "sha256": "6c00a1d55709a840df43aa08ca23f52b3c8b5dc1a0aad2d0732d366da1138923",
+      "bytes": 1410
+    },
+    "initial_ae_dict.json": {
+      "path": "C:\\Users\\llenovo\\Desktop\\czsl_experiment\\CPF_all_results（20261005）\\czsl_all_completed_20261005_000428_2772161\\files\\reconstructed_knowledge\\ut-zap50k\\ae_dict.json",
+      "label": "最早 UT / ae_dict.json",
+      "role": "2026-09-29 非官方语义重建及旧候选掩码",
+      "sha256": "74fd858ceb507396ce962e70369e2882ef4a8ee49fd2509e36ac5f2a947573c5",
+      "bytes": 1676
+    },
+    "initial_validate_knowledge.py": {
+      "path": "C:\\Users\\llenovo\\Desktop\\czsl_experiment\\CPF_all_results（20261005）\\czsl_all_completed_20261005_000428_2772161\\files\\reconstructed_knowledge\\ut-zap50k\\validate_knowledge.py",
+      "label": "最早 UT / validate_knowledge.py",
+      "role": "2026-09-29 非官方语义重建及旧候选掩码",
+      "sha256": "2f5ea72faded89627435b2e376391d1a60566f42e42836d85e334641888f0b0d",
+      "bytes": 5058
+    },
+    "initial_knowledge-files.sha256": {
+      "path": "C:\\Users\\llenovo\\Desktop\\czsl_experiment\\CPF_all_results（20261005）\\czsl_all_completed_20261005_000428_2772161\\files\\reconstructed_knowledge\\ut-zap50k\\knowledge-files.sha256",
+      "label": "最早 UT / knowledge-files.sha256",
+      "role": "2026-09-29 非官方语义重建及旧候选掩码",
+      "sha256": "8fc011c4a19c4bcebe908bfffdcabdd7321d92d3ae5f3f7f87d358e33371c8a0",
+      "bytes": 541
+    },
+    "v1_ut-zap50k_attributes.txt": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\week5_evidence_20261005_verified\\evidence\\knowledge_source\\ut-zap50k\\attributes.txt",
+      "label": "v1 ut-zap50k / attributes.txt",
+      "role": "已核对早期 cache 输入的源知识副本",
+      "sha256": "42067c4af6a6a02f39ad92906b445abc6037afc88915e2a711a06720e5d7a4ed",
+      "bytes": 161
+    },
+    "v1_ut-zap50k_objects.txt": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\week5_evidence_20261005_verified\\evidence\\knowledge_source\\ut-zap50k\\objects.txt",
+      "label": "v1 ut-zap50k / objects.txt",
+      "role": "已核对早期 cache 输入的源知识副本",
+      "sha256": "237da35e1fbbd59945bca11a9d293e8ea1c15d39609f2663242ae56364647e9c",
+      "bytes": 197
+    },
+    "v1_ut-zap50k_oi_dict.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\week5_evidence_20261005_verified\\evidence\\knowledge_source\\ut-zap50k\\oi_dict.json",
+      "label": "v1 ut-zap50k / oi_dict.json",
+      "role": "已核对早期 cache 输入的源知识副本",
+      "sha256": "f048e790c4effb8a61797bf903cad4a93371fbe1bfbeac75b445d7dd1e19ba6f",
+      "bytes": 390
+    },
+    "v1_ut-zap50k_oe_dict.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\week5_evidence_20261005_verified\\evidence\\knowledge_source\\ut-zap50k\\oe_dict.json",
+      "label": "v1 ut-zap50k / oe_dict.json",
+      "role": "已核对早期 cache 输入的源知识副本",
+      "sha256": "ca72dddc8645c85b8dc2f7346d10aa9b6a68da35876cfd0e75bdc287335bafaa",
+      "bytes": 1472
+    },
+    "v1_ut-zap50k_ae_dict.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\week5_evidence_20261005_verified\\evidence\\knowledge_source\\ut-zap50k\\ae_dict.json",
+      "label": "v1 ut-zap50k / ae_dict.json",
+      "role": "已核对早期 cache 输入的源知识副本",
+      "sha256": "f161f0021c0ccbf7d672d584b6d3ab4257f849f8ad419e094023ad915946235c",
+      "bytes": 1758
+    },
+    "v1_ut-zap50k_entry_provenance.csv": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\week5_evidence_20261005_verified\\evidence\\knowledge_source\\ut-zap50k\\entry_provenance.csv",
+      "label": "v1 ut-zap50k / entry_provenance.csv",
+      "role": "已核对早期 cache 输入的源知识副本",
+      "sha256": "3bc0fedc347083f74dd3dcf77dc8b59556254958985e088ea6b226b61f52c319",
+      "bytes": 3010
+    },
+    "v1_ut-zap50k_review_status.csv": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\week5_evidence_20261005_verified\\evidence\\knowledge_source\\ut-zap50k\\review_status.csv",
+      "label": "v1 ut-zap50k / review_status.csv",
+      "role": "已核对早期 cache 输入的源知识副本",
+      "sha256": "f2b969eed4737bf5b60b856406fbb596d18b8e30f6d734a52803664db17501c6",
+      "bytes": 2875
+    },
+    "v1_ut-zap50k_manifest.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\week5_evidence_20261005_verified\\evidence\\knowledge_source\\ut-zap50k\\manifest.json",
+      "label": "v1 ut-zap50k / manifest.json",
+      "role": "已核对早期 cache 输入的源知识副本",
+      "sha256": "b322fa76a65e77b617ca59562711773abfab8868937957eed6b4fd36306a54f0",
+      "bytes": 2624
+    },
+    "v1_ut-zap50k_K_oa_text_lexical.csv": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\week5_evidence_20261005_verified\\evidence\\knowledge_source\\ut-zap50k\\K_oa_text_lexical.csv",
+      "label": "v1 ut-zap50k / K_oa_text_lexical.csv",
+      "role": "已核对早期 cache 输入的源知识副本",
+      "sha256": "82421631e4d8e5c87073d18a36dabcde799f0482cbbad26d57d7aa2dfcf587dc",
+      "bytes": 2449
+    },
+    "v1_ut-zap50k_K_oa_text_report.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\week5_evidence_20261005_verified\\evidence\\knowledge_source\\ut-zap50k\\K_oa_text_report.json",
+      "label": "v1 ut-zap50k / K_oa_text_report.json",
+      "role": "已核对早期 cache 输入的源知识副本",
+      "sha256": "e474fedf5a0c399abf92f3efae62c5b67f4b55751c7b71ffc6db785b6982bf76",
+      "bytes": 584
+    },
+    "v1_mit-states_attributes.txt": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\week5_evidence_20261005_verified\\evidence\\knowledge_source\\mit-states\\attributes.txt",
+      "label": "v1 mit-states / attributes.txt",
+      "role": "已核对早期 cache 输入的源知识副本",
+      "sha256": "a30f05e234c896e0f8450f3480ed7e623978fc5b9e8da5a2d046f0bf6e831e03",
+      "bytes": 915
+    },
+    "v1_mit-states_objects.txt": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\week5_evidence_20261005_verified\\evidence\\knowledge_source\\mit-states\\objects.txt",
+      "label": "v1 mit-states / objects.txt",
+      "role": "已核对早期 cache 输入的源知识副本",
+      "sha256": "cc3904cdb0f0aa8f217c2768a61ddbdc90588af208697e5ff85264eed1527001",
+      "bytes": 1755
+    },
+    "v1_mit-states_oi_dict.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\week5_evidence_20261005_verified\\evidence\\knowledge_source\\mit-states\\oi_dict.json",
+      "label": "v1 mit-states / oi_dict.json",
+      "role": "已核对早期 cache 输入的源知识副本",
+      "sha256": "0496b0da7fffedfc635cc39dd8350f2012f6dbab7cc23faf983ae715692085da",
+      "bytes": 3873
+    },
+    "v1_mit-states_oe_dict.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\week5_evidence_20261005_verified\\evidence\\knowledge_source\\mit-states\\oe_dict.json",
+      "label": "v1 mit-states / oe_dict.json",
+      "role": "已核对早期 cache 输入的源知识副本",
+      "sha256": "f13bad00c8ed2d46b5e0e710e0d3a8682c70c8426bb2462c0af84bc9a1e2ff02",
+      "bytes": 48835
+    },
+    "v1_mit-states_ae_dict.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\week5_evidence_20261005_verified\\evidence\\knowledge_source\\mit-states\\ae_dict.json",
+      "label": "v1 mit-states / ae_dict.json",
+      "role": "已核对早期 cache 输入的源知识副本",
+      "sha256": "a86b64c9a198c05480da125d911e03a2cb9e2b0c5da781f9b8daebe172eddfab",
+      "bytes": 22200
+    },
+    "v1_mit-states_entry_provenance.csv": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\week5_evidence_20261005_verified\\evidence\\knowledge_source\\mit-states\\entry_provenance.csv",
+      "label": "v1 mit-states / entry_provenance.csv",
+      "role": "已核对早期 cache 输入的源知识副本",
+      "sha256": "0ec2d5654faff066f01cc3d6d67145e547a30e79a4b04836a5ad74b2ffa876bf",
+      "bytes": 40420
+    },
+    "v1_mit-states_review_status.csv": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\week5_evidence_20261005_verified\\evidence\\knowledge_source\\mit-states\\review_status.csv",
+      "label": "v1 mit-states / review_status.csv",
+      "role": "已核对早期 cache 输入的源知识副本",
+      "sha256": "27f9441fd1208a62ca395e351b074618307e3606345293f0fb864782547f6026",
+      "bytes": 53092
+    },
+    "v1_mit-states_manifest.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\week5_evidence_20261005_verified\\evidence\\knowledge_source\\mit-states\\manifest.json",
+      "label": "v1 mit-states / manifest.json",
+      "role": "已核对早期 cache 输入的源知识副本",
+      "sha256": "8c75dfab42366ee674f45ce689188339165aa508318ec3f8b109967ad43ba2e5",
+      "bytes": 2446
+    },
+    "v1_mit-states_K_oa_text_lexical.csv": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\week5_evidence_20261005_verified\\evidence\\knowledge_source\\mit-states\\K_oa_text_lexical.csv",
+      "label": "v1 mit-states / K_oa_text_lexical.csv",
+      "role": "已核对早期 cache 输入的源知识副本",
+      "sha256": "cdebde85b10ea366bfbe232d3367511356488d318cc2d4000f11ba62df892155",
+      "bytes": 312242
+    },
+    "v1_mit-states_K_oa_text_report.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\week5_evidence_20261005_verified\\evidence\\knowledge_source\\mit-states\\K_oa_text_report.json",
+      "label": "v1 mit-states / K_oa_text_report.json",
+      "role": "已核对早期 cache 输入的源知识副本",
+      "sha256": "0a6b74ed0595e365f23d5699a63feaf18816244993daabd3b78c4d6d6b409704",
+      "bytes": 588
+    },
+    "v1_cgqa_attributes.txt": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\week5_evidence_20261005_verified\\evidence\\knowledge_source\\cgqa\\attributes.txt",
+      "label": "v1 cgqa / attributes.txt",
+      "role": "已核对早期 cache 输入的源知识副本",
+      "sha256": "de7e1f7e7f3e237a052630d6f4005d47277e0c93a6aea67d4f91e56410100489",
+      "bytes": 3427
+    },
+    "v1_cgqa_objects.txt": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\week5_evidence_20261005_verified\\evidence\\knowledge_source\\cgqa\\objects.txt",
+      "label": "v1 cgqa / objects.txt",
+      "role": "已核对早期 cache 输入的源知识副本",
+      "sha256": "777ba58b7b07418c07ae0be6fdae3e4bbf2e40fc89edde333d58997f51c1e790",
+      "bytes": 5341
+    },
+    "v1_cgqa_oi_dict.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\week5_evidence_20261005_verified\\evidence\\knowledge_source\\cgqa\\oi_dict.json",
+      "label": "v1 cgqa / oi_dict.json",
+      "role": "已核对早期 cache 输入的源知识副本",
+      "sha256": "ef24ba35d5143aba1abc551d1e98d4f2b4e275fa7dab42b80e17cf3e353b3d3e",
+      "bytes": 10547
+    },
+    "v1_cgqa_oe_dict.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\week5_evidence_20261005_verified\\evidence\\knowledge_source\\cgqa\\oe_dict.json",
+      "label": "v1 cgqa / oe_dict.json",
+      "role": "已核对早期 cache 输入的源知识副本",
+      "sha256": "393177e5e2823f8d359d26edd3ab743def339574956d0a7aea7393445743a609",
+      "bytes": 131749
+    },
+    "v1_cgqa_ae_dict.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\week5_evidence_20261005_verified\\evidence\\knowledge_source\\cgqa\\ae_dict.json",
+      "label": "v1 cgqa / ae_dict.json",
+      "role": "已核对早期 cache 输入的源知识副本",
+      "sha256": "7f41adb661ca4eda0fabcb1c5d3c040e83317cbd81bcca49057a65b1deafff22",
+      "bytes": 80210
+    },
+    "v1_cgqa_entry_provenance.csv": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\week5_evidence_20261005_verified\\evidence\\knowledge_source\\cgqa\\entry_provenance.csv",
+      "label": "v1 cgqa / entry_provenance.csv",
+      "role": "已核对早期 cache 输入的源知识副本",
+      "sha256": "9be7cc7ed7d27756bbcc4b7b4858001e1d88dfc3a9b5a85c4d22cc15514b01bc",
+      "bytes": 124856
+    },
+    "v1_cgqa_review_status.csv": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\week5_evidence_20261005_verified\\evidence\\knowledge_source\\cgqa\\review_status.csv",
+      "label": "v1 cgqa / review_status.csv",
+      "role": "已核对早期 cache 输入的源知识副本",
+      "sha256": "241cfc9818391451875201577999dd3160cdcc2a720c4b1d0188d80fbc711f01",
+      "bytes": 161137
+    },
+    "v1_cgqa_manifest.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\week5_evidence_20261005_verified\\evidence\\knowledge_source\\cgqa\\manifest.json",
+      "label": "v1 cgqa / manifest.json",
+      "role": "已核对早期 cache 输入的源知识副本",
+      "sha256": "f96653fa84a0b22b6b4ed668f640bee6d248bf17f19f34e00134856c410cef50",
+      "bytes": 2723
+    },
+    "v1_cgqa_K_oa_text_lexical.csv": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\week5_evidence_20261005_verified\\evidence\\knowledge_source\\cgqa\\K_oa_text_lexical.csv",
+      "label": "v1 cgqa / K_oa_text_lexical.csv",
+      "role": "已核对早期 cache 输入的源知识副本",
+      "sha256": "90f5ee2cb8981fc43d7e64df4c547294d921590ada75dc17776adac07c820494",
+      "bytes": 3069670
+    },
+    "v1_cgqa_K_oa_text_report.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\week5_evidence_20261005_verified\\evidence\\knowledge_source\\cgqa\\K_oa_text_report.json",
+      "label": "v1 cgqa / K_oa_text_report.json",
+      "role": "已核对早期 cache 输入的源知识副本",
+      "sha256": "91ba51a1dd5dacd602dd7a56b3c21a870a6203d091adeaa4a7fa23203acf0986",
+      "bytes": 588
+    },
+    "v2_attributes.txt": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\ut_semantic_v2_20261006\\knowledge\\ut-zap50k\\attributes.txt",
+      "label": "UT-v2 / attributes.txt",
+      "role": "TRAIN 图片审查后冻结的源知识",
+      "sha256": "5faf107d54a5c40f8428e5981dc1bbac26e6119cac1858d24c953166dd770b27",
+      "bytes": 145
+    },
+    "v2_objects.txt": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\ut_semantic_v2_20261006\\knowledge\\ut-zap50k\\objects.txt",
+      "label": "UT-v2 / objects.txt",
+      "role": "TRAIN 图片审查后冻结的源知识",
+      "sha256": "242763c29c43cc45ada26b3022293e4171681b87b1709bee59cc52de505ba38a",
+      "bytes": 185
+    },
+    "v2_oi_dict.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\ut_semantic_v2_20261006\\knowledge\\ut-zap50k\\oi_dict.json",
+      "label": "UT-v2 / oi_dict.json",
+      "role": "TRAIN 图片审查后冻结的源知识",
+      "sha256": "af696e4612fa069555ea32d2b787e8ebf1c9d3eefec7b8e38cb5950a982172c8",
+      "bytes": 368
+    },
+    "v2_oe_dict.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\ut_semantic_v2_20261006\\knowledge\\ut-zap50k\\oe_dict.json",
+      "label": "UT-v2 / oe_dict.json",
+      "role": "TRAIN 图片审查后冻结的源知识",
+      "sha256": "75c0ee111d29e2d486d4bd4a623c9bdd7e5ace7e47f79040ed49a5bb65de4e8c",
+      "bytes": 1541
+    },
+    "v2_ae_dict.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\ut_semantic_v2_20261006\\knowledge\\ut-zap50k\\ae_dict.json",
+      "label": "UT-v2 / ae_dict.json",
+      "role": "TRAIN 图片审查后冻结的源知识",
+      "sha256": "13a2c0826571a3db4e20e44b83b263eac89e9c26975de7f987e1f0b295848193",
+      "bytes": 1910
+    },
+    "v2_review_status.csv": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\ut_semantic_v2_20261006\\knowledge\\ut-zap50k\\review_status.csv",
+      "label": "UT-v2 / review_status.csv",
+      "role": "TRAIN 图片审查后冻结的源知识",
+      "sha256": "4627e8e642ce6c3d9c7e3b80d0e57baf2a24687ec728a5bef873e7153c16472a",
+      "bytes": 2705
+    },
+    "v2_manifest.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\ut_semantic_v2_20261006\\knowledge\\ut-zap50k\\manifest.json",
+      "label": "UT-v2 / manifest.json",
+      "role": "TRAIN 图片审查后冻结的源知识",
+      "sha256": "6919219f8d99d9f3107fea2a80e31ea25b8a8f54ccaa899c0c917a351414466d",
+      "bytes": 2320
+    },
+    "v2_item_review.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\ut_semantic_v2_20261006\\knowledge\\ut-zap50k\\item_review.json",
+      "label": "UT-v2 / item_review.json",
+      "role": "TRAIN 图片审查后冻结的源知识",
+      "sha256": "484599ed5a0028d8ebae771ba7927e7ebb3a4de023add6045570e607b25a9bc2",
+      "bytes": 208743
+    },
+    "gallery_manifest.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\ut_semantic_v2_20261006\\review_evidence\\manifest.json",
+      "label": "TRAIN 审图 / manifest.json",
+      "role": "v2 知识改写的图片抽样与来源证据",
+      "sha256": "d8473aa941488b306db7d42899dd304c6c8e05dc4ff2f2cf81a2dee0b14092ff",
+      "bytes": 5213
+    },
+    "gallery_selected_train_images.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\ut_semantic_v2_20261006\\review_evidence\\selected_train_images.json",
+      "label": "TRAIN 审图 / selected_train_images.json",
+      "role": "v2 知识改写的图片抽样与来源证据",
+      "sha256": "35f53f15588fc441e3a9c834dff534e253fd0a67f85cccbab1cec836bc9c5d71",
+      "bytes": 335698
+    },
+    "gallery_original_descriptions.md": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\ut_semantic_v2_20261006\\review_evidence\\original_descriptions.md",
+      "label": "TRAIN 审图 / original_descriptions.md",
+      "role": "v2 知识改写的图片抽样与来源证据",
+      "sha256": "a73585fba3103fb54f65a46bfbedb554facb62b5ca9b8ba6949629d34da131e6",
+      "bytes": 5367
+    },
+    "cache_manifest.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\BF_conditional_preflight_20261009\\extracted\\conditional\\cache\\manifest.json",
+      "label": "UT-v2 cache / manifest.json",
+      "role": "服务器构建后回传的缓存元数据；此目录没有所有缓存张量",
+      "sha256": "f69d12a04f841a409622917f1c13814dc7d9b24c50c3b9daee7db90e17ab04c1",
+      "bytes": 6344
+    },
+    "cache_labels.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\BF_conditional_preflight_20261009\\extracted\\conditional\\cache\\labels.json",
+      "label": "UT-v2 cache / labels.json",
+      "role": "服务器构建后回传的缓存元数据；此目录没有所有缓存张量",
+      "sha256": "4f6d8140b814ac6a9237fab6889816290033d98d71897bfc33316675067905ec",
+      "bytes": 562
+    },
+    "cache_report.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\BF_conditional_preflight_20261009\\extracted\\conditional\\cache\\report.json",
+      "label": "UT-v2 cache / report.json",
+      "role": "服务器构建后回传的缓存元数据；此目录没有所有缓存张量",
+      "sha256": "fe846fe9fba8988f0fb02f9e7330176b6cf3817784b088e660f6f2f749094d0a",
+      "bytes": 12230
+    },
+    "cache_cache_manifest.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\BF_conditional_preflight_20261009\\extracted\\conditional\\cache\\cache_manifest.json",
+      "label": "UT-v2 cache / cache_manifest.json",
+      "role": "服务器构建后回传的缓存元数据；此目录没有所有缓存张量",
+      "sha256": "f69d12a04f841a409622917f1c13814dc7d9b24c50c3b9daee7db90e17ab04c1",
+      "bytes": 6344
+    },
+    "bank_bank.pt": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\BF_conditional_preflight_20261009\\extracted\\conditional\\bank\\bank.pt",
+      "label": "UT-v2 EKR bank / bank.pt",
+      "role": "服务器构建后回传的描述槽资产",
+      "sha256": "94259cca60bdc132d26a6c26a799d823826152d4a9dcf60fe8bcc93e0cca0525",
+      "bytes": 542503
+    },
+    "bank_manifest.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\BF_conditional_preflight_20261009\\extracted\\conditional\\bank\\manifest.json",
+      "label": "UT-v2 EKR bank / manifest.json",
+      "role": "服务器构建后回传的描述槽资产",
+      "sha256": "ed17757749ffe48fb0d3e2303d7032ea6fce12a27eabbdbb6cdfc87fc4a8a71e",
+      "bytes": 1375
+    },
+    "bank_labels.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\BF_conditional_preflight_20261009\\extracted\\conditional\\bank\\labels.json",
+      "label": "UT-v2 EKR bank / labels.json",
+      "role": "服务器构建后回传的描述槽资产",
+      "sha256": "4f6d8140b814ac6a9237fab6889816290033d98d71897bfc33316675067905ec",
+      "bytes": 562
+    },
+    "bank_descriptions.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\BF_conditional_preflight_20261009\\extracted\\conditional\\bank\\descriptions.json",
+      "label": "UT-v2 EKR bank / descriptions.json",
+      "role": "服务器构建后回传的描述槽资产",
+      "sha256": "2bcd9565079f2d8e70b03a8b5cc53d8eeb2d8610326cddf52cf5c850eb74ee85",
+      "bytes": 19026
+    },
+    "bank_report.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\BF_conditional_preflight_20261009\\extracted\\conditional\\bank\\report.json",
+      "label": "UT-v2 EKR bank / report.json",
+      "role": "服务器构建后回传的描述槽资产",
+      "sha256": "522a23f0ab8ad35a69c27c595b66a6c04048e11b64f6c1eeec717b318428e473",
+      "bytes": 501
+    },
+    "glove_builder": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\reproduce_0601_20261010\\reference_source\\tools\\build_knowledge.py",
+      "label": "冻结 GloVe / build_knowledge.py",
+      "role": "原缓存构建脚本的本地冻结副本",
+      "sha256": "5997b07bee331e9a17c169b11a25c2d2eb9bb27e8cc1b4e3aad10cd5bb6b8687",
+      "bytes": 22388
+    },
+    "aliases": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\reproduce_0601_20261010\\reference_source\\models\\word_embedding_utils.py",
+      "label": "CPF 名称别名 / word_embedding_utils.py",
+      "role": "名称编码来源",
+      "sha256": "6f445018649eee4b2f60adbf2c865203e227d81a964d176b9a44e0010e5e35a3",
+      "bytes": 6125
+    },
+    "cache_loader": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\reproduce_0601_20261010\\reference_source\\models\\kcc_cache.py",
+      "label": "原 Text/Prior 读取 / kcc_cache.py",
+      "role": "实际模型消费及校验",
+      "sha256": "debf752af6ba1f1ae66bc420bc63cb7efeab701ee1262d71ca675f120fb2e63b",
+      "bytes": 5872
+    },
+    "cpf_consumer": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\reproduce_0601_20261010\\reference_source\\models\\kcc_cpf.py",
+      "label": "CPF Text/Prior 前向 / kcc_cpf.py",
+      "role": "固定知识表在文本组合、文字引导和分类中的具体消费",
+      "sha256": "dfb0ee9742f82085d87a19ff5aeeab5fa8a3a13dbf1f8797fd947505122d34f0",
+      "bytes": 17859
+    },
+    "clip_distribution": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\clip_knowledge_probe_20261010_r2\\metrics.py",
+      "label": "CLIP-r2 / metrics.py",
+      "role": "图文分数沿属性轴转换为条件教师概率",
+      "sha256": "242c44f2ab237206cdf8f40f8205ef69472136bc9fa979a651f717a319568403",
+      "bytes": 4046
+    },
+    "bank_builder": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\ut_semantic_v2_20261006\\transition\\bank.py",
+      "label": "EKR / bank.py",
+      "role": "描述槽、均值、残差、固定错配的构建",
+      "sha256": "367671987507f15a4b85e706f723a61d49f4afe6f77cac0d0cbb2d8bf9f69bdc",
+      "bytes": 7424
+    },
+    "ekr_router": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\ut_semantic_v2_20261006\\transition\\router.py",
+      "label": "旧 EKR / router.py",
+      "role": "中心化 key/value 与对象条件查询的读取",
+      "sha256": "a11a0990ed507225ca39e7b63a1841116f6da50f31e9a67064d760ed21bf7c3a",
+      "bytes": 5082
+    },
+    "name_router": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\name_anchor_ekr_20261007\\transition\\name_router.py",
+      "label": "名称锚点 / name_router.py",
+      "role": "名称控制的非零值与仅名称对象上下文",
+      "sha256": "8607eb04ff7c09a35a755bba4e73570a57cf3298fc7a0f9ead3a7ce94cf108d7",
+      "bytes": 1183
+    },
+    "aligned_values": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\ekr_v2_anchor_alignment_20261007\\core.py",
+      "label": "共享值对齐 / core.py",
+      "role": "原始槽的低秩 value 处理，不重写源知识",
+      "sha256": "9763d0ae741e5abd9aef1c28401e357f49e05af4c089ee1491c976f179a990ad",
+      "bytes": 5676
+    },
+    "train_support_probe": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\ekr_train_support_probe_20261008\\probe.py",
+      "label": "初次 TRAIN 语义支持 / probe.py",
+      "role": "固定语义几何的初步诊断，不是 SG 两折 mask",
+      "sha256": "436d6c4265e9c0d0f96f779c864aa40c61e21962c527a0e8b029e9fc3dec5b5e",
+      "bytes": 12402
+    },
+    "sg_consumer": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\sgekr_support_mask_20261008\\core.py",
+      "label": "SG-EKR / core.py",
+      "role": "固定半单位值、recipient 掩码与视觉查询",
+      "sha256": "306fb8156ce1b2590c69fb7203005c4c40858232857385a8af58b26fc45f4805",
+      "bytes": 5877
+    },
+    "v2_prepare": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\ut_semantic_v2_20261006\\transition\\v2_prepare.py",
+      "label": "UT-v2 / v2_prepare.py",
+      "role": "v2 质量门槛与构建串联",
+      "sha256": "67d0cec50793b67cdfa0c27b4d9091074c5c62b111ab8e4126e8182faba0a3d3",
+      "bytes": 18992
+    },
+    "bf_knowledge": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\logiczsl_cpf_bf_20261008\\assets\\ut-zap50k\\knowledge.json",
+      "label": "B/F / knowledge.json",
+      "role": "另一套论文方法重建源知识",
+      "sha256": "549bfe4550a99c266eb6bb5df04202aba7657ab285e444213de5af59a0cd1538",
+      "bytes": 4476
+    },
+    "bf_builder": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\logiczsl_cpf_bf_20261008\\build_bank.py",
+      "label": "B/F / build_bank.py",
+      "role": "固定逻辑节点编码",
+      "sha256": "10bed8de347885c03d7353786d5824e4cdef141eed56a08e5748ea3f49623262",
+      "bytes": 4440
+    },
+    "bf_common": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\logiczsl_cpf_bf_20261008\\common.py",
+      "label": "B/F / common.py",
+      "role": "OI/OE/AE 结构校验",
+      "sha256": "32f3c60ad7053bc1616e89387b4ccf31dd7e02215e1aad4f1b0d3a60b98cad62",
+      "bytes": 2175
+    },
+    "bf_adapter": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\logiczsl_cpf_bf_20261008\\model\\bf_logic.py",
+      "label": "B/F / bf_logic.py",
+      "role": "原生 CPF 视觉分支到知识节点的 grounding",
+      "sha256": "23fe298fb884c6282df0a0b9e68254d2e549ec6ee6e4b5209dc3aa17b72f584c",
+      "bytes": 3363
+    },
+    "bf_loss": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\reproduce_0601_20261010\\reference_source\\models\\bf_logic_loss.py",
+      "label": "B/F / bf_logic_loss.py",
+      "role": "论文三项逻辑约束的实际实现",
+      "sha256": "2029a5d4c9a1672d2789e468cfa593725a6c835ecf441ddb17bf853ec81d42dc",
+      "bytes": 2779
+    },
+    "bf_manifest.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\reproduce_0601_20261010\\assets\\logic_bank\\manifest.json",
+      "label": "B/F 固定逻辑 bank / manifest.json",
+      "role": "后续执行包携带的同源 B/F 逻辑资产",
+      "sha256": "904412ee6096f8013b04f3754af97c8c4eb8dd5a58a4f3c6bbf3ce034eb9aa7e",
+      "bytes": 2161
+    },
+    "bf_bank.pt": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\reproduce_0601_20261010\\assets\\logic_bank\\bank.pt",
+      "label": "B/F 固定逻辑 bank / bank.pt",
+      "role": "后续执行包携带的同源 B/F 逻辑资产",
+      "sha256": "a8fe1e4fe4629264603569ef6457f19ae737b08bad34a4267c7d39f3bfce7428",
+      "bytes": 107618
+    },
+    "bf_manual": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\LogiCZSL论文方法重建_CPF-BF训练完整手册_20261008.md",
+      "label": "LogiCZSL 方法重建手册",
+      "role": "论文核对、原代码审计与适配说明；部分状态是发布时状态",
+      "sha256": "2f6358b0d444272d1aa4b1d6d69abb53035fe1fbb6311a06dfca1c1352c5ce47",
+      "bytes": 20730
+    },
+    "sg_builder": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\sgekr_support_mask_20261008\\pilot.py",
+      "label": "SG-EKR / pilot.py",
+      "role": "TRAIN 视觉支持掩码构建",
+      "sha256": "80ad3b96eb7c602586b81d961227f1323f4ff5ecf8ea3b0f21d85875e64d10fc",
+      "bytes": 31460
+    },
+    "sg_mask": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\sgekr_review_20261008\\artifacts\\support_mask.json",
+      "label": "SG-EKR / support_mask.json",
+      "role": "已运行的两折视觉支持选择结果",
+      "sha256": "fe52b3bfa7d55557786ced9857c1384c6877e191226289f9444b22f7c93f4086",
+      "bytes": 14197
+    },
+    "conditional_head": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\conditional_attribute_pilot_20261009\\head.py",
+      "label": "条件属性头 / head.py",
+      "role": "均值描述与名称/错配控制的实际处理",
+      "sha256": "0075d20a05c1904c550ff05d54c2a8964739616c2bce390697ee7e5c240be86e",
+      "bytes": 5492
+    },
+    "stageA_prepare": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\conditional_attribute_stageA_20261009\\prepare.py",
+      "label": "StageA / prepare.py",
+      "role": "冻结 CPF 视觉/基准分数缓存，不是源知识",
+      "sha256": "2c760c297203182faf07cb3e7d09726decd78183f2de5132db7fc6858937ae15",
+      "bytes": 15838
+    },
+    "clip_protocol": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\clip_knowledge_probe_20261010_r2\\protocol.json",
+      "label": "CLIP-r2 / protocol.json",
+      "role": "固定模型、知识、名称、置换和数据身份",
+      "sha256": "6eb8cdcebab91a168c4c72769ca1e04a72573d330d1ef90fc39c08d267f01a0b",
+      "bytes": 5820
+    },
+    "clip_prompts": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\clip_knowledge_probe_20261010_r2\\prompts.py",
+      "label": "CLIP-r2 / prompts.py",
+      "role": "七组等权九槽 prompt 构建",
+      "sha256": "d31ee5a4f4964fb925c0035de6061efa43d68c7447ec53d61bbee2efc12ef694",
+      "bytes": 2355
+    },
+    "clip_probe": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\clip_knowledge_probe_20261010_r2\\probe.py",
+      "label": "CLIP-r2 / probe.py",
+      "role": "冻结图文编码、均值和教师概率计算",
+      "sha256": "0d0a05a4c0dcc607fbcc9977b228f2014f4cc135f9d91c22fd927aedb1b55639",
+      "bytes": 23218
+    },
+    "clip_ae_dict.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\clip_knowledge_probe_20261010_r2\\assets\\ae_dict.json",
+      "label": "CLIP-r2 / ae_dict.json",
+      "role": "复制 v2 原文，不是新改写知识",
+      "sha256": "13a2c0826571a3db4e20e44b83b263eac89e9c26975de7f987e1f0b295848193",
+      "bytes": 1910
+    },
+    "clip_oe_dict.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\clip_knowledge_probe_20261010_r2\\assets\\oe_dict.json",
+      "label": "CLIP-r2 / oe_dict.json",
+      "role": "复制 v2 原文，不是新改写知识",
+      "sha256": "75c0ee111d29e2d486d4bd4a623c9bdd7e5ace7e47f79040ed49a5bb65de4e8c",
+      "bytes": 1541
+    },
+    "clip_result": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\clip_knowledge_probe_results_20261010_r2\\czsl_clip_knowledge_probe_20261010_r2.zip",
+      "label": "CLIP-r2 结果 ZIP",
+      "role": "包含图文缓存、prompts、教师输出和审计；本报告不展开大数组",
+      "sha256": "7fb5d14a81e83b8b0c62fba93ec441bc3f056e0c04cf2749246d31acc6a4bb9f",
+      "bytes": 321364707
+    },
+    "clip_review": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\clip_knowledge_probe_results_20261010_r2\\CLIP知识证据探针_r2_独立复核与下一步判断_20261010.md",
+      "label": "CLIP-r2 独立复核",
+      "role": "现有探针结论",
+      "sha256": "db7d325fe92e8c991f6e8ad87fa6e0c35df5e0f8b20395168c1abb120f33e372",
+      "bytes": 11693
+    },
+    "train_input_reads.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\train_knowledge_audit_results_20261010\\extracted\\result\\input_reads.json",
+      "label": "TRAIN 审查 / input_reads.json",
+      "role": "逐句证据、输入范围与未填人工审查表",
+      "sha256": "ec365cc4a9b0f210b3a0b12a72c9a43eedecc1fc8cb966a8a3b9100b66948749",
+      "bytes": 3585
+    },
+    "train_complete.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\train_knowledge_audit_results_20261010\\extracted\\result\\complete.json",
+      "label": "TRAIN 审查 / complete.json",
+      "role": "逐句证据、输入范围与未填人工审查表",
+      "sha256": "3254495e0ea9da46577d3b163951b17b3a2c7c8b0644366d2e1187a32b276136",
+      "bytes": 389
+    },
+    "train_human_review_blank.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\train_knowledge_audit_results_20261010\\extracted\\result\\human_review_blank.json",
+      "label": "TRAIN 审查 / human_review_blank.json",
+      "role": "逐句证据、输入范围与未填人工审查表",
+      "sha256": "4461f182d8bb98db484aa97c8bfec2343f06b4168273610222da3fdbd86c061d",
+      "bytes": 29984
+    },
+    "train_sentence_train_report.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\train_knowledge_audit_results_20261010\\extracted\\result\\sentence_train_report.json",
+      "label": "TRAIN 审查 / sentence_train_report.json",
+      "role": "逐句证据、输入范围与未填人工审查表",
+      "sha256": "39f9aa5ac9212c6e479ecb12c397c3c7fcdb88f663ebd2bb15fb7daa8c2312a4",
+      "bytes": 417769
+    },
+    "train_unit_text_receipt.json": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\train_knowledge_audit_results_20261010\\extracted\\result\\unit_text_receipt.json",
+      "label": "TRAIN 审查 / unit_text_receipt.json",
+      "role": "逐句证据、输入范围与未填人工审查表",
+      "sha256": "a8387e0246c08e50f3ae6997bac52db189d6bdfdfbb5790ff564336c9e4485ee",
+      "bytes": 780532
+    },
+    "train_run": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\train_knowledge_audit_results_20261010\\extracted\\source\\run.py",
+      "label": "TRAIN 审查 / run.py",
+      "role": "重编码单槽文本并分析已有 TRAIN 缓存",
+      "sha256": "fab239a5fd646cfe2abb8f663d081d4b3cf2c9832d0fa1cdafa68bd993fbf76c",
+      "bytes": 11286
+    },
+    "train_manifest": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\train_knowledge_audit_results_20261010\\extracted\\source\\train_input_manifest.json",
+      "label": "TRAIN 审查 / train_input_manifest.json",
+      "role": "逐文件锁定已使用的原 CLIP-r2 输入",
+      "sha256": "6b73239db9e6bb60f6fb24e70bcd09ebe6e6d6025b2eef7fcb6b1811a0ee5ab5",
+      "bytes": 10521
+    },
+    "train_review": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\train_knowledge_audit_results_20261010\\TRAIN知识落地审查_独立复核与路线判断_20261010.md",
+      "label": "TRAIN 知识落地复核",
+      "role": "已完成的审查结论，不是知识新版本",
+      "sha256": "7933e15c1df73294def4d65b2b1fa76b7ca4515880951bac9bbc1ad358d438be",
+      "bytes": 12583
+    },
+    "full_feature": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\reproduce_0601_20261010\\source\\models\\full_feature.py",
+      "label": "0601 G/H / full_feature.py",
+      "role": "已实现的 pair block 消费路径，尚无本报告核实的训练结果",
+      "sha256": "3be150e5b2714e548eb90f6fd57cb2b41bd81d9a8cc5a7e2865d321ccf2ac782",
+      "bytes": 5671
+    },
+    "full_readme": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\reproduce_0601_20261010\\README.md",
+      "label": "0601 G/H 执行包说明",
+      "role": "后续实现/待执行与已有结果分界",
+      "sha256": "2effc84534ad8e73e8ad2175e319dd0f658a0d44e56e28acea76a03b73b87554",
+      "bytes": 7783
+    },
+    "v1_summary": {
+      "path": "C:\\Users\\llenovo\\Documents\\ChatGPT\\CZSL\\output\\week5_evidence_20261005_verified\\tables\\knowledge_summary.csv",
+      "label": "三数据集知识编码统计",
+      "role": "早期缓存数值与来源摘要",
+      "sha256": "cbbaa09e534ba09d7bc31eccafbc99f7f4924825a64ab4dddf7d01d82488e607",
+      "bytes": 818
+    }
+  },
+  "checks": [
+    {
+      "check": "v1 source hashes and original generation/lexical builder identities",
+      "dataset": "ut-zap50k",
+      "passed": true
+    },
+    {
+      "check": "v1 source hashes and original generation/lexical builder identities",
+      "dataset": "mit-states",
+      "passed": true
+    },
+    {
+      "check": "v1 source hashes and original generation/lexical builder identities",
+      "dataset": "cgqa",
+      "passed": true
+    },
+    {
+      "check": "UT-v2 source manifest",
+      "passed": true
+    },
+    {
+      "check": "frozen GloVe builder matches cache SHA256",
+      "passed": true
+    },
+    {
+      "check": "cache manifest aliases identical",
+      "passed": true
+    },
+    {
+      "check": "EKR bank output hashes",
+      "passed": true
+    },
+    {
+      "check": "EKR bank knowledge_inputs match local UT-v2 sources",
+      "passed": true
+    },
+    {
+      "check": "CLIP and TRAIN source AE/OE byte-identical to UT-v2",
+      "passed": true
+    },
+    {
+      "check": "B/F source and bank hashes",
+      "passed": true
+    }
+  ],
+  "local_links_checked": 194,
+  "sources_unchanged": true,
+  "existing_full_report_unchanged": true,
+  "new_training_or_knowledge_generation": false,
+  "scope": "Retrospective source/manifest/script audit; no full tensor-array or GPU metric replay."
+}
