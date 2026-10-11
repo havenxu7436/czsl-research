@@ -1,0 +1,39 @@
+{
+  "version": "ekr_v2_anchor_alignment_20261007",
+  "work": "/var/tmp/czsl_xhw_name_ekr_20261007",
+  "output": "/var/tmp/czsl_xhw_ekr_v2_align_20261007",
+  "release_sha256": "940463f6cdb5f90c7b6c5fd4dc3c68fdbbf1915bff5c2e80c9dc8de64c25f78e",
+  "reference_sha256": "6440cd507e0997f480262a811881e84a6f5e3aadc33086dbae3fe527bfd83bb0",
+  "settings": {
+    "seed": 0,
+    "epochs": 3,
+    "rank": 32,
+    "value_rank": 32,
+    "eta_max": 0.1,
+    "temperature": 0.2,
+    "score_temperature": 0.05,
+    "learning_rate": 0.001,
+    "weight_decay": 0.0001,
+    "batch_size": 64
+  },
+  "variants": [
+    "V_name_align",
+    "V_clean_align",
+    "V_shuffle_align",
+    "V_clean_fixed"
+  ],
+  "old_pilot_proceed": false,
+  "phase": "UT seed-0 exploratory pilot",
+  "test_allowed": false,
+  "common_anchor": "frozen A_unit + frozen reviewed N_name",
+  "primary": "V_clean_align",
+  "epoch_selection": "first strict CW maximum among epochs 0,1,2,3",
+  "pilot_threshold_pp": 0.2,
+  "alignment_ablation_threshold_pp": 0.1,
+  "guards": {
+    "cw_hm_pp": -0.5,
+    "ow_auc_pp": -0.5,
+    "ow_best_unseen_pp": -2
+  },
+  "note": "Input shuffle control is not a random semantic graph; no static K; no robustness loss"
+}
