@@ -49,3 +49,5 @@ python archive_tools/archive.py verify
 `git lfs pull` 下载真实证据文件；仅下载 GitHub 的普通源码 ZIP 可能得到 LFS 指针。数据集原图全集、GloVe 大文件、预训练模型和大型训练 checkpoint 保留原存储位置，仓库清单明确标注。不能据此声称本仓库可无外部输入从零复现实验。
 
 新增实验请遵循 [实验记录与 Git 使用约定](docs/WORKFLOW.md)。不要把旧报告中的启动命令当作当前待执行任务；这次归档没有连接服务器或启动训练。
+
+本机的大输出、依赖和归档缓存已迁至 D 盘，原 C 盘路径保持可用，详见 [本机存储位置说明](docs/STORAGE.md)。这不影响其他电脑克隆仓库。
