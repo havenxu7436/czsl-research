@@ -1,0 +1,565 @@
+[
+  {
+    "dataset": "ut-zappos",
+    "source_status": "verified_against_cache_inputs",
+    "files": {
+      "oi_dict.json": {
+        "snapshot": "evidence/knowledge_source/ut-zap50k/oi_dict.json",
+        "sha256": "f048e790c4effb8a61797bf903cad4a93371fbe1bfbeac75b445d7dd1e19ba6f",
+        "frozen_in_cache": true,
+        "status": "frozen_input_verified",
+        "source_manifest_digest_verified": true
+      },
+      "oe_dict.json": {
+        "snapshot": "evidence/knowledge_source/ut-zap50k/oe_dict.json",
+        "sha256": "ca72dddc8645c85b8dc2f7346d10aa9b6a68da35876cfd0e75bdc287335bafaa",
+        "frozen_in_cache": true,
+        "status": "frozen_input_verified",
+        "source_manifest_digest_verified": true
+      },
+      "ae_dict.json": {
+        "snapshot": "evidence/knowledge_source/ut-zap50k/ae_dict.json",
+        "sha256": "f161f0021c0ccbf7d672d584b6d3ab4257f849f8ad419e094023ad915946235c",
+        "frozen_in_cache": true,
+        "status": "frozen_input_verified",
+        "source_manifest_digest_verified": true
+      },
+      "attributes.txt": {
+        "snapshot": "evidence/knowledge_source/ut-zap50k/attributes.txt",
+        "sha256": "42067c4af6a6a02f39ad92906b445abc6037afc88915e2a711a06720e5d7a4ed",
+        "frozen_in_cache": true,
+        "status": "frozen_input_verified"
+      },
+      "objects.txt": {
+        "snapshot": "evidence/knowledge_source/ut-zap50k/objects.txt",
+        "sha256": "237da35e1fbbd59945bca11a9d293e8ea1c15d39609f2663242ae56364647e9c",
+        "frozen_in_cache": true,
+        "status": "frozen_input_verified"
+      },
+      "review_status.csv": {
+        "snapshot": "evidence/knowledge_source/ut-zap50k/review_status.csv",
+        "sha256": "f2b969eed4737bf5b60b856406fbb596d18b8e30f6d734a52803664db17501c6",
+        "frozen_in_cache": true,
+        "status": "frozen_input_verified"
+      },
+      "manifest.json": {
+        "snapshot": "evidence/knowledge_source/ut-zap50k/manifest.json",
+        "sha256": "b322fa76a65e77b617ca59562711773abfab8868937957eed6b4fd36306a54f0",
+        "frozen_in_cache": true,
+        "status": "frozen_input_verified"
+      },
+      "entry_provenance.csv": {
+        "snapshot": "evidence/knowledge_source/ut-zap50k/entry_provenance.csv",
+        "sha256": "3bc0fedc347083f74dd3dcf77dc8b59556254958985e088ea6b226b61f52c319",
+        "frozen_in_cache": false,
+        "status": "current_supplement_not_frozen_input"
+      },
+      "K_oa_text_lexical.csv": {
+        "snapshot": "evidence/knowledge_source/ut-zap50k/K_oa_text_lexical.csv",
+        "sha256": "82421631e4d8e5c87073d18a36dabcde799f0482cbbad26d57d7aa2dfcf587dc",
+        "frozen_in_cache": false,
+        "status": "current_supplement_not_frozen_input",
+        "source_manifest_digest_verified": true
+      },
+      "K_oa_text_report.json": {
+        "snapshot": "evidence/knowledge_source/ut-zap50k/K_oa_text_report.json",
+        "sha256": "e474fedf5a0c399abf92f3efae62c5b67f4b55751c7b71ffc6db785b6982bf76",
+        "frozen_in_cache": false,
+        "status": "current_supplement_not_frozen_input",
+        "source_manifest_digest_verified": true
+      }
+    },
+    "cache_knowledge_status": "bulk_trusted_unverified",
+    "tensor_shapes_are_manifest_contracts": true,
+    "cache_shapes": {
+      "W_o_K.pt": [
+        12,
+        300
+      ],
+      "W_a_K.pt": [
+        16,
+        300
+      ],
+      "K_oa_text.pt": [
+        12,
+        16
+      ],
+      "K_oa_prior_centered.pt": [
+        12,
+        16
+      ],
+      "W_ao_K/obj_XXXXX.pt": [
+        16,
+        300
+      ]
+    },
+    "model_consumption": {
+      "A": "baseline names only",
+      "C": "W_o_K + W_a_K; no OI graph propagation",
+      "D": "centered K calibration only",
+      "E": "primitive text vectors + centered K calibration"
+    },
+    "human_review_inferred": false,
+    "source_directory": "C:\\Users\\llenovo\\Desktop\\CPF_all_results\\czsl_all_completed_20261005_000428_2772161\\files\\knowledge\\kcc0601_v1\\trusted_v1\\ut-zap50k",
+    "source_manifest": {
+      "status": "bulk_trusted_unverified",
+      "source": "prior manual reconstruction",
+      "not_official_logiczsl_knowledge": true,
+      "compatible_with_formal_results": false,
+      "counts": {
+        "attributes": 16,
+        "objects": 12,
+        "parents": 4,
+        "descriptions_per_primitive": 3
+      }
+    },
+    "counts": {
+      "n_attrs": 16,
+      "n_objs": 12,
+      "n_parents": 4,
+      "n_oi_memberships": 12,
+      "n_oe_descriptions": 36,
+      "n_ae_descriptions": 48,
+      "n_review_entries": 28,
+      "review_approved": 28,
+      "review_pending": 0,
+      "review_nonempty_reviewer": 28
+    },
+    "review_fields": [
+      "kind",
+      "label",
+      "status",
+      "reviewer",
+      "date",
+      "note"
+    ],
+    "review_status_counts": {
+      "approved": 28
+    },
+    "examples": {
+      "oi": {
+        "boot": [
+          "Boots.Ankle",
+          "Boots.Knee.High",
+          "Boots.Mid-Calf"
+        ]
+      },
+      "oe": {
+        "Boots.Ankle": [
+          "shaft ending at the ankle",
+          "closed toe boot silhouette",
+          "low boot collar"
+        ]
+      },
+      "ae": {
+        "Canvas": [
+          "woven canvas fabric",
+          "coarse textile surface",
+          "matte cloth finish"
+        ]
+      }
+    },
+    "provenance_fields": [
+      "kind",
+      "label",
+      "query",
+      "synset",
+      "sense_count",
+      "used_head_fallback",
+      "parent",
+      "quality",
+      "review_reason"
+    ],
+    "provenance_quality_counts": {
+      "manual_reconstruction_unreviewed": 28
+    },
+    "provenance_example": [
+      {
+        "kind": "object",
+        "label": "Boots.Ankle",
+        "query": "",
+        "synset": "",
+        "sense_count": "",
+        "used_head_fallback": "",
+        "parent": "",
+        "quality": "manual_reconstruction_unreviewed",
+        "review_reason": "verify prior hand-written UT-Zappos knowledge"
+      }
+    ]
+  },
+  {
+    "dataset": "mit-states",
+    "source_status": "verified_against_cache_inputs",
+    "files": {
+      "oi_dict.json": {
+        "snapshot": "evidence/knowledge_source/mit-states/oi_dict.json",
+        "sha256": "0496b0da7fffedfc635cc39dd8350f2012f6dbab7cc23faf983ae715692085da",
+        "frozen_in_cache": true,
+        "status": "frozen_input_verified",
+        "source_manifest_digest_verified": true
+      },
+      "oe_dict.json": {
+        "snapshot": "evidence/knowledge_source/mit-states/oe_dict.json",
+        "sha256": "f13bad00c8ed2d46b5e0e710e0d3a8682c70c8426bb2462c0af84bc9a1e2ff02",
+        "frozen_in_cache": true,
+        "status": "frozen_input_verified",
+        "source_manifest_digest_verified": true
+      },
+      "ae_dict.json": {
+        "snapshot": "evidence/knowledge_source/mit-states/ae_dict.json",
+        "sha256": "a86b64c9a198c05480da125d911e03a2cb9e2b0c5da781f9b8daebe172eddfab",
+        "frozen_in_cache": true,
+        "status": "frozen_input_verified",
+        "source_manifest_digest_verified": true
+      },
+      "attributes.txt": {
+        "snapshot": "evidence/knowledge_source/mit-states/attributes.txt",
+        "sha256": "a30f05e234c896e0f8450f3480ed7e623978fc5b9e8da5a2d046f0bf6e831e03",
+        "frozen_in_cache": true,
+        "status": "frozen_input_verified"
+      },
+      "objects.txt": {
+        "snapshot": "evidence/knowledge_source/mit-states/objects.txt",
+        "sha256": "cc3904cdb0f0aa8f217c2768a61ddbdc90588af208697e5ff85264eed1527001",
+        "frozen_in_cache": true,
+        "status": "frozen_input_verified"
+      },
+      "review_status.csv": {
+        "snapshot": "evidence/knowledge_source/mit-states/review_status.csv",
+        "sha256": "27f9441fd1208a62ca395e351b074618307e3606345293f0fb864782547f6026",
+        "frozen_in_cache": true,
+        "status": "frozen_input_verified"
+      },
+      "manifest.json": {
+        "snapshot": "evidence/knowledge_source/mit-states/manifest.json",
+        "sha256": "8c75dfab42366ee674f45ce689188339165aa508318ec3f8b109967ad43ba2e5",
+        "frozen_in_cache": true,
+        "status": "frozen_input_verified"
+      },
+      "entry_provenance.csv": {
+        "snapshot": "evidence/knowledge_source/mit-states/entry_provenance.csv",
+        "sha256": "0ec2d5654faff066f01cc3d6d67145e547a30e79a4b04836a5ad74b2ffa876bf",
+        "frozen_in_cache": false,
+        "status": "current_supplement_not_frozen_input"
+      },
+      "K_oa_text_lexical.csv": {
+        "snapshot": "evidence/knowledge_source/mit-states/K_oa_text_lexical.csv",
+        "sha256": "cdebde85b10ea366bfbe232d3367511356488d318cc2d4000f11ba62df892155",
+        "frozen_in_cache": false,
+        "status": "current_supplement_not_frozen_input",
+        "source_manifest_digest_verified": true
+      },
+      "K_oa_text_report.json": {
+        "snapshot": "evidence/knowledge_source/mit-states/K_oa_text_report.json",
+        "sha256": "0a6b74ed0595e365f23d5699a63feaf18816244993daabd3b78c4d6d6b409704",
+        "frozen_in_cache": false,
+        "status": "current_supplement_not_frozen_input",
+        "source_manifest_digest_verified": true
+      }
+    },
+    "cache_knowledge_status": "bulk_trusted_unverified",
+    "tensor_shapes_are_manifest_contracts": true,
+    "cache_shapes": {
+      "W_o_K.pt": [
+        245,
+        300
+      ],
+      "W_a_K.pt": [
+        115,
+        300
+      ],
+      "K_oa_text.pt": [
+        245,
+        115
+      ],
+      "K_oa_prior_centered.pt": [
+        245,
+        115
+      ],
+      "W_ao_K/obj_XXXXX.pt": [
+        115,
+        300
+      ]
+    },
+    "model_consumption": {
+      "A": "baseline names only",
+      "C": "W_o_K + W_a_K; no OI graph propagation",
+      "D": "centered K calibration only",
+      "E": "primitive text vectors + centered K calibration"
+    },
+    "human_review_inferred": false,
+    "source_directory": "C:\\Users\\llenovo\\Desktop\\CPF_all_results\\czsl_all_completed_20261005_000428_2772161\\files\\knowledge\\kcc0601_v1\\trusted_v1\\mit-states",
+    "source_manifest": {
+      "status": "bulk_trusted_unverified",
+      "source": "Princeton WordNet 3.0 first-sense lexical draft",
+      "not_official_logiczsl_knowledge": true,
+      "compatible_with_formal_results": false,
+      "counts": {
+        "attributes": 115,
+        "objects": 245,
+        "parents": 19,
+        "descriptions_per_primitive": 3
+      }
+    },
+    "counts": {
+      "n_attrs": 115,
+      "n_objs": 245,
+      "n_parents": 19,
+      "n_oi_memberships": 245,
+      "n_oe_descriptions": 735,
+      "n_ae_descriptions": 345,
+      "n_review_entries": 360,
+      "review_approved": 360,
+      "review_pending": 0,
+      "review_nonempty_reviewer": 360
+    },
+    "review_fields": [
+      "kind",
+      "label",
+      "status",
+      "reviewer",
+      "date",
+      "note"
+    ],
+    "review_status_counts": {
+      "approved": 360
+    },
+    "examples": {
+      "oi": {
+        "Tops": [
+          "animal"
+        ]
+      },
+      "oe": {
+        "aluminum": [
+          "aluminum: a silvery ductile metallic element found primarily in bauxite.",
+          "aluminum is a kind of metallic element.",
+          "aluminum belongs to the substance concept group."
+        ]
+      },
+      "ae": {
+        "ancient": [
+          "ancient: belonging to times long past especially of the historical period before the fall of the Western Roman Empire.",
+          "ancient is a property related to past.",
+          "The visual or semantic state of an object is ancient."
+        ]
+      }
+    },
+    "provenance_fields": [
+      "kind",
+      "label",
+      "query",
+      "synset",
+      "sense_count",
+      "used_head_fallback",
+      "parent",
+      "quality",
+      "review_reason"
+    ],
+    "provenance_quality_counts": {
+      "wordnet_auto_unreviewed": 360
+    },
+    "provenance_example": [
+      {
+        "kind": "object",
+        "label": "aluminum",
+        "query": "aluminum",
+        "synset": "aluminum.n.01",
+        "sense_count": "1",
+        "used_head_fallback": "False",
+        "parent": "substance",
+        "quality": "wordnet_auto_unreviewed",
+        "review_reason": "automatic gloss still requires semantic review"
+      }
+    ]
+  },
+  {
+    "dataset": "cgqa",
+    "source_status": "verified_against_cache_inputs",
+    "files": {
+      "oi_dict.json": {
+        "snapshot": "evidence/knowledge_source/cgqa/oi_dict.json",
+        "sha256": "ef24ba35d5143aba1abc551d1e98d4f2b4e275fa7dab42b80e17cf3e353b3d3e",
+        "frozen_in_cache": true,
+        "status": "frozen_input_verified",
+        "source_manifest_digest_verified": true
+      },
+      "oe_dict.json": {
+        "snapshot": "evidence/knowledge_source/cgqa/oe_dict.json",
+        "sha256": "393177e5e2823f8d359d26edd3ab743def339574956d0a7aea7393445743a609",
+        "frozen_in_cache": true,
+        "status": "frozen_input_verified",
+        "source_manifest_digest_verified": true
+      },
+      "ae_dict.json": {
+        "snapshot": "evidence/knowledge_source/cgqa/ae_dict.json",
+        "sha256": "7f41adb661ca4eda0fabcb1c5d3c040e83317cbd81bcca49057a65b1deafff22",
+        "frozen_in_cache": true,
+        "status": "frozen_input_verified",
+        "source_manifest_digest_verified": true
+      },
+      "attributes.txt": {
+        "snapshot": "evidence/knowledge_source/cgqa/attributes.txt",
+        "sha256": "de7e1f7e7f3e237a052630d6f4005d47277e0c93a6aea67d4f91e56410100489",
+        "frozen_in_cache": true,
+        "status": "frozen_input_verified"
+      },
+      "objects.txt": {
+        "snapshot": "evidence/knowledge_source/cgqa/objects.txt",
+        "sha256": "777ba58b7b07418c07ae0be6fdae3e4bbf2e40fc89edde333d58997f51c1e790",
+        "frozen_in_cache": true,
+        "status": "frozen_input_verified"
+      },
+      "review_status.csv": {
+        "snapshot": "evidence/knowledge_source/cgqa/review_status.csv",
+        "sha256": "241cfc9818391451875201577999dd3160cdcc2a720c4b1d0188d80fbc711f01",
+        "frozen_in_cache": true,
+        "status": "frozen_input_verified"
+      },
+      "manifest.json": {
+        "snapshot": "evidence/knowledge_source/cgqa/manifest.json",
+        "sha256": "f96653fa84a0b22b6b4ed668f640bee6d248bf17f19f34e00134856c410cef50",
+        "frozen_in_cache": true,
+        "status": "frozen_input_verified"
+      },
+      "entry_provenance.csv": {
+        "snapshot": "evidence/knowledge_source/cgqa/entry_provenance.csv",
+        "sha256": "9be7cc7ed7d27756bbcc4b7b4858001e1d88dfc3a9b5a85c4d22cc15514b01bc",
+        "frozen_in_cache": false,
+        "status": "current_supplement_not_frozen_input"
+      },
+      "K_oa_text_lexical.csv": {
+        "snapshot": "evidence/knowledge_source/cgqa/K_oa_text_lexical.csv",
+        "sha256": "90f5ee2cb8981fc43d7e64df4c547294d921590ada75dc17776adac07c820494",
+        "frozen_in_cache": false,
+        "status": "current_supplement_not_frozen_input",
+        "source_manifest_digest_verified": true
+      },
+      "K_oa_text_report.json": {
+        "snapshot": "evidence/knowledge_source/cgqa/K_oa_text_report.json",
+        "sha256": "91ba51a1dd5dacd602dd7a56b3c21a870a6203d091adeaa4a7fa23203acf0986",
+        "frozen_in_cache": false,
+        "status": "current_supplement_not_frozen_input",
+        "source_manifest_digest_verified": true
+      }
+    },
+    "cache_knowledge_status": "bulk_trusted_unverified",
+    "tensor_shapes_are_manifest_contracts": true,
+    "cache_shapes": {
+      "W_o_K.pt": [
+        674,
+        300
+      ],
+      "W_a_K.pt": [
+        413,
+        300
+      ],
+      "K_oa_text.pt": [
+        674,
+        413
+      ],
+      "K_oa_prior_centered.pt": [
+        674,
+        413
+      ],
+      "W_ao_K/obj_XXXXX.pt": [
+        413,
+        300
+      ]
+    },
+    "model_consumption": {
+      "A": "baseline names only",
+      "C": "W_o_K + W_a_K; no OI graph propagation",
+      "D": "centered K calibration only",
+      "E": "primitive text vectors + centered K calibration"
+    },
+    "human_review_inferred": false,
+    "source_directory": "C:\\Users\\llenovo\\Desktop\\CPF_all_results\\czsl_all_completed_20261005_000428_2772161\\files\\knowledge\\kcc0601_v1\\trusted_v1\\cgqa",
+    "source_manifest": {
+      "status": "bulk_trusted_unverified",
+      "source": "Princeton WordNet 3.0 first-sense lexical draft",
+      "not_official_logiczsl_knowledge": true,
+      "compatible_with_formal_results": false,
+      "counts": {
+        "attributes": 413,
+        "objects": 674,
+        "parents": 23,
+        "descriptions_per_primitive": 3
+      }
+    },
+    "counts": {
+      "n_attrs": 413,
+      "n_objs": 674,
+      "n_parents": 23,
+      "n_oi_memberships": 674,
+      "n_oe_descriptions": 2022,
+      "n_ae_descriptions": 1239,
+      "n_review_entries": 1087,
+      "review_approved": 1087,
+      "review_pending": 0,
+      "review_nonempty_reviewer": 1087
+    },
+    "review_fields": [
+      "kind",
+      "label",
+      "status",
+      "reviewer",
+      "date",
+      "note"
+    ],
+    "review_status_counts": {
+      "approved": 1087
+    },
+    "examples": {
+      "oi": {
+        "Tops": [
+          "animal",
+          "food",
+          "person"
+        ]
+      },
+      "oe": {
+        "air": [
+          "air: a mixture of gases (especially oxygen) required for breathing; the stuff that the wind consists of.",
+          "air is a kind of gas.",
+          "air belongs to the substance concept group."
+        ]
+      },
+      "ae": {
+        "abandoned": [
+          "abandoned: forsaken by owner or inhabitants.",
+          "abandoned is a property related to uninhabited.",
+          "The visual or semantic state of an object is abandoned."
+        ]
+      }
+    },
+    "provenance_fields": [
+      "kind",
+      "label",
+      "query",
+      "synset",
+      "sense_count",
+      "used_head_fallback",
+      "parent",
+      "quality",
+      "review_reason"
+    ],
+    "provenance_quality_counts": {
+      "wordnet_auto_unreviewed": 1081,
+      "label_template_only": 6
+    },
+    "provenance_example": [
+      {
+        "kind": "object",
+        "label": "air",
+        "query": "air",
+        "synset": "air.n.01",
+        "sense_count": "9",
+        "used_head_fallback": "False",
+        "parent": "substance",
+        "quality": "wordnet_auto_unreviewed",
+        "review_reason": "polysemous: selected first of 9 senses"
+      }
+    ]
+  }
+]

@@ -1,0 +1,53 @@
+{
+  "baseline_checkpoint": "/data/xhw/czsl_repro/runs/cpf_mit_states_seed0/checkpoints/mit-states-czsl_tttt/best_auc.pth",
+  "cache": "/data/xhw/czsl_repro/knowledge/kcc0601_v1/cache_trusted_v1/mit-states",
+  "cache_manifest_sha256": "109590df9b8ad28c900257fd61d8b01abf964935bc6c51ee6194bc708f18cdda",
+  "batch_size": 2,
+  "settings": {
+    "cw": {
+      "A_max_abs_score_difference": 0.0,
+      "A_top1_identical": true,
+      "candidate_count": 1962,
+      "lambda0_identity": true,
+      "uniform_identity": true,
+      "D_E_prior_ordering": true,
+      "candidate_permutation": true
+    },
+    "ow": {
+      "A_max_abs_score_difference": 0.0,
+      "A_top1_identical": true,
+      "candidate_count": 28175,
+      "lambda0_identity": true,
+      "uniform_identity": true,
+      "D_E_prior_ordering": true,
+      "candidate_permutation": true
+    }
+  },
+  "train": {
+    "A": {
+      "loss": 3.3435282707214355,
+      "finite_nonzero_gradients": true,
+      "prior_CE_placement": true,
+      "frozen_knowledge": true
+    },
+    "C": {
+      "loss": 4.724358081817627,
+      "finite_nonzero_gradients": true,
+      "prior_CE_placement": true,
+      "frozen_knowledge": true
+    },
+    "D": {
+      "loss": 3.2787656784057617,
+      "finite_nonzero_gradients": true,
+      "prior_CE_placement": true,
+      "frozen_knowledge": true
+    },
+    "E": {
+      "loss": 4.654397487640381,
+      "finite_nonzero_gradients": true,
+      "prior_CE_placement": true,
+      "frozen_knowledge": true
+    }
+  },
+  "status": "MVP_SMOKE_PASSED"
+}

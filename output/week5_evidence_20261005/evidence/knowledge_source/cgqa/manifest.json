@@ -1,0 +1,52 @@
+{
+  "dataset": "cgqa",
+  "status": "bulk_trusted_unverified",
+  "not_official_logiczsl_knowledge": true,
+  "compatible_with_formal_results": false,
+  "split_name": "compositional-split-natural",
+  "counts": {
+    "attributes": 413,
+    "objects": 674,
+    "parents": 23,
+    "descriptions_per_primitive": 3
+  },
+  "canonical_pair_sha256": {
+    "train": "441794cbbbfad30fb195f1be1342871dc259e371d5526f236909276486059edc",
+    "val": "813d0313c967b175c7614a4b7d9c193914654b2b89d98d7ac49516e5ddbaddee",
+    "test": "68c9c142ca5f86dabe5050e252cdee48086ae28178219b2b664528cf05acf0e5"
+  },
+  "source": "Princeton WordNet 3.0 first-sense lexical draft",
+  "source_split": "Hugging Face mirror of updated C-GQA pair lists",
+  "source_split_url": "https://huggingface.co/datasets/Meldashti/vlm-compositionality-embeddings/tree/main/cgqa/compositional-split-natural",
+  "source_fingerprints_sha256": {
+    "train_pairs.txt": "b389a853f116f73f5a2f96aa070be3bb0844eda776530217fd518aca5b37f022",
+    "val_pairs.txt": "298d9669a2b3890200d15d5789ae5e724e59460815b6d8c9af53b12d0b66e479",
+    "test_pairs.txt": "b5203bcc4125458ced6e4d20d786b54cf4a6dd117998228bb8abd85a7f252682"
+  },
+  "prior_ut_json_sha256": {},
+  "wordnet_zip_sha256": "cbda5ea6eef7f36a97a43d4a75f85e07fccbb4f23657d27b4ccbc93e2646ab59",
+  "generator_sha256": "b91fe61dc1bd958a67e7514ca5b4367193ce8c7ec8595875e9dc9bbbdedd25cb",
+  "knowledge_sha256": {
+    "oi_dict.json": "ef24ba35d5143aba1abc551d1e98d4f2b4e275fa7dab42b80e17cf3e353b3d3e",
+    "oe_dict.json": "393177e5e2823f8d359d26edd3ab743def339574956d0a7aea7393445743a609",
+    "ae_dict.json": "7f41adb661ca4eda0fabcb1c5d3c040e83317cbd81bcca49057a65b1deafff22",
+    "K_oa_text_lexical.csv": "90f5ee2cb8981fc43d7e64df4c547294d921590ada75dc17776adac07c820494",
+    "K_oa_text_report.json": "91ba51a1dd5dacd602dd7a56b3c21a870a6203d091adeaa4a7fa23203acf0986"
+  },
+  "compatibility_notice": "generate.py makes no prior. build_text_prior.py may add a non-official lexical candidate K_oa. Never use the union of split pairs as a semantic compatibility prior.",
+  "text_prior": {
+    "filename": "K_oa_text_lexical.csv",
+    "report_filename": "K_oa_text_report.json",
+    "status": "unreviewed_lexical_candidate_not_official",
+    "sha256": "90f5ee2cb8981fc43d7e64df4c547294d921590ada75dc17776adac07c820494",
+    "builder_sha256": "0aae7f7166d1e9ad43619d63f68c8bfad3df1c8bb8c13e7cd28d6f51a01c33ac"
+  },
+  "review_policy": {
+    "mode": "fixed_seed_sample_audit_then_bulk_trust",
+    "sample_seed": 20261002,
+    "reviewer": "xhw",
+    "date": "2026-10-02",
+    "item_level_manual_review": false,
+    "note": "bulk_trusted_without_item_level_review;fixed_seed_sample_audit=20261002;not_equivalent_to_full_manual_review"
+  }
+}

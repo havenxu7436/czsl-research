@@ -1,0 +1,53 @@
+{
+  "baseline_checkpoint": "/data/xhw/czsl_repro/runs/cpf_cgqa_seed3351_gpu2/checkpoints/cgqa-czsl_final_prediction/best_auc.pth",
+  "cache": "/data/xhw/czsl_repro/knowledge/kcc0601_v1/cache_trusted_v1/cgqa",
+  "cache_manifest_sha256": "91ea903722d14b07b99da1b085a83c7555c6f7b1e8068096082d932693ac741c",
+  "batch_size": 2,
+  "settings": {
+    "cw": {
+      "A_max_abs_score_difference": 0.0,
+      "A_top1_identical": true,
+      "candidate_count": 7767,
+      "lambda0_identity": true,
+      "uniform_identity": true,
+      "D_E_prior_ordering": true,
+      "candidate_permutation": true
+    },
+    "ow": {
+      "A_max_abs_score_difference": 0.0,
+      "A_top1_identical": true,
+      "candidate_count": 278362,
+      "lambda0_identity": true,
+      "uniform_identity": true,
+      "D_E_prior_ordering": true,
+      "candidate_permutation": true
+    }
+  },
+  "train": {
+    "A": {
+      "loss": 5.810515403747559,
+      "finite_nonzero_gradients": true,
+      "prior_CE_placement": true,
+      "frozen_knowledge": true
+    },
+    "C": {
+      "loss": 7.263210296630859,
+      "finite_nonzero_gradients": true,
+      "prior_CE_placement": true,
+      "frozen_knowledge": true
+    },
+    "D": {
+      "loss": 5.8433732986450195,
+      "finite_nonzero_gradients": true,
+      "prior_CE_placement": true,
+      "frozen_knowledge": true
+    },
+    "E": {
+      "loss": 7.282912731170654,
+      "finite_nonzero_gradients": true,
+      "prior_CE_placement": true,
+      "frozen_knowledge": true
+    }
+  },
+  "status": "MVP_SMOKE_PASSED"
+}
