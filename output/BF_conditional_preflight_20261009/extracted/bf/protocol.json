@@ -1,0 +1,52 @@
+{
+  "release": "logiczsl_cpf_bf_20261008",
+  "dataset": "ut-zappos",
+  "seed": 3351,
+  "configs": {
+    "A_ref": {
+      "path": "/var/tmp/czsl_xhw_bf_20261008/experiments/configs/A_ref_s3351.yml",
+      "sha256": "428305db1f153f82dbba18b014cb8e68de99c514d8245aba39e550c7029a99d0",
+      "run": "/var/tmp/czsl_xhw_bf_20261008/experiments/runs/bf_ut-zappos_A_ref_s3351_b0_q3_l0"
+    },
+    "B": {
+      "path": "/var/tmp/czsl_xhw_bf_20261008/experiments/configs/B_s3351.yml",
+      "sha256": "63b15fa3ccbcb644ca0a4afa1784cf0109e29b123d8327ec40b4a3b54bce43c6",
+      "run": "/var/tmp/czsl_xhw_bf_20261008/experiments/runs/bf_ut-zappos_B_s3351_b0.01_q3_l0"
+    },
+    "E_ref": {
+      "path": "/var/tmp/czsl_xhw_bf_20261008/experiments/configs/E_ref_s3351.yml",
+      "sha256": "f2ced6437ac3ded8a76a792048c9c9434c247750616e2aab816061b467215bc9",
+      "run": "/var/tmp/czsl_xhw_bf_20261008/experiments/runs/bf_ut-zappos_E_ref_s3351_b0_q3_l0.1"
+    },
+    "F": {
+      "path": "/var/tmp/czsl_xhw_bf_20261008/experiments/configs/F_s3351.yml",
+      "sha256": "af535bb0fa5cd8aabd79b6d3e62c87a08a71aa303ce11d42d17279fd7606c65f",
+      "run": "/var/tmp/czsl_xhw_bf_20261008/experiments/runs/bf_ut-zappos_F_s3351_b0.01_q3_l0.1"
+    }
+  },
+  "source": "/var/tmp/czsl_xhw_bf_20261008/src",
+  "install_sha256": "6eab0317b6b73258008feef9180707bbbcc5d9aaab71f8cc2b9585e3d3fedeb4",
+  "logic_bank_manifest_sha256": "904412ee6096f8013b04f3754af97c8c4eb8dd5a58a4f3c6bbf3ce034eb9aa7e",
+  "legacy_cache_manifest_sha256": "b7a7e056f2a7bfc57e69b3702bd638f655a52478a676b22a57b4dcf64bfb03de",
+  "legacy_tensor_manifest_sha256": "b7a7e056f2a7bfc57e69b3702bd638f655a52478a676b22a57b4dcf64bfb03de",
+  "reference_configs_sha256": {
+    "A": "50780713a0e77d4c3c6dbc46a0eb267b2e61dfd84fba156bc9e35d362ca533a0",
+    "E": "76ff2fe50a9caff7f5be1313ab67373cdeff569fa044e1d39d919f40e411f910"
+  },
+  "split_sha256": {
+    "/data/xhw/czsl_repro/data/ut-zap50k/compositional-split-natural/train_pairs.txt": "f0d134c668661180ed9464083898e5d7c8631aaa81cc01a061d5bac61aa8340f",
+    "/data/xhw/czsl_repro/data/ut-zap50k/compositional-split-natural/val_pairs.txt": "26370ddbe6a0eb49f2f5059dffc5d25ea34f6c8bcf2c1040ec7b1e77a3dc3f3c",
+    "/data/xhw/czsl_repro/data/ut-zap50k/compositional-split-natural/test_pairs.txt": "435668fa870685f1d4930e9ec76711f3d8949348d96d72ad2d2e29cfaf899c6b"
+  },
+  "metadata_sha256": {
+    "/data/xhw/czsl_repro/data/ut-zap50k/metadata_compositional-split-natural.t7": "7fbe052a107170ad28f5b85d2237e584c7ea306ca791844e691606e89635aa5b"
+  },
+  "epochs": 10,
+  "q": 3.0,
+  "beta": 0.01,
+  "selection": "first strict maximum VAL CW AUC",
+  "formal_paper_result_reproduction": false,
+  "test_evaluation": "not provided in this development release",
+  "knowledge_policy": "same reconstructed logic bank for B/F; old E text/calibration cache unchanged",
+  "rng_policy": "Python/NumPy/Torch seed; cudnn benchmark=False; strict bitwise GPU determinism not guaranteed"
+}

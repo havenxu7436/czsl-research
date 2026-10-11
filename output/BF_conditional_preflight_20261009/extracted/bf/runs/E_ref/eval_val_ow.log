@@ -1,0 +1,40 @@
+# train pairs: 83 | # val pairs: 30 | # test pairs: 36
+# train images: 22998 | # val images: 3214 | # test images: 2914
+# train pairs: 83 | # val pairs: 30 | # test pairs: 36
+# train images: 22998 | # val images: 3214 | # test images: 2914
+Change Faux.Fur to fake_fur
+fake_fur
+Change Faux.Leather to fake_leather
+fake_leather
+Change Full.grain.leather to thick_leather
+thick_leather
+Change Hair.Calf to hair_leather
+hair_leather
+Change Nubuck to grainy_leather
+grainy_leather
+Change Patent.Leather to shiny_leather
+shiny_leather
+Loaded embeddings from file /data/xhw/czsl_repro/data/ut-zap50k/../glove/glove.6B.300d.txt torch.Size([16, 300])
+Change Boots.Ankle to ankle_boots
+ankle_boots
+Change Boots.Knee.High to knee_high_boots
+knee_high_boots
+Change Boots.Mid-Calf to midcalf_boots
+midcalf_boots
+Change Shoes.Boat.Shoes to boat_shoes
+boat_shoes
+Change Shoes.Clogs.and.Mules to clogs_shoes
+clogs_shoes
+Change Shoes.Flats to flats_shoes
+flats_shoes
+Change Shoes.Heels to heels
+Change Shoes.Loafers to loafers
+Change Shoes.Oxfords to oxford_shoes
+oxford_shoes
+Change Shoes.Sneakers.and.Athletic.Shoes to sneakers
+Loaded embeddings from file /data/xhw/czsl_repro/data/ut-zap50k/../glove/glove.6B.300d.txt torch.Size([12, 300])
+Loaded pretrained weights.
+KCC CACHE LOADED: /data/xhw/czsl_repro/knowledge/kcc0601_v1/cache_trusted_v1/ut-zap50k text=True calib=True lambda=0.1 status=bulk_trusted_unverified
+Evaluating with validation pairs
+phase= val setting= ow images= 3214 candidates= 192 score_disk_GiB= 0.0022988319396972656
+Top 1 {"closed_attr_match": 0.4657747447490692, "closed_obj_match": 0.8089607954025269, "closed_match": 0.39887988567352295, "closed_seen_match": 0.0, "closed_unseen_match": 0.5485665202140808, "closed_ca": 2.0, "closed_seen_ca": 1.0, "closed_unseen_ca": 1.0, "closed_ub_attr_match": 0.30553826689720154, "closed_ub_obj_match": 0.7675793170928955, "closed_ub_match": 0.20161792635917664, "closed_ub_seen_match": 0.6613454818725586, "closed_ub_unseen_match": 0.02909713238477707, "closed_ub_ca": 2.0, "closed_ub_seen_ca": 1.0, "closed_ub_unseen_ca": 1.0, "biasterm": 0.2661422789096832, "best_unseen": 0.5485665202140808, "best_seen": 0.6681870222091675, "AUC": 0.25140432834255644, "hm_unseen": 0.3555840849876404, "hm_seen": 0.4104903042316437, "best_hm": 0.38106957047672796}
