@@ -1,0 +1,537 @@
+{
+  "version": "glove_template_v1",
+  "prior_source": "template",
+  "knowledge_status": "assistant_reviewed_train_images",
+  "human_review_inferred_from_approved": false,
+  "raw_template_K": {
+    "shape": [
+      12,
+      16
+    ],
+    "min": 0.7536016702651978,
+    "max": 0.9328895807266235,
+    "mean": 0.849921703338623,
+    "population_std": 0.03615928441286087,
+    "zero_fraction": 0.0,
+    "quantiles": {
+      "q00": 0.7536016702651978,
+      "q01": 0.7708193063735962,
+      "q25": 0.8227154016494751,
+      "q50": 0.8513604998588562,
+      "q75": 0.8807347416877747,
+      "q99": 0.9196930527687073,
+      "q100": 0.9328895807266235
+    }
+  },
+  "K_oa_text": {
+    "shape": [
+      12,
+      16
+    ],
+    "min": 0.0,
+    "max": 1.0,
+    "mean": 0.537236213684082,
+    "population_std": 0.20168279111385345,
+    "zero_fraction": 0.0052083334885537624,
+    "quantiles": {
+      "q00": 0.0,
+      "q01": 0.09603331238031387,
+      "q25": 0.3854902684688568,
+      "q50": 0.5452616810798645,
+      "q75": 0.7091001868247986,
+      "q99": 0.9263947010040283,
+      "q100": 1.0
+    }
+  },
+  "centered_prior": {
+    "shape": [
+      12,
+      16
+    ],
+    "min": -2.6637682914733887,
+    "max": 2.294512987136841,
+    "mean": -2.9802322387695312e-08,
+    "population_std": 1.0,
+    "zero_fraction": 0.0,
+    "quantiles": {
+      "q00": -2.6637682914733887,
+      "q01": -2.187608003616333,
+      "q25": -0.7523990869522095,
+      "q50": 0.03979252278804779,
+      "q75": 0.8521498441696167,
+      "q99": 1.929557204246521,
+      "q100": 2.294512987136841
+    }
+  },
+  "template_K_degenerate": false,
+  "template_K_near_constant_std_lt_1e-4": false,
+  "uniform_prior_test": true,
+  "description_OOV_fraction": 0.0028328611898017,
+  "description_fallback_sentences": 0,
+  "primitive_records": [
+    {
+      "kind": "object",
+      "label": "Boots.Ankle",
+      "name_tokens": [
+        "ankle",
+        "boots"
+      ],
+      "description_tokens_total": 15,
+      "description_tokens_kept": 15,
+      "oov_tokens": {},
+      "fallback_sentences": 0
+    },
+    {
+      "kind": "object",
+      "label": "Boots.Knee.High",
+      "name_tokens": [
+        "knee",
+        "high",
+        "boots"
+      ],
+      "description_tokens_total": 11,
+      "description_tokens_kept": 11,
+      "oov_tokens": {},
+      "fallback_sentences": 0
+    },
+    {
+      "kind": "object",
+      "label": "Boots.Mid-Calf",
+      "name_tokens": [
+        "midcalf",
+        "boots"
+      ],
+      "description_tokens_total": 12,
+      "description_tokens_kept": 12,
+      "oov_tokens": {},
+      "fallback_sentences": 0
+    },
+    {
+      "kind": "object",
+      "label": "Sandals",
+      "name_tokens": [
+        "sandals"
+      ],
+      "description_tokens_total": 12,
+      "description_tokens_kept": 12,
+      "oov_tokens": {},
+      "fallback_sentences": 0
+    },
+    {
+      "kind": "object",
+      "label": "Shoes.Boat.Shoes",
+      "name_tokens": [
+        "boat",
+        "shoes"
+      ],
+      "description_tokens_total": 14,
+      "description_tokens_kept": 14,
+      "oov_tokens": {},
+      "fallback_sentences": 0
+    },
+    {
+      "kind": "object",
+      "label": "Shoes.Clogs.and.Mules",
+      "name_tokens": [
+        "clogs",
+        "shoes"
+      ],
+      "description_tokens_total": 21,
+      "description_tokens_kept": 21,
+      "oov_tokens": {},
+      "fallback_sentences": 0
+    },
+    {
+      "kind": "object",
+      "label": "Shoes.Flats",
+      "name_tokens": [
+        "flats",
+        "shoes"
+      ],
+      "description_tokens_total": 14,
+      "description_tokens_kept": 14,
+      "oov_tokens": {},
+      "fallback_sentences": 0
+    },
+    {
+      "kind": "object",
+      "label": "Shoes.Heels",
+      "name_tokens": [
+        "heels"
+      ],
+      "description_tokens_total": 10,
+      "description_tokens_kept": 10,
+      "oov_tokens": {},
+      "fallback_sentences": 0
+    },
+    {
+      "kind": "object",
+      "label": "Shoes.Loafers",
+      "name_tokens": [
+        "loafers"
+      ],
+      "description_tokens_total": 14,
+      "description_tokens_kept": 13,
+      "oov_tokens": {
+        "laceless": 1
+      },
+      "fallback_sentences": 0
+    },
+    {
+      "kind": "object",
+      "label": "Shoes.Oxfords",
+      "name_tokens": [
+        "oxford",
+        "shoes"
+      ],
+      "description_tokens_total": 19,
+      "description_tokens_kept": 19,
+      "oov_tokens": {},
+      "fallback_sentences": 0
+    },
+    {
+      "kind": "object",
+      "label": "Shoes.Sneakers.and.Athletic.Shoes",
+      "name_tokens": [
+        "sneakers"
+      ],
+      "description_tokens_total": 17,
+      "description_tokens_kept": 17,
+      "oov_tokens": {},
+      "fallback_sentences": 0
+    },
+    {
+      "kind": "object",
+      "label": "Slippers",
+      "name_tokens": [
+        "slippers"
+      ],
+      "description_tokens_total": 13,
+      "description_tokens_kept": 13,
+      "oov_tokens": {},
+      "fallback_sentences": 0
+    },
+    {
+      "kind": "attribute",
+      "label": "Canvas",
+      "name_tokens": [
+        "canvas"
+      ],
+      "description_tokens_total": 12,
+      "description_tokens_kept": 12,
+      "oov_tokens": {},
+      "fallback_sentences": 0
+    },
+    {
+      "kind": "attribute",
+      "label": "Cotton",
+      "name_tokens": [
+        "cotton"
+      ],
+      "description_tokens_total": 11,
+      "description_tokens_kept": 11,
+      "oov_tokens": {},
+      "fallback_sentences": 0
+    },
+    {
+      "kind": "attribute",
+      "label": "Faux.Fur",
+      "name_tokens": [
+        "fake",
+        "fur"
+      ],
+      "description_tokens_total": 12,
+      "description_tokens_kept": 12,
+      "oov_tokens": {},
+      "fallback_sentences": 0
+    },
+    {
+      "kind": "attribute",
+      "label": "Faux.Leather",
+      "name_tokens": [
+        "fake",
+        "leather"
+      ],
+      "description_tokens_total": 10,
+      "description_tokens_kept": 10,
+      "oov_tokens": {},
+      "fallback_sentences": 0
+    },
+    {
+      "kind": "attribute",
+      "label": "Full.grain.leather",
+      "name_tokens": [
+        "thick",
+        "leather"
+      ],
+      "description_tokens_total": 13,
+      "description_tokens_kept": 13,
+      "oov_tokens": {},
+      "fallback_sentences": 0
+    },
+    {
+      "kind": "attribute",
+      "label": "Hair.Calf",
+      "name_tokens": [
+        "hair",
+        "leather"
+      ],
+      "description_tokens_total": 12,
+      "description_tokens_kept": 12,
+      "oov_tokens": {},
+      "fallback_sentences": 0
+    },
+    {
+      "kind": "attribute",
+      "label": "Leather",
+      "name_tokens": [
+        "leather"
+      ],
+      "description_tokens_total": 12,
+      "description_tokens_kept": 12,
+      "oov_tokens": {},
+      "fallback_sentences": 0
+    },
+    {
+      "kind": "attribute",
+      "label": "Nubuck",
+      "name_tokens": [
+        "grainy",
+        "leather"
+      ],
+      "description_tokens_total": 9,
+      "description_tokens_kept": 9,
+      "oov_tokens": {},
+      "fallback_sentences": 0
+    },
+    {
+      "kind": "attribute",
+      "label": "Nylon",
+      "name_tokens": [
+        "nylon"
+      ],
+      "description_tokens_total": 11,
+      "description_tokens_kept": 11,
+      "oov_tokens": {},
+      "fallback_sentences": 0
+    },
+    {
+      "kind": "attribute",
+      "label": "Patent.Leather",
+      "name_tokens": [
+        "shiny",
+        "leather"
+      ],
+      "description_tokens_total": 11,
+      "description_tokens_kept": 11,
+      "oov_tokens": {},
+      "fallback_sentences": 0
+    },
+    {
+      "kind": "attribute",
+      "label": "Rubber",
+      "name_tokens": [
+        "rubber"
+      ],
+      "description_tokens_total": 12,
+      "description_tokens_kept": 12,
+      "oov_tokens": {},
+      "fallback_sentences": 0
+    },
+    {
+      "kind": "attribute",
+      "label": "Satin",
+      "name_tokens": [
+        "satin"
+      ],
+      "description_tokens_total": 11,
+      "description_tokens_kept": 11,
+      "oov_tokens": {},
+      "fallback_sentences": 0
+    },
+    {
+      "kind": "attribute",
+      "label": "Sheepskin",
+      "name_tokens": [
+        "sheepskin"
+      ],
+      "description_tokens_total": 10,
+      "description_tokens_kept": 10,
+      "oov_tokens": {},
+      "fallback_sentences": 0
+    },
+    {
+      "kind": "attribute",
+      "label": "Suede",
+      "name_tokens": [
+        "suede"
+      ],
+      "description_tokens_total": 11,
+      "description_tokens_kept": 11,
+      "oov_tokens": {},
+      "fallback_sentences": 0
+    },
+    {
+      "kind": "attribute",
+      "label": "Synthetic",
+      "name_tokens": [
+        "synthetic"
+      ],
+      "description_tokens_total": 13,
+      "description_tokens_kept": 13,
+      "oov_tokens": {},
+      "fallback_sentences": 0
+    },
+    {
+      "kind": "attribute",
+      "label": "Wool",
+      "name_tokens": [
+        "wool"
+      ],
+      "description_tokens_total": 11,
+      "description_tokens_kept": 11,
+      "oov_tokens": {},
+      "fallback_sentences": 0
+    }
+  ],
+  "split_coverage_audit_only": {
+    "train": {
+      "pairs": 83,
+      "template_coverage": 1.0,
+      "primitive_description_fallback_fraction": 0.0
+    },
+    "val": {
+      "pairs": 30,
+      "template_coverage": 1.0,
+      "primitive_description_fallback_fraction": 0.0
+    },
+    "test": {
+      "pairs": 36,
+      "template_coverage": 1.0,
+      "primitive_description_fallback_fraction": 0.0
+    }
+  },
+  "top_bottom_pairs": [
+    {
+      "rank_group": "top",
+      "object": "Boots.Ankle",
+      "attribute": "Hair.Calf",
+      "K": 1.0
+    },
+    {
+      "rank_group": "top",
+      "object": "Boots.Ankle",
+      "attribute": "Leather",
+      "K": 0.9589079022407532
+    },
+    {
+      "rank_group": "top",
+      "object": "Boots.Ankle",
+      "attribute": "Full.grain.leather",
+      "K": 0.9231792688369751
+    },
+    {
+      "rank_group": "top",
+      "object": "Boots.Ankle",
+      "attribute": "Faux.Leather",
+      "K": 0.9150454998016357
+    },
+    {
+      "rank_group": "top",
+      "object": "Boots.Knee.High",
+      "attribute": "Hair.Calf",
+      "K": 0.8785226345062256
+    },
+    {
+      "rank_group": "top",
+      "object": "Boots.Ankle",
+      "attribute": "Faux.Fur",
+      "K": 0.8764195442199707
+    },
+    {
+      "rank_group": "top",
+      "object": "Shoes.Sneakers.and.Athletic.Shoes",
+      "attribute": "Hair.Calf",
+      "K": 0.8718536496162415
+    },
+    {
+      "rank_group": "top",
+      "object": "Boots.Ankle",
+      "attribute": "Rubber",
+      "K": 0.850544810295105
+    },
+    {
+      "rank_group": "top",
+      "object": "Shoes.Clogs.and.Mules",
+      "attribute": "Hair.Calf",
+      "K": 0.849851667881012
+    },
+    {
+      "rank_group": "top",
+      "object": "Slippers",
+      "attribute": "Hair.Calf",
+      "K": 0.847539484500885
+    },
+    {
+      "rank_group": "bottom",
+      "object": "Shoes.Boat.Shoes",
+      "attribute": "Canvas",
+      "K": 0.0
+    },
+    {
+      "rank_group": "bottom",
+      "object": "Shoes.Boat.Shoes",
+      "attribute": "Sheepskin",
+      "K": 0.04890769347548485
+    },
+    {
+      "rank_group": "bottom",
+      "object": "Shoes.Boat.Shoes",
+      "attribute": "Cotton",
+      "K": 0.10069409012794495
+    },
+    {
+      "rank_group": "bottom",
+      "object": "Shoes.Boat.Shoes",
+      "attribute": "Wool",
+      "K": 0.10228155553340912
+    },
+    {
+      "rank_group": "bottom",
+      "object": "Shoes.Boat.Shoes",
+      "attribute": "Nylon",
+      "K": 0.10715928673744202
+    },
+    {
+      "rank_group": "bottom",
+      "object": "Shoes.Loafers",
+      "attribute": "Sheepskin",
+      "K": 0.11511420458555222
+    },
+    {
+      "rank_group": "bottom",
+      "object": "Shoes.Boat.Shoes",
+      "attribute": "Satin",
+      "K": 0.1683879941701889
+    },
+    {
+      "rank_group": "bottom",
+      "object": "Boots.Mid-Calf",
+      "attribute": "Satin",
+      "K": 0.18046997487545013
+    },
+    {
+      "rank_group": "bottom",
+      "object": "Shoes.Boat.Shoes",
+      "attribute": "Suede",
+      "K": 0.18227185308933258
+    },
+    {
+      "rank_group": "bottom",
+      "object": "Shoes.Loafers",
+      "attribute": "Canvas",
+      "K": 0.2116566300392151
+    }
+  ],
+  "warning": "Text similarity is a candidate prior, not LLM feasibility or validated compatibility."
+}

@@ -1,0 +1,38 @@
+{
+  "version": "ut_one_revision_v2_20261006",
+  "dataset": "ut-zappos",
+  "seeds": [
+    0,
+    3351,
+    2026
+  ],
+  "variants": [
+    "A_raw",
+    "A_unit",
+    "C_text",
+    "C_shuffle"
+  ],
+  "runs": 12,
+  "epochs_per_run": 10,
+  "revision_budget": 1,
+  "descriptions_frozen_before_v2_validation": true,
+  "development_validation_already_used_for_v1": true,
+  "independent_blind_replication": false,
+  "selection": "native validation CW AUC best epoch; same checkpoint for VAL CW and OW",
+  "static_K_lambda": 0,
+  "test_evaluation": false,
+  "USG_route": false,
+  "gate": {
+    "mean_C_minus_Aunit_CW_AUC_pp_min": 0.5,
+    "mean_C_minus_shuffle_CW_AUC_pp_min": 0.5,
+    "positive_C_minus_Aunit_seeds_min": 2,
+    "positive_C_minus_shuffle_seeds_min": 2,
+    "mean_C_minus_Araw_CW_AUC_pp_min": 0,
+    "mean_C_minus_Aunit_CW_HM_pp_min": -0.5,
+    "mean_C_minus_Aunit_OW_AUC_pp_min": -0.5,
+    "mean_C_minus_Aunit_OW_unseen_pp_min": -2.0
+  },
+  "decision": "All conditions required. If false, stop the static-description revision loop; no threshold weakening.",
+  "future_EKR": "Only after valid v2 integrity and gate pass; v2 C anchors per seed, frozen 3-epoch R0/R3/R5/R7 controls.",
+  "evidence_limit": "Assistant review of fixed sampled train boards; no human expert or performance confirmation."
+}

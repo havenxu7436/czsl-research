@@ -1,0 +1,441 @@
+{
+  "prediction_change_details": {
+    "C_text-A_unit": {
+      "OW_changed_prediction_events": 757,
+      "OW_mean_same_prediction_pct": 92.14893175689691,
+      "OW_corrected_events": 109,
+      "OW_broken_events": 173,
+      "OW_unique_images_broken_at_least_once": 149,
+      "OW_unique_images_corrected_at_least_once": 99,
+      "OW_images_broken_all_three_seeds": 5,
+      "OW_images_corrected_all_three_seeds": 0,
+      "Leather_Boat_corrected_events": 8,
+      "Leather_Boat_broken_events": 97,
+      "Leather_Boat_new_prediction_when_broken": [
+        {
+          "attr": "Leather",
+          "obj": "Shoes.Loafers",
+          "events": 36
+        },
+        {
+          "attr": "Leather",
+          "obj": "Shoes.Oxfords",
+          "events": 28
+        },
+        {
+          "attr": "Leather",
+          "obj": "Shoes.Flats",
+          "events": 15
+        },
+        {
+          "attr": "Canvas",
+          "obj": "Shoes.Sneakers.and.Athletic.Shoes",
+          "events": 8
+        },
+        {
+          "attr": "Leather",
+          "obj": "Shoes.Sneakers.and.Athletic.Shoes",
+          "events": 7
+        },
+        {
+          "attr": "Suede",
+          "obj": "Shoes.Loafers",
+          "events": 2
+        },
+        {
+          "attr": "Suede",
+          "obj": "Shoes.Oxfords",
+          "events": 1
+        }
+      ]
+    },
+    "C_text-C_shuffle": {
+      "OW_changed_prediction_events": 865,
+      "OW_mean_same_prediction_pct": 91.02883219249118,
+      "OW_corrected_events": 134,
+      "OW_broken_events": 131,
+      "OW_unique_images_broken_at_least_once": 121,
+      "OW_unique_images_corrected_at_least_once": 128,
+      "OW_images_broken_all_three_seeds": 0,
+      "OW_images_corrected_all_three_seeds": 0,
+      "Leather_Boat_corrected_events": 24,
+      "Leather_Boat_broken_events": 37,
+      "Leather_Boat_new_prediction_when_broken": [
+        {
+          "attr": "Leather",
+          "obj": "Shoes.Oxfords",
+          "events": 13
+        },
+        {
+          "attr": "Leather",
+          "obj": "Shoes.Sneakers.and.Athletic.Shoes",
+          "events": 10
+        },
+        {
+          "attr": "Leather",
+          "obj": "Shoes.Loafers",
+          "events": 8
+        },
+        {
+          "attr": "Leather",
+          "obj": "Shoes.Flats",
+          "events": 3
+        },
+        {
+          "attr": "Suede",
+          "obj": "Shoes.Oxfords",
+          "events": 1
+        },
+        {
+          "attr": "Suede",
+          "obj": "Shoes.Boat.Shoes",
+          "events": 1
+        },
+        {
+          "attr": "Suede",
+          "obj": "Shoes.Loafers",
+          "events": 1
+        }
+      ]
+    }
+  },
+  "native_unbiased_comparison": [
+    {
+      "setting": "cw",
+      "variant": "A_raw",
+      "native_unbiased_pair_pct": 22.910184661547344,
+      "saved_raw_argmax_pair_pct": 22.879070732213233,
+      "CW_mask_difference_pp": 0.03111392933411139,
+      "raw_top1_outside_CW_allowed_mean": 18.666666666666668
+    },
+    {
+      "setting": "cw",
+      "variant": "A_unit",
+      "native_unbiased_pair_pct": 23.459863166014355,
+      "saved_raw_argmax_pair_pct": 23.418377929890067,
+      "CW_mask_difference_pp": 0.041485236124287894,
+      "raw_top1_outside_CW_allowed_mean": 18.666666666666668
+    },
+    {
+      "setting": "cw",
+      "variant": "C_text",
+      "native_unbiased_pair_pct": 22.827214002609253,
+      "saved_raw_argmax_pair_pct": 22.796100394109107,
+      "CW_mask_difference_pp": 0.031113608500145773,
+      "raw_top1_outside_CW_allowed_mean": 19.0
+    },
+    {
+      "setting": "cw",
+      "variant": "C_shuffle",
+      "native_unbiased_pair_pct": 22.816843291123707,
+      "saved_raw_argmax_pair_pct": 22.78572910184609,
+      "CW_mask_difference_pp": 0.031114189277616333,
+      "raw_top1_outside_CW_allowed_mean": 20.333333333333332
+    },
+    {
+      "setting": "ow",
+      "variant": "A_raw",
+      "native_unbiased_pair_pct": 22.827214499314625,
+      "saved_raw_argmax_pair_pct": 22.827214270898153,
+      "CW_mask_difference_pp": 2.2841647151494726e-07,
+      "raw_top1_outside_CW_allowed_mean": 36.666666666666664
+    },
+    {
+      "setting": "ow",
+      "variant": "A_unit",
+      "native_unbiased_pair_pct": 23.39763542016347,
+      "saved_raw_argmax_pair_pct": 23.397635345364034,
+      "CW_mask_difference_pp": 7.479943775479114e-08,
+      "raw_top1_outside_CW_allowed_mean": 36.666666666666664
+    },
+    {
+      "setting": "ow",
+      "variant": "C_text",
+      "native_unbiased_pair_pct": 22.73387263218562,
+      "saved_raw_argmax_pair_pct": 22.73387264053101,
+      "CW_mask_difference_pp": -8.345391933062274e-09,
+      "raw_top1_outside_CW_allowed_mean": 35.333333333333336
+    },
+    {
+      "setting": "ow",
+      "variant": "C_shuffle",
+      "native_unbiased_pair_pct": 22.70275851090749,
+      "saved_raw_argmax_pair_pct": 22.70275876374196,
+      "CW_mask_difference_pp": -2.528344715813091e-07,
+      "raw_top1_outside_CW_allowed_mean": 48.666666666666664
+    }
+  ],
+  "label_distribution": [
+    {
+      "dimension": "attribute",
+      "label": "Canvas",
+      "gold_n": 53,
+      "gold_fraction_pct": 1.6490354698195395,
+      "Aunit_prediction_count_mean": 103.33333333333333,
+      "Ctext_prediction_count_mean": 111,
+      "Ctext_prediction_fraction_pct": 3.4536403235843185
+    },
+    {
+      "dimension": "attribute",
+      "label": "Cotton",
+      "gold_n": 0,
+      "gold_fraction_pct": 0.0,
+      "Aunit_prediction_count_mean": 0,
+      "Ctext_prediction_count_mean": 0,
+      "Ctext_prediction_fraction_pct": 0.0
+    },
+    {
+      "dimension": "attribute",
+      "label": "Faux.Fur",
+      "gold_n": 13,
+      "gold_fraction_pct": 0.4044803982576229,
+      "Aunit_prediction_count_mean": 0.6666666666666666,
+      "Ctext_prediction_count_mean": 0.6666666666666666,
+      "Ctext_prediction_fraction_pct": 0.02074258452603194
+    },
+    {
+      "dimension": "attribute",
+      "label": "Faux.Leather",
+      "gold_n": 118,
+      "gold_fraction_pct": 3.671437461107654,
+      "Aunit_prediction_count_mean": 5,
+      "Ctext_prediction_count_mean": 0,
+      "Ctext_prediction_fraction_pct": 0.0
+    },
+    {
+      "dimension": "attribute",
+      "label": "Full.grain.leather",
+      "gold_n": 420,
+      "gold_fraction_pct": 13.067828251400124,
+      "Aunit_prediction_count_mean": 0,
+      "Ctext_prediction_count_mean": 0,
+      "Ctext_prediction_fraction_pct": 0.0
+    },
+    {
+      "dimension": "attribute",
+      "label": "Hair.Calf",
+      "gold_n": 0,
+      "gold_fraction_pct": 0.0,
+      "Aunit_prediction_count_mean": 1,
+      "Ctext_prediction_count_mean": 1,
+      "Ctext_prediction_fraction_pct": 0.031113876789047916
+    },
+    {
+      "dimension": "attribute",
+      "label": "Leather",
+      "gold_n": 895,
+      "gold_fraction_pct": 27.846919726197886,
+      "Aunit_prediction_count_mean": 2515.6666666666665,
+      "Ctext_prediction_count_mean": 2529.3333333333335,
+      "Ctext_prediction_fraction_pct": 78.6973656917652
+    },
+    {
+      "dimension": "attribute",
+      "label": "Nubuck",
+      "gold_n": 90,
+      "gold_fraction_pct": 2.8002489110143123,
+      "Aunit_prediction_count_mean": 0,
+      "Ctext_prediction_count_mean": 0,
+      "Ctext_prediction_fraction_pct": 0.0
+    },
+    {
+      "dimension": "attribute",
+      "label": "Nylon",
+      "gold_n": 32,
+      "gold_fraction_pct": 0.9956440572495333,
+      "Aunit_prediction_count_mean": 25,
+      "Ctext_prediction_count_mean": 19.333333333333332,
+      "Ctext_prediction_fraction_pct": 0.6015349512549263
+    },
+    {
+      "dimension": "attribute",
+      "label": "Patent.Leather",
+      "gold_n": 115,
+      "gold_fraction_pct": 3.5780958307405104,
+      "Aunit_prediction_count_mean": 18,
+      "Ctext_prediction_count_mean": 20.333333333333332,
+      "Ctext_prediction_fraction_pct": 0.6326488280439743
+    },
+    {
+      "dimension": "attribute",
+      "label": "Rubber",
+      "gold_n": 353,
+      "gold_fraction_pct": 10.983198506533913,
+      "Aunit_prediction_count_mean": 90.66666666666667,
+      "Ctext_prediction_count_mean": 90,
+      "Ctext_prediction_fraction_pct": 2.8002489110143123
+    },
+    {
+      "dimension": "attribute",
+      "label": "Satin",
+      "gold_n": 73,
+      "gold_fraction_pct": 2.271313005600498,
+      "Aunit_prediction_count_mean": 29.333333333333332,
+      "Ctext_prediction_count_mean": 26.333333333333332,
+      "Ctext_prediction_fraction_pct": 0.8193320887782617
+    },
+    {
+      "dimension": "attribute",
+      "label": "Sheepskin",
+      "gold_n": 20,
+      "gold_fraction_pct": 0.6222775357809583,
+      "Aunit_prediction_count_mean": 14,
+      "Ctext_prediction_count_mean": 13.333333333333334,
+      "Ctext_prediction_fraction_pct": 0.4148516905206389
+    },
+    {
+      "dimension": "attribute",
+      "label": "Suede",
+      "gold_n": 248,
+      "gold_fraction_pct": 7.716241443683883,
+      "Aunit_prediction_count_mean": 244,
+      "Ctext_prediction_count_mean": 236.66666666666666,
+      "Ctext_prediction_fraction_pct": 7.363617506741339
+    },
+    {
+      "dimension": "attribute",
+      "label": "Synthetic",
+      "gold_n": 767,
+      "gold_fraction_pct": 23.86434349719975,
+      "Aunit_prediction_count_mean": 129,
+      "Ctext_prediction_count_mean": 131.66666666666666,
+      "Ctext_prediction_fraction_pct": 4.096660443891309
+    },
+    {
+      "dimension": "attribute",
+      "label": "Wool",
+      "gold_n": 17,
+      "gold_fraction_pct": 0.5289359054138145,
+      "Aunit_prediction_count_mean": 38.333333333333336,
+      "Ctext_prediction_count_mean": 34.333333333333336,
+      "Ctext_prediction_fraction_pct": 1.0682431030906452
+    },
+    {
+      "dimension": "object",
+      "label": "Boots.Ankle",
+      "gold_n": 357,
+      "gold_fraction_pct": 11.107654013690105,
+      "Aunit_prediction_count_mean": 338.3333333333333,
+      "Ctext_prediction_count_mean": 334.6666666666667,
+      "Ctext_prediction_fraction_pct": 10.412777432068037
+    },
+    {
+      "dimension": "object",
+      "label": "Boots.Knee.High",
+      "gold_n": 3,
+      "gold_fraction_pct": 0.09334163036714374,
+      "Aunit_prediction_count_mean": 46,
+      "Ctext_prediction_count_mean": 42.666666666666664,
+      "Ctext_prediction_fraction_pct": 1.3275254096660443
+    },
+    {
+      "dimension": "object",
+      "label": "Boots.Mid-Calf",
+      "gold_n": 255,
+      "gold_fraction_pct": 7.9340385812072185,
+      "Aunit_prediction_count_mean": 219.33333333333334,
+      "Ctext_prediction_count_mean": 225,
+      "Ctext_prediction_fraction_pct": 7.000622277535781
+    },
+    {
+      "dimension": "object",
+      "label": "Sandals",
+      "gold_n": 1133,
+      "gold_fraction_pct": 35.25202240199129,
+      "Aunit_prediction_count_mean": 1045,
+      "Ctext_prediction_count_mean": 1045,
+      "Ctext_prediction_fraction_pct": 32.51400124455507
+    },
+    {
+      "dimension": "object",
+      "label": "Shoes.Boat.Shoes",
+      "gold_n": 316,
+      "gold_fraction_pct": 9.831985065339142,
+      "Aunit_prediction_count_mean": 83.33333333333333,
+      "Ctext_prediction_count_mean": 47,
+      "Ctext_prediction_fraction_pct": 1.462352209085252
+    },
+    {
+      "dimension": "object",
+      "label": "Shoes.Clogs.and.Mules",
+      "gold_n": 195,
+      "gold_fraction_pct": 6.067205973864343,
+      "Aunit_prediction_count_mean": 144.33333333333334,
+      "Ctext_prediction_count_mean": 143.66666666666666,
+      "Ctext_prediction_fraction_pct": 4.470026965359883
+    },
+    {
+      "dimension": "object",
+      "label": "Shoes.Flats",
+      "gold_n": 308,
+      "gold_fraction_pct": 9.583074051026758,
+      "Aunit_prediction_count_mean": 333.6666666666667,
+      "Ctext_prediction_count_mean": 343.6666666666667,
+      "Ctext_prediction_fraction_pct": 10.692802323169468
+    },
+    {
+      "dimension": "object",
+      "label": "Shoes.Heels",
+      "gold_n": 73,
+      "gold_fraction_pct": 2.271313005600498,
+      "Aunit_prediction_count_mean": 162.33333333333334,
+      "Ctext_prediction_count_mean": 162.66666666666666,
+      "Ctext_prediction_fraction_pct": 5.061190624351794
+    },
+    {
+      "dimension": "object",
+      "label": "Shoes.Loafers",
+      "gold_n": 127,
+      "gold_fraction_pct": 3.9514623522090853,
+      "Aunit_prediction_count_mean": 258,
+      "Ctext_prediction_count_mean": 269.3333333333333,
+      "Ctext_prediction_fraction_pct": 8.380004148516905
+    },
+    {
+      "dimension": "object",
+      "label": "Shoes.Oxfords",
+      "gold_n": 381,
+      "gold_fraction_pct": 11.854387056627255,
+      "Aunit_prediction_count_mean": 389.6666666666667,
+      "Ctext_prediction_count_mean": 400.3333333333333,
+      "Ctext_prediction_fraction_pct": 12.455922007882181
+    },
+    {
+      "dimension": "object",
+      "label": "Shoes.Sneakers.and.Athletic.Shoes",
+      "gold_n": 34,
+      "gold_fraction_pct": 1.057871810827629,
+      "Aunit_prediction_count_mean": 164.66666666666666,
+      "Ctext_prediction_count_mean": 173,
+      "Ctext_prediction_fraction_pct": 5.38270068450529
+    },
+    {
+      "dimension": "object",
+      "label": "Slippers",
+      "gold_n": 32,
+      "gold_fraction_pct": 0.9956440572495333,
+      "Aunit_prediction_count_mean": 29.333333333333332,
+      "Ctext_prediction_count_mean": 27,
+      "Ctext_prediction_fraction_pct": 0.8400746733042938
+    }
+  ],
+  "gold_oracle_complementarity_diagnostic": [
+    {
+      "setting": "cw",
+      "Aunit_or_Ctext_gold_oracle_pair_pct": 24.579962663347857,
+      "oracle_gain_over_Aunit_pp": 1.161584733457789,
+      "oracle_gain_over_Ctext_pp": 1.7838622692387474,
+      "uses_gold_labels": true,
+      "achievable_router_performance_claim": false
+    },
+    {
+      "setting": "ow",
+      "Aunit_or_Ctext_gold_oracle_pair_pct": 24.528106202032774,
+      "oracle_gain_over_Aunit_pp": 1.130470856668741,
+      "oracle_gain_over_Ctext_pp": 1.7942335615017628,
+      "uses_gold_labels": true,
+      "achievable_router_performance_claim": false
+    }
+  ],
+  "oracle_limit": "Uses VAL gold labels to illustrate complementarity only; it is not a trained method or attainable forecast."
+}

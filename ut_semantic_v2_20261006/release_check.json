@@ -1,0 +1,83 @@
+{
+  "version": "ut_semantic_v2_20261006",
+  "date": "2026-10-06",
+  "release_ready_for_server_preparation": true,
+  "review": {
+    "reviewer": "Codex assistant",
+    "human_reviewed": false,
+    "boards": 28,
+    "sentences": 84,
+    "panels": 560,
+    "unique_training_images": 528,
+    "keep": 30,
+    "rewrite": 54
+  },
+  "v2_knowledge": {
+    "attributes": 16,
+    "objects": 12,
+    "sentences_per_label": 3,
+    "OI_and_labels_unchanged": true,
+    "new_dictionary_generated": true,
+    "real_GloVe_cache_generated_locally": false
+  },
+  "checks": {
+    "local_tests_passed": 8,
+    "router_modes_checked": 9,
+    "router_rng_and_corruption_isolation": "passed",
+    "python38_syntax_files": 22,
+    "bash_scripts_syntax_checked": [
+      "prepare.sh",
+      "run_paired.sh",
+      "summarize.sh",
+      "enter_ekr_pilot.sh"
+    ],
+    "real_source_installer_and_native_label_parser": "passed",
+    "real_training_metadata_and_selected_identities": "passed",
+    "cache_bank_configs_end_to_end": "passed with synthetic GloVe",
+    "tampered_knowledge_and_lr_rejection": "passed",
+    "YACS_native_print_dump_representation": "passed",
+    "post_run_audit": "passed with explicitly synthetic checkpoint/metric fixtures",
+    "paired_VAL_identity_and_misalignment_rejection": "passed on real VAL metadata with synthetic predictions",
+    "future_EKR_v2_anchor_separate_exp_and_gate_false_rejection": "passed"
+  },
+  "test_environment": "Local Python3.12 / torch2.5.1 CPU; unused torchvision transforms import stubbed only for parse_split. No CUDA.",
+  "not_performed": [
+    "real server GloVe scan/cache",
+    "real native image decode checks",
+    "GPU fidelity/gradient smoke",
+    "v2 training or evaluation",
+    "formal EKR training",
+    "test-set evaluation"
+  ],
+  "server_entry": [
+    "prepare.sh",
+    "run_paired.sh"
+  ],
+  "conditional_EKR_entry": "enter_ekr_pilot.sh",
+  "fixed_budget": {
+    "knowledge_revisions": 1,
+    "seeds": [
+      0,
+      3351,
+      2026
+    ],
+    "variants": [
+      "A_raw",
+      "A_unit",
+      "C_text",
+      "C_shuffle"
+    ],
+    "runs": 12,
+    "epochs_each": 10,
+    "calibration_lambda": 0,
+    "shuffle_seed_attribute": 1729,
+    "shuffle_seed_object": 1730
+  },
+  "v1_results_and_gate_preserved": true,
+  "USG_graph_route": false,
+  "test_logs_sha256": {
+    "v2_cpu.log": "914ff0d83aff8a06950f91c16d52c4817a80c4238003319cc5a0d20a93bb5af1",
+    "v2_router.log": "9373c116ca68c3ab17d7d57abcb3a78de996a0eabd821d1869e0cc1a601e7675"
+  },
+  "no_performance_or_human_expert_approval_claim": true
+}

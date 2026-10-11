@@ -1,0 +1,59 @@
+INSTALLED C:\Users\llenovo\AppData\Local\Temp\ut-v2-release-mskoyb1i\src
+Original source unchanged. Run bank construction and GPU smoke before training.
+Scanning baseline GloVe once; retaining only required tokens...
+Pair blocks: 12/12
+CACHE BUILT: C:\Users\llenovo\AppData\Local\Temp\ut-v2-release-mskoyb1i\source_root\knowledge\kcc0601_v1\cache_trusted_v1\ut-zap50k
+W_o_K=[12, 300] W_a_K=[16, 300] K=[12, 16]
+K min/max/mean/std: 0.000000/1.000000/0.527231/0.203836
+Description OOV fraction: 0.0000; template degenerate: False
+CACHE VERIFY PASSED: C:\Users\llenovo\AppData\Local\Temp\ut-v2-release-mskoyb1i\source_root\knowledge\kcc0601_v1\cache_trusted_v1\ut-zap50k
+test_01_review_and_real_metadata (__main__.V2Release.test_01_review_and_real_metadata) ... ok
+Scanning baseline GloVe once; retaining only required tokens...
+Pair blocks: 12/12
+CACHE BUILT: C:\Users\llenovo\AppData\Local\Temp\ut-v2-release-mskoyb1i\cache\ut-zap50k
+W_o_K=[12, 300] W_a_K=[16, 300] K=[12, 16]
+K min/max/mean/std: 0.000000/1.000000/0.520711/0.205033
+Description OOV fraction: 0.0000; template degenerate: False
+CACHE VERIFY PASSED: C:\Users\llenovo\AppData\Local\Temp\ut-v2-release-mskoyb1i\cache\ut-zap50k
+Scanning baseline GloVe once; retaining only required tokens...
+BANK VERIFIED ut-zap50k {'a': {'old_C_max_abs_error': 0.0, 'residual_sum_max_abs': 3.725290298461914e-08, 'residual_norm_median': 0.7503442168235779, 'near_zero_fraction': 0.0, 'fallback_sentences': 0, 'oov_tokens': 0, 'total_tokens': 181}, 'o': {'old_C_max_abs_error': 0.0, 'residual_sum_max_abs': 2.9802322387695312e-08, 'residual_norm_median': 0.8316106200218201, 'near_zero_fraction': 0.0, 'fallback_sentences': 0, 'oov_tokens': 0, 'total_tokens': 172}}
+CACHE VERIFY PASSED: C:\Users\llenovo\AppData\Local\Temp\ut-v2-release-mskoyb1i\cache\ut-zap50k
+C:\Users\llenovo\AppData\Local\Temp\ut-v2-release-mskoyb1i\experiments\semantic_v2\configs\semantic_ut-zappos_A_raw_s0_e10.yml
+C:\Users\llenovo\AppData\Local\Temp\ut-v2-release-mskoyb1i\experiments\semantic_v2\configs\semantic_ut-zappos_A_unit_s0_e10.yml
+C:\Users\llenovo\AppData\Local\Temp\ut-v2-release-mskoyb1i\experiments\semantic_v2\configs\semantic_ut-zappos_C_text_s0_e10.yml
+C:\Users\llenovo\AppData\Local\Temp\ut-v2-release-mskoyb1i\experiments\semantic_v2\configs\semantic_ut-zappos_C_shuffle_s0_e10.yml
+C:\Users\llenovo\AppData\Local\Temp\ut-v2-release-mskoyb1i\experiments\semantic_v2\configs\semantic_ut-zappos_A_raw_s3351_e10.yml
+C:\Users\llenovo\AppData\Local\Temp\ut-v2-release-mskoyb1i\experiments\semantic_v2\configs\semantic_ut-zappos_A_unit_s3351_e10.yml
+C:\Users\llenovo\AppData\Local\Temp\ut-v2-release-mskoyb1i\experiments\semantic_v2\configs\semantic_ut-zappos_C_text_s3351_e10.yml
+C:\Users\llenovo\AppData\Local\Temp\ut-v2-release-mskoyb1i\experiments\semantic_v2\configs\semantic_ut-zappos_C_shuffle_s3351_e10.yml
+C:\Users\llenovo\AppData\Local\Temp\ut-v2-release-mskoyb1i\experiments\semantic_v2\configs\semantic_ut-zappos_A_raw_s2026_e10.yml
+C:\Users\llenovo\AppData\Local\Temp\ut-v2-release-mskoyb1i\experiments\semantic_v2\configs\semantic_ut-zappos_A_unit_s2026_e10.yml
+C:\Users\llenovo\AppData\Local\Temp\ut-v2-release-mskoyb1i\experiments\semantic_v2\configs\semantic_ut-zappos_C_text_s2026_e10.yml
+C:\Users\llenovo\AppData\Local\Temp\ut-v2-release-mskoyb1i\experiments\semantic_v2\configs\semantic_ut-zappos_C_shuffle_s2026_e10.yml
+CACHE VERIFY PASSED: C:\Users\llenovo\AppData\Local\Temp\ut-v2-release-mskoyb1i\cache\ut-zap50k
+V2 CPU INTEGRITY PASSED: 84 reviews, 28 labels, fixed donors, 12 matched configs
+PREPARED FOR GPU SMOKE AND 12 MATCHED RUNS C:\Users\llenovo\AppData\Local\Temp\ut-v2-release-mskoyb1i\experiments\semantic_v2
+CACHE VERIFY PASSED: C:\Users\llenovo\AppData\Local\Temp\ut-v2-release-mskoyb1i\cache\ut-zap50k
+V2 CPU INTEGRITY PASSED: 84 reviews, 28 labels, fixed donors, 12 matched configs
+CACHE VERIFY PASSED: C:\Users\llenovo\AppData\Local\Temp\ut-v2-release-mskoyb1i\cache\ut-zap50k
+V2 CPU INTEGRITY PASSED: 84 reviews, 28 labels, fixed donors, 12 matched configs
+PREPARATION ALREADY COMPLETE C:\Users\llenovo\AppData\Local\Temp\ut-v2-release-mskoyb1i
+test_02_end_to_end_synthetic_encoder (__main__.V2Release.test_02_end_to_end_synthetic_encoder) ... ok
+test_03_tampered_knowledge_rejected (__main__.V2Release.test_03_tampered_knowledge_rejected) ... ok
+test_04_tampered_config_rejected (__main__.V2Release.test_04_tampered_config_rejected) ... ok
+test_05_fallback_and_shuffle_control (__main__.V2Release.test_05_fallback_and_shuffle_control) ... ok
+test_06_yacs_log_format_and_real_config_merges (__main__.V2Release.test_06_yacs_log_format_and_real_config_merges) ... ok
+CACHE VERIFY PASSED: C:\Users\llenovo\AppData\Local\Temp\ut-v2-release-mskoyb1i\cache\ut-zap50k
+V2 CPU INTEGRITY PASSED: 84 reviews, 28 labels, fixed donors, 12 matched configs
+POST-RUN INTEGRITY PASSED: 12 native logs/configs, checkpoints and 24 VAL evaluations
+test_07_post_audit_and_paired_identity_checks (__main__.V2Release.test_07_post_audit_and_paired_identity_checks) ... ok
+test_08_future_ekr_uses_v2_anchors_and_separate_directory (__main__.V2Release.test_08_future_ekr_uses_v2_anchors_and_separate_directory) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 11.242s
+
+OK
+C:\Users\llenovo\AppData\Local\Temp\ut-v2-release-mskoyb1i\experiments\ekr_v2_pilot\configs\branch_ut-zappos_R0_s0_e3.yml
+C:\Users\llenovo\AppData\Local\Temp\ut-v2-release-mskoyb1i\experiments\ekr_v2_pilot\configs\branch_ut-zappos_R3_s0_e3.yml
+C:\Users\llenovo\AppData\Local\Temp\ut-v2-release-mskoyb1i\experiments\ekr_v2_pilot\configs\branch_ut-zappos_R5_s0_e3.yml
+C:\Users\llenovo\AppData\Local\Temp\ut-v2-release-mskoyb1i\experiments\ekr_v2_pilot\configs\branch_ut-zappos_R7_s0_e3.yml

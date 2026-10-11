@@ -1,0 +1,65 @@
+{
+  "passed": true,
+  "prepared_sha256": "20fd2e71e4c0673f19ab336f368484afaa8cc408e921eb048e2c4154fd266708",
+  "python": "3.8.18 (default, Sep 11 2023, 13:40:15) \n[GCC 11.2.0]",
+  "torch": "1.13.1+cu117",
+  "torchvision": "0.14.1+cu117",
+  "gpu": "NVIDIA GeForce RTX 3090",
+  "fidelity": {
+    "A_raw": {
+      "base_original_max_abs_error": 0.0,
+      "checkpoint_sha256": "9e8300061be1c8be75a2c63dc14c6b05a57134abc4c8de3eb4974aec93a4ed93",
+      "bank_manifest_sha256": "ed17757749ffe48fb0d3e2303d7032ea6fce12a27eabbdbb6cdfc87fc4a8a71e",
+      "branch_mode": null,
+      "regime": null,
+      "passed": true
+    },
+    "C_text": {
+      "base_original_max_abs_error": 0.0,
+      "checkpoint_sha256": "7a87ed1e0bcd8440950efeee2ced2d3a7f3c8c603ffcdf0f073a5cb0029e42ae",
+      "bank_manifest_sha256": "ed17757749ffe48fb0d3e2303d7032ea6fce12a27eabbdbb6cdfc87fc4a8a71e",
+      "branch_mode": null,
+      "regime": null,
+      "passed": true
+    }
+  },
+  "one_batch": {
+    "A_raw": {
+      "loss_total": 10.094157218933105,
+      "parameters": 105102591,
+      "parameters_with_finite_gradient": 216,
+      "parameters_with_nonzero_gradient": 216,
+      "smoke_updated_parameter": "objc_embedder.0.weight",
+      "update_max_abs": 0.00010000169277191162,
+      "training_weights_saved_or_reused": false
+    },
+    "A_unit": {
+      "loss_total": 9.709310531616211,
+      "parameters": 105102591,
+      "parameters_with_finite_gradient": 216,
+      "parameters_with_nonzero_gradient": 216,
+      "smoke_updated_parameter": "objc_embedder.0.weight",
+      "update_max_abs": 0.00010000169277191162,
+      "training_weights_saved_or_reused": false
+    },
+    "C_text": {
+      "loss_total": 8.136672019958496,
+      "parameters": 105102591,
+      "parameters_with_finite_gradient": 216,
+      "parameters_with_nonzero_gradient": 216,
+      "smoke_updated_parameter": "objc_embedder.0.weight",
+      "update_max_abs": 0.00010000169277191162,
+      "training_weights_saved_or_reused": false
+    },
+    "C_shuffle": {
+      "loss_total": 9.491888046264648,
+      "parameters": 105102591,
+      "parameters_with_finite_gradient": 216,
+      "parameters_with_nonzero_gradient": 216,
+      "smoke_updated_parameter": "objc_embedder.0.weight",
+      "update_max_abs": 0.00010000169277191162,
+      "training_weights_saved_or_reused": false
+    }
+  },
+  "purpose": "Interface fidelity and finite native training gradients; no performance evidence"
+}

@@ -1,0 +1,46 @@
+{
+  "version": "ut_assistant_reviewed_descriptions_v2_20261006",
+  "dataset": "ut-zap50k",
+  "status": "assistant_reviewed_train_images",
+  "compatible_with_formal_results": false,
+  "compatibility_notice": "Development candidate; paired validation and semantic gate remain required.",
+  "human_reviewed": false,
+  "item_level_assistant_review": true,
+  "not_official_logiczsl_knowledge": true,
+  "counts": {
+    "attributes": 16,
+    "objects": 12,
+    "descriptions_per_primitive": 3
+  },
+  "knowledge_sha256": {
+    "ae_dict.json": "13a2c0826571a3db4e20e44b83b263eac89e9c26975de7f987e1f0b295848193",
+    "oe_dict.json": "75c0ee111d29e2d486d4bd4a623c9bdd7e5ace7e47f79040ed49a5bb65de4e8c",
+    "oi_dict.json": "af696e4612fa069555ea32d2b787e8ebf1c9d3eefec7b8e38cb5950a982172c8",
+    "attributes.txt": "5faf107d54a5c40f8428e5981dc1bbac26e6119cac1858d24c953166dd770b27",
+    "objects.txt": "242763c29c43cc45ada26b3022293e4171681b87b1709bee59cc52de505ba38a",
+    "review_status.csv": "4627e8e642ce6c3d9c7e3b80d0e57baf2a24687ec728a5bef873e7153c16472a",
+    "item_review.json": "484599ed5a0028d8ebae771ba7927e7ebb3a4de023add6045570e607b25a9bc2"
+  },
+  "previous_source_manifest_sha256": "b322fa76a65e77b617ca59562711773abfab8868937957eed6b4fd36306a54f0",
+  "previous_knowledge_sha256": {
+    "oi_dict.json": "f048e790c4effb8a61797bf903cad4a93371fbe1bfbeac75b445d7dd1e19ba6f",
+    "oe_dict.json": "ca72dddc8645c85b8dc2f7346d10aa9b6a68da35876cfd0e75bdc287335bafaa",
+    "ae_dict.json": "f161f0021c0ccbf7d672d584b6d3ab4257f849f8ad419e094023ad915946235c",
+    "K_oa_text_lexical.csv": "82421631e4d8e5c87073d18a36dabcde799f0482cbbad26d57d7aa2dfcf587dc",
+    "K_oa_text_report.json": "e474fedf5a0c399abf92f3efae62c5b67f4b55751c7b71ffc6db785b6982bf76"
+  },
+  "review": {
+    "reviewer": "Codex assistant",
+    "date": "2026-10-06",
+    "train_only": true,
+    "labels_rewritten": false,
+    "seed": 20261006,
+    "source": "fixed train contact sheets plus declared material terminology",
+    "review_record": "item_review.json",
+    "image_evidence_directory": "review_evidence"
+  },
+  "frozen_for_single_development_revision": true,
+  "performance_gate_passed": false,
+  "csv_status_notice": "approved denotes reviewed-for-use by the assistant, not human expert approval",
+  "serialization": "UTF-8 without BOM; LF line endings"
+}

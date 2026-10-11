@@ -1,0 +1,95 @@
+{
+  "status": "planned_not_executed",
+  "route_id": "cross_object_visual_evidence_v1",
+  "date": "2026-10-08",
+  "purpose": "A bounded no-optimizer pilot of TRAIN visual evidence on a stronger frozen CPF baseline",
+  "dataset": "ut-zappos",
+  "pilot_seed": 0,
+  "baseline_variant": "C_text",
+  "baseline_run_id": "semantic_ut-zappos_C_text_s0_e10",
+  "baseline_selected_epoch": 6,
+  "baseline_checkpoint_sha256": "45de209c4c38af6d7cfa62f6ff51f62ec8f095ee18edc22d893f43184f3199a6",
+  "baseline_val_reference_pct": {
+    "cw_auc": 45.440386970321,
+    "ow_auc": 34.9373446065435
+  },
+  "existing_gates": {
+    "semantic_v2": false,
+    "name_pilot": false,
+    "value_alignment_v2": false,
+    "sgekr": false,
+    "modify_existing_gates": false,
+    "run_old_stage_c": false
+  },
+  "stage_b": {
+    "optimizer_steps": 0,
+    "backbone_frozen": true,
+    "prototype_source": "TRAIN images only, fixed no-augmentation transformation",
+    "prototype_rule": "unit-normalized attribute feature means per TRAIN pair, then equal-weight object mean per attribute, then normalize",
+    "read_test_images_or_labels": false,
+    "validation_features_used_for_prototype_construction": false,
+    "bank_holdout_diagnostic": "exclude all images of each query composition from prototype construction",
+    "bank_holdout_is_true_zero_shot_evaluation": false,
+    "full_candidate_grid_before_cw_ow_mask": true
+  },
+  "stage_c": {
+    "method": "object-partition-preserving attribute conditional distribution mixture",
+    "beta": 0.2,
+    "score_temperature": 0.05,
+    "visual_cosine_scale": 0.5,
+    "beta_selection_source": "exploratory existing TRAIN-only design probe; fixed before the new VAL pilot",
+    "val_hyperparameter_search": false,
+    "variants": [
+      "C_text_beta0",
+      "VP_global",
+      "VP_add_fixed_gain_0.20",
+      "uniform_conditional_mix",
+      "name_conditional_mix",
+      "prototype_label_shift1",
+      "prototype_label_shift5",
+      "prototype_label_shift9"
+    ],
+    "paired_shuffles_share_same_beta_and_temperature": true,
+    "probability_mix_implementation": "log_softmax and logaddexp; beta=0 returns the original scores directly",
+    "require_direct_additive_baseline_in_full_report": true,
+    "primary_metric": "native VAL CW AUC",
+    "minimum_gain_over_C_text_pp": 0.3,
+    "minimum_gain_over_uniform_name_and_mean_shuffle_pp_each": 0.1,
+    "guards_vs_C_text_pp": {
+      "cw_best_hm": -0.5,
+      "ow_auc": -0.5,
+      "ow_best_unseen": -2.0
+    },
+    "failed_pilot_action": "Stop this fusion version, preserve every result, do not expand the search or launch more seeds"
+  },
+  "stage_d_only_if_stage_c_passes": {
+    "candidate": "VP_cross_object",
+    "exclude_source_object_equal_to_candidate_object": true,
+    "query_and_object_context_retrieval_temperature_each": 0.2,
+    "no_new_trainable_parameters": true,
+    "ablation_controls": ["same_source_bank_without_object_name_similarity", "fixed_object_context_permutation"],
+    "minimum_cw_auc_gain_over_global_pp": 0.2,
+    "require_positive_gain_over_both_mechanism_controls": true,
+    "fallback": "global attribute prototype when no cross-object support exists"
+  },
+  "stage_e_only_if_preceding_stages_pass": {
+    "baseline_seeds": [0, 3351, 2026],
+    "each_seed_uses_its_own_frozen_checkpoint_and_train_prototype_bank": true,
+    "mean_cw_auc_gain_over_C_text_pp": 0.5,
+    "positive_seeds_over_baseline_required": 2,
+    "positive_seeds_over_uniform_name_and_mean_shuffle_required_each": 2,
+    "require_positive_mean_gain_over_evidence_controls": true,
+    "if_claiming_conditional_mechanism_mean_gain_over_global_pp": 0.2,
+    "negative_seeds_retained": true,
+    "three_seeds_are_statistical_proof": false,
+    "final_test_only_after_configuration_freeze": true
+  },
+  "scope": {
+    "random_semantic_graph": false,
+    "new_clip_backbone": false,
+    "backbone_retraining": false,
+    "additional_value_projection": false,
+    "initial_gpu_budget_hours_maximum_including_troubleshooting": 2,
+    "performance_or_publication_success_guaranteed": false
+  }
+}

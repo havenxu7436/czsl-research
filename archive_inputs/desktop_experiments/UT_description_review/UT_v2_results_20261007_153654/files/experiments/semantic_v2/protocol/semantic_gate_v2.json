@@ -1,0 +1,35 @@
+{
+  "planned_seeds": [
+    0,
+    3351,
+    2026
+  ],
+  "datasets": {
+    "ut-zappos": {
+      "proceed": false,
+      "conditions": {
+        "at_least_three_seeds": true,
+        "mean_text_over_unit_at_least_0.5pp": true,
+        "mean_text_over_shuffle_at_least_0.5pp": false,
+        "text_positive_on_two_thirds_seeds": true,
+        "shuffle_positive_on_two_thirds_seeds": true,
+        "C_not_below_Araw_mean": true,
+        "cw_hm_guard": true,
+        "ow_auc_guard": true,
+        "ow_unseen_guard": true
+      },
+      "C_minus_Aunit_cw_auc_pp": [
+        2.6217464779618282,
+        4.403773145011058,
+        2.175600018672604
+      ],
+      "C_minus_shuffle_cw_auc_pp": [
+        0.8008342494193101,
+        1.019394842027829,
+        -0.683491827168865
+      ],
+      "interpretation": "Operational screening gate, not statistical proof"
+    }
+  },
+  "report_fingerprint": "61152fe7ea498eed538eedcc5e95241779dc41cdefc3b331757606496a866c26"
+}
