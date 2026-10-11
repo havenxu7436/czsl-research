@@ -1,0 +1,66 @@
+Name: conda
+Version: 26.7.1
+Summary: OS-agnostic, system-level binary package manager.
+Home-page: 
+Author: 
+Author-email: "Anaconda, Inc." <conda@continuum.io>
+License: BSD 3-Clause License
+
+Copyright (c) 2012, Anaconda, Inc.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+---
+
+Conda incorporates the following libraries into its distributed code:
+
+* auxlib, licensed as ISC
+* frozendict, license as LGPL-3.0
+Location: /data/xhw/miniconda3/lib/python3.14/site-packages
+Requires: archspec, boltons, charset-normalizer, conda-package-handling, distro, frozendict, menuinst, msgpack, packaging, platformdirs, pluggy, pycosat, requests, ruamel-yaml, setuptools, tqdm, truststore
+Required-by: anaconda-anon-usage, conda-anaconda-telemetry, conda-anaconda-tos, conda-libmamba-solver, conda-rattler-solver
+---
+Name: requests
+Version: 2.28.2
+Summary: Python HTTP for Humans.
+Home-page: https://requests.readthedocs.io
+Author: Kenneth Reitz
+Author-email: me@kennethreitz.org
+License: Apache 2.0
+Location: /data/xhw/miniconda3/lib/python3.14/site-packages
+Requires: certifi, charset-normalizer, idna, urllib3
+Required-by: anaconda-auth, conda, conda-package-handling, conda_package_streaming, openxlab, oss2
+---
+Name: urllib3
+Version: 1.26.20
+Summary: HTTP library with thread-safe connection pooling, file post, and more.
+Home-page: https://urllib3.readthedocs.io/
+Author: Andrey Petrov
+Author-email: andrey.petrov@shazow.net
+License: MIT
+Location: /data/xhw/miniconda3/lib/python3.14/site-packages
+Requires: 
+Required-by: requests

@@ -1,0 +1,52 @@
+2026-09-30T15:39:53+08:00
+amax
+Linux amax 5.15.0-75-generic #82~20.04.1-Ubuntu SMP Wed Jun 7 19:37:37 UTC 2023 x86_64 x86_64 x86_64 GNU/Linux
+Python 3.8.18
+python = 3.8.18
+torch = 1.13.1+cu117
+torchvision = 0.14.1+cu117
+numpy = 1.24.4
+scipy = 1.10.1
+cuda_runtime = 11.7
+cuda_available = True
+gpu = NVIDIA GeForce RTX 3090
+Wed Sep 30 15:39:53 2026       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 550.144.03             Driver Version: 550.144.03     CUDA Version: 12.4     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA GeForce RTX 3090        Off |   00000000:18:00.0 Off |                  N/A |
+| 30%   26C    P8             18W /  350W |    1906MiB /  24576MiB |      0%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+|   1  NVIDIA GeForce RTX 3090        Off |   00000000:3B:00.0 Off |                  N/A |
+| 30%   43C    P2            125W /  350W |     994MiB /  24576MiB |     27%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+|   2  NVIDIA GeForce RTX 3090        Off |   00000000:86:00.0 Off |                  N/A |
+| 70%   65C    P2            342W /  350W |   13550MiB /  24576MiB |     88%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+|   3  NVIDIA GeForce RTX 3090        Off |   00000000:AF:00.0 Off |                  N/A |
+| 30%   27C    P8             12W /  350W |    1628MiB /  24576MiB |      0%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|    0   N/A  N/A      2169      G   /usr/lib/xorg/Xorg                              9MiB |
+|    0   N/A  N/A      2445      G   /usr/bin/gnome-shell                            6MiB |
+|    0   N/A  N/A   1128181      C   ...envs/sam2-annotator-v3.3/bin/python       1876MiB |
+|    1   N/A  N/A      2169      G   /usr/lib/xorg/Xorg                              4MiB |
+|    1   N/A  N/A   2194645      C   .../.conda/envs/oursmemory4/bin/python        778MiB |
+|    2   N/A  N/A      2169      G   /usr/lib/xorg/Xorg                              4MiB |
+|    2   N/A  N/A   2187937      C   python                                      13532MiB |
+|    3   N/A  N/A      2169      G   /usr/lib/xorg/Xorg                              4MiB |
+|    3   N/A  N/A   2186866      C   .../.conda/envs/oursmemory4/bin/python       1612MiB |
++-----------------------------------------------------------------------------------------+

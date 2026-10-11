@@ -1,0 +1,53 @@
+{
+  "baseline_checkpoint": "/data/xhw/czsl_repro/runs/cpf_ut_zappos_seed3351/checkpoints/ut-zappos-czsl_final_predcition_mul/best_auc.pth",
+  "cache": "/data/xhw/czsl_repro/knowledge/kcc0601_v1/cache_trusted_v1/ut-zap50k",
+  "cache_manifest_sha256": "b7a7e056f2a7bfc57e69b3702bd638f655a52478a676b22a57b4dcf64bfb03de",
+  "batch_size": 2,
+  "settings": {
+    "cw": {
+      "A_max_abs_score_difference": 0.0,
+      "A_top1_identical": true,
+      "candidate_count": 116,
+      "lambda0_identity": true,
+      "uniform_identity": true,
+      "D_E_prior_ordering": true,
+      "candidate_permutation": true
+    },
+    "ow": {
+      "A_max_abs_score_difference": 0.0,
+      "A_top1_identical": true,
+      "candidate_count": 192,
+      "lambda0_identity": true,
+      "uniform_identity": true,
+      "D_E_prior_ordering": true,
+      "candidate_permutation": true
+    }
+  },
+  "train": {
+    "A": {
+      "loss": 0.22049203515052795,
+      "finite_nonzero_gradients": true,
+      "prior_CE_placement": true,
+      "frozen_knowledge": true
+    },
+    "C": {
+      "loss": 1.5493667125701904,
+      "finite_nonzero_gradients": true,
+      "prior_CE_placement": true,
+      "frozen_knowledge": true
+    },
+    "D": {
+      "loss": 0.22724412381649017,
+      "finite_nonzero_gradients": true,
+      "prior_CE_placement": true,
+      "frozen_knowledge": true
+    },
+    "E": {
+      "loss": 1.5811593532562256,
+      "finite_nonzero_gradients": true,
+      "prior_CE_placement": true,
+      "frozen_knowledge": true
+    }
+  },
+  "status": "MVP_SMOKE_PASSED"
+}

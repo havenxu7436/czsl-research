@@ -1,0 +1,20 @@
+Namespace(model_name='troika', lr=3.15e-06, dataset='ut-zappos', weight_decay=1e-05, clip_model='ViT-L/14', epochs=15, epoch_start=0, train_batch_size=64, eval_batch_size=64, num_workers=4, context_length=8, attr_dropout=0.3, yml_path='./config/ut-zappos-paper.yml', clip_arch='/data/xhw/czsl_repro/pretrained/clip/ViT-L-14.pt', dataset_path='/data/xhw/czsl_repro/data/ut-zap50k', save_path='/data/xhw/czsl_repro/runs/troika_ut_zappos_paper_seed0', save_every_n=1, save_final_model=True, load_model=None, seed=0, gradient_accumulation_steps=1, same_prim_sample=False, open_world=False, bias=0.001, topk=1, text_encoder_batch_size=1024, threshold=None, threshold_trials=50, adapter_dim=64, init_lamda=0.1, cmt_layers=2, prompt_template=['a photo of x x', 'a photo of x', 'a photo of x'], ctx_init=['a photo of ', 'a photo of ', 'a photo of '], cross_attn_dropout=0, adapter_dropout=0.1, pair_loss_weight=1.0, attr_loss_weight=1.0, obj_loss_weight=1.0, pair_inference_weight=1.0, attr_inference_weight=1.0, obj_inference_weight=1.0, optimizer='Adam', scheduler='StepLR', step_size=5, gamma=0.5, val_metric='AUC', text_first=True)
+# train pairs: 83 | # val pairs: 30 | # test pairs: 36
+# train images: 22998 | # val images: 3214 | # test images: 2914
+# train pairs: 83 | # val pairs: 30 | # test pairs: 36
+# train images: 22998 | # val images: 3214 | # test images: 2914
+# train pairs: 83 | # val pairs: 30 | # test pairs: 36
+# train images: 22998 | # val images: 3214 | # test images: 2914
+Traceback (most recent call last):
+  File "/data/xhw/czsl_repro/src/LogiCZSL/models/Troika/train.py", line 227, in <module>
+    model = get_model(
+            ^^^^^^^^^^
+  File "/data/xhw/czsl_repro/src/LogiCZSL/models/Troika/model/model_factory.py", line 17, in get_model
+    return Troika(
+           ^^^^^^^
+  File "/data/xhw/czsl_repro/src/LogiCZSL/models/Troika/model/troika.py", line 150, in __init__
+    self.clip = load_clip(name=config.clip_arch, context_length=config.context_length)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/xhw/czsl_repro/src/LogiCZSL/models/Troika/clip_modules/clip_model.py", line 525, in load_clip
+    raise RuntimeError(f"Model {name} not found; available models = {available_models()}")
+RuntimeError: Model /data/xhw/czsl_repro/pretrained/clip/ViT-L-14.pt not found; available models = ['RN50', 'RN101', 'RN50x4', 'ViT-B/32', 'ViT-B/16', 'ViT-L/14']

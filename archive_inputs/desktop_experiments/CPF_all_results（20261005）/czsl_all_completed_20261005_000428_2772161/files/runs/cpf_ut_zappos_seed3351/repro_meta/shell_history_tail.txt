@@ -1,0 +1,200 @@
+ 1623  has_zero = "optimizer.zero_grad(set_to_none=True)" in window
+ 1624  if has_train and has_zero:
+ 1625      print("代码已经存在，不再重复插入")
+ 1626  elif has_train or has_zero:
+ 1627      raise RuntimeError(
+ 1628  #        "附近已经存在其中一行，请先
+ 1629  mkdir -p """""""""
+ 1630      )
+ 1631  else:
+ 1632      additions = [
+ 1633          f"{body_indent}model.train()\n",
+ 1634          f"{body_indent}optimizer.zero_grad(set_to_none=True)\n",
+ 1635      ]
+ 1636      lines[index + 1:index + 1] = additions
+ 1637      path.write_text("".join(lines), encoding="utf-8")
+ 1638      print("EPOCH MODE FIX PASSED")
+ 1639  PY
+ 1640  python -m py_compile train.py
+ 1641  cp -a train.py train.py.before_epoch_mode_fix_retry
+ 1642  python -c 'from pathlib import Path; p=Path("train.py"); s=p.read_text(encoding="utf-8"); old="    for i in range(config.epoch_start, config.epochs):\n"; new=old+"        model.train()\n        optimizer.zero_grad(set_to_none=True)\n"; assert s.count(old)==1, "没有唯一找到 epoch 循环"; assert new not in s, "这两行已经插入过了"; p.write_text(s.replace(old,new,1), encoding="utf-8"); print("EPOCH MODE FIX PASSED")'
+ 1643  grep -nA6 -B2 'for i in range(config.epoch_start, config.epochs)' train.py
+ 1644  python -m py_compile train.py
+ 1645  grep -nA8 -B2 'for i in range(config.epoch_start, config.epochs)' train.py
+ 1646  python -m py_compile train.py
+ 1647  cp -a train.py train.py.before_step18
+ 1648  python -c 'from pathlib import Path; p=Path("train.py"); s=p.read_text(encoding="utf-8"); old="\n        print(\"Evaluating test dataset:\")\n        evaluate(model, test_dataset, config)\n"; assert s.count(old)==1, "没有唯一找到每个 epoch 的测试代码"; s=s.replace(old,"\n",1); start=s.index("        if config.val_metric == "); end=s.index("        # final_model_state",start); new="        if config.val_metric == \"best_loss\":\n            is_best = val_result[\"best_loss\"] < best_loss\n        else:\n            is_best = val_result[config.val_metric] > best_metric\n\n        if is_best:\n            if config.val_metric == \"best_loss\":\n                best_loss = val_result[\"best_loss\"]\n            else:\n                best_metric = val_result[config.val_metric]\n\n            best_epoch = i + 1\n            torch.save(\n                model.state_dict(),\n                os.path.join(config.save_path, \"val_best.pt\")\n            )\n            print(f\"Saved val_best.pt at epoch {best_epoch}\")\n\n"; s=s[:start]+new+s[end:]; marker="\n\ndef evaluate(model, dataset, config):"; assert s.count(marker)==1, "没有唯一找到 evaluate 函数"; final="\n    best_path = os.path.join(config.save_path, \"val_best.pt\")\n    if os.path.isfile(best_path):\n        model.load_state_dict(\n            torch.load(best_path, map_location=\"cuda\")\n        )\n        print(\"Evaluating test dataset with validation-best checkpoint:\")\n        evaluate(model, test_dataset, config)\n"; s=s.replace(marker,final+marker,1); p.write_text(s,encoding="utf-8"); print("STEP 18 FIX PASSED")'
+ 1649  grep -nA25 -B4 'if config.val_metric == "best_loss"' train.py
+ 1650  grep -nA12 -B4 'best_path = os.path.join' train.py
+ 1651  grep -n '^        print("Evaluating test dataset:")' train.py
+ 1652  python -m py_compile train.py
+ 1653  python -c 'import train; print("TRAIN IMPORT PASSED")'
+ 1654  cp -a model/troika.py model/troika.py.before_fp32_fix
+ 1655  cp -a model/common.py model/common.py.before_import_cleanup
+ 1656  python -c 'from pathlib import Path; p=Path("model/troika.py"); s=p.read_text(encoding="utf-8"); old="        self.patch_norm = nn.LayerNorm(output_dim)\n"; new=old+"\n        # Keep CLIP and newly created modules in the same dtype.\n        self.float()\n        self.dtype = torch.float32\n        self.text_encoder.dtype = torch.float32\n"; assert s.count(old)==1, "没有唯一找到 patch_norm"; assert "self.text_encoder.dtype = torch.float32" not in s, "FP32 修复已经存在"; p.write_text(s.replace(old,new,1),encoding="utf-8"); print("TROIKA FP32 FIX PASSED")'
+ 1657  grep -nA10 -B5 'self.patch_norm = nn.LayerNorm' model/troika.py
+ 1658  python -c 'from pathlib import Path; p=Path("model/common.py"); lines=p.read_text(encoding="utf-8").splitlines(keepends=True); bad={"from turtle import shape","from stringprep import b1_set"}; removed=[line for line in lines if line.strip() in bad]; assert len(removed)==2, f"预期删除2行，实际找到{len(removed)}行"; lines=[line for line in lines if line.strip() not in bad]; p.write_text("".join(lines),encoding="utf-8"); print("COMMON IMPORT CLEANUP PASSED")'
+ 1659  grep -nE 'from turtle import shape|from stringprep import b1_set' model/common.py
+ 1660  python -m py_compile     model/common.py     model/troika.py     model/model_factory.py     train.py
+ 1661  python -c 'from model.troika import Troika; print("TROIKA IMPORT PASSED")'
+ 1662  python -c 'import torch; import train; from model.troika import Troika; print("torch =",torch.__version__); print("cuda =",torch.cuda.is_available()); print("STEP 19 PASSED")'
+ 1663  mkdir -p "$CZSL_ROOT/pretrained"
+ 1664  wget -c   -O "$CZSL_ROOT/pretrained/ViT-L-14.pt"   'https://openaipublic.azureedge.net/clip/models/b8cca3fd41ae0c99ba7e8951adf17d267cdb84cd88be6f7c2e0eca1737a03836/ViT-L-14.pt'
+ 1665  echo 'b8cca3fd41ae0c99ba7e8951adf17d267cdb84cd88be6f7c2e0eca1737a03836  '"$CZSL_ROOT/pretrained/ViT-L-14.pt" | sha256sum -c -
+ 1666  cd "$LOGIC_FIX"
+ 1667  python -m compileall -q .
+ 1668  python - <<'PY'
+ 1669  from dataset import CompositionDataset
+ 1670  from model.model_factory import get_model
+ 1671  from model.troika import Troika
+ 1672  print("Troika imports passed")
+ 1673  PY
+ 1674  conda activate logiczsl
+ 1675  ps -u "$USER" -o pid,etime,stat,%cpu,%mem,cmd | grep -E 'conda|mamba' | grep -v grep
+ 1676  watch -n 5   'du -sh /data/xhw/miniconda3/envs/logiczsl 2>/dev/null'
+ 1677  watch -n 5   'du -sh /data/xhw/miniconda3/envs/logiczsl 2>/dev/null'
+ 1678  watch -n 5   'du -sh /data/xhw/miniconda3/envs/logiczsl 2>/dev/null'
+ 1679  watch -n 5   'du -sh /data/xhw/miniconda3/envs/logiczsl 2>/dev/null'
+ 1680  watch -n 5 'du -sh /data/xhw/miniconda3/pkgs /data/xhw/miniconda3/envs/logiczsl 2>/dev/null'
+ 1681  watch -n 5 'du -sh /data/xhw/miniconda3/pkgs /data/xhw/miniconda3/envs/logiczsl 2>/dev/null'
+ 1682  ps -u "$USER"   -o pid,stat,etime,%cpu,%mem,cmd | grep -E '[c]onda.*install|[m]amba'
+ 1683  watch -n 5 'ls -lh /data/xhw/miniconda3/pkgs/pytorch-2.1.2* 2>/dev/null'
+ 1684  watch -n 5 "ps -u $USER -o pid,stat,etime,%cpu,%mem,cmd | grep -E '[c]onda.*install|[m]amba'"
+ 1685  conda list | grep -E '^pytorch |^torchvision |^pytorch-cuda '
+ 1686  watch -n 5 'ls -lh /data/xhw/miniconda3/pkgs/pytorch-2.1.2* 2>/dev/null'
+ 1687  ps -p 2025159   -o pid,stat,etime,%cpu,%mem,cmd
+ 1688  ps -p 2025159   -o pid,stat,etime,%cpu,%mem,cmd
+ 1689  top -p 2025159
+ 1690  conda activate cpf
+ 1691  tmux ls
+ 1692  tmux cpf_ut_zappos
+ 1693  tmux attach -t cpf_ut_zappos
+ 1694  find "$RUN_ROOT/cpf_smoke/checkpoints" -name best_auc.pth -ls
+ 1695  tmux attach -t cpf_ut_zappos
+ 1696  export RUN_ROOT=/data/xhw/czsl_repro/runs
+ 1697  printf 'RUN_ROOT=[%s]\n' "$RUN_ROOT"
+ 1698  ls -lah "$RUN_ROOT/cpf_smoke"
+ 1699  ls -lah "$RUN_ROOT/cpf_smoke/checkpoints"
+ 1700  find "$RUN_ROOT/cpf_smoke/checkpoints"     -type f     -name 'best_auc.pth'     -ls
+ 1701  find "$RUN_ROOT/cpf_smoke"     -maxdepth 4     -type f     \( -name '*.pth' -o -name '*.pt' -o -name '*.log' \)     -ls
+ 1702  tail -n 80 "$RUN_ROOT/cpf_smoke/smoke.log"
+ 1703  grep -nE 'Traceback|Error|Exception|CUDA out of memory|FileNotFoundError' "$RUN_ROOT/cpf_smoke/smoke.log"
+ 1704  export RUN_ROOT=/data/xhw/czsl_repro/runs
+ 1705  export SMOKE_CKPT="$RUN_ROOT/cpf_smoke/checkpoints/ut-zappos-czsl_final_predcition_mul/best_auc.pth"
+ 1706  ls -lh "$SMOKE_CKPT"
+ 1707  sha256sum "$SMOKE_CKPT"
+ 1708  grep -nE 'Traceback|CUDA out of memory|FileNotFoundError|RuntimeError' "$RUN_ROOT/cpf_smoke/smoke.log"
+ 1709  cp -a /data/xhw/czsl_repro/src/CPF_fixed/config/ut-zappos.yml "$RUN_ROOT/cpf_smoke/ut-zappos-smoke-config.yml"
+ 1710  export CZSL_ROOT=/data/xhw/czsl_repro
+ 1711  export DATA_ROOT="$CZSL_ROOT/data"
+ 1712  export SRC_ROOT="$CZSL_ROOT/src"
+ 1713  export RUN_ROOT="$CZSL_ROOT/runs"
+ 1714  export PRETRAINED_ROOT="$CZSL_ROOT/pretrained"
+ 1715  export CPF_FIX="$SRC_ROOT/CPF_fixed"
+ 1716  export EXP_ROOT=/data/xhw/czsl_repro/runs/cpf_ut_zappos_seed3351
+ 1717  mkdir -p "$EXP_ROOT"
+ 1718  {   date -Is;   hostname;   uname -a;   nvidia-smi;   python --version
+  python - <<'PY'
+import torch, torchvision, numpy, scipy
+print("torch=", torch.__version__)
+print("torchvision=", torchvision.__version__)
+print("numpy=", numpy.__version__)
+print("scipy=", scipy.__version__)
+print("cuda_runtime=", torch.version.cuda)
+print("cuda_available=", torch.cuda.is_available())
+print("gpu=", torch.cuda.get_device_name(0) if torch.cuda.is_available() else None)
+PY
+ } > "$EXP_ROOT/environment.txt" 2>&1
+ 1719  python -m pip freeze > "$EXP_ROOT/pip-freeze.txt"
+ 1720  conda list --explicit > "$EXP_ROOT/conda-explicit.txt"
+ 1721  cd /data/xhw/czsl_repro/src/CPF_fixed
+ 1722  {   git rev-parse HEAD 2>/dev/null || true;   git status --short 2>/dev/null || true;   git diff 2>/dev/null || true; } > "$EXP_ROOT/git-status.txt"
+ 1723  cp -a config/ut-zappos.yml "$EXP_ROOT/config_used.yml"
+ 1724  sha256sum   train.py   test.py   dataset.py   evaluator_ge.py   models/ddm.py   models/ddm_utils.py   config/ut-zappos.yml   > "$EXP_ROOT/code-manifest.sha256"
+ 1725  tmux new-session -s cpf_formal -n train
+ 1726  tmux attach -t cpf_formal
+ 1727  RUN=/data/xhw/czsl_repro/runs/cpf_ut_zappos_seed3351
+ 1728  CODE=/data/xhw/czsl_repro/src/CPF_fixed
+ 1729  DATA=/data/xhw/czsl_repro/data/ut-zap50k
+ 1730  META="$RUN/repro_meta"
+ 1731  CKPT="$RUN/checkpoints/ut-zappos-czsl_final_predcition_mul/best_auc.pth"
+ 1732  mkdir -p "$META"
+ 1733  test -f "$RUN/train.log" || echo "警告：没有找到 train.log"
+ 1734  test -f "$CKPT" || echo "警告：没有找到 best_auc.pth"
+ 1735  grep -E 'Epoch:|Validation set|Val/Test Epoch|Saved new best|Loading validation-best|Test set|Max GPU|New Best|Done:' "$RUN/train.log" > "$META/key_metrics.txt"
+ 1736  printf '%s\n' 'Project: CPF' 'Dataset: UT-Zappos50K' 'Setting: Closed World' 'Seed: 3351' 'Epochs: 10' 'Batch size: 64' 'Best validation epoch: 6' 'Best validation AUC raw: 0.39470438468249713' 'Best validation HM raw: 0.5484109385747018' 'Test AUC: 36.51' 'Test HM: 52.59' 'Test Seen: 61.49' 'Test Unseen: 68.48' 'Paper AUC: 41.40' 'Paper HM: 55.70' 'Paper Seen: 66.40' 'Paper Unseen: 71.10' 'Gap AUC: -4.89' 'Gap HM: -3.11' 'Gap Seen: -4.91' 'Gap Unseen: -2.62' 'Conclusion: partial reproduction' > "$META/final_metrics.txt"
+ 1737  cp "$CODE/config/ut-zappos.yml" "$META/config_used.yml"
+ 1738  conda env export --no-builds > "$META/conda_environment.yml"
+ 1739  python -m pip freeze > "$META/pip_freeze.txt"
+ 1740  nvidia-smi -q > "$META/nvidia_smi.txt"
+ 1741  python - <<'PY' > "$META/python_torch_versions.txt"
+import sys
+import torch
+import torchvision
+
+print("python =", sys.version)
+print("torch =", torch.__version__)
+print("torchvision =", torchvision.__version__)
+print("cuda_runtime =", torch.version.cuda)
+print("cuda_available =", torch.cuda.is_available())
+if torch.cuda.is_available():
+    print("gpu =", torch.cuda.get_device_name(0))
+PY
+
+ 1742  sha256sum "$CKPT" > "$META/checkpoint_sha256.txt"
+ 1743  sha256sum "$CODE/config/ut-zappos.yml" > "$META/config_sha256.txt"
+ 1744  find "$DATA"   -type f   ! -path '*/images/*'   -print0 |   sort -z |   xargs -0 sha256sum   > "$META/data_metadata_sha256.txt"
+ 1745  git -C "$CODE" rev-parse HEAD > "$META/git_commit.txt" 2>&1 || true
+ 1746  git -C "$CODE" status --short > "$META/git_status.txt" 2>&1 || true
+ 1747  git -C "$CODE" diff > "$META/code_changes.patch" 2>&1 || true
+ 1748  tar -czf "$META/CPF_fixed_code_snapshot.tar.gz"   --exclude='.git'   --exclude='__pycache__'   --exclude='*.pyc'   --exclude='logs'   --exclude='checkpoints'   -C /data/xhw/czsl_repro/src   CPF_fixed
+ 1749  ARCHIVE=/data/xhw/czsl_repro/runs/cpf_ut_zappos_seed3351_cw_20260929.tar.gz
+ 1750  tar -czf "$ARCHIVE"   -C /data/xhw/czsl_repro/runs   cpf_ut_zappos_seed3351
+ 1751  sha256sum "$ARCHIVE" > "$ARCHIVE.sha256"
+ 1752  ls -lh "$ARCHIVE" "$ARCHIVE.sha256"
+ 1753  tmux attach -t cpf_formal
+ 1754  RUN=/data/xhw/czsl_repro/runs/cpf_ut_zappos_seed3351
+ 1755  CODE=/data/xhw/czsl_repro/src/CPF_fixed
+ 1756  DATA=/data/xhw/czsl_repro/data/ut-zap50k
+ 1757  META="$RUN/repro_meta"
+ 1758  CKPT="$RUN/checkpoints/ut-zappos-czsl_final_predcition_mul/best_auc.pth"
+ 1759  mkdir -p "$META"
+ 1760  test -f "$RUN/train.log" && echo "train.log: OK" || echo "train.log: MISSING"
+ 1761  test -f "$RUN/eval_ow.log" && echo "eval_ow.log: OK" || echo "eval_ow.log: MISSING"
+ 1762  test -f "$CKPT" && echo "checkpoint: OK" || echo "checkpoint: MISSING"
+ 1763  ls -lh "$RUN/train.log" "$RUN/eval_ow.log" "$CKPT"
+ 1764  awk '
+/Loading validation-best checkpoint/ {save=1}
+save {print}
+' "$RUN/train.log" > "$META/eval_cw_from_train.log"
+ 1765  grep -E 'Epoch:|Validation set|Val/Test Epoch|Saved new best|Loading validation-best|Test set|Max GPU|New Best|Done:' "$RUN/train.log" > "$META/key_training_metrics.txt"
+ 1766  grep -E 'Loaded pretrained|Evaluating|Testing:|Top 1|Top 2|Top 3|closed_attr_match' "$RUN/eval_ow.log" > "$META/key_ow_metrics.txt"
+ 1767  printf '%s\n' 'Project: CPF' 'Dataset: UT-Zappos50K' 'Seed: 3351' 'Epochs: 10' 'Batch size: 64' 'Best validation epoch: 6' '' '[Validation best]' 'AUC raw: 0.39470438468249713' 'HM raw: 0.5484109385747018' '' '[Closed World test]' 'AUC: 36.51' 'HM: 52.59' 'Seen: 61.49' 'Unseen: 68.48' 'Paper AUC/HM/Seen/Unseen: 41.40 / 55.70 / 66.40 / 71.10' 'Gap: -4.89 / -3.11 / -4.91 / -2.62' '' '[Open World test, Top-1]' 'AUC: 27.07' 'HM: 43.87' 'Seen: 61.49' 'Unseen: 51.30' 'closed_attr_match: 37.68' 'closed_obj_match: 73.47' 'Paper AUC/HM/Seen/Unseen: 31.20 / 47.60 / 64.60 / 56.10' 'Gap: -4.13 / -3.73 / -3.11 / -4.80' '' 'Conclusion: partial reproduction' > "$META/final_results.txt"
+ 1768  cat "$META/final_results.txt"
+ 1769  printf '%s\n' '[TRAIN]' 'python -u train.py --cfg config/ut-zappos.yml DATASET.root_dir /data/xhw/czsl_repro/data/ut-zap50k TRAIN.log_dir /data/xhw/czsl_repro/runs/cpf_ut_zappos_seed3351/logs TRAIN.checkpoint_dir /data/xhw/czsl_repro/runs/cpf_ut_zappos_seed3351/checkpoints TRAIN.num_workers 4 TRAIN.batch_size 64 TRAIN.test_batch_size 64 TRAIN.seed 3351 TRAIN.start_epoch_validate 1 TRAIN.eval_every_epoch 1 TRAIN.max_epoch 10 TRAIN.final_max_epoch 10' '' '[OPEN WORLD EVALUATION]' 'python -u test.py --cfg config/ut-zappos.yml --load /data/xhw/czsl_repro/runs/cpf_ut_zappos_seed3351/checkpoints/ut-zappos-czsl_final_predcition_mul/best_auc.pth DATASET.root_dir /data/xhw/czsl_repro/data/ut-zap50k TRAIN.num_workers 4 TRAIN.test_batch_size 64 EVAL.open_world True' > "$META/commands_used.txt"
+ 1770  cp "$CODE/config/ut-zappos.yml" "$META/config_used.yml"
+ 1771  conda env export --no-builds > "$META/conda_environment.yml"
+ 1772  python -m pip freeze > "$META/pip_freeze.txt"
+ 1773  nvidia-smi -q > "$META/nvidia_smi.txt"
+ 1774  python - <<'PY' > "$META/software_versions.txt"
+import sys
+import torch
+import torchvision
+
+print("python =", sys.version)
+print("torch =", torch.__version__)
+print("torchvision =", torchvision.__version__)
+print("cuda_runtime =", torch.version.cuda)
+print("cuda_available =", torch.cuda.is_available())
+
+if torch.cuda.is_available():
+    print("gpu =", torch.cuda.get_device_name(0))
+PY
+
+ 1775  sha256sum "$CKPT" > "$META/checkpoint_sha256.txt"
+ 1776  sha256sum "$CODE/config/ut-zappos.yml" > "$META/config_sha256.txt"
+ 1777  find "$DATA"   -type f   ! -path '*/images/*'   -print0 |   sort -z |   xargs -0 sha256sum   > "$META/data_metadata_sha256.txt"
+ 1778  git -C "$CODE" rev-parse HEAD > "$META/git_commit.txt" 2>&1 || true
+ 1779  git -C "$CODE" status --short > "$META/git_status.txt" 2>&1 || true
+ 1780  git -C "$CODE" diff > "$META/code_changes.patch" 2>&1 || true
+ 1781  history | tail -n 200 > "$META/shell_history_tail.txt"

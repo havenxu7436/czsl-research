@@ -1,0 +1,1233 @@
+--- before/models/kcc_cpf.py
++++ after/models/kcc_cpf.py
+@@ -1,163 +1,28 @@
+-import sys
+-
+-import numpy as np
+-import torch
+-import torch.nn as nn
+-import torch.nn.functional as F
+-from .backbone import ViT
+-from .basic_layers import MLP, BasicConv
+-from .word_embedding_utils import initialize_wordembedding_matrix
+-from .ddm_utils import *
+-
+-
+-def cross_entropy_loss(input, target, size_average=True):
+-    input = F.log_softmax(input, dim=1)
+-    loss = -torch.sum(input * target)
+-    if size_average:
+-        return loss / input.size(0)
+-    else:
+-        return loss
+-
+-
+-class CrossEntropyLoss(object):
+-    def __init__(self, size_average=True):
+-        self.size_average = size_average
+-
+-    def __call__(self, input, target):
+-        return cross_entropy_loss(input, target, self.size_average)
+-
+-
+-class DDM(nn.Module):
+-    """Object-Attribute Compositional Learning from Image Pair.
+-    """
+-
++# Generated from this project's original models/ddm.py.
++# A/C/D/E GloVe MVP. Original baseline layers/loss weights are inherited.
++from .ddm import *
++from .ddm import DDM as BaselineDDM
++from .kcc_cache import KCCCacheMixin
++
++
++class DDM(KCCCacheMixin, BaselineDDM):
+     def __init__(self, dset, cfg):
+-        super(DDM, self).__init__()
+-        self.cfg = cfg
+-        self.dset = dset
+-        self.num_attrs = len(dset.attrs)
+-        self.num_objs = len(dset.objs)
+-        self.pair2idx = dset.pair2idx
+-        pairs = [(dset.attr2idx[attr], dset.obj2idx[obj]) for attr, obj in dset.pairs]
+-        self.pairs = torch.LongTensor(pairs).cuda()
+-
+-        # Set training pairs.
+-        train_attrs, train_objs = zip(*dset.train_pairs)
+-        train_attrs = [dset.attr2idx[attr] for attr in train_attrs]
+-        train_objs = [dset.obj2idx[obj] for obj in train_objs]
+-        self.train_attrs = torch.LongTensor(train_attrs).cuda()
+-        self.train_objs = torch.LongTensor(train_objs).cuda()
+-        self.tot_attrs = torch.LongTensor(list(range(self.num_attrs))).cuda()   # 413
+-        self.tot_objs = torch.LongTensor(list(range(self.num_objs))).cuda()     # 674
+-        self.emb_dim = cfg.MODEL.emb_dim  # 300
+-        # print(self.num_attrs)
+-        # print(self.num_objs)
+-        # print(len(train_attrs))
+-        # print(len(train_objs))
+-
+-        # sys.exit(0)
+-
+-        # Setup layers for word embedding composer.
+-        self._setup_word_composer(dset, cfg)  # g()
+-
+-        if not cfg.TRAIN.use_precomputed_features and not cfg.TRAIN.comb_features:
+-            self.feat_extractor = ViT('B_16', pretrained=True)
+-
+-        feat_dim = cfg.MODEL.img_emb_dim  # 768
+-
+-        obj_emb_modules = [
+-            nn.Linear(feat_dim, self.emb_dim)  # 768->300
+-        ]
+-        # attr_emb_modules = [
+-        #     nn.Linear(feat_dim * 3, self.emb_dim),  # 768*3->300
+-        # ]
+-        attr_emb_modules = [
+-            nn.Linear(self.emb_dim * 3, self.emb_dim),  # 768*3->300
+-        ]
+-        '''add'''
+-        obj_guide_modules = [
+-            nn.Linear(self.emb_dim, feat_dim)
+-        ]
+-        obj_emb_modules_2 = [
+-            nn.Linear(feat_dim, self.emb_dim)
+-        ]
+-
+-        self.objc_embedder = nn.Sequential(*obj_emb_modules)
+-        self.attrc_embedder = nn.Sequential(*attr_emb_modules)
+-
+-        '''add'''
+-        self.obj_guide_embedder = nn.Sequential(*obj_guide_modules)
+-        self.objc_embedder_2 = nn.Sequential(*obj_emb_modules_2)
+-
+-        # self.text_linear = nn.Linear(self.emb_dim, self.emb_dim)
+-
+-        # text_finetune_modules = [
+-        #     nn.Linear(self.emb_dim, self.emb_dim, bias=True)
+-        # ]
+-        # self.text_finetune = nn.Sequential(*text_finetune_modules)
+-        # '''choose text'''
+-        # text2img_modules = [
+-        #     nn.Linear(self.emb_dim, feat_dim)
+-        # ]
+-
+-        self.img_avg_pool = nn.AdaptiveAvgPool2d((1, 1))
+-
+-        self.classifier = CosineClassifier(temp=cfg.MODEL.cosine_cls_temp)
+-        self.attr_classifier = CosineClassifier(temp=cfg.MODEL.cosine_cls_temp)
+-        self.obj_classifier = CosineClassifier(temp=cfg.MODEL.cosine_cls_temp)
+-
+-        self.crossentropy = CrossEntropyLoss()
+-
+-        # visual
+-        self.projection_1 = MLP(
+-            self.word_dim * 2, self.emb_dim, self.emb_dim, 2, batchnorm=False,
+-            drop_input=cfg.MODEL.wordemb_compose_dropout
+-        )
+-
+-    def compose_visual(self, obj_feats, att_feats):
+-        inputs = torch.cat([obj_feats, att_feats], 1)
+-        output = self.projection_1(inputs)
+-        return output
+-
+-    def _setup_word_composer(self, dset, cfg):
+-        attr_wordemb, self.word_dim = \
+-            initialize_wordembedding_matrix(cfg.MODEL.wordembs, dset.attrs, cfg)  # glove
+-        obj_wordemb, _ = \
+-            initialize_wordembedding_matrix(cfg.MODEL.wordembs, dset.objs, cfg)
+-
+-        self.attr_embedder = nn.Embedding(self.num_attrs, self.word_dim)
+-        self.obj_embedder = nn.Embedding(self.num_objs, self.word_dim)
+-        self.attr_embedder.weight.data.copy_(attr_wordemb)
+-        self.obj_embedder.weight.data.copy_(obj_wordemb)
+-        '''modify'''
+-        self.attr_embedder.requires_grad_(requires_grad=False)
+-        self.obj_embedder.requires_grad_(requires_grad=False)
+-
+-        self.wordemb_compose = cfg.MODEL.wordemb_compose
+-
+-        self.compose = nn.Sequential(
+-            nn.Linear(self.word_dim * 2, self.word_dim * 3),
+-            nn.BatchNorm1d(self.word_dim * 3),
+-            nn.ReLU(0.1),
+-            nn.Linear(self.word_dim * 3, self.word_dim * 2),
+-            nn.BatchNorm1d(self.word_dim * 2),
+-            nn.ReLU(0.1),
+-            nn.Linear(self.word_dim * 2, self.emb_dim)
+-        )
++        super().__init__(dset, cfg)
++        self._setup_kcc(dset, cfg)
+ 
+     def compose_word_embeddings(self, mode='train'):
+         if mode == 'train':
+-            attr_emb = self.attr_embedder(self.train_attrs)  # [n_pairs, word_dim].
+-            obj_emb = self.obj_embedder(self.train_objs)  # # [n_pairs, word_dim].
++            attr_emb = self._kcc_attr_embeddings(self.train_attrs)  # [n_pairs, word_dim].
++            obj_emb = self._kcc_obj_embeddings(self.train_objs)  # # [n_pairs, word_dim].
+         elif mode == 'all':
+-            attr_emb = self.attr_embedder(self.all_attrs)  # [n_pairs, word_dim].
+-            obj_emb = self.obj_embedder(self.all_objs)
++            attr_emb = self._kcc_attr_embeddings(self.all_attrs)  # [n_pairs, word_dim].
++            obj_emb = self._kcc_obj_embeddings(self.all_objs)
+         elif mode == 'unseen':
+-            attr_emb = self.attr_embedder(self.unseen_pair_attrs)  # [n_pairs, word_dim].
+-            obj_emb = self.obj_embedder(self.unseen_pair_objs)
++            attr_emb = self._kcc_attr_embeddings(self.unseen_pair_attrs)  # [n_pairs, word_dim].
++            obj_emb = self._kcc_obj_embeddings(self.unseen_pair_objs)
+         else:
+-            attr_emb = self.attr_embedder(self.val_attrs)  # [n_pairs, word_dim].
+-            obj_emb = self.obj_embedder(self.val_objs)  # # [n_pairs, word_dim].
++            attr_emb = self._kcc_attr_embeddings(self.val_attrs)  # [n_pairs, word_dim].
++            obj_emb = self._kcc_obj_embeddings(self.val_objs)  # # [n_pairs, word_dim].
+ 
+         '''add'''
+         # attr_emb = self.text_finetune(attr_emb)
+@@ -169,6 +34,145 @@
+         # concept_emb = obj_emb * attr_emb
+ 
+         return concept_emb
++
++    def train_forward(self, batch):
++        img1 = batch['img']  # 64, 3, 224, 224
++
++        # Labels of 1st image.
++        attr_labels = batch['attr']
++        obj_labels = batch['obj']
++        pair_labels = batch['pair']
++
++        bs = img1.shape[0]
++
++        # text_o + text_a
++        '''modify'''
++        # composition text features ->
++        concept = self.compose_word_embeddings(mode='train')  # (n_pairs, emb_dim)
++
++        # 64, 196, 768
++        img_feat_l3, img_feat_l6, img_feat_l9, img_feat_l12, cls_token = self.feat_extractor(img1)  # cls_token from img_feat_l12
++
++        obj_weight = self._kcc_obj_embeddings(self.tot_objs)   # n * d
++        attr_weight = self._kcc_attr_embeddings(self.tot_attrs)
++
++        # print(obj_weight.shape)
++        # print(attr_weight.shape)
++
++
++        '''add'''
++        # obj_weight = self.text_finetune(obj_weight)
++        # attr_weight = self.text_finetune(attr_weight)
++
++        vis_obj = self.objc_embedder(cls_token)  # 768 -> 300
++
++        '''choose text'''
++        cls_text_scores = choose_texts(vis_obj, obj_weight)    # b * n
++        obj_guide_texts = cls_text_scores @ obj_weight  # b, d
++
++        cls_text_scores = choose_texts(vis_obj, attr_weight)  # b * n
++        attr_guide_texts = cls_text_scores @ attr_weight  # b, d
++
++        # obj_guide_texts = self.text_linear(obj_guide_texts)
++
++        '''choose visual tokens'''
++        img_feat_l12_copy = self.objc_embedder(img_feat_l12)
++        text_visual_scores = choose_visual_tokens(obj_guide_texts, img_feat_l12_copy)
++        cls_token2 = torch.sum(img_feat_l12 * text_visual_scores.unsqueeze(-1), dim=1)
++        text_guided_vis_obj = self.objc_embedder(cls_token2)
++        vis_obj_new = vis_obj + text_guided_vis_obj
++        # vis_obj_new = text_guided_vis_obj
++
++        # '''add'''
++        # # obj_guide = self.obj_guide_embedder(vis_obj)    # 64, 768
++        # obj_guide = self.obj_guide_embedder(vis_obj_new)
++        # vis_obj2 = self.objc_embedder_2(obj_guide)
++        # vis_obj_all = vis_obj_new + vis_obj2
++
++        # cls_l3 = self.objc_embedder(cls_token_l3)
++        # cls_text_scores_l3 = choose_texts(cls_l3, obj_weight)
++        # obj_guide_texts_l3 = cls_text_scores_l3 @ obj_weight
++
++        img_feat_l3_copy = self.objc_embedder(img_feat_l3)
++        text_visual_scores_l3 = choose_visual_tokens(vis_obj_new, img_feat_l3_copy)
++        cls_token_l3 = torch.sum(img_feat_l3 * text_visual_scores_l3.unsqueeze(-1), dim=1)
++        text_guided_vis_obj_l3 = self.objc_embedder(cls_token_l3)
++        vis_obj_new_l3 = text_guided_vis_obj_l3
++
++        # cls_l6 = self.objc_embedder(cls_token_l6)
++        # cls_text_scores_l6 = choose_texts(cls_l6, obj_weight)
++        # obj_guide_texts_l6 = cls_text_scores_l6 @ obj_weight
++
++        img_feat_l6_copy = self.objc_embedder(img_feat_l6)
++        text_visual_scores_l6 = choose_visual_tokens(vis_obj_new, img_feat_l6_copy)
++        cls_token_l6 = torch.sum(img_feat_l6 * text_visual_scores_l6.unsqueeze(-1), dim=1)
++        text_guided_vis_obj_l6 = self.objc_embedder(cls_token_l6)
++        vis_obj_new_l6 = text_guided_vis_obj_l6
++
++        # cls_l9 = self.objc_embedder(cls_token_l9)
++        # cls_text_scores_l9 = choose_texts(cls_l9, obj_weight)
++        # obj_guide_texts_l9 = cls_text_scores_l9 @ obj_weight
++
++        img_feat_l9_copy = self.objc_embedder(img_feat_l9)
++        text_visual_scores_l9 = choose_visual_tokens(vis_obj_new, img_feat_l9_copy)
++        cls_token_l9 = torch.sum(img_feat_l9 * text_visual_scores_l9.unsqueeze(-1), dim=1)
++        text_guided_vis_obj_l9 = self.objc_embedder(cls_token_l9)
++        vis_obj_new_l9 = text_guided_vis_obj_l9
++
++        # img_feat_l3_scores = image_soft_weights(obj_guide, img_feat_l3)
++        # img_feat_l3 = torch.sum(img_feat_l3 * img_feat_l3_scores.unsqueeze(-1), dim=1)  # 64, 768
++
++        # img_feat_l6_scores = image_soft_weights(obj_guide, img_feat_l6)
++        # img_feat_l6 = torch.sum(img_feat_l6 * img_feat_l6_scores.unsqueeze(-1), dim=1)
++
++        # img_feat_l9_scores = image_soft_weights(obj_guide, img_feat_l9)
++        # img_feat_l9 = torch.sum(img_feat_l9 * img_feat_l9_scores.unsqueeze(-1), dim=1)
++
++        # fused_vis = torch.cat([img_feat_l9, img_feat_l6, img_feat_l3], dim=1)
++        fused_vis = torch.cat([vis_obj_new_l9, vis_obj_new_l6, vis_obj_new_l3], dim=1)
++        # fused_vis = torch.cat(
++        #     [torch.mean(img_feat_l9, dim=1), torch.mean(img_feat_l6, dim=1), torch.mean(img_feat_l3, dim=1)], dim=1)
++        attr_emb = self.attrc_embedder(fused_vis)
++
++        # obj prediction
++        obj_pred = self.classifier(vis_obj_new, obj_weight)
++        # obj_pred = self.classifier(vis_obj, obj_weight)
++
++        # attr prediction
++        attr_pred = self.classifier(attr_emb, attr_weight)
++
++        # composition prediction
++        vis_comp = self.compose_visual(vis_obj_new, attr_emb)
++        comp_pred = self.classifier(vis_comp, concept)
++        comp_pred = self._kcc_calibrate(comp_pred, self.train_objs, self.train_attrs)
++
++        # obj loss and accuracy
++        obj_loss = F.cross_entropy(obj_pred, batch['obj'])  # object classification
++        obj_pred = torch.max(obj_pred, dim=1)[1]
++
++        # attr loss and accuracy
++        attr_loss = F.cross_entropy(attr_pred, batch['attr'])  # object classification
++        attr_pred = torch.max(attr_pred, dim=1)[1]
++
++        # composition loss and accuracy
++        # comp_pred = comp_pred + obj_pred + attr_pred
++        comp_loss = F.cross_entropy(comp_pred, pair_labels)
++        comp_pred = torch.max(comp_pred, dim=1)[1]
++
++        correct_obj = (obj_pred == obj_labels)
++        correct_comp = (comp_pred == pair_labels)
++        correct_attr = (attr_pred == attr_labels)
++
++        loss = comp_loss + 0.4 * obj_loss + 0.6 * attr_loss
++
++        out = {
++            'loss_total': loss,
++            'acc_attr': torch.div(correct_attr.sum(), float(bs)),
++            'acc_obj': torch.div(correct_obj.sum(), float(bs)),
++            'acc_pair': torch.div(correct_comp.sum(), float(bs))
++        }
++
++        return out
+ 
+     def train_forward_augment(self, batch, lam=0.5):
+         img1 = batch['img']
+@@ -189,16 +193,16 @@
+         attr_labels = torch.cat((attr_labels_a, attr_labels_b))
+ 
+         # generate word embedding
+-        # obj_weight = self.obj_embedder(self.tot_objs)
+-        # attr_weight = self.attr_embedder(self.tot_attrs) # 440 300
++        # obj_weight = self._kcc_obj_embeddings(self.tot_objs)
++        # attr_weight = self._kcc_attr_embeddings(self.tot_attrs) # 440 300
+ 
+         bs = img1.shape[0]
+         concept = self.compose_word_embeddings(mode='train')  # (n_pairs, emb_dim)
+ 
+         img_feat_l3, img_feat_l6, img_feat_l9, img_feat_l12, cls_token = self.feat_extractor(img1)
+ 
+-        obj_weight = self.obj_embedder(self.tot_objs)
+-        attr_weight = self.attr_embedder(self.tot_attrs)
++        obj_weight = self._kcc_obj_embeddings(self.tot_objs)
++        attr_weight = self._kcc_attr_embeddings(self.tot_attrs)
+ 
+         # '''add'''
+         # obj_weight = self.text_finetune(obj_weight)
+@@ -232,6 +236,7 @@
+         # composition prediction
+         vis_comp = self.compose_visual(vis_obj_all, attr_emb)
+         comp_pred = self.classifier(vis_comp, concept)
++        comp_pred = self._kcc_calibrate(comp_pred, self.train_objs, self.train_attrs)
+ 
+         # obj loss and accuracy
+         obj_loss = F.cross_entropy(obj_pred, obj_labels)  # object classification
+@@ -288,144 +293,6 @@
+ 
+         return out
+ 
+-    def train_forward(self, batch):
+-        img1 = batch['img']  # 64, 3, 224, 224
+-
+-        # Labels of 1st image.
+-        attr_labels = batch['attr']
+-        obj_labels = batch['obj']
+-        pair_labels = batch['pair']
+-
+-        bs = img1.shape[0]
+-
+-        # text_o + text_a
+-        '''modify'''
+-        # composition text features ->
+-        concept = self.compose_word_embeddings(mode='train')  # (n_pairs, emb_dim)
+-
+-        # 64, 196, 768
+-        img_feat_l3, img_feat_l6, img_feat_l9, img_feat_l12, cls_token = self.feat_extractor(img1)  # cls_token from img_feat_l12
+-
+-        obj_weight = self.obj_embedder(self.tot_objs)   # n * d
+-        attr_weight = self.attr_embedder(self.tot_attrs)
+-
+-        # print(obj_weight.shape)
+-        # print(attr_weight.shape)
+-
+-
+-        '''add'''
+-        # obj_weight = self.text_finetune(obj_weight)
+-        # attr_weight = self.text_finetune(attr_weight)
+-
+-        vis_obj = self.objc_embedder(cls_token)  # 768 -> 300
+-
+-        '''choose text'''
+-        cls_text_scores = choose_texts(vis_obj, obj_weight)    # b * n
+-        obj_guide_texts = cls_text_scores @ obj_weight  # b, d
+-
+-        cls_text_scores = choose_texts(vis_obj, attr_weight)  # b * n
+-        attr_guide_texts = cls_text_scores @ attr_weight  # b, d
+-
+-        # obj_guide_texts = self.text_linear(obj_guide_texts)
+-
+-        '''choose visual tokens'''
+-        img_feat_l12_copy = self.objc_embedder(img_feat_l12)
+-        text_visual_scores = choose_visual_tokens(obj_guide_texts, img_feat_l12_copy)
+-        cls_token2 = torch.sum(img_feat_l12 * text_visual_scores.unsqueeze(-1), dim=1)
+-        text_guided_vis_obj = self.objc_embedder(cls_token2)
+-        vis_obj_new = vis_obj + text_guided_vis_obj
+-        # vis_obj_new = text_guided_vis_obj
+-
+-        # '''add'''
+-        # # obj_guide = self.obj_guide_embedder(vis_obj)    # 64, 768
+-        # obj_guide = self.obj_guide_embedder(vis_obj_new)
+-        # vis_obj2 = self.objc_embedder_2(obj_guide)
+-        # vis_obj_all = vis_obj_new + vis_obj2
+-
+-        # cls_l3 = self.objc_embedder(cls_token_l3)
+-        # cls_text_scores_l3 = choose_texts(cls_l3, obj_weight)
+-        # obj_guide_texts_l3 = cls_text_scores_l3 @ obj_weight
+-
+-        img_feat_l3_copy = self.objc_embedder(img_feat_l3)
+-        text_visual_scores_l3 = choose_visual_tokens(vis_obj_new, img_feat_l3_copy)
+-        cls_token_l3 = torch.sum(img_feat_l3 * text_visual_scores_l3.unsqueeze(-1), dim=1)
+-        text_guided_vis_obj_l3 = self.objc_embedder(cls_token_l3)
+-        vis_obj_new_l3 = text_guided_vis_obj_l3
+-
+-        # cls_l6 = self.objc_embedder(cls_token_l6)
+-        # cls_text_scores_l6 = choose_texts(cls_l6, obj_weight)
+-        # obj_guide_texts_l6 = cls_text_scores_l6 @ obj_weight
+-
+-        img_feat_l6_copy = self.objc_embedder(img_feat_l6)
+-        text_visual_scores_l6 = choose_visual_tokens(vis_obj_new, img_feat_l6_copy)
+-        cls_token_l6 = torch.sum(img_feat_l6 * text_visual_scores_l6.unsqueeze(-1), dim=1)
+-        text_guided_vis_obj_l6 = self.objc_embedder(cls_token_l6)
+-        vis_obj_new_l6 = text_guided_vis_obj_l6
+-
+-        # cls_l9 = self.objc_embedder(cls_token_l9)
+-        # cls_text_scores_l9 = choose_texts(cls_l9, obj_weight)
+-        # obj_guide_texts_l9 = cls_text_scores_l9 @ obj_weight
+-
+-        img_feat_l9_copy = self.objc_embedder(img_feat_l9)
+-        text_visual_scores_l9 = choose_visual_tokens(vis_obj_new, img_feat_l9_copy)
+-        cls_token_l9 = torch.sum(img_feat_l9 * text_visual_scores_l9.unsqueeze(-1), dim=1)
+-        text_guided_vis_obj_l9 = self.objc_embedder(cls_token_l9)
+-        vis_obj_new_l9 = text_guided_vis_obj_l9
+-
+-        # img_feat_l3_scores = image_soft_weights(obj_guide, img_feat_l3)
+-        # img_feat_l3 = torch.sum(img_feat_l3 * img_feat_l3_scores.unsqueeze(-1), dim=1)  # 64, 768
+-
+-        # img_feat_l6_scores = image_soft_weights(obj_guide, img_feat_l6)
+-        # img_feat_l6 = torch.sum(img_feat_l6 * img_feat_l6_scores.unsqueeze(-1), dim=1)
+-
+-        # img_feat_l9_scores = image_soft_weights(obj_guide, img_feat_l9)
+-        # img_feat_l9 = torch.sum(img_feat_l9 * img_feat_l9_scores.unsqueeze(-1), dim=1)
+-
+-        # fused_vis = torch.cat([img_feat_l9, img_feat_l6, img_feat_l3], dim=1)
+-        fused_vis = torch.cat([vis_obj_new_l9, vis_obj_new_l6, vis_obj_new_l3], dim=1)
+-        # fused_vis = torch.cat(
+-        #     [torch.mean(img_feat_l9, dim=1), torch.mean(img_feat_l6, dim=1), torch.mean(img_feat_l3, dim=1)], dim=1)
+-        attr_emb = self.attrc_embedder(fused_vis)
+-
+-        # obj prediction
+-        obj_pred = self.classifier(vis_obj_new, obj_weight)
+-        # obj_pred = self.classifier(vis_obj, obj_weight)
+-
+-        # attr prediction
+-        attr_pred = self.classifier(attr_emb, attr_weight)
+-
+-        # composition prediction
+-        vis_comp = self.compose_visual(vis_obj_new, attr_emb)
+-        comp_pred = self.classifier(vis_comp, concept)
+-
+-        # obj loss and accuracy
+-        obj_loss = F.cross_entropy(obj_pred, batch['obj'])  # object classification
+-        obj_pred = torch.max(obj_pred, dim=1)[1]
+-
+-        # attr loss and accuracy
+-        attr_loss = F.cross_entropy(attr_pred, batch['attr'])  # object classification
+-        attr_pred = torch.max(attr_pred, dim=1)[1]
+-
+-        # composition loss and accuracy
+-        # comp_pred = comp_pred + obj_pred + attr_pred
+-        comp_loss = F.cross_entropy(comp_pred, pair_labels)
+-        comp_pred = torch.max(comp_pred, dim=1)[1]
+-
+-        correct_obj = (obj_pred == obj_labels)
+-        correct_comp = (comp_pred == pair_labels)
+-        correct_attr = (attr_pred == attr_labels)
+-
+-        loss = comp_loss + 0.4 * obj_loss + 0.6 * attr_loss
+-
+-        out = {
+-            'loss_total': loss,
+-            'acc_attr': torch.div(correct_attr.sum(), float(bs)),
+-            'acc_obj': torch.div(correct_obj.sum(), float(bs)),
+-            'acc_pair': torch.div(correct_comp.sum(), float(bs))
+-        }
+-
+-        return out
+-
+     def val_forward(self, batch):
+         img = batch['img']
+ 
+@@ -436,8 +303,8 @@
+         img_feat_l3, img_feat_l6, img_feat_l9, img_feat_l12, cls_token = self.feat_extractor(
+             img)
+ 
+-        obj_weight = self.obj_embedder(self.tot_objs)
+-        attr_weight = self.attr_embedder(self.tot_attrs)
++        obj_weight = self._kcc_obj_embeddings(self.tot_objs)
++        attr_weight = self._kcc_attr_embeddings(self.tot_attrs)
+ 
+         # print(obj_weight.shape)
+         # print(attr_weight.shape)
+@@ -517,11 +384,11 @@
+ 
+         # obj prediction
+         obj_pred = self.classifier(vis_obj_new, obj_weight, scale=False)
+-        obj_pred = obj_pred.index_select(1, self.pairs[:, 1])
++        obj_pred = obj_pred.index_select(1, self.val_objs)
+ 
+         # attr prediction
+         attr_pred = self.classifier(attr_emb, attr_weight, scale=False)
+-        attr_pred = attr_pred.index_select(1, self.pairs[:, 0])
++        attr_pred = attr_pred.index_select(1, self.val_attrs)
+ 
+         # composition prediction
+         vis_comp = self.compose_visual(vis_obj_new, attr_emb)
+@@ -531,38 +398,9 @@
+         # print(attr_pred.shape)
+ 
+         pred = comp_pred + attr_pred + obj_pred
+-        out = {'pred': pred, 'scores': {}}
+-
+-        for _, pair in enumerate(self.val_pairs):
+-            out['scores'][pair] = pred[:, self.pair2idx[pair]]
+-
+-        return out
+-
+-    def forward(self, x, flag=False):
+-        if self.training:
+-            if flag:
+-                out = self.train_forward_augment(x)
+-            else:
+-                out = self.train_forward(x)
+-        else:
+-            with torch.no_grad():
+-                out = self.val_forward(x)
+-        return out
+-
+-
+-class CosineClassifier(nn.Module):
+-    def __init__(self, temp=0.05):
+-        super(CosineClassifier, self).__init__()
+-        self.temp = temp
+-
+-    def forward(self, img, concept, scale=True):
+-        """
+-        img: (bs, emb_dim)
+-        concept: (n_class, emb_dim)
+-        """
+-        img_norm = F.normalize(img, dim=-1)
+-        concept_norm = F.normalize(concept, dim=-1)
+-        pred = torch.matmul(img_norm, concept_norm.transpose(0, 1))
+-        if scale:
+-            pred = pred / self.temp
+-        return pred
++        pred = self._kcc_calibrate(pred, self.val_objs, self.val_attrs)
++        if pred.size(1) != len(self.val_pairs):
++            raise ValueError("evaluation candidate count mismatch")
++        return {'pred': pred, 'scores': {
++            pair: pred[:, index] for index, pair in enumerate(self.val_pairs)
++        }}
+--- before/models/kcc_cache.py
++++ after/models/kcc_cache.py
+@@ -0,0 +1,106 @@
++"""Frozen-cache loading and pair calibration for the existing GloVe CPF."""
++import hashlib
++import json
++import math
++from pathlib import Path
++
++import torch
++
++
++def file_sha256(path):
++    digest = hashlib.sha256()
++    with Path(path).open("rb") as handle:
++        for block in iter(lambda: handle.read(1024 * 1024), b""):
++            digest.update(block)
++    return digest.hexdigest()
++
++
++class KCCCacheMixin:
++    def _setup_kcc(self, dset, cfg):
++        self.kcc_text = bool(getattr(cfg.MODEL, "kcc_text", False))
++        self.kcc_calib = bool(getattr(cfg.MODEL, "kcc_calib", False))
++        self.kcc_lambda = float(getattr(cfg.MODEL, "kcc_lambda", 0.0))
++        self.kcc_cache_manifest_sha256 = None
++        if not math.isfinite(self.kcc_lambda) or self.kcc_lambda < 0:
++            raise ValueError("kcc_lambda must be finite and nonnegative")
++        for flag in ("kcc_logic", "kcc_feature"):
++            if bool(getattr(cfg.MODEL, flag, False)):
++                raise NotImplementedError(flag + " is not implemented in the A/C/D/E MVP")
++        if getattr(cfg.MODEL, "kcc_score_mode", "legacy") != "legacy":
++            raise NotImplementedError("this MVP implements legacy scores only")
++        if getattr(cfg.MODEL, "kcc_control", "none") != "none":
++            raise NotImplementedError("negative controls need their own implementation")
++        if not (self.kcc_text or self.kcc_calib):
++            return
++        if self.word_dim != 300:
++            raise ValueError("GloVe cache requires a 300-dimensional baseline")
++        cache = Path(cfg.MODEL.kcc_cache).resolve()
++        manifest_path = cache / "manifest.json"
++        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
++        if manifest["attrs"] != list(dset.attrs) or manifest["objs"] != list(dset.objs):
++            raise ValueError("cache primitive labels/order mismatch")
++        if manifest["pair_axis_order"] != ["object", "attribute"]:
++            raise ValueError("cache K must have [object, attribute] axes")
++        if manifest["dimension"] != 300 or manifest["dtype"] != "float32":
++            raise ValueError("cache dimension/dtype mismatch")
++        # Verify the small MVP tensors; pair blocks are not consumed by this model.
++        names = ["W_o_name_raw.pt", "W_a_name_raw.pt", "labels.json"]
++        if self.kcc_text:
++            names += ["W_o_K.pt", "W_a_K.pt"]
++        if self.kcc_calib:
++            names += ["K_oa_text.pt", "K_oa_prior_centered.pt"]
++        for name in names:
++            if file_sha256(cache / name) != manifest["files_sha256"][name]:
++                raise ValueError("cache file checksum mismatch: " + name)
++        labels = json.loads((cache / "labels.json").read_text(encoding="utf-8"))
++        if labels != {"attrs": list(dset.attrs), "objs": list(dset.objs)}:
++            raise ValueError("cache labels.json mismatch")
++        raw_obj = torch.load(cache / "W_o_name_raw.pt", map_location="cpu")
++        raw_attr = torch.load(cache / "W_a_name_raw.pt", map_location="cpu")
++        for raw, original, kind in ((raw_obj, self.obj_embedder.weight, "object"),
++                                     (raw_attr, self.attr_embedder.weight, "attribute")):
++            if raw.shape != original.shape or not torch.allclose(
++                    raw, original.detach().cpu(), atol=1e-6, rtol=1e-5):
++                raise ValueError(kind + " cached baseline name vectors differ from initializer")
++        if self.kcc_text:
++            for name, filename, size in (("W_o_K", "W_o_K.pt", self.num_objs),
++                                        ("W_a_K", "W_a_K.pt", self.num_attrs)):
++                value = torch.load(cache / filename, map_location="cpu").float()
++                if tuple(value.shape) != (size, self.word_dim) or not torch.isfinite(value).all():
++                    raise ValueError("bad knowledge tensor: " + filename)
++                if not torch.allclose(value.norm(dim=-1), torch.ones(size), atol=1e-5):
++                    raise ValueError("knowledge embedding unit norm failure: " + filename)
++                self.register_buffer(name, value, persistent=False)
++        if self.kcc_calib:
++            k = torch.load(cache / "K_oa_text.pt", map_location="cpu").float()
++            prior = torch.load(cache / "K_oa_prior_centered.pt", map_location="cpu").float()
++            if tuple(k.shape) != (self.num_objs, self.num_attrs) or prior.shape != k.shape:
++                raise ValueError("bad K shape")
++            if not torch.isfinite(k).all() or not torch.isfinite(prior).all():
++                raise ValueError("non-finite K")
++            expected = torch.zeros_like(k) if k.std(unbiased=False) < 1e-8 else (k - k.mean()) / k.std(unbiased=False)
++            if not torch.allclose(expected, prior, atol=1e-6, rtol=1e-5):
++                raise ValueError("K prior is not the population-standardized K")
++            self.register_buffer("K_oa_prior", prior, persistent=False)
++        self.kcc_cache_manifest_sha256 = file_sha256(manifest_path)
++        print("KCC CACHE LOADED: {} text={} calib={} lambda={} status={}".format(
++            cache, self.kcc_text, self.kcc_calib, self.kcc_lambda,
++            manifest.get("knowledge_status")), flush=True)
++
++    def _kcc_obj_embeddings(self, indices):
++        if self.kcc_text:
++            return self.W_o_K.index_select(0, indices)
++        return self.obj_embedder(indices)
++
++    def _kcc_attr_embeddings(self, indices):
++        if self.kcc_text:
++            return self.W_a_K.index_select(0, indices)
++        return self.attr_embedder(indices)
++
++    def _kcc_calibrate(self, scores, obj_ids, attr_ids):
++        if not self.kcc_calib or self.kcc_lambda == 0.0:
++            return scores
++        prior = self.K_oa_prior[obj_ids, attr_ids]
++        if scores.size(1) != prior.numel():
++            raise ValueError("K prior candidate order/shape mismatch")
++        return scores + self.kcc_lambda * prior.unsqueeze(0)
+--- before/train.py
++++ after/train.py
+@@ -418,30 +418,31 @@
+         torch.load(best_path, map_location=device)
+     )
+ 
+-    print("Test set with validation-best checkpoint ===>")
+-
+-    test_auc, test_hm = validate_ge(
+-        best_epoch,
+-        model,
+-        testloader,
+-        evaluator_test_ge,
+-        device,
+-        topk=cfg.EVAL.topk
+-    )
+-
+-    best_records["test/auc_at_best_val"] = test_auc
+-    best_records["test/hm_at_best_val"] = test_hm
+-
+-    logger.add_scalar(
+-        "test/auc_at_best_val",
+-        test_auc,
+-        best_epoch * len(trainloader)
+-    )
+-    logger.add_scalar(
+-        "test/hm_at_best_val",
+-        test_hm,
+-        best_epoch * len(trainloader)
+-    )
++    if bool(getattr(cfg.TRAIN, "kcc_test_at_end", False)):
++        print("Test set with validation-best checkpoint ===>")
++
++        test_auc, test_hm = validate_ge(
++            best_epoch,
++            model,
++            testloader,
++            evaluator_test_ge,
++            device,
++            topk=cfg.EVAL.topk
++        )
++
++        best_records["test/auc_at_best_val"] = test_auc
++        best_records["test/hm_at_best_val"] = test_hm
++
++        logger.add_scalar(
++            "test/auc_at_best_val",
++            test_auc,
++            best_epoch * len(trainloader)
++        )
++        logger.add_scalar(
++            "test/hm_at_best_val",
++            test_hm,
++            best_epoch * len(trainloader)
++        )
+ 
+     logger.close()
+     
+--- before/tests/smoke_mvp.py
++++ after/tests/smoke_mvp.py
+@@ -0,0 +1,196 @@
++#!/usr/bin/env python3
++"""Real-batch baseline equivalence, prior ordering and A/C/D/E gradient checks."""
++import argparse
++import gc
++import json
++import random
++import sys
++from itertools import product
++from pathlib import Path
++
++import numpy as np
++import torch
++import torch.nn.functional as F
++
++sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
++from config import cfg as default_cfg
++from dataset import CompositionDataset
++from models.ddm import DDM as OriginalDDM
++from models.kcc_cpf import DDM as KCCDDM
++
++
++def seed(value):
++    random.seed(value)
++    np.random.seed(value)
++    torch.manual_seed(value)
++    torch.cuda.manual_seed_all(value)
++
++
++def candidates(model, pairs, dataset, device):
++    ids = torch.tensor([(dataset.attr2idx[a], dataset.obj2idx[o]) for a, o in pairs], device=device)
++    model.val_attrs, model.val_objs = ids[:, 0], ids[:, 1]
++    model.val_pairs = pairs
++    model.pairs = ids
++    model.pair2idx = {p: i for i, p in enumerate(pairs)}
++
++
++def tensor_batch(dataset, device, count):
++    loader = torch.utils.data.DataLoader(dataset, batch_size=count, shuffle=False, num_workers=0)
++    batch = next(iter(loader))
++    return {k: v.to(device) if torch.is_tensor(v) else v for k, v in batch.items()}
++
++
++def prepare_train(model, state, cfg):
++    model.load_state_dict(state, strict=True)
++    model.zero_grad(set_to_none=True)
++    model.train()
++    if not cfg.TRAIN.finetune_backbone:
++        model.feat_extractor.eval()
++        model.feat_extractor.requires_grad_(False)
++    seed(int(cfg.TRAIN.seed))
++
++
++def near(actual, expected, label, tolerance=1e-6):
++    diff = (actual - expected).abs().max().item()
++    if diff > tolerance:
++        raise AssertionError("{} max difference {} > {}".format(label, diff, tolerance))
++    return diff
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--cfg", required=True)
++    parser.add_argument("--checkpoint", required=True)
++    parser.add_argument("--cache", required=True)
++    parser.add_argument("--out", type=Path, required=True)
++    parser.add_argument("--batch-size", type=int, default=2)
++    args = parser.parse_args()
++    if args.batch_size < 2:
++        parser.error("batch-size >= 2 is required for BatchNorm training")
++    if args.out.exists():
++        raise FileExistsError("refusing to overwrite smoke result: " + str(args.out))
++    if not torch.cuda.is_available():
++        raise RuntimeError("run smoke on an available CUDA GPU")
++    cfg = default_cfg.clone()
++    cfg.merge_from_file(args.cfg)
++    cfg.EVAL.open_world = False
++    cfg.MODEL.kcc_text = False
++    cfg.MODEL.kcc_calib = False
++    cfg.MODEL.kcc_feature = False
++    cfg.MODEL.kcc_logic = False
++    cfg.MODEL.kcc_lambda = 0.0
++    cfg.MODEL.kcc_score_mode = "legacy"
++    cfg.MODEL.kcc_control = "none"
++    cfg.MODEL.kcc_cache = args.cache
++    torch.backends.cudnn.benchmark = False
++    torch.backends.cudnn.deterministic = True
++    device = torch.device("cuda:0")
++    seed(int(cfg.TRAIN.seed))
++    trainset = CompositionDataset(phase="train", split=cfg.DATASET.splitname, open_world=False, cfg=cfg)
++    valset = CompositionDataset(phase="val", split=cfg.DATASET.splitname, open_world=False, cfg=cfg)
++    train_batch = tensor_batch(trainset, device, args.batch_size)
++    val_batch = tensor_batch(valset, device, args.batch_size)
++    state = torch.load(args.checkpoint, map_location="cpu")
++    if not isinstance(state, dict):
++        raise ValueError("expected baseline state_dict checkpoint")
++    old = OriginalDDM(trainset, cfg).to(device)
++    old.load_state_dict(state, strict=True)
++    old.eval()
++    pair_sets = {"cw": list(valset.pairs), "ow": list(product(valset.attrs, valset.objs))}
++    references = {}
++    with torch.no_grad():
++        for setting, pairs in pair_sets.items():
++            candidates(old, pairs, valset, device)
++            references[setting] = old(val_batch)["pred"].cpu()
++    prepare_train(old, state, cfg)
++    original_loss = old(train_batch)["loss_total"].detach().cpu()
++    del old
++    gc.collect()
++    torch.cuda.empty_cache()
++    cfg.MODEL.kcc_text, cfg.MODEL.kcc_calib, cfg.MODEL.kcc_lambda = True, True, .1
++    model = KCCDDM(trainset, cfg).to(device)
++    if set(model.state_dict()) != set(state):
++        raise AssertionError("new model broke strict baseline checkpoint compatibility")
++    report = {"baseline_checkpoint": args.checkpoint, "cache": args.cache,
++              "cache_manifest_sha256": model.kcc_cache_manifest_sha256,
++              "batch_size": args.batch_size, "settings": {}, "train": {}}
++    for setting, pairs in pair_sets.items():
++        model.load_state_dict(state, strict=True)
++        model.eval()
++        candidates(model, pairs, valset, device)
++        with torch.no_grad():
++            model.kcc_text, model.kcc_calib = False, False
++            a = model(val_batch)["pred"]
++            expected_a = references[setting].to(device)
++            difference = near(a, expected_a, setting + " A vs original")
++            if not torch.equal(a.argmax(1), expected_a.argmax(1)):
++                raise AssertionError("A top1 changed")
++            model.kcc_calib, model.kcc_lambda = True, 0.
++            near(model(val_batch)["pred"], a, setting + " lambda0")
++            model.kcc_lambda = .1
++            d = model(val_batch)["pred"]
++            prior = model.K_oa_prior[model.val_objs, model.val_attrs]
++            near(d, a + .1 * prior.unsqueeze(0), setting + " D pair ordering")
++            model.kcc_text, model.kcc_calib = True, False
++            c = model(val_batch)["pred"]
++            model.kcc_calib = True
++            e = model(val_batch)["pred"]
++            near(e, c + .1 * prior.unsqueeze(0), setting + " E pair ordering")
++            saved = model.K_oa_prior.clone()
++            model.K_oa_prior.zero_()
++            near(model(val_batch)["pred"], c, setting + " uniform prior")
++            model.K_oa_prior.copy_(saved)
++            # Reordered candidates must retain the same per-pair scores.
++            candidates(model, list(reversed(pairs)), valset, device)
++            near(model(val_batch)["pred"], e.flip(1), setting + " candidate permutation", 1e-5)
++        report["settings"][setting] = {"A_max_abs_score_difference": difference,
++                                       "A_top1_identical": True, "candidate_count": len(pairs),
++                                       "lambda0_identity": True, "uniform_identity": True,
++                                       "D_E_prior_ordering": True, "candidate_permutation": True}
++        print("PASS {}: baseline identity / lambda0 / uniform / prior ordering / candidate permutation".format(setting), flush=True)
++    for variant, flags in (("A", (False, False)), ("C", (True, False)),
++                           ("D", (False, True)), ("E", (True, True))):
++        model.kcc_text, model.kcc_calib = flags
++        model.kcc_lambda = .1 if flags[1] else 0.
++        prepare_train(model, state, cfg)
++        captured = []
++        hook = model.classifier.register_forward_hook(lambda module, inp, output: captured.append(output))
++        output = model(train_batch)
++        hook.remove()
++        loss = output["loss_total"]
++        if not torch.isfinite(loss):
++            raise AssertionError(variant + " non-finite loss")
++        if variant == "A":
++            near(loss.detach().cpu(), original_loss, "A train loss vs original", 1e-5)
++        if len(captured) != 3:
++            raise AssertionError("composition classifier call count changed")
++        raw = captured[2]
++        if flags[1]:
++            raw = raw + model.kcc_lambda * model.K_oa_prior[model.train_objs, model.train_attrs].unsqueeze(0)
++        expected_loss = (F.cross_entropy(raw, train_batch["pair"])
++                         + .4 * F.cross_entropy(captured[0], train_batch["obj"])
++                         + .6 * F.cross_entropy(captured[1], train_batch["attr"]))
++        near(loss.detach(), expected_loss.detach(), variant + " train prior CE placement")
++        loss.backward()
++        gradients = [p.grad for p in model.parameters() if p.requires_grad and p.grad is not None]
++        if not gradients or any(not torch.isfinite(g).all() for g in gradients):
++            raise AssertionError(variant + " missing/non-finite gradients")
++        if not any(g.abs().sum().item() > 0 for g in gradients):
++            raise AssertionError(variant + " zero gradients")
++        for name in ("W_o_K", "W_a_K", "K_oa_prior"):
++            value = getattr(model, name)
++            if value.requires_grad or value.grad is not None:
++                raise AssertionError("knowledge tensor is trainable: " + name)
++        report["train"][variant] = {"loss": loss.item(), "finite_nonzero_gradients": True,
++                                    "prior_CE_placement": True, "frozen_knowledge": True}
++        print("PASS {}: finite loss/backward, frozen knowledge, correct train prior placement".format(variant), flush=True)
++        del captured, loss, output, raw, expected_loss, gradients
++        model.zero_grad(set_to_none=True)
++    report["status"] = "MVP_SMOKE_PASSED"
++    args.out.parent.mkdir(parents=True, exist_ok=True)
++    args.out.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
++    print("MVP SMOKE PASSED: " + str(args.out), flush=True)
++
++
++if __name__ == "__main__":
++    main()
+--- before/tools/make_mvp_configs.py
++++ after/tools/make_mvp_configs.py
+@@ -0,0 +1,80 @@
++#!/usr/bin/env python3
++"""Make A/C/D/E configs from the baseline's effective train.log settings."""
++import argparse
++import json
++from pathlib import Path
++
++import yaml
++
++RUNS = {"ut-zappos": ("cpf_ut_zappos_seed3351", "ut-zap50k"),
++        "mit-states": ("cpf_mit_states_seed0", "mit-states"),
++        "cgqa": ("cpf_cgqa_seed3351_gpu2", "cgqa")}
++FLAGS = {"A": (False, False), "C": (True, False),
++         "D": (False, True), "E": (True, True)}
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--root", type=Path, required=True)
++    parser.add_argument("--exp", type=Path, required=True)
++    parser.add_argument("--cache-root", type=Path, required=True)
++    parser.add_argument("--dataset", choices=RUNS, default="ut-zappos")
++    parser.add_argument("--seed", type=int, default=3351)
++    parser.add_argument("--lambda-k", type=float, default=0.1)
++    args = parser.parse_args()
++    if args.lambda_k < 0:
++        parser.error("lambda-k must be nonnegative")
++    old_run, folder = RUNS[args.dataset]
++    log = args.root / "runs" / old_run / "train.log"
++    text = log.read_text(encoding="utf-8", errors="replace")
++    if "Random seed:" not in text:
++        raise ValueError("cannot identify baseline effective config: " + str(log))
++    baseline = yaml.safe_load(text.split("Random seed:", 1)[0])
++    for section in ("MODEL", "DATASET", "TRAIN", "EVAL"):
++        if not isinstance(baseline.get(section), dict):
++            raise ValueError("invalid baseline config section: " + section)
++    if baseline["MODEL"]["wordembs"] != "glove":
++        raise ValueError("requires the actual GloVe baseline")
++    for key in ("lr", "lr_encoder", "lr_word_embedding", "wd", "decay_factor"):
++        if key in baseline["TRAIN"]:
++            baseline["TRAIN"][key] = float(baseline["TRAIN"][key])
++    cache = args.cache_root.resolve() / folder
++    if not (cache / "manifest.json").is_file():
++        raise FileNotFoundError("knowledge cache missing: " + str(cache))
++    if int(baseline["TRAIN"]["aug_epoch"]) <= 10:
++        raise ValueError("baseline augmentation enters the first 10 epochs; audit before this MVP")
++    requested = {}
++    for variant, (txt, cal) in FLAGS.items():
++        c = yaml.safe_load(yaml.safe_dump(baseline))
++        lam = args.lambda_k if cal else 0.0
++        rid = "mvp_{}_{}_legacy_s{}_l{}".format(args.dataset, variant, args.seed, format(lam, ".6g"))
++        run = args.exp.resolve() / "runs" / rid
++        c["DATASET"]["root_dir"] = str(args.root.resolve() / "data" / folder)
++        c["EVAL"].update(open_world=False, topk=1)
++        c["TRAIN"].update(train_name=rid, seed=args.seed, start_epoch=1,
++                          max_epoch=10, final_max_epoch=10,
++                          start_epoch_validate=1, eval_every_epoch=1,
++                          log_dir=str(run / "logs"), checkpoint_dir=str(run / "checkpoints"),
++                          kcc_run_dir=str(run), kcc_stage="mvp", kcc_variant=variant,
++                          kcc_test_at_end=False)
++        c["MODEL"].update(kcc_text=txt, kcc_calib=cal, kcc_feature=False, kcc_logic=False,
++                          kcc_lambda=lam, kcc_beta=0.0, kcc_score_mode="legacy", kcc_control="none",
++                          kcc_cache=str(cache))
++        path = args.exp.resolve() / "configs" / (rid + ".yml")
++        requested[path] = yaml.safe_dump(c, allow_unicode=True, sort_keys=True)
++    # Preflight all paths before any writes.
++    for path, content in requested.items():
++        if path.exists() and path.read_text(encoding="utf-8") != content:
++            raise FileExistsError("different config already exists: " + str(path))
++    for path, content in requested.items():
++        path.parent.mkdir(parents=True, exist_ok=True)
++        if not path.exists():
++            path.write_text(content, encoding="utf-8")
++        print(path)
++    index = args.exp.resolve() / "configs" / ("index_{}_s{}.json".format(args.dataset, args.seed))
++    index.write_text(json.dumps({v: str(p) for v, p in zip(FLAGS, requested)}, indent=2), encoding="utf-8")
++    print("INDEX: " + str(index))
++
++
++if __name__ == "__main__":
++    main()
+--- before/tools/eval_mvp.py
++++ after/tools/eval_mvp.py
+@@ -0,0 +1,134 @@
++import argparse, hashlib, json, re, sys, tempfile, time
++from pathlib import Path
++sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
++import numpy as np
++import torch
++from config import cfg
++from dataset import CompositionDataset
++from models.kcc_cpf import DDM
++import evaluator_ge
++
++def sha(path):
++    p=Path(path)
++    if not p.is_file(): return None
++    h=hashlib.sha256()
++    with p.open('rb') as f:
++        for block in iter(lambda:f.read(8*1024*1024),b''): h.update(block)
++    return h.hexdigest()
++
++def scalar(x):
++    if torch.is_tensor(x): x=x.detach().cpu().numpy()
++    z=np.asarray(x)
++    return float(z.item()) if z.size==1 else None
++
++def main():
++    p=argparse.ArgumentParser()
++    p.add_argument('--cfg',required=True)
++    p.add_argument('--load',required=True)
++    p.add_argument('--phase',choices=['val','test'],required=True)
++    p.add_argument('--setting',choices=['cw','ow'],required=True)
++    p.add_argument('--out',required=True)
++    p.add_argument('--save-scores',action='store_true')
++    p.add_argument('opts',nargs=argparse.REMAINDER)
++    a=p.parse_args()
++    cfg.merge_from_file(a.cfg); cfg.merge_from_list(a.opts)
++    assert bool(cfg.EVAL.open_world)==(a.setting=='ow'), 'setting/config mismatch'
++    cfg.EVAL.topk=1
++    run=Path(getattr(cfg.TRAIN,'kcc_run_dir',str(Path(a.out).parent)))
++    frozen_cache=run/'meta/cache_manifest.json'
++    live_cache=Path(cfg.MODEL.kcc_cache)/'cache_manifest.json'
++    if frozen_cache.is_file() and sha(frozen_cache)!=sha(live_cache):
++        raise ValueError('live knowledge cache differs from the training manifest')
++    dest=Path(a.out); dest.mkdir(parents=True,exist_ok=True)
++    if (dest/'metrics.json').exists() or (dest/'scores.dat').exists():
++        raise FileExistsError('refusing overwrite: '+str(dest))
++    device=torch.device('cuda:0')
++    trainset=CompositionDataset(phase='train',split=cfg.DATASET.splitname,
++               open_world=cfg.EVAL.open_world,cfg=cfg)
++    ds=CompositionDataset(phase=a.phase,split=cfg.DATASET.splitname,
++               open_world=cfg.EVAL.open_world,cfg=cfg)
++    dl=torch.utils.data.DataLoader(ds,batch_size=cfg.TRAIN.test_batch_size,
++               shuffle=False,num_workers=cfg.TRAIN.num_workers)
++    model=DDM(trainset,cfg).to(device)
++    model.load_state_dict(torch.load(a.load,map_location=device),strict=True)
++    model.eval()
++    model.val_attrs=torch.tensor([ds.attr2idx[x] for x,y in ds.pairs],device=device)
++    model.val_objs=torch.tensor([ds.obj2idx[y] for x,y in ds.pairs],device=device)
++    model.val_pairs=ds.pairs
++    ev=evaluator_ge.Evaluator(ds,model)
++    n=len(ds); nc=len(ds.pairs)
++    print('phase=',a.phase,'setting=',a.setting,'images=',n,'candidates=',nc,
++          'score_disk_GiB=',4*n*nc/(1024**3),flush=True)
++    truth_a=np.empty(n,dtype=np.int64); truth_o=np.empty(n,dtype=np.int64)
++    truth_p=np.empty(n,dtype=np.int64)
++    # 标明bias=0的top5，不能冒称best-HM bias预测。
++    top5=np.empty((n,min(5,nc)),dtype=np.int64)
++    torch.cuda.reset_peak_memory_stats()
++    start=time.time()
++    with tempfile.TemporaryDirectory(prefix='score_tmp_',dir=str(dest)) as td:
++        scorepath=dest/'scores.dat' if a.save_scores else Path(td)/'scores.dat'
++        mm=np.memmap(str(scorepath),mode='w+',dtype=np.float32,shape=(n,nc))
++        offset=0
++        with torch.no_grad():
++            for batch in dl:
++                for k,v in batch.items():
++                    if torch.is_tensor(v): batch[k]=v.to(device,non_blocking=True)
++                out=model(batch)
++                mat=torch.stack([out['scores'][pair] for pair in ds.pairs],dim=1)
++                mat=mat.detach().float().cpu()
++                if not torch.isfinite(mat).all(): raise ValueError('nonfinite scores')
++                b=mat.size(0); sl=slice(offset,offset+b)
++                mm[sl]=mat.numpy()
++                truth_a[sl]=batch['attr'].cpu().numpy()
++                truth_o[sl]=batch['obj'].cpu().numpy()
++                truth_p[sl]=batch['pair'].cpu().numpy()
++                top5[sl]=torch.topk(mat,min(5,nc),dim=1).indices.numpy()
++                offset+=b
++                del out,mat
++        assert offset==n
++        mm.flush()
++        matrix=torch.from_numpy(mm)
++        pred={pair:matrix[:,i] for i,pair in enumerate(ds.pairs)}
++        ga=torch.from_numpy(truth_a); go=torch.from_numpy(truth_o); gp=torch.from_numpy(truth_p)
++        results=ev.score_model(pred,go,bias=1e3,topk=1)
++        stats=ev.evaluate_predictions(results,ga,go,gp,pred,topk=1)
++        vals={k:scalar(v) for k,v in stats.items() if scalar(v) is not None}
++        for required in ['AUC','best_hm','best_seen','best_unseen']:
++            if required not in vals: raise ValueError('missing metric '+required)
++            if not np.isfinite(vals[required]): raise ValueError('nonfinite metric')
++        run=Path(getattr(cfg.TRAIN,'kcc_run_dir',str(dest.parent)))
++        best_epoch=None
++        if (run/'train.log').exists():
++            matches=re.findall(r'Loading validation-best checkpoint from epoch (\d+)',
++                              (run/'train.log').read_text(errors='replace'))
++            if matches: best_epoch=int(matches[-1])
++        meta={
++            'run_id':run.name,'stage':getattr(cfg.TRAIN,'kcc_stage','audit'),
++            'dataset':cfg.DATASET.name,'variant':getattr(cfg.TRAIN,'kcc_variant','A'),
++            'seed':int(cfg.TRAIN.seed),'phase':a.phase,'setting':a.setting,'topk':1,
++            'score_mode':getattr(cfg.MODEL,'kcc_score_mode','legacy'),
++            'control':getattr(cfg.MODEL,'kcc_control','none'),
++            'lambda_k':float(getattr(cfg.MODEL,'kcc_lambda',0)),
++            'beta':float(getattr(cfg.MODEL,'kcc_beta',0)),
++            'best_epoch':best_epoch,'checkpoint_sha256':sha(a.load),
++            'config_sha256':hashlib.sha256(cfg.dump().encode()).hexdigest(),
++            'source_manifest_sha256':sha(run/'meta/source.sha256'),
++            'knowledge_manifest_sha256':sha(run/'meta/cache_manifest.json'),
++            'dataset_manifest_sha256':sha(run/'meta/dataset_hashes.txt'),
++            'n_images':n,'n_candidates':nc,'eval_seconds':time.time()-start,
++            'peak_eval_gpu_allocated_mb':torch.cuda.max_memory_allocated()/1024**2,
++            'score_dtype':'float32','score_shape':[n,nc],
++            'scores_saved':a.save_scores,'metrics_raw':vals}
++        (dest/'config_eval_effective.yml').write_text(cfg.dump())
++        (dest/'candidates.json').write_text(json.dumps(ds.pairs,ensure_ascii=False))
++        np.savez_compressed(str(dest/'labels.npz'),attr=truth_a,obj=truth_o,pair=truth_p,
++                            top5_indices_at_bias0=top5)
++        # image_id需来自dataset真实顺序，不按文件夹重新排序。
++        image_ids=[item[0] for item in ds.data]
++        (dest/'image_ids.json').write_text(json.dumps(image_ids,ensure_ascii=False))
++        (dest/'metrics.json').write_text(json.dumps(meta,ensure_ascii=False,indent=2))
++        print('Top 1',json.dumps(vals,ensure_ascii=False),flush=True)
++        del results,pred,matrix,mm
++
++if __name__=='__main__':
++    main()
+--- before/tools/run_mvp.sh
++++ after/tools/run_mvp.sh
+@@ -0,0 +1,70 @@
++#!/usr/bin/env bash
++set -euo pipefail
++cfg=${1:?usage: run_mvp.sh CONFIG PHYSICAL_GPU}
++gpu=${2:?usage: run_mvp.sh CONFIG PHYSICAL_GPU}
++export CUDA_VISIBLE_DEVICES="$gpu"
++export PYTHONUNBUFFERED=1
++
++info_text=$(python - "$cfg" <<'PY'
++import sys, yaml
++c = yaml.safe_load(open(sys.argv[1]))
++assert c['TRAIN']['kcc_test_at_end'] is False
++assert c['MODEL']['kcc_feature'] is False and c['MODEL']['kcc_logic'] is False
++assert c['MODEL']['kcc_score_mode'] == 'legacy'
++print(c['TRAIN']['kcc_run_dir'])
++print(c['TRAIN']['checkpoint_dir']+'/'+c['config_name']+'_'+c['TRAIN']['train_name']+'/best_auc.pth')
++print(c['DATASET']['root_dir'])
++print(c['MODEL']['kcc_cache'])
++PY
++)
++mapfile -t info <<< "$info_text"
++[ "${#info[@]}" -eq 4 ] || { echo 'Invalid config'; exit 2; }
++run=${info[0]}; ck=${info[1]}; data=${info[2]}; cache=${info[3]}
++[ ! -e "$run" ] || { echo "Run exists, refusing overwrite: $run"; exit 2; }
++test -s models/kcc_cpf.py
++test -s "$cache/manifest.json"
++python tools/build_knowledge.py --output-dir "$cache" --verify-only
++mkdir -p "$run/meta"
++trap 'rc=$?; if [ "$rc" -ne 0 ]; then printf "failed exit_code=%s\n" "$rc" > "$run/status.txt"; fi' EXIT
++printf 'running\n' > "$run/status.txt"
++cp "$cfg" "$run/config_requested.yml"
++cp "$cache/cache_manifest.json" "$run/meta/cache_manifest.json"
++python -m pip freeze > "$run/meta/pip_freeze.txt"
++nvidia-smi > "$run/meta/nvidia-smi.txt"
++python - "$run" "$data" <<'PY'
++import hashlib, sys, tarfile
++from pathlib import Path
++run, data = map(Path, sys.argv[1:])
++def digest(p):
++    h=hashlib.sha256()
++    with p.open('rb') as f:
++        for b in iter(lambda:f.read(1024*1024),b''): h.update(b)
++    return h.hexdigest()
++files=[]
++for folder in ('models','config','utils','tools','tests','clip_modules'):
++    if Path(folder).is_dir():
++        files.extend(p for p in Path(folder).rglob('*') if p.is_file()
++                     and p.suffix in ('.py','.yml','.yaml','.sh'))
++files.extend(Path(x) for x in ('train.py','test.py','dataset.py','evaluator_ge.py'))
++files=sorted(set(files))
++(run/'meta/source.sha256').write_text(''.join(digest(p)+'  '+str(p)+'\n' for p in files))
++with tarfile.open(run/'meta/source_snapshot.tar.gz','w:gz') as archive:
++    for p in files: archive.add(p,arcname=str(p))
++datafiles=[data/'compositional-split-natural'/(s+'_pairs.txt') for s in ('train','val','test')]
++datafiles.append(data/'metadata_compositional-split-natural.t7')
++(run/'meta/dataset_hashes.txt').write_text(''.join(digest(p)+'  '+str(p)+'\n' for p in datafiles))
++PY
++printf 'CUDA_VISIBLE_DEVICES=%q python -u train.py --cfg %q\n' "$gpu" "$cfg" > "$run/command_train.txt"
++date -Is > "$run/start_time.txt"
++python -u train.py --cfg "$cfg" 2>&1 | tee "$run/train.log"
++test -s "$ck"
++sha256sum "$ck" > "$run/meta/checkpoint.sha256"
++for setting in cw ow; do
++    ow=False; [ "$setting" = ow ] && ow=True
++    python tools/eval_mvp.py --cfg "$cfg" --load "$ck" --phase val --setting "$setting" \
++        --out "$run/eval_val_$setting" EVAL.open_world "$ow" \
++        2>&1 | tee "$run/eval_val_${setting}.log"
++done
++date -Is > "$run/end_time.txt"
++printf 'train_and_val_complete\n' > "$run/status.txt"
++echo "MVP TRAIN + VAL COMPLETE: $run"
