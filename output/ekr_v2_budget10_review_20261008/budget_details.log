@@ -1,0 +1,106 @@
+PROVENANCE {"passed": true, "immutable_artifacts_verified": 84, "excluded_weights": 8, "replay_scores_verified": 4}
+TRAJECTORY [
+  {
+    "variant": "V_name_align",
+    "selected_epoch": 6,
+    "best_trained_epoch": 6,
+    "best_trained_cw_auc_pct": 43.47619848130165,
+    "best_trained_vs_baseline_pp": 0.3530036596992687,
+    "final_epoch_cw_auc_pct": 42.67250992923606,
+    "final_epoch_vs_baseline_pp": -0.4506848923663256,
+    "epochs_above_anchor": 2,
+    "early_epochs_1_3_mean_cw_auc_pct": 42.930884163032566,
+    "late_epochs_8_10_mean_cw_auc_pct": 42.60320215873637,
+    "early_mean_loss": 1.3201092397641052,
+    "late_mean_loss": 1.2739394362374976,
+    "cw_hm_selected": 58.09861271596538,
+    "ow_auc_selected": 30.323915691680664,
+    "value_drift_at_epoch10": 0.6727162003517151,
+    "eta_at_epoch10": -0.0939585268497467
+  },
+  {
+    "variant": "V_clean_align",
+    "selected_epoch": 0,
+    "best_trained_epoch": 1,
+    "best_trained_cw_auc_pct": 42.96328094016416,
+    "best_trained_vs_baseline_pp": -0.1599138814382215,
+    "final_epoch_cw_auc_pct": 42.22648510970459,
+    "final_epoch_vs_baseline_pp": -0.8967097118977918,
+    "epochs_above_anchor": 0,
+    "early_epochs_1_3_mean_cw_auc_pct": 42.79164964212771,
+    "late_epochs_8_10_mean_cw_auc_pct": 42.23339714621353,
+    "early_mean_loss": 1.3116426335492575,
+    "late_mean_loss": 1.2454513367816746,
+    "cw_hm_selected": 56.2342144659432,
+    "ow_auc_selected": 29.580507713207822,
+    "value_drift_at_epoch10": 0.6754442453384399,
+    "eta_at_epoch10": -0.09418254345655441
+  },
+  {
+    "variant": "V_shuffle_align",
+    "selected_epoch": 0,
+    "best_trained_epoch": 1,
+    "best_trained_cw_auc_pct": 43.08589367837561,
+    "best_trained_vs_baseline_pp": -0.03730114322677025,
+    "final_epoch_cw_auc_pct": 42.974405186661045,
+    "final_epoch_vs_baseline_pp": -0.14878963494133757,
+    "epochs_above_anchor": 0,
+    "early_epochs_1_3_mean_cw_auc_pct": 42.791991535886474,
+    "late_epochs_8_10_mean_cw_auc_pct": 42.86345428995716,
+    "early_mean_loss": 1.3113774992256686,
+    "late_mean_loss": 1.2463921890413048,
+    "cw_hm_selected": 56.2342144659432,
+    "ow_auc_selected": 29.580507713207822,
+    "value_drift_at_epoch10": 0.6719856262207031,
+    "eta_at_epoch10": -0.09407079964876175
+  },
+  {
+    "variant": "V_clean_fixed",
+    "selected_epoch": 2,
+    "best_trained_epoch": 2,
+    "best_trained_cw_auc_pct": 43.20731096827966,
+    "best_trained_vs_baseline_pp": 0.08411614667727463,
+    "final_epoch_cw_auc_pct": 42.4683191556901,
+    "final_epoch_vs_baseline_pp": -0.6548756659122859,
+    "epochs_above_anchor": 1,
+    "early_epochs_1_3_mean_cw_auc_pct": 43.00153401551841,
+    "late_epochs_8_10_mean_cw_auc_pct": 42.45006319276171,
+    "early_mean_loss": 1.3662626039281385,
+    "late_mean_loss": 1.3495767516675443,
+    "cw_hm_selected": 56.79673102623879,
+    "ow_auc_selected": 29.824121472534426,
+    "value_drift_at_epoch10": 0.0,
+    "eta_at_epoch10": -0.09624554961919785
+  }
+]
+PRIMARY_DELTAS [
+  {
+    "comparison": "V_clean_align - B_name",
+    "cw_auc_pp": 0.0,
+    "cw_hm_pp": 0.0,
+    "ow_auc_pp": 0.0,
+    "ow_unseen_pp": 0.0
+  },
+  {
+    "comparison": "V_clean_align - V_name_align",
+    "cw_auc_pp": -0.35300365969926917,
+    "cw_hm_pp": -1.8643982500221812,
+    "ow_auc_pp": -0.7434079784728431,
+    "ow_unseen_pp": -1.2409090995788574
+  },
+  {
+    "comparison": "V_clean_align - V_shuffle_align",
+    "cw_auc_pp": 0.0,
+    "cw_hm_pp": 0.0,
+    "ow_auc_pp": 0.0,
+    "ow_unseen_pp": 0.0
+  },
+  {
+    "comparison": "V_clean_align - V_clean_fixed",
+    "cw_auc_pp": -0.08411614667727108,
+    "cw_hm_pp": -0.5625165602955895,
+    "ow_auc_pp": -0.24361375932660523,
+    "ow_unseen_pp": -0.08558034896850586
+  }
+]
+PLOT_SAVED C:\Users\llenovo\Documents\ChatGPT\CZSL\output\ekr_v2_budget10_review_20261008\budget10_training_curves.png

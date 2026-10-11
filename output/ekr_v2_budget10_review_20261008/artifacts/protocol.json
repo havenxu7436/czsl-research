@@ -1,0 +1,44 @@
+{
+  "version": "ekr_v2_budget10_20261008",
+  "work": "/var/tmp/czsl_xhw_name_ekr_20261007",
+  "output": "/var/tmp/czsl_xhw_ekr_v2_align_budget10_20261008",
+  "release_sha256": "2c1e7c92e9f67eb4b59a57d582e195b3824106106928a8431e8c39df15f53df9",
+  "reference_sha256": "6440cd507e0997f480262a811881e84a6f5e3aadc33086dbae3fe527bfd83bb0",
+  "settings": {
+    "seed": 0,
+    "epochs": 10,
+    "rank": 32,
+    "value_rank": 32,
+    "eta_max": 0.1,
+    "temperature": 0.2,
+    "score_temperature": 0.05,
+    "learning_rate": 0.001,
+    "weight_decay": 0.0001,
+    "batch_size": 64
+  },
+  "variants": [
+    "V_name_align",
+    "V_clean_align",
+    "V_shuffle_align",
+    "V_clean_fixed"
+  ],
+  "old_pilot_proceed": false,
+  "phase": "UT seed-0 exploratory pilot",
+  "test_allowed": false,
+  "common_anchor": "frozen A_unit + frozen reviewed N_name",
+  "primary": "V_clean_align",
+  "epoch_selection": "first strict CW maximum among epochs 0 through 10",
+  "prior_v2_proceed": false,
+  "prior_v2_protocol_sha256": "70d613de17d89e3166436179a7b320eef55b08847d596b1b47c96702521164ed",
+  "imported_epochs": 3,
+  "new_epochs": 7,
+  "exploratory_budget_extension": true,
+  "pilot_threshold_pp": 0.2,
+  "alignment_ablation_threshold_pp": 0.1,
+  "guards": {
+    "cw_hm_pp": -0.5,
+    "ow_auc_pp": -0.5,
+    "ow_best_unseen_pp": -2
+  },
+  "note": "Input shuffle control is not a random semantic graph; no static K; no robustness loss"
+}
