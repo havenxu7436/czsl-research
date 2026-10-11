@@ -1,0 +1,20 @@
+{
+  "role": "Documentation of switches; actual config generation is code/faithful_0601_20261011/prepare.py",
+  "seeds": [3351, 3352, 3353],
+  "variants": [
+    {"name": "A", "text": false, "calibration": false, "feature": false, "logic": false, "formula_joint": false, "kind": "original_core"},
+    {"name": "B", "text": false, "calibration": false, "feature": false, "logic": true, "formula_joint": false, "kind": "original_core"},
+    {"name": "C", "text": true, "calibration": false, "feature": false, "logic": false, "formula_joint": false, "kind": "original_core"},
+    {"name": "D", "text": false, "calibration": true, "feature": false, "logic": false, "formula_joint": true, "kind": "original_core"},
+    {"name": "E", "text": true, "calibration": true, "feature": false, "logic": false, "formula_joint": true, "kind": "original_core"},
+    {"name": "F", "text": true, "calibration": true, "feature": false, "logic": true, "formula_joint": true, "kind": "original_core"},
+    {"name": "G", "text": true, "calibration": true, "feature": true, "logic": false, "formula_joint": true, "kind": "original_core"},
+    {"name": "H", "text": true, "calibration": true, "feature": true, "logic": true, "formula_joint": true, "kind": "original_core_template_only"},
+    {"name": "J0", "text": false, "calibration": false, "feature": false, "logic": false, "formula_joint": true, "kind": "added_interface_control"},
+    {"name": "Jtext", "text": true, "calibration": false, "feature": false, "logic": false, "formula_joint": true, "kind": "added_interface_control"},
+    {"name": "H_no_pair", "text": true, "calibration": true, "feature": true, "logic": true, "formula_joint": true, "full_use_pair": false, "prior_retained": true, "kind": "original_sanity"},
+    {"name": "H_shuffle", "text": true, "calibration": true, "feature": true, "logic": true, "formula_joint": true, "shuffle": "OE/AE Text/Feature descriptions and matching logic descriptions; names/OI/pair templates/prior retained", "kind": "original_sanity"},
+    {"name": "H_random_prior", "text": true, "calibration": true, "feature": true, "logic": true, "formula_joint": true, "prior": "random seed603354 then centered sample_std+epsilon", "kind": "original_sanity"},
+    {"name": "H_uniform_prior", "text": true, "calibration": true, "feature": true, "logic": true, "formula_joint": true, "prior": "constant ones then centered zero", "kind": "original_sanity"}
+  ]
+}
