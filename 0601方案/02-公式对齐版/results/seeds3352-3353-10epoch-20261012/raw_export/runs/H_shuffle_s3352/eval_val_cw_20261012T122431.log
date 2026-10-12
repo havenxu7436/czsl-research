@@ -1,0 +1,44 @@
+
+COMMAND ["/data/xhw/miniconda3/envs/cpf/bin/python", "-u", "tools/eval_mvp.py", "--cfg", "/var/tmp/czsl_0601_formula_10e_s3352_s3353_20261012/configs/H_shuffle_s3352.yml", "--load", "/var/tmp/czsl_0601_formula_10e_s3352_s3353_20261012/runs/H_shuffle_s3352/checkpoints/ut-zappos-czsl_formula_H_shuffle_s3352/best_auc.pth", "--phase", "val", "--setting", "cw", "--out", "/var/tmp/czsl_0601_formula_10e_s3352_s3353_20261012/runs/H_shuffle_s3352/eval_val_cw", "--save-scores", "EVAL.open_world", "False"]
+# train pairs: 83 | # val pairs: 30 | # test pairs: 36
+# train images: 22998 | # val images: 3214 | # test images: 2914
+# train pairs: 83 | # val pairs: 30 | # test pairs: 36
+# train images: 22998 | # val images: 3214 | # test images: 2914
+Change Faux.Fur to fake_fur
+fake_fur
+Change Faux.Leather to fake_leather
+fake_leather
+Change Full.grain.leather to thick_leather
+thick_leather
+Change Hair.Calf to hair_leather
+hair_leather
+Change Nubuck to grainy_leather
+grainy_leather
+Change Patent.Leather to shiny_leather
+shiny_leather
+Loaded embeddings from file /data/xhw/czsl_repro/data/ut-zap50k/../glove/glove.6B.300d.txt torch.Size([16, 300])
+Change Boots.Ankle to ankle_boots
+ankle_boots
+Change Boots.Knee.High to knee_high_boots
+knee_high_boots
+Change Boots.Mid-Calf to midcalf_boots
+midcalf_boots
+Change Shoes.Boat.Shoes to boat_shoes
+boat_shoes
+Change Shoes.Clogs.and.Mules to clogs_shoes
+clogs_shoes
+Change Shoes.Flats to flats_shoes
+flats_shoes
+Change Shoes.Heels to heels
+Change Shoes.Loafers to loafers
+Change Shoes.Oxfords to oxford_shoes
+oxford_shoes
+Change Shoes.Sneakers.and.Athletic.Shoes to sneakers
+Loaded embeddings from file /data/xhw/czsl_repro/data/ut-zap50k/../glove/glove.6B.300d.txt torch.Size([12, 300])
+Loaded pretrained weights.
+KCC CACHE LOADED: /var/tmp/czsl_0601_formula_10e_s3352_s3353_20261012/cache_shuffle text=True calib=True lambda=0.1 status=0601_formula_reconstruction_20261011
+FULL_FEATURE_READY hidden=512 pair=True gain=1.0 parameters=771073
+FORMULA_0601_READY joint=True feature=True logic=True obj_temperature=0.05 head_temperature=1
+Evaluating with validation pairs
+phase= val setting= cw images= 3214 candidates= 116 score_disk_GiB= 0.0013888776302337646
+Top 1 {"closed_attr_match": 0.6235221028327942, "closed_obj_match": 0.8070939779281616, "closed_match": 0.5308027267456055, "closed_seen_match": 0.0, "closed_unseen_match": 0.7299957275390625, "closed_ca": 2.0, "closed_seen_ca": 1.0, "closed_unseen_ca": 1.0, "closed_ub_attr_match": 0.2955818176269531, "closed_ub_obj_match": 0.8298071026802063, "closed_ub_match": 0.22028625011444092, "closed_ub_seen_match": 0.57012540102005, "closed_ub_unseen_match": 0.08900299668312073, "closed_ub_ca": 2.0, "closed_ub_seen_ca": 1.0, "closed_ub_unseen_ca": 1.0, "biasterm": 2.551759958267212, "best_unseen": 0.7299957275390625, "best_seen": 0.5803877115249634, "AUC": 0.34983379342137244, "hm_unseen": 0.5455712676048279, "hm_seen": 0.46408209204673767, "best_hm": 0.5015381820113304}

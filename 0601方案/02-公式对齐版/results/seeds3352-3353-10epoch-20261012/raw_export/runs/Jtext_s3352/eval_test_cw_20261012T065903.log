@@ -1,0 +1,43 @@
+
+COMMAND ["/data/xhw/miniconda3/envs/cpf/bin/python", "-u", "tools/eval_mvp.py", "--cfg", "/var/tmp/czsl_0601_formula_10e_s3352_s3353_20261012/configs/Jtext_s3352.yml", "--load", "/var/tmp/czsl_0601_formula_10e_s3352_s3353_20261012/runs/Jtext_s3352/checkpoints/ut-zappos-czsl_formula_Jtext_s3352/best_auc.pth", "--phase", "test", "--setting", "cw", "--out", "/var/tmp/czsl_0601_formula_10e_s3352_s3353_20261012/runs/Jtext_s3352/eval_test_cw", "--save-scores", "EVAL.open_world", "False"]
+# train pairs: 83 | # val pairs: 30 | # test pairs: 36
+# train images: 22998 | # val images: 3214 | # test images: 2914
+# train pairs: 83 | # val pairs: 30 | # test pairs: 36
+# train images: 22998 | # val images: 3214 | # test images: 2914
+Change Faux.Fur to fake_fur
+fake_fur
+Change Faux.Leather to fake_leather
+fake_leather
+Change Full.grain.leather to thick_leather
+thick_leather
+Change Hair.Calf to hair_leather
+hair_leather
+Change Nubuck to grainy_leather
+grainy_leather
+Change Patent.Leather to shiny_leather
+shiny_leather
+Loaded embeddings from file /data/xhw/czsl_repro/data/ut-zap50k/../glove/glove.6B.300d.txt torch.Size([16, 300])
+Change Boots.Ankle to ankle_boots
+ankle_boots
+Change Boots.Knee.High to knee_high_boots
+knee_high_boots
+Change Boots.Mid-Calf to midcalf_boots
+midcalf_boots
+Change Shoes.Boat.Shoes to boat_shoes
+boat_shoes
+Change Shoes.Clogs.and.Mules to clogs_shoes
+clogs_shoes
+Change Shoes.Flats to flats_shoes
+flats_shoes
+Change Shoes.Heels to heels
+Change Shoes.Loafers to loafers
+Change Shoes.Oxfords to oxford_shoes
+oxford_shoes
+Change Shoes.Sneakers.and.Athletic.Shoes to sneakers
+Loaded embeddings from file /data/xhw/czsl_repro/data/ut-zap50k/../glove/glove.6B.300d.txt torch.Size([12, 300])
+Loaded pretrained weights.
+KCC CACHE LOADED: /var/tmp/czsl_0601_formula_10e_s3352_s3353_20261012/cache_formula text=True calib=False lambda=0.0 status=0601_formula_reconstruction_20261011
+FORMULA_0601_READY joint=True feature=False logic=False obj_temperature=0.05 head_temperature=1
+Evaluating with test pairs
+phase= test setting= cw images= 2914 candidates= 116 score_disk_GiB= 0.00125923752784729
+Top 1 {"closed_attr_match": 0.453671932220459, "closed_obj_match": 0.6722717881202698, "closed_match": 0.3912148177623749, "closed_seen_match": 0.0, "closed_unseen_match": 0.6028556227684021, "closed_ca": 2.0, "closed_seen_ca": 1.0, "closed_unseen_ca": 1.0, "closed_ub_attr_match": 0.4217570424079895, "closed_ub_obj_match": 0.6674674153327942, "closed_ub_match": 0.21276596188545227, "closed_ub_seen_match": 0.6060606241226196, "closed_ub_unseen_match": 0.0, "closed_ub_ca": 2.0, "closed_ub_seen_ca": 1.0, "closed_ub_unseen_ca": 1.0, "biasterm": 6.801830291748047, "best_unseen": 0.6028556227684021, "best_seen": 0.6060606241226196, "AUC": 0.32423379070975233, "hm_unseen": 0.4822845160961151, "hm_seen": 0.5004887580871582, "best_hm": 0.4912180354236966}

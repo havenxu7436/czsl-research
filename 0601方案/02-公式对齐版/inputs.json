@@ -2,19 +2,16 @@
   "stage": "02",
   "latest_result_set": {
     "date": "2026-10-12",
-    "seed": 3351,
-    "actual_epochs": 30,
-    "completed_jobs": 14,
-    "evaluations": 56,
-    "other_seeds_not_started": [
+    "seeds": [
       3352,
       3353
     ],
-    "report": "0601方案/02-公式对齐版/results/seed3351-30epoch-20261012/README.md",
-    "audit": "0601方案/02-公式对齐版/results/seed3351-30epoch-20261012/audit.json",
-    "all_original_export_members": "0601方案/02-公式对齐版/results/seed3351-30epoch-20261012/export_member_map.json",
-    "not_all42_jobs_complete": true,
-    "actual30epoch_identity_preserved": true,
+    "actual_epochs": 10,
+    "completed_jobs": 28,
+    "evaluations": 112,
+    "report": "0601方案/02-公式对齐版/results/seeds3352-3353-10epoch-20261012/README.md",
+    "audit": "0601方案/02-公式对齐版/results/seeds3352-3353-10epoch-20261012/audit.json",
+    "all_original_export_members": "0601方案/02-公式对齐版/results/seeds3352-3353-10epoch-20261012/export_member_map.json",
     "github_binary_storage": "Git LFS for original scores, labels and knowledge tensors; no model weights/images/credentials"
   },
   "knowledge": [
@@ -73,7 +70,11 @@
     "0601方案/02-公式对齐版/results/recovered/0601_formula_release_20261011/faithful_0601_20261011/release_manifest.json",
     "knowledge/ut-zap50k/logic/reconstructed-v1/bank.pt",
     "knowledge/ut-zap50k/logic/reconstructed-v1/coverage.json",
-    "knowledge/ut-zap50k/logic/reconstructed-v1/manifest.json"
+    "knowledge/ut-zap50k/logic/reconstructed-v1/manifest.json",
+    "0601方案/02-公式对齐版/results/seeds3352-3353-10epoch-20261012/audit.json",
+    "0601方案/02-公式对齐版/results/seeds3352-3353-10epoch-20261012/export_member_map.json",
+    "0601方案/02-公式对齐版/results/seeds3352-3353-10epoch-20261012/raw_export/protocol.json",
+    "0601方案/02-公式对齐版/results/seeds3352-3353-10epoch-20261012/raw_export/summary/summary.json"
   ],
   "external_inputs": [
     "dataset images and official split/metadata",
@@ -143,7 +144,8 @@
     "0601方案/02-公式对齐版/code/recovered/0601_formula_release_20261011/faithful_0601_20261011/build_release.py",
     "0601方案/02-公式对齐版/code/recovered/0601_formula_release_20261011/faithful_0601_20261011/run_suite.py",
     "0601方案/02-公式对齐版/code/recovered/0601_formula_release_20261011/faithful_0601_20261011/test_formula.py",
-    "0601方案/02-公式对齐版/code/review_0601_formula_20261011/verify_delivery.py"
+    "0601方案/02-公式对齐版/code/review_0601_formula_20261011/verify_delivery.py",
+    "0601方案/02-公式对齐版/code/epoch_review_20261012/verify_additional_results.py"
   ],
   "dependency_stages": [
     "01",
@@ -168,5 +170,49 @@
   "line": "0601方案",
   "documents": [
     "0601方案/02-公式对齐版/复现公式及代码.md"
-  ]
+  ],
+  "result_sets": [
+    {
+      "date": "2026-10-12",
+      "seed": 3351,
+      "actual_epochs": 30,
+      "completed_jobs": 14,
+      "evaluations": 56,
+      "report": "0601方案/02-公式对齐版/results/seed3351-30epoch-20261012/README.md",
+      "audit": "0601方案/02-公式对齐版/results/seed3351-30epoch-20261012/audit.json",
+      "all_original_export_members": "0601方案/02-公式对齐版/results/seed3351-30epoch-20261012/export_member_map.json",
+      "actual30epoch_identity_preserved": true,
+      "github_binary_storage": "Git LFS for original scores, labels and knowledge tensors; no model weights/images/credentials"
+    },
+    {
+      "date": "2026-10-12",
+      "seeds": [
+        3352,
+        3353
+      ],
+      "actual_epochs": 10,
+      "completed_jobs": 28,
+      "evaluations": 112,
+      "report": "0601方案/02-公式对齐版/results/seeds3352-3353-10epoch-20261012/README.md",
+      "audit": "0601方案/02-公式对齐版/results/seeds3352-3353-10epoch-20261012/audit.json",
+      "all_original_export_members": "0601方案/02-公式对齐版/results/seeds3352-3353-10epoch-20261012/export_member_map.json",
+      "github_binary_storage": "Git LFS for original scores, labels and knowledge tensors; no model weights/images/credentials"
+    }
+  ],
+  "completed_matrix": {
+    "seeds": [
+      3351,
+      3352,
+      3353
+    ],
+    "variants_per_seed": 14,
+    "completed_runs": 42,
+    "evaluations": 168,
+    "actual_epochs_by_seed": {
+      "3351": 30,
+      "3352": 10,
+      "3353": 10
+    },
+    "uniform_epoch_budget": false
+  }
 }
