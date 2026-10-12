@@ -45,10 +45,17 @@ def verify():
     docs=[ROOT/'README.md',ROOT/'environment/README.md',ROOT/'knowledge/README.md']
     for line in ('前期实验','0601方案'):
         docs.extend((ROOT/line).rglob('README.md'))
+    imported=ROOT/'provenance/documents'
+    if imported.is_dir():
+        docs.extend(ROOT/read(p)['document'] for p in imported.glob('*.json'))
     for p in docs:
         text=p.read_text(encoding='utf8')
         if text.count('```')%2: formatting.append(str(p.relative_to(ROOT))+': unclosed fence')
         for raw in re.findall(r'\]\((<[^>]+>|[^)\n]+)\)',text):
+            raw=unquote(raw.strip('<>')).split('#')[0]
+            if not raw or re.match(r'^[a-z]+://',raw): continue
+            if not (p.parent/raw).exists(): links.append({'file':str(p.relative_to(ROOT)),'target':raw})
+        for raw in re.findall(r'^\[[^\]]+\]:\s*(<[^>]+>|\S+)',text,re.M):
             raw=unquote(raw.strip('<>')).split('#')[0]
             if not raw or re.match(r'^[a-z]+://',raw): continue
             if not (p.parent/raw).exists(): links.append({'file':str(p.relative_to(ROOT)),'target':raw})
