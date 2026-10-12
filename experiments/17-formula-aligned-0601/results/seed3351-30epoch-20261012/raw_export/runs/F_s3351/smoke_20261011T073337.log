@@ -1,0 +1,72 @@
+
+COMMAND ["/data/xhw/miniconda3/envs/cpf/bin/python", "-u", "tests/smoke_formula.py", "--cfg", "/var/tmp/czsl_0601_formula_20261011/configs/F_s3351.yml", "--out", "/var/tmp/czsl_0601_formula_20261011/runs/F_s3351/smoke.json"]
+# train pairs: 83 | # val pairs: 30 | # test pairs: 36
+# train images: 22998 | # val images: 3214 | # test images: 2914
+Change Faux.Fur to fake_fur
+fake_fur
+Change Faux.Leather to fake_leather
+fake_leather
+Change Full.grain.leather to thick_leather
+thick_leather
+Change Hair.Calf to hair_leather
+hair_leather
+Change Nubuck to grainy_leather
+grainy_leather
+Change Patent.Leather to shiny_leather
+shiny_leather
+Loaded embeddings from file /data/xhw/czsl_repro/data/ut-zap50k/../glove/glove.6B.300d.txt torch.Size([16, 300])
+Change Boots.Ankle to ankle_boots
+ankle_boots
+Change Boots.Knee.High to knee_high_boots
+knee_high_boots
+Change Boots.Mid-Calf to midcalf_boots
+midcalf_boots
+Change Shoes.Boat.Shoes to boat_shoes
+boat_shoes
+Change Shoes.Clogs.and.Mules to clogs_shoes
+clogs_shoes
+Change Shoes.Flats to flats_shoes
+flats_shoes
+Change Shoes.Heels to heels
+Change Shoes.Loafers to loafers
+Change Shoes.Oxfords to oxford_shoes
+oxford_shoes
+Change Shoes.Sneakers.and.Athletic.Shoes to sneakers
+Loaded embeddings from file /data/xhw/czsl_repro/data/ut-zap50k/../glove/glove.6B.300d.txt torch.Size([12, 300])
+Loaded pretrained weights.
+KCC CACHE LOADED: /var/tmp/czsl_0601_formula_20261011/cache_formula text=True calib=True lambda=0.1 status=0601_formula_reconstruction_20261011
+Change Faux.Fur to fake_fur
+fake_fur
+Change Faux.Leather to fake_leather
+fake_leather
+Change Full.grain.leather to thick_leather
+thick_leather
+Change Hair.Calf to hair_leather
+hair_leather
+Change Nubuck to grainy_leather
+grainy_leather
+Change Patent.Leather to shiny_leather
+shiny_leather
+Loaded embeddings from file /data/xhw/czsl_repro/data/ut-zap50k/../glove/glove.6B.300d.txt torch.Size([16, 300])
+Change Boots.Ankle to ankle_boots
+ankle_boots
+Change Boots.Knee.High to knee_high_boots
+knee_high_boots
+Change Boots.Mid-Calf to midcalf_boots
+midcalf_boots
+Change Shoes.Boat.Shoes to boat_shoes
+boat_shoes
+Change Shoes.Clogs.and.Mules to clogs_shoes
+clogs_shoes
+Change Shoes.Flats to flats_shoes
+flats_shoes
+Change Shoes.Heels to heels
+Change Shoes.Loafers to loafers
+Change Shoes.Oxfords to oxford_shoes
+oxford_shoes
+Change Shoes.Sneakers.and.Athletic.Shoes to sneakers
+Loaded embeddings from file /data/xhw/czsl_repro/data/ut-zap50k/../glove/glove.6B.300d.txt torch.Size([12, 300])
+Loaded pretrained weights.
+KCC CACHE LOADED: /var/tmp/czsl_0601_formula_20261011/cache_formula text=True calib=True lambda=0.1 status=0601_formula_reconstruction_20261011
+FORMULA_0601_READY joint=True feature=False logic=True obj_temperature=0.05 head_temperature=1
+FORMULA_REAL_CUDA_SMOKE_PASSED {"passed": true, "variant": "F_s3351", "train_images": 4, "same_native_initialization": true, "native_cpu_cuda_rng_preserved": true, "joint_formula_exact": true, "train_infer_formula_identity": true, "gradients": {"visual_task": 49.0696136177046, "backbone_task": 22.810167376010714, "loss_oi_visual": 0.18664477805374818, "loss_oe_visual": 0.08122686868668873, "loss_ae_visual": 0.04916156348726298}, "optimizer_steps": 0, "test_images_read": 0, "losses": {"loss_total": 4.448802471160889, "loss_cpf": 4.445545196533203, "loss_composition": 2.7152669429779053, "loss_object": 1.4453872442245483, "loss_conditional_attr": 1.9202051162719727, "loss_oi": 0.2511447072029114, "loss_oe": 0.042992863804101944, "loss_ae": 0.031593747437000275, "loss_logic_raw": 0.3257313072681427, "loss_logic_weighted": 0.0032573130447417498}, "scope": "Wiring check only, not an accuracy result or paper reproduction claim"}

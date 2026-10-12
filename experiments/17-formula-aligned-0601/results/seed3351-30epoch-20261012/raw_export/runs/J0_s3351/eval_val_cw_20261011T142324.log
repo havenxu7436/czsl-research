@@ -1,0 +1,42 @@
+
+COMMAND ["/data/xhw/miniconda3/envs/cpf/bin/python", "-u", "tools/eval_mvp.py", "--cfg", "/var/tmp/czsl_0601_formula_20261011/configs/J0_s3351.yml", "--load", "/var/tmp/czsl_0601_formula_20261011/runs/J0_s3351/checkpoints/ut-zappos-czsl_formula_J0_s3351/best_auc.pth", "--phase", "val", "--setting", "cw", "--out", "/var/tmp/czsl_0601_formula_20261011/runs/J0_s3351/eval_val_cw", "--save-scores", "EVAL.open_world", "False"]
+# train pairs: 83 | # val pairs: 30 | # test pairs: 36
+# train images: 22998 | # val images: 3214 | # test images: 2914
+# train pairs: 83 | # val pairs: 30 | # test pairs: 36
+# train images: 22998 | # val images: 3214 | # test images: 2914
+Change Faux.Fur to fake_fur
+fake_fur
+Change Faux.Leather to fake_leather
+fake_leather
+Change Full.grain.leather to thick_leather
+thick_leather
+Change Hair.Calf to hair_leather
+hair_leather
+Change Nubuck to grainy_leather
+grainy_leather
+Change Patent.Leather to shiny_leather
+shiny_leather
+Loaded embeddings from file /data/xhw/czsl_repro/data/ut-zap50k/../glove/glove.6B.300d.txt torch.Size([16, 300])
+Change Boots.Ankle to ankle_boots
+ankle_boots
+Change Boots.Knee.High to knee_high_boots
+knee_high_boots
+Change Boots.Mid-Calf to midcalf_boots
+midcalf_boots
+Change Shoes.Boat.Shoes to boat_shoes
+boat_shoes
+Change Shoes.Clogs.and.Mules to clogs_shoes
+clogs_shoes
+Change Shoes.Flats to flats_shoes
+flats_shoes
+Change Shoes.Heels to heels
+Change Shoes.Loafers to loafers
+Change Shoes.Oxfords to oxford_shoes
+oxford_shoes
+Change Shoes.Sneakers.and.Athletic.Shoes to sneakers
+Loaded embeddings from file /data/xhw/czsl_repro/data/ut-zap50k/../glove/glove.6B.300d.txt torch.Size([12, 300])
+Loaded pretrained weights.
+FORMULA_0601_READY joint=True feature=False logic=False obj_temperature=0.05 head_temperature=1
+Evaluating with validation pairs
+phase= val setting= cw images= 3214 candidates= 116 score_disk_GiB= 0.0013888776302337646
+Top 1 {"closed_attr_match": 0.6509023308753967, "closed_obj_match": 0.6767268180847168, "closed_match": 0.4492843747138977, "closed_seen_match": 0.0, "closed_unseen_match": 0.6178861856460571, "closed_ca": 2.0, "closed_seen_ca": 1.0, "closed_unseen_ca": 1.0, "closed_ub_attr_match": 0.31300559639930725, "closed_ub_obj_match": 0.7647790908813477, "closed_ub_match": 0.18855009973049164, "closed_ub_seen_match": 0.6875712871551514, "closed_ub_unseen_match": 0.00128369708545506, "closed_ub_ca": 2.0, "closed_ub_seen_ca": 1.0, "closed_ub_unseen_ca": 1.0, "biasterm": 5.371845245361328, "best_unseen": 0.6178861856460571, "best_seen": 0.6875712871551514, "AUC": 0.3220737842639906, "hm_unseen": 0.46213093400001526, "hm_seen": 0.433295339345932, "best_hm": 0.447248837409145}

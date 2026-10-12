@@ -1,5 +1,20 @@
 {
   "stage": "17",
+  "latest_result_set": {
+    "date": "2026-10-12",
+    "seed": 3351,
+    "actual_epochs": 30,
+    "completed_jobs": 14,
+    "evaluations": 56,
+    "other_seeds_not_started": [3352, 3353],
+    "report": "experiments/17-formula-aligned-0601/results/seed3351-30epoch-20261012/README.md",
+    "audit": "experiments/17-formula-aligned-0601/results/seed3351-30epoch-20261012/audit.json",
+    "all_original_export_members": "experiments/17-formula-aligned-0601/results/seed3351-30epoch-20261012/export_member_map.json",
+    "epoch_recommendation": "experiments/17-formula-aligned-0601/configs/epoch_decision_20261012.json",
+    "not_all42_jobs_complete": true,
+    "actual30epoch_identity_preserved": true,
+    "github_binary_storage": "Git LFS for original scores, labels and knowledge tensors; no model weights/images/credentials"
+  },
   "knowledge": [
     "knowledge/ut-zap50k/definitions/legacy-v1/ae_dict.json",
     "knowledge/ut-zap50k/definitions/legacy-v1/attributes.txt",
@@ -15,6 +30,7 @@
     "knowledge/ut-zap50k/logic/reconstructed-v1/manifest.json"
   ],
   "configs": [
+    "experiments/17-formula-aligned-0601/configs/epoch_decision_20261012.json",
     "experiments/17-formula-aligned-0601/configs/faithful_0601_20261011/assets/A_ref.yml",
     "experiments/17-formula-aligned-0601/configs/faithful_0601_20261011/assets/B.yml",
     "experiments/17-formula-aligned-0601/configs/faithful_0601_20261011/assets/E_ref.yml",
@@ -26,6 +42,10 @@
     "experiments/17-formula-aligned-0601/configs/faithful_0601_20261011/source/config/vaw-czsl.yml"
   ],
   "data_files": [
+    "experiments/17-formula-aligned-0601/results/seed3351-30epoch-20261012/audit.json",
+    "experiments/17-formula-aligned-0601/results/seed3351-30epoch-20261012/export_member_map.json",
+    "experiments/17-formula-aligned-0601/results/seed3351-30epoch-20261012/raw_export/protocol.json",
+    "experiments/17-formula-aligned-0601/results/seed3351-30epoch-20261012/raw_export/summary/summary.json",
     "environment/records/historical_actual_server.json",
     "environment/records/pip_freeze.actual_server.txt",
     "experiments/17-formula-aligned-0601/configs/faithful_0601_20261011/assets/A_ref.yml",
@@ -61,6 +81,8 @@
   ],
   "not_a_complete_offline_training_bundle": true,
   "code_files": [
+    "experiments/17-formula-aligned-0601/code/epoch_review_20261012/review_seed.py",
+    "experiments/17-formula-aligned-0601/code/epoch_review_20261012/verify_result.py",
     "experiments/17-formula-aligned-0601/code/archive_inputs/formula_aligned_bundle/knowledge/logic_reconstruction/build_bank.py",
     "experiments/17-formula-aligned-0601/code/archive_inputs/formula_aligned_bundle/knowledge/logic_reconstruction/common.py",
     "experiments/17-formula-aligned-0601/code/archive_inputs/formula_aligned_bundle/tools/check_server_inputs.py",

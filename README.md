@@ -1,6 +1,6 @@
 # CZSL 研究：实验记录与复现
 
-代码、配置、知识与原始结果，按研究依赖顺序组织。实验状态截至 2026-10-11；仓库整理不改变已有实验结果。
+代码、配置、知识与原始结果，按研究依赖顺序组织。实验状态截至 2026-10-12；历史结果不改写。
 
 ```text
 experiments/01–18/   每阶段一个 README，配套 code/、configs/、results/、inputs.json
@@ -45,10 +45,12 @@ python tools/reproduce.py verify
 | 14 | [冻结 CLIP 探针](experiments/14-clip-probe/README.md) | r2 七配方，无 optimizer |
 | 15 | [TRAIN 逐句知识审查](experiments/15-train-knowledge-audit/README.md) | 诊断，不是泛化实验 |
 | 16 | [residual-0601](experiments/16-residual-0601/README.md) | 12 组×10 轮、48 份评价 |
-| 17 | [formula-aligned-0601](experiments/17-formula-aligned-0601/README.md) | 代码与 CPU 验证；42 次训练为计划 |
+| 17 | [formula-aligned-0601](experiments/17-formula-aligned-0601/README.md) | seed3351：14组×30轮、56份评价完成；后续推荐10轮新协议 |
 | 18 | [residual 描述删除扩展](experiments/18-noise-extension/README.md) | 仅代码，尚无正式结果 |
 
 两条 0601 路线分开保存。第 17 阶段不能继承第 16 阶段的成绩。每阶段的 `inputs.json` 定位知识、配置和原始结果；`runbook.json` 保存实验命令模板及来源，使用前须按环境说明核对路径和包内默认值。
+
+第17阶段的[单seed结果与epoch评估](experiments/17-formula-aligned-0601/results/seed3351-30epoch-20261012/README.md)保留完整负结果、VAL曲线、实际30轮执行身份和56次原始scores复算。全部最佳VAL CW模型出现在第2–6轮；新决策推荐后续10轮，不修改旧30轮protocol，也不冒称原42次计划已全部完成。
 
 ## 完整性与历史
 

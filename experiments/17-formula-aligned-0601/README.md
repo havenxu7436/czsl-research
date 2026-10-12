@@ -1,12 +1,27 @@
 # 17 · formula-aligned-0601：逐公式修正r2
 
-状态：代码与 CPU 验证；未归档正式训练结果。
+状态（2026-10-12）：seed3351 的14组各30轮正式训练与56份评价已完成并归档；3352/3353的28组尚未启动，原42组计划仍未全部完成。
+
+## 最新结果与预算决策
+
+[单seed结果、核验与epoch评估](results/seed3351-30epoch-20261012/README.md)：1672项检查通过，791个export成员校验，56份评价按原生evaluator从真实scores独立CPU复算，最大原始数值差0。
+
+14组最佳VAL CW checkpoint均在第2–6轮，11–30轮没有更新任何最佳模型，额外消耗29.74 GPU小时。**建议后续10轮统一新协议，不再直接--resume原30轮协议扩到另外两个seed。** 该决策仅依据VAL；不是所有seed已收敛的证明，也不是由TEST挑选预算。
+
+已有3351结果保留实际30轮身份；可声明为前10轮窗口回溯选模同一checkpoint，但不能冒称独立10轮执行。若要求三seed都独立执行同一10轮协议，需要在新工作目录重新运行3351；不改或删除本次原始记录。
+
+下载仓库并完成`git lfs pull`后，可只读校验本批全部原始成员。可选`--replay`需要匹配的torch/numpy/scipy/PyYAML环境，只复算指标，不训练：
+
+```bash
+python experiments/17-formula-aligned-0601/code/epoch_review_20261012/verify_result.py
+python experiments/17-formula-aligned-0601/code/epoch_review_20261012/verify_result.py --replay
+```
 
 ## 修改与结论
 
 按公式审计修正G/H原始head评分、GT-object CE、逻辑grounding、prior及train/infer共用接口。
 
-保留接口选择与未覆盖项；42次×30轮为新训练计划，不继承residual旧表。
+保留接口选择与未覆盖项；42次×30轮是初始冻结计划，本次只完成其中seed3351的14组，不继承residual旧表。
 
 ## 复现顺序
 
@@ -35,7 +50,7 @@ export PROJECT="${CZSL_PROJECT_ROOT:?Set a verified compatible project root}"
 
 ## 关键入口
 
-以下是 Linux 的准备与执行顺序；先完成历史路径映射、原包预检和授权 GPU 检查。`CZSL_GPUS` 必须显式设置，新 work 不能与 residual 路线或历史 work 共用。
+以下是已经执行的30轮初始协议的复现命令，不是2026-10-12之后推荐直接扩seed的命令。先完成历史路径映射、原包预检和授权 GPU 检查。`CZSL_GPUS` 必须显式设置，新 work 不能与 residual 路线或历史 work 共用。
 
 ```bash
 REPLAY=/srv/czsl-reproduce-17
@@ -48,7 +63,7 @@ WORK=/srv/czsl-runs/formula-aligned-0601-new
   --export "$WORK/results.zip"
 ```
 
-先核对 prepare 冻结的 42 组配置和 `protocol.json`，再启动队列。首个完整 seed 完成后，同一协议使用 `--resume --seeds all` 补齐另外两个 seed；新训练结果不能用旧 residual 成绩替代。
+先核对 prepare 冻结的42组配置和protocol。初始计划的`--resume --seeds all`会继续30轮；根据此次VAL预算审查，不再推荐直接执行它。后续10轮必须新建work并重新prepare冻结，不能直接改原protocol。新训练结果不能用旧residual成绩替代。
 
 执行包：[faithful_0601_20261011](<code/faithful_0601_20261011>)。
 
@@ -60,7 +75,7 @@ WORK=/srv/czsl-runs/formula-aligned-0601-new
 
 配置文件：[A_ref.yml](<configs/faithful_0601_20261011/assets/A_ref.yml>)、[B.yml](<configs/faithful_0601_20261011/assets/B.yml>)、[E_ref.yml](<configs/faithful_0601_20261011/assets/E_ref.yml>)、[F.yml](<configs/faithful_0601_20261011/assets/F.yml>)；已生成的运行配置和 protocol 也在结果中，完整文件见 inputs.json。
 
-**边界：**42 次×30 轮是计划，当前没有正式训练成绩；不可从第16阶段复制结果。接口选择与未覆盖项均保留。
+**边界：**已有14组×30轮正式训练成绩；另外两seed未跑，42组并未全部完成。不可从第16阶段复制结果。接口选择、单seed局限与未覆盖项均保留。
 
 <details>
 <summary>模型定义、对照与协议边界</summary>
