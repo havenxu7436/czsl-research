@@ -1,0 +1,22 @@
+{
+  "stage": "07",
+  "primary_package": "ekr_v2_anchor_alignment_20261007",
+  "commands": [
+    {
+      "source": "前期实验/07-ekr-v2/README.md",
+      "language": "bash",
+      "text": "REPLAY=/srv/czsl-reproduce-07\npython tools/reproduce.py materialize --line 前期实验 --stage 07 --dest \"$REPLAY\"\nbash \"$REPLAY/ekr_v2_anchor_alignment_20261007/run.sh\" prepare\nbash \"$REPLAY/ekr_v2_anchor_alignment_20261007/run.sh\" train\nbash \"$REPLAY/ekr_v2_anchor_alignment_20261007/run.sh\" report\n",
+      "template_paths": true
+    }
+  ],
+  "variables": {
+    "CPF_PY": "Matching CPF Python executable",
+    "PROJECT": "Source/data/knowledge root",
+    "REPLAY": "Materialized package directory",
+    "WORK": "Independent output directory"
+  },
+  "environment": "environment/README.md",
+  "scope": "Archived workflow",
+  "archive_stage": "07",
+  "line": "前期实验"
+}

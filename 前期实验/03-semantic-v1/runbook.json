@@ -1,0 +1,22 @@
+{
+  "stage": "03",
+  "primary_package": "ekr_cpf_transition_20261005_v1",
+  "commands": [
+    {
+      "source": "前期实验/03-semantic-v1/README.md",
+      "language": "bash",
+      "text": "REPLAY=/srv/czsl-reproduce-03\npython tools/reproduce.py materialize --line 前期实验 --stage 03 --dest \"$REPLAY\"\n\"$CPF_PY\" \"$REPLAY/ekr_cpf_transition_20261005_v1/install.py\" \\\n  --source \"$PROJECT/src/KCC0601_v1\" --destination \"$WORK/src\"\ncd \"$WORK/src\"\n\"$CPF_PY\" -m transition.cli --help\n",
+      "template_paths": true
+    }
+  ],
+  "variables": {
+    "CPF_PY": "Matching CPF Python executable",
+    "PROJECT": "Source/data/knowledge root",
+    "REPLAY": "Materialized package directory",
+    "WORK": "Independent output directory"
+  },
+  "environment": "environment/README.md",
+  "scope": "Archived workflow",
+  "archive_stage": "03",
+  "line": "前期实验"
+}

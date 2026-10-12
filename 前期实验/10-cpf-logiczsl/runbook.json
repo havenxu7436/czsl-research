@@ -1,0 +1,22 @@
+{
+  "stage": "10",
+  "primary_package": "logiczsl_cpf_bf_20261008",
+  "commands": [
+    {
+      "source": "前期实验/10-cpf-logiczsl/README.md",
+      "language": "bash",
+      "text": "REPLAY=/srv/czsl-reproduce-10\npython tools/reproduce.py materialize --line 前期实验 --stage 10 --dest \"$REPLAY\"\n\"$CPF_PY\" \"$REPLAY/logiczsl_cpf_bf_20261008/prepare.py\" \\\n  --root \"$PROJECT\" --work \"$WORK\" --seed 3351 --allow-reconstructed\nfor GROUP in A_ref B E_ref F; do\n  \"$CPF_PY\" \"$REPLAY/logiczsl_cpf_bf_20261008/run.py\" \\\n    --work \"$WORK\" --seed 3351 --variant \"$GROUP\" --gpu \"${CZSL_GPU:?Set physical GPU ID}\"\ndone\n\"$CPF_PY\" \"$REPLAY/logiczsl_cpf_bf_20261008/summarize.py\" --work \"$WORK\" --out \"$WORK/summary\"\n",
+      "template_paths": true
+    }
+  ],
+  "variables": {
+    "CPF_PY": "Matching CPF Python executable",
+    "PROJECT": "Source/data/knowledge root",
+    "REPLAY": "Materialized package directory",
+    "WORK": "Independent output directory"
+  },
+  "environment": "environment/README.md",
+  "scope": "Archived workflow",
+  "archive_stage": "10",
+  "line": "前期实验"
+}

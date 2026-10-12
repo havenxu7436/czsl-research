@@ -1,0 +1,22 @@
+{
+  "stage": "01",
+  "primary_package": null,
+  "commands": [
+    {
+      "source": "前期实验/01-baseline/README.md",
+      "language": "bash",
+      "text": "REPLAY=/srv/czsl-reproduce-01\npython tools/reproduce.py materialize --line 前期实验 --stage 01 --dest \"$REPLAY\"\n\"$CPF_PY\" \"$PROJECT/src/KCC0601_v1/train.py\" --help\n",
+      "template_paths": true
+    }
+  ],
+  "variables": {
+    "CPF_PY": "Matching CPF Python executable",
+    "PROJECT": "Source/data/knowledge root",
+    "REPLAY": "Materialized package directory",
+    "WORK": "Independent output directory"
+  },
+  "environment": "environment/README.md",
+  "scope": "Archived workflow",
+  "archive_stage": "01",
+  "line": "前期实验"
+}

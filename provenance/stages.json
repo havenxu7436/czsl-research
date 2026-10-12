@@ -1,182 +1,222 @@
 [
   {
     "id": "01",
-    "title": "原方案、三数据集基线与知识重建",
-    "status": "已归档历史实验",
-    "path": "experiments/01-baseline",
+    "title": "CPF 基线与知识资产",
+    "status": "历史基线已归档",
+    "path": "前期实验/01-baseline",
     "primary_package": null,
     "knowledge_assets": 1018,
     "configs": 85,
-    "data_files": 144
+    "data_files": 144,
+    "line": "前期实验",
+    "number": "01"
   },
   {
     "id": "02",
-    "title": "早期 MVP、跨数据集验证与固定 prior 校准",
-    "status": "已训练＋无训练后处理",
-    "path": "experiments/02-mvp-calibration",
+    "title": "MVP 对照与固定 prior 校准",
+    "status": "训练与后处理结果已归档",
+    "path": "前期实验/02-mvp-calibration",
     "primary_package": "cpf_stage_report_tools_20261004_v2",
     "knowledge_assets": 24,
     "configs": 100,
-    "data_files": 260
+    "data_files": 260,
+    "line": "前期实验",
+    "number": "02"
   },
   {
     "id": "03",
-    "title": "UT v1 三 seed 语义归因与工程修复",
-    "status": "已执行历史归因；保留缺项边界",
-    "path": "experiments/03-semantic-v1",
+    "title": "UT 语义归因 v1",
+    "status": "v1 语义归因记录已归档",
+    "path": "前期实验/03-semantic-v1",
     "primary_package": "ekr_cpf_transition_20261005_v1",
     "knowledge_assets": 0,
     "configs": 0,
-    "data_files": 9
+    "data_files": 9,
+    "line": "前期实验",
+    "number": "03"
   },
   {
     "id": "04",
-    "title": "TRAIN 描述审核、UT v2 与逐图分析",
-    "status": "已训练＋诊断",
-    "path": "experiments/04-semantic-v2",
+    "title": "TRAIN 描述审核与语义归因 v2",
+    "status": "12 次训练与逐图分析已完成",
+    "path": "前期实验/04-semantic-v2",
     "primary_package": "ut_semantic_v2_20261006",
     "knowledge_assets": 11,
     "configs": 12,
-    "data_files": 122
+    "data_files": 122,
+    "line": "前期实验",
+    "number": "04"
   },
   {
     "id": "05",
     "title": "名称锚点 EKR",
-    "status": "已训练：seed0、三组各3轮",
-    "path": "experiments/05-name-anchor-ekr",
+    "status": "seed 0 的三组×3 epoch 已完成",
+    "path": "前期实验/05-name-anchor-ekr",
     "primary_package": "name_anchor_ekr_20261007",
     "knowledge_assets": 0,
     "configs": 0,
-    "data_files": 15
+    "data_files": 15,
+    "line": "前期实验",
+    "number": "05"
   },
   {
     "id": "06",
-    "title": "EKR 机制诊断",
-    "status": "既有权重回放；0新训练",
-    "path": "experiments/06-ekr-diagnostics",
+    "title": "EKR 冻结机制诊断",
+    "status": "冻结权重诊断已完成",
+    "path": "前期实验/06-ekr-diagnostics",
     "primary_package": "name_ekr_mechanism_diag_20261007_v1",
     "knowledge_assets": 0,
     "configs": 0,
-    "data_files": 161
+    "data_files": 161,
+    "line": "前期实验",
+    "number": "06"
   },
   {
     "id": "07",
-    "title": "共享值对齐 EKR v2：3轮",
-    "status": "已训练：4组各3轮",
-    "path": "experiments/07-ekr-v2",
+    "title": "共享值对齐 EKR v2",
+    "status": "四组×3 epoch 已完成",
+    "path": "前期实验/07-ekr-v2",
     "primary_package": "ekr_v2_anchor_alignment_20261007",
     "knowledge_assets": 0,
     "configs": 26,
-    "data_files": 89
+    "data_files": 89,
+    "line": "前期实验",
+    "number": "07"
   },
   {
     "id": "08",
-    "title": "TRAIN 支持探针、SG-EKR与视觉原型诊断",
-    "status": "支持诊断＋3组3轮；VP仅方案",
-    "path": "experiments/08-support-sgekr",
+    "title": "TRAIN 支持掩码与 SG-EKR",
+    "status": "支持诊断与三组×3 epoch 已完成",
+    "path": "前期实验/08-support-sgekr",
     "primary_package": "sgekr_support_mask_20261008",
     "knowledge_assets": 0,
     "configs": 20,
-    "data_files": 88
+    "data_files": 88,
+    "line": "前期实验",
+    "number": "08"
   },
   {
     "id": "09",
-    "title": "EKR v2 训练预算回溯：3→10轮",
-    "status": "续训；不是4个新run",
-    "path": "experiments/09-budget10",
+    "title": "EKR v2：3→10 epoch 续训",
+    "status": "四组续训已完成",
+    "path": "前期实验/09-budget10",
     "primary_package": "ekr_v2_budget10_20261008",
     "knowledge_assets": 0,
     "configs": 58,
-    "data_files": 202
+    "data_files": 202,
+    "line": "前期实验",
+    "number": "09"
   },
   {
     "id": "10",
-    "title": "CPF＋LogiCZSL B/F直接结合",
-    "status": "已训练：UT3351、四组10轮",
-    "path": "experiments/10-cpf-logiczsl",
+    "title": "CPF＋LogiCZSL B/F",
+    "status": "四组×10 epoch 已完成",
+    "path": "前期实验/10-cpf-logiczsl",
     "primary_package": "logiczsl_cpf_bf_20261008",
     "knowledge_assets": 1,
     "configs": 0,
-    "data_files": 4
+    "data_files": 4,
+    "line": "前期实验",
+    "number": "10"
   },
   {
     "id": "11",
-    "title": "B/F梯度复核与条件属性 StageA",
-    "status": "诊断/缓存/丢弃式检查；非正式pilot",
-    "path": "experiments/11-conditional-preflight",
+    "title": "条件属性 StageA 与缓存",
+    "status": "梯度检查与缓存构建已完成",
+    "path": "前期实验/11-conditional-preflight",
     "primary_package": "conditional_attribute_stageA_20261009",
     "knowledge_assets": 26,
     "configs": 29,
-    "data_files": 89
+    "data_files": 89,
+    "line": "前期实验",
+    "number": "11"
   },
   {
     "id": "12",
-    "title": "条件属性 pilot r1→r2与固定混合回放",
-    "status": "r1工程失败；r2五组10轮＋回放",
-    "path": "experiments/12-conditional-pilot",
+    "title": "条件属性 pilot r2",
+    "status": "五组×10 epoch 与固定混合评价已完成",
+    "path": "前期实验/12-conditional-pilot",
     "primary_package": "conditional_attribute_pilot_20261009",
     "knowledge_assets": 1,
     "configs": 0,
-    "data_files": 209
+    "data_files": 209,
+    "line": "前期实验",
+    "number": "12"
   },
   {
     "id": "13",
-    "title": "Generic同结构知识对照＋25%混合",
-    "status": "三项新训练＋G_K复用",
-    "path": "experiments/13-generic-controls",
+    "title": "Generic 知识对照与 25% 混合",
+    "status": "三组训练与一组权重复用已完成",
+    "path": "前期实验/13-generic-controls",
     "primary_package": "generic_mixture_controls_20261009",
     "knowledge_assets": 1,
     "configs": 0,
-    "data_files": 210
+    "data_files": 210,
+    "line": "前期实验",
+    "number": "13"
   },
   {
     "id": "14",
-    "title": "冻结 CLIP 探针 v1→r2",
-    "status": "v1检查失败；r2七配方、0optimizer",
-    "path": "experiments/14-clip-probe",
+    "title": "冻结 CLIP 知识探针 r2",
+    "status": "七种固定配方的编码与评价已完成",
+    "path": "前期实验/14-clip-probe",
     "primary_package": "clip_knowledge_probe_20261010_r2",
     "knowledge_assets": 2,
     "configs": 0,
-    "data_files": 8
+    "data_files": 8,
+    "line": "前期实验",
+    "number": "14"
   },
   {
     "id": "15",
-    "title": "TRAIN逐句审查、知识来源与研究回溯",
-    "status": "36逐句视图＋图片审查；0新训练",
-    "path": "experiments/15-train-knowledge-audit",
+    "title": "TRAIN 逐句知识审查",
+    "status": "36 个逐句视图与图像审查已完成",
+    "path": "前期实验/15-train-knowledge-audit",
     "primary_package": "train_knowledge_audit_20261010",
     "knowledge_assets": 2,
     "configs": 0,
-    "data_files": 39
+    "data_files": 39,
+    "line": "前期实验",
+    "number": "15"
   },
   {
     "id": "16",
-    "title": "residual-0601：统一A–H与sanity",
-    "status": "已完成12组×10轮、48份评价",
-    "path": "experiments/16-residual-0601",
+    "title": "残差版：A–H 与 sanity",
+    "status": "12 组×10 epoch、48 份评价已完成",
+    "path": "0601方案/01-残差版",
     "primary_package": "reproduce_0601_20261010",
     "knowledge_assets": 18,
     "configs": 91,
-    "data_files": 320
+    "data_files": 320,
+    "line": "0601方案",
+    "number": "01"
   },
   {
     "id": "17",
-    "title": "formula-aligned-0601：逐公式修正r2",
-    "status": "代码/交付/CPU验证；未收集正式训练结果",
-    "path": "experiments/17-formula-aligned-0601",
+    "title": "公式对齐版 r2",
+    "status": "seed 3351 的14组×30 epoch、56份评价已完成",
+    "path": "0601方案/02-公式对齐版",
     "primary_package": "faithful_0601_20261011",
     "knowledge_assets": 12,
     "configs": 9,
-    "data_files": 11
+    "data_files": 11,
+    "result_path": "0601方案/02-公式对齐版/results/seed3351-30epoch-20261012",
+    "completed_runs": 14,
+    "epochs_per_run": 30,
+    "evaluations": 56,
+    "line": "0601方案",
+    "number": "02"
   },
   {
     "id": "18",
-    "title": "residual描述删除扩展与后续候选",
-    "status": "仅代码交付；本地未收集正式结果",
-    "path": "experiments/18-noise-extension",
+    "title": "描述删除模块",
+    "status": "代码已归档；无训练结果",
+    "path": "0601方案/03-描述删除模块",
     "primary_package": "extend_0601_20261011",
     "knowledge_assets": 0,
     "configs": 0,
-    "data_files": 1
+    "data_files": 1,
+    "line": "0601方案",
+    "number": "03"
   }
 ]

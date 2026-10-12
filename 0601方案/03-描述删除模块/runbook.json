@@ -1,0 +1,22 @@
+{
+  "stage": "03",
+  "primary_package": "extend_0601_20261011",
+  "commands": [
+    {
+      "source": "0601方案/03-描述删除模块/README.md",
+      "language": "bash",
+      "text": "REPLAY=/srv/czsl-reproduce-0601-03\npython tools/reproduce.py materialize --line 0601方案 --stage 03 --dest \"$REPLAY\"\n\"$CPF_PY\" \"$REPLAY/extend_0601_20261011/extension.py\" --help\n",
+      "template_paths": true
+    }
+  ],
+  "variables": {
+    "CPF_PY": "Matching CPF Python executable",
+    "PROJECT": "Source/data/knowledge root",
+    "REPLAY": "Materialized package directory",
+    "WORK": "Independent output directory"
+  },
+  "environment": "environment/README.md",
+  "scope": "Module interface only",
+  "archive_stage": "18",
+  "line": "0601方案"
+}

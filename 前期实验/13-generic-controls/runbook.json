@@ -1,0 +1,22 @@
+{
+  "stage": "13",
+  "primary_package": "generic_mixture_controls_20261009",
+  "commands": [
+    {
+      "source": "前期实验/13-generic-controls/README.md",
+      "language": "bash",
+      "text": "REPLAY=/srv/czsl-reproduce-13\npython tools/reproduce.py materialize --line 前期实验 --stage 13 --dest \"$REPLAY\"\n\"$CPF_PY\" \"$REPLAY/generic_mixture_controls_20261009/run_controls.py\" \\\n  --work \"$WORK\" --export \"$WORK.zip\"\n",
+      "template_paths": true
+    }
+  ],
+  "variables": {
+    "CPF_PY": "Matching CPF Python executable",
+    "PROJECT": "Source/data/knowledge root",
+    "REPLAY": "Materialized package directory",
+    "WORK": "Independent output directory"
+  },
+  "environment": "environment/README.md",
+  "scope": "Archived workflow",
+  "archive_stage": "13",
+  "line": "前期实验"
+}

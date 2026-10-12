@@ -1,0 +1,49 @@
+{
+  "stage": "10",
+  "knowledge": [
+    "knowledge/ut-zap50k/logic/reconstructed-v1/knowledge.json"
+  ],
+  "configs": [],
+  "data_files": [
+    "前期实验/10-cpf-logiczsl/results/BF_seed3351_实际训练与结果.csv",
+    "前期实验/10-cpf-logiczsl/results/logiczsl_cpf_bf_20261008/SHA256SUMS",
+    "前期实验/10-cpf-logiczsl/results/logiczsl_cpf_bf_20261008/local_cpu_test.json",
+    "前期实验/10-cpf-logiczsl/results/logiczsl_cpf_bf_20261008/local_glove_check.json"
+  ],
+  "external_inputs": [
+    "dataset images and official split/metadata",
+    "GloVe 300d",
+    "ViT pretrained weights",
+    "previous-stage checkpoints / caches; see README"
+  ],
+  "not_a_complete_offline_training_bundle": true,
+  "code_files": [
+    "前期实验/10-cpf-logiczsl/code/logiczsl_cpf_bf_20261008/build_bank.py",
+    "前期实验/10-cpf-logiczsl/code/logiczsl_cpf_bf_20261008/check_commands.py",
+    "前期实验/10-cpf-logiczsl/code/logiczsl_cpf_bf_20261008/common.py",
+    "前期实验/10-cpf-logiczsl/code/logiczsl_cpf_bf_20261008/install.py",
+    "前期实验/10-cpf-logiczsl/code/logiczsl_cpf_bf_20261008/model/bf_logic.py",
+    "前期实验/10-cpf-logiczsl/code/logiczsl_cpf_bf_20261008/model/logic_loss.py",
+    "前期实验/10-cpf-logiczsl/code/logiczsl_cpf_bf_20261008/package_release.py",
+    "前期实验/10-cpf-logiczsl/code/logiczsl_cpf_bf_20261008/prepare.py",
+    "前期实验/10-cpf-logiczsl/code/logiczsl_cpf_bf_20261008/run.py",
+    "前期实验/10-cpf-logiczsl/code/logiczsl_cpf_bf_20261008/smoke.py",
+    "前期实验/10-cpf-logiczsl/code/logiczsl_cpf_bf_20261008/summarize.py",
+    "前期实验/10-cpf-logiczsl/code/logiczsl_cpf_bf_20261008/test_release.py",
+    "前期实验/10-cpf-logiczsl/code/logiczsl_cpf_bf_20261008/verify_release.py"
+  ],
+  "dependency_stages": [
+    "01",
+    "02",
+    "03",
+    "04",
+    "05",
+    "06",
+    "07",
+    "08",
+    "09"
+  ],
+  "dependency_policy": "Materialization includes prior-stage inputs; actual consumed files/weights are pinned by original package protocol. This is not an assertion that every prior training must rerun.",
+  "archive_stage": "10",
+  "line": "前期实验"
+}

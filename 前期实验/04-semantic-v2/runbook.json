@@ -1,0 +1,22 @@
+{
+  "stage": "04",
+  "primary_package": "ut_semantic_v2_20261006",
+  "commands": [
+    {
+      "source": "前期实验/04-semantic-v2/README.md",
+      "language": "bash",
+      "text": "REPLAY=/srv/czsl-reproduce-04\npython tools/reproduce.py materialize --line 前期实验 --stage 04 --dest \"$REPLAY\"\nexport UT_V2_ROOT=\"$PROJECT\"\nexport UT_V2_WORK=\"$WORK\"\nbash \"$REPLAY/ut_semantic_v2_20261006/prepare.sh\"\nbash \"$REPLAY/ut_semantic_v2_20261006/run_paired.sh\"\n",
+      "template_paths": true
+    }
+  ],
+  "variables": {
+    "CPF_PY": "Matching CPF Python executable",
+    "PROJECT": "Source/data/knowledge root",
+    "REPLAY": "Materialized package directory",
+    "WORK": "Independent output directory"
+  },
+  "environment": "environment/README.md",
+  "scope": "Archived workflow",
+  "archive_stage": "04",
+  "line": "前期实验"
+}

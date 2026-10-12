@@ -43,7 +43,8 @@ def verify():
             if not p.is_file() or sha(p)!=r['sha256']: failures.append(r['path'])
     syntax=[]; links=[]; formatting=[]
     docs=[ROOT/'README.md',ROOT/'environment/README.md',ROOT/'knowledge/README.md']
-    docs.extend(ROOT.glob('experiments/*/README.md'))
+    for line in ('前期实验','0601方案'):
+        docs.extend((ROOT/line).rglob('README.md'))
     for p in docs:
         text=p.read_text(encoding='utf8')
         if text.count('```')%2: formatting.append(str(p.relative_to(ROOT))+': unclosed fence')
@@ -61,7 +62,14 @@ def verify():
     print(json.dumps(result,ensure_ascii=False))
     if not result['passed']: raise SystemExit(1)
 
-def materialize(stage,destination):
+def archive_stage(line,number):
+    if line is None: return number
+    matches=[s['id'] for s in read(ROOT/'provenance/stages.json')
+      if s.get('line')==line and s.get('number')==number]
+    if len(matches)!=1: raise ValueError('Unknown experiment line/number: '+line+'/'+number)
+    return matches[0]
+
+def materialize(stage,destination,line=None,number=None):
     layout=read(ROOT/'provenance/layout.json'); destination=Path(destination).expanduser()
     if not destination.is_absolute(): raise ValueError('Choose an absolute destination')
     destination=destination.resolve()
@@ -117,12 +125,14 @@ def materialize(stage,destination):
             if sha(target)!=r['sha256']: raise ValueError('Runtime copy corrupted')
             if target.suffix=='.sh': target.chmod(target.stat().st_mode|0o111)
         receipts.append({'original_path':old,'sha256':r['sha256']})
-    (destination/'materialization.json').write_text(json.dumps({'source_tag':layout['source_tag'],'stage':stage,
+    (destination/'materialization.json').write_text(json.dumps({'source_tag':layout['source_tag'],
+      'stage':number if line else stage,'line':line,'archive_stage':stage,
       'files':receipts,'original_bytes_modified':False,'training_started':False},ensure_ascii=False,indent=2),encoding='utf8')
-    print(json.dumps({'stage':stage,'runtime':str(destination),'files_verified':len(receipts),'project':str(destination/'project'),
+    print(json.dumps({'stage':number if line else stage,'line':line,'archive_stage':stage,
+      'runtime':str(destination),'files_verified':len(receipts),'project':str(destination/'project'),
       'note':'External inputs and frozen absolute paths still require setup; see environment/README.md'},ensure_ascii=False))
 
-def doctor(stage,project):
+def doctor(stage,project,line=None,number=None):
     project=Path(project).resolve()
     required=[project/'src/KCC0601_v1/train.py',project/'data/glove/glove.6B.300d.txt',
       project/'data/ut-zap50k',project/'knowledge/kcc0601_v1/cache_trusted_v1/ut-zap50k/manifest.json']
@@ -135,7 +145,8 @@ def doctor(stage,project):
                 p=Path(old)
                 if not p.is_file(): absolute.append({'path':old,'reason':'frozen path missing','manifest':str(path)})
                 elif sha(p)!=h: absolute.append({'path':old,'reason':'input SHA256 mismatch','manifest':str(path)})
-    print(json.dumps({'stage':stage,'project':str(project),'missing':issues,'frozen_path_issues':absolute,
+    print(json.dumps({'stage':number if line else stage,'line':line,'archive_stage':stage,
+      'project':str(project),'missing':issues,'frozen_path_issues':absolute,
       'ready_for_package_preflight':not(issues or absolute),
       'not_checked':['CUDA/GPU permissions','dataset split hashes beyond original package checks',
        'previous-stage training checkpoints','full training/reproduced metrics'],'training_started':False},ensure_ascii=False))
@@ -146,8 +157,10 @@ if __name__=='__main__':
     commands=parser.add_subparsers(dest='action',required=True)
     commands.add_parser('verify')
     m=commands.add_parser('materialize'); m.add_argument('--stage',choices=['{:02d}'.format(x) for x in range(1,19)],required=True); m.add_argument('--dest',required=True)
+    m.add_argument('--line',choices=['前期实验','0601方案'])
     d=commands.add_parser('doctor'); d.add_argument('--stage',required=True); d.add_argument('--project',required=True)
+    d.add_argument('--line',choices=['前期实验','0601方案'])
     args=parser.parse_args()
     if args.action=='verify': verify()
-    elif args.action=='materialize': materialize(args.stage,args.dest)
-    else: doctor(args.stage,args.project)
+    elif args.action=='materialize': materialize(archive_stage(args.line,args.stage),args.dest,args.line,args.stage)
+    else: doctor(archive_stage(args.line,args.stage),args.project,args.line,args.stage)

@@ -1,0 +1,22 @@
+{
+  "stage": "06",
+  "primary_package": "name_ekr_mechanism_diag_20261007_v1",
+  "commands": [
+    {
+      "source": "前期实验/06-ekr-diagnostics/README.md",
+      "language": "bash",
+      "text": "REPLAY=/srv/czsl-reproduce-06\npython tools/reproduce.py materialize --line 前期实验 --stage 06 --dest \"$REPLAY\"\nbash \"$REPLAY/name_ekr_mechanism_diag_20261007_v1/run.sh\"\n",
+      "template_paths": true
+    }
+  ],
+  "variables": {
+    "CPF_PY": "Matching CPF Python executable",
+    "PROJECT": "Source/data/knowledge root",
+    "REPLAY": "Materialized package directory",
+    "WORK": "Independent output directory"
+  },
+  "environment": "environment/README.md",
+  "scope": "Archived workflow",
+  "archive_stage": "06",
+  "line": "前期实验"
+}

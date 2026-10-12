@@ -1,0 +1,22 @@
+{
+  "stage": "08",
+  "primary_package": "sgekr_support_mask_20261008",
+  "commands": [
+    {
+      "source": "前期实验/08-support-sgekr/README.md",
+      "language": "bash",
+      "text": "REPLAY=/srv/czsl-reproduce-08\npython tools/reproduce.py materialize --line 前期实验 --stage 08 --dest \"$REPLAY\"\nbash \"$REPLAY/sgekr_support_mask_20261008/run.sh\" prepare\nbash \"$REPLAY/sgekr_support_mask_20261008/run.sh\" train\nbash \"$REPLAY/sgekr_support_mask_20261008/run.sh\" report\n",
+      "template_paths": true
+    }
+  ],
+  "variables": {
+    "CPF_PY": "Matching CPF Python executable",
+    "PROJECT": "Source/data/knowledge root",
+    "REPLAY": "Materialized package directory",
+    "WORK": "Independent output directory"
+  },
+  "environment": "environment/README.md",
+  "scope": "Archived workflow",
+  "archive_stage": "08",
+  "line": "前期实验"
+}

@@ -1,0 +1,22 @@
+{
+  "stage": "14",
+  "primary_package": "clip_knowledge_probe_20261010_r2",
+  "commands": [
+    {
+      "source": "前期实验/14-clip-probe/README.md",
+      "language": "bash",
+      "text": "REPLAY=/srv/czsl-reproduce-14\npython tools/reproduce.py materialize --line 前期实验 --stage 14 --dest \"$REPLAY\"\nWORK=/var/tmp/czsl_clip_knowledge_probe_20261010_r2\n\"$CPF_PY\" \"$REPLAY/clip_knowledge_probe_20261010_r2/probe.py\" \\\n  --work \"$WORK\" --export \"$WORK.zip\" --check-inputs-only\n\"$CPF_PY\" \"$REPLAY/clip_knowledge_probe_20261010_r2/probe.py\" \\\n  --work \"$WORK\" --export \"$WORK.zip\"\n",
+      "template_paths": true
+    }
+  ],
+  "variables": {
+    "CPF_PY": "Matching CPF Python executable",
+    "PROJECT": "Source/data/knowledge root",
+    "REPLAY": "Materialized package directory",
+    "WORK": "Independent output directory"
+  },
+  "environment": "environment/README.md",
+  "scope": "Archived workflow",
+  "archive_stage": "14",
+  "line": "前期实验"
+}

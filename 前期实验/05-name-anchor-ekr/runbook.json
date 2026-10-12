@@ -1,0 +1,22 @@
+{
+  "stage": "05",
+  "primary_package": "name_anchor_ekr_20261007",
+  "commands": [
+    {
+      "source": "前期实验/05-name-anchor-ekr/README.md",
+      "language": "bash",
+      "text": "REPLAY=/srv/czsl-reproduce-05\npython tools/reproduce.py materialize --line 前期实验 --stage 05 --dest \"$REPLAY\"\nbash \"$REPLAY/name_anchor_ekr_20261007/prepare.sh\"\nbash \"$REPLAY/name_anchor_ekr_20261007/replay_scores.sh\"\nbash \"$REPLAY/name_anchor_ekr_20261007/run_pilot.sh\"\n",
+      "template_paths": true
+    }
+  ],
+  "variables": {
+    "CPF_PY": "Matching CPF Python executable",
+    "PROJECT": "Source/data/knowledge root",
+    "REPLAY": "Materialized package directory",
+    "WORK": "Independent output directory"
+  },
+  "environment": "environment/README.md",
+  "scope": "Archived workflow",
+  "archive_stage": "05",
+  "line": "前期实验"
+}

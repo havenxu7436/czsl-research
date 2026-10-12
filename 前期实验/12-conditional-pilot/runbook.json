@@ -1,0 +1,22 @@
+{
+  "stage": "12",
+  "primary_package": "conditional_attribute_pilot_20261009",
+  "commands": [
+    {
+      "source": "前期实验/12-conditional-pilot/README.md",
+      "language": "bash",
+      "text": "REPLAY=/srv/czsl-reproduce-12\npython tools/reproduce.py materialize --line 前期实验 --stage 12 --dest \"$REPLAY\"\n\"$CPF_PY\" \"$REPLAY/conditional_attribute_pilot_20261009/pilot.py\" \\\n  --work \"$WORK\" --export \"$WORK.zip\"\n",
+      "template_paths": true
+    }
+  ],
+  "variables": {
+    "CPF_PY": "Matching CPF Python executable",
+    "PROJECT": "Source/data/knowledge root",
+    "REPLAY": "Materialized package directory",
+    "WORK": "Independent output directory"
+  },
+  "environment": "environment/README.md",
+  "scope": "Archived workflow",
+  "archive_stage": "12",
+  "line": "前期实验"
+}

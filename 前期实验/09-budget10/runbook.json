@@ -1,0 +1,22 @@
+{
+  "stage": "09",
+  "primary_package": "ekr_v2_budget10_20261008",
+  "commands": [
+    {
+      "source": "前期实验/09-budget10/README.md",
+      "language": "bash",
+      "text": "REPLAY=/srv/czsl-reproduce-09\npython tools/reproduce.py materialize --line 前期实验 --stage 09 --dest \"$REPLAY\"\nbash \"$REPLAY/ekr_v2_budget10_20261008/run.sh\" prepare\nbash \"$REPLAY/ekr_v2_budget10_20261008/run.sh\" import\nbash \"$REPLAY/ekr_v2_budget10_20261008/run.sh\" resume\nbash \"$REPLAY/ekr_v2_budget10_20261008/run.sh\" report\n",
+      "template_paths": true
+    }
+  ],
+  "variables": {
+    "CPF_PY": "Matching CPF Python executable",
+    "PROJECT": "Source/data/knowledge root",
+    "REPLAY": "Materialized package directory",
+    "WORK": "Independent output directory"
+  },
+  "environment": "environment/README.md",
+  "scope": "Archived workflow",
+  "archive_stage": "09",
+  "line": "前期实验"
+}

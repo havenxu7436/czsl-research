@@ -1,0 +1,22 @@
+{
+  "stage": "02",
+  "primary_package": "cpf_stage_report_tools_20261004_v2",
+  "commands": [
+    {
+      "source": "前期实验/02-mvp-calibration/README.md",
+      "language": "bash",
+      "text": "REPLAY=/srv/czsl-reproduce-02\npython tools/reproduce.py materialize --line 前期实验 --stage 02 --dest \"$REPLAY\"\n\"$CPF_PY\" \"$REPLAY/cpf_stage_report_tools_20261004_v2/collect_stage_report.py\" --help\n",
+      "template_paths": true
+    }
+  ],
+  "variables": {
+    "CPF_PY": "Matching CPF Python executable",
+    "PROJECT": "Source/data/knowledge root",
+    "REPLAY": "Materialized package directory",
+    "WORK": "Independent output directory"
+  },
+  "environment": "environment/README.md",
+  "scope": "Archived workflow",
+  "archive_stage": "02",
+  "line": "前期实验"
+}
