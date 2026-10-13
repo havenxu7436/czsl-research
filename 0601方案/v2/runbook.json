@@ -1,0 +1,30 @@
+{
+  "stage": "v2",
+  "line": "0601方案",
+  "archive_stage": "19",
+  "version": "v2",
+  "primary_package": "revised_0601_20261013",
+  "commands": [
+    {
+      "source": "0601方案/v2/README.md",
+      "language": "bash",
+      "text": "REPLAY=/srv/czsl-reproduce-v2\npython tools/reproduce.py materialize --line 0601方案 --stage v2 --dest \"$REPLAY\"\nV2_PKG=\"$REPLAY/revised_0601_20261013\"\n\"$CPF_PY\" \"$V2_PKG/test_revision.py\"\n\"$CPF_PY\" \"$V2_PKG/prepare_revision.py\" --root \"$PROJECT\" --work \"$WORK\" \\\n  --suite all --epochs 10 --seeds 3351,3352,3353\n\"$CPF_PY\" \"$V2_PKG/run_suite.py\" --work \"$WORK\" \\\n  --gpus \"${CZSL_GPUS:?Set physical GPU IDs}\" --max-workers 3 \\\n  --export \"$WORK/results.zip\"\n",
+      "template_paths": true
+    },
+    {
+      "source": "0601方案/v2/README.md",
+      "language": "bash",
+      "text": "\"$CPF_PY\" \"$V2_PKG/posthoc_revision.py\" --work \"$WORK\"\n\"$CPF_PY\" \"$V2_PKG/run_suite.py\" --work \"$WORK\" --summarize-only \\\n  --export \"$WORK/results.zip\"\n",
+      "template_paths": true
+    }
+  ],
+  "variables": {
+    "CPF_PY": "Matching CPF Python executable",
+    "PROJECT": "Audited source/data/knowledge root",
+    "REPLAY": "New materialized package directory",
+    "WORK": "New output directory with >=202GiB for all",
+    "CZSL_GPUS": "Available physical GPU IDs"
+  },
+  "environment": "environment/README.md",
+  "scope": "v2 unified corrected formulas; no training started by repository import"
+}

@@ -1,0 +1,860 @@
+# 复现公式及代码
+
+依据：[原实验设计][design]与[公式对齐版源码][entry]（20261011 r2）。保留原方案 0–12 章结构，公式和代码按该版本实际接线整理；不包含训练配置、启动命令或实验数据分析。
+
+Python 代码为核心实现摘录，省略文件校验、日志和准确率统计。模型方法中的 `self` 指实际 `DDM` 实例；通用依赖为：
+
+```python
+import torch
+from torch import nn
+from torch.nn import functional as F
+```
+
+## 0. 总体原则
+
+研究主线为知识条件下的组合预测：
+
+```math
+P(a,o\mid x,\mathcal K)
+\approx P(o\mid x)P(a\mid o,x,\mathcal K).
+```
+
+代码以联合 logit 实现组合评分。对知识条件评分分支，定义：
+
+```math
+S_{b,o,a}=Z^o_{b,o}+U_{b,o,a}+\lambda_k\Pi_{o,a},
+\qquad
+\hat c_b=\arg\max_{(a,o)\in\mathcal C}S_{b,o,a}.
+```
+
+其中 $`U`$ 为条件属性评分，$`\Pi`$ 为兼容性 prior，$`\mathcal C`$ 为当前合法候选集合。组合 CE 内部使用候选轴 softmax；代码不单独相乘两个归一化概率。
+
+| 符号 | 含义／维度 |
+|---|---|
+| $`B,N,M,d`$ | batch、对象数、属性数、文本／分支视觉维度；当前 $`N=12,M=16,d=300`$ |
+| $`v_o,v_a,g`$ | 对象视觉向量、属性视觉向量、投影后的全局 CLS；均为 $`B\times300`$ |
+| $`W_o,W_a`$ | 原始名称嵌入；$`N\times300`$、$`M\times300`$ |
+| $`W_o^{\mathcal K},W_a^{\mathcal K}`$ | 名称与描述聚合后的知识嵌入 |
+| $`E_{oa}=W_{a\mid o}^{\mathcal K}`$ | 全对象×属性模板嵌入；$`N\times M\times300`$ |
+| $`U,S`$ | 条件属性评分、联合评分；$`B\times N\times M`$ |
+| $`\mathcal C_{tr},\mathcal C_{cw},\mathcal C_{ow}`$ | 训练组合、closed-world 候选、全笛卡尔积候选 |
+
+缓存轴顺序为 **object→attribute**；数据集 pair 的元组顺序为 **`(attribute, object)`**。取分数时显式转换为对象／属性索引。
+
+## 1. 实验主线
+
+### 1.1 原始 CPF 分支：A／B／C
+
+令 $`\langle\bar u,\bar v\rangle`$ 表示 L2 归一化后的点积，原生分数为：
+
+```math
+c_{b,o,a}=\langle\overline{f_c(v_o,v_a)},\overline{f_w(W_o[o],W_a[a])}\rangle,
+\quad
+a_{b,a}=\langle\bar v_a,\bar W_a[a]\rangle,
+\quad
+o_{b,o}=\langle\bar v_o,\bar W_o[o]\rangle.
+```
+
+原生任务损失为：
+
+```math
+\mathcal L_{task}^{native}
+=\mathrm{CE}_{\mathcal C_{tr}}(c/T,y_c)
++0.6\,\mathrm{CE}(a/T,y_a)
++0.4\,\mathrm{CE}(o/T,y_o),\qquad T=0.05.
+```
+
+原生推理评分为 $`S^{native}=c+a+o`$。A 使用名称嵌入；C 替换为知识嵌入；B 保留原生任务损失与推理评分，只增加逻辑项。
+
+### 1.2 知识联合评分分支：D／E／F／G／H
+
+```math
+Z^o_{b,o}=o_{b,o}/T,
+\qquad
+S_{b,o,a}=Z^o_{b,o}+U_{b,o,a}+\lambda_k\Pi_{o,a}.
+```
+
+- D／E／F：$`U=Z^{comp}+Z^{attr}`$，见 §5.2。
+- G／H：$`U=\mathrm{KnowledgeHead}(v_a,v_o,W_a^{\mathcal K},W_o^{\mathcal K},E_{oa})`$，见 §6.1。
+- 使用 prior 的主组取 $`\lambda_k=0.1`$；关闭 prior 时取 0。
+
+来源：[公式模块][formula]，`joint_score`。训练和推理共同调用：
+
+```python
+def joint_score(obj_logits, conditional_logits, prior=None, weight=0.0):
+    score = obj_logits[:, :, None] + conditional_logits
+    return score if prior is None else score + weight * prior[None, :, :]
+```
+
+## 2. 代码基线与文件位置
+
+### 2.1 CPF 视觉底座
+
+实际入口为 `DDM(FormulaMixin, LegacyDDM)`；底座采用归档中的 [ddm.py][ddm]，视觉编码器为 ViT-B/16。原文列出的 `ddm_v3.py` 保留在源码中，当前入口不调用该版本。
+
+设 $`G:\mathbb R^{768}\to\mathbb R^{300}`$ 为对象投影，$`A:\mathbb R^{900}\to\mathbb R^{300}`$ 为属性融合投影，$`V_\ell`$ 为第 $`\ell`$ 层 patch tokens：
+
+```math
+g=G(CLS),\qquad
+q=\mathrm{softmax}_o\!\left(\bar g\bar W_o^\top/\sqrt{300}\right)W_o,
+```
+
+```math
+\omega_{12}=\mathrm{softmax}_{patch}\!\left(\langle\bar q,\overline{G(V_{12})}\rangle/\sqrt{300}\right),
+\qquad
+v_o=g+G\!\left(\sum_p\omega_{12,p}V_{12,p}\right),
+```
+
+```math
+\omega_\ell=\mathrm{softmax}_{patch}\!\left(\langle\bar v_o,\overline{G(V_\ell)}\rangle/\sqrt{300}\right),
+\quad
+r_\ell=G\!\left(\sum_p\omega_{\ell,p}V_{\ell,p}\right),\quad \ell\in\{9,6,3\},
+```
+
+```math
+v_a=A([r_9;r_6;r_3]).
+```
+
+开启 Text K 时，上式的 $`W_o`$ 替换为 $`W_o^{\mathcal K}`$。注意力 helper 对 query/key 先做 L2 normalize。
+
+来源：[公式模块][formula]，`FormulaMixin.formula_features`；[注意力实现][attention]。
+
+```python
+def formula_features(self, batch):
+    l3, l6, l9, l12, cls = self.feat_extractor(batch['img'])
+    ew_o = self._kcc_obj_embeddings(self.tot_objs)
+    ew_a = self._kcc_attr_embeddings(self.tot_attrs)
+    global_feat = self.objc_embedder(cls)
+    guide = choose_texts(global_feat, ew_o) @ ew_o
+    weights = choose_visual_tokens(guide, self.objc_embedder(l12))
+    vo = global_feat + self.objc_embedder(
+        (l12 * weights.unsqueeze(-1)).sum(dim=1))
+    parts = []
+    for layer in (l9, l6, l3):
+        weights = choose_visual_tokens(vo, self.objc_embedder(layer))
+        parts.append(self.objc_embedder(
+            (layer * weights.unsqueeze(-1)).sum(dim=1)))
+    va = self.attrc_embedder(torch.cat(parts, dim=1))
+    return vo, va, global_feat, ew_o, ew_a
+```
+
+共享余弦分类器的实现为：
+
+```python
+def forward(self, img, concept, scale=True):
+    img_norm = F.normalize(img, dim=-1)
+    concept_norm = F.normalize(concept, dim=-1)
+    pred = img_norm @ concept_norm.transpose(0, 1)
+    if scale:
+        pred = pred / self.temp
+    return pred
+```
+
+### 2.2 LogiCZSL 知识与逻辑来源
+
+当前使用两套知识，按用途分开读取：
+
+| 用途 | 资料位置 | 实际内容 |
+|---|---|---|
+| Text K／feature K／prior | [文本知识目录][textknowledge] | OE、AE 各 3 条描述；OI 字典；名称标签及审阅记录 |
+| OI／OE／AE 逻辑规则 | [逻辑知识原文][logicjson]与[逻辑银行][bankmanifest] | 5 个父概念、每个对象唯一父节点、对象／属性各 3 条描述的 GloVe 银行 |
+
+Text K 的历史 OI 有 4 个父类别；逻辑银行采用另一套 5 父类别重建知识，OI 规则实际读取后者。
+
+**遗失资产**：原作者知识数据未恢复；当前逻辑资产为重建版本。原方案中的作者 `hc_dict.json`／`oda_dict.json`／`ada_dict.json` 与原始生成记录未包含在此归档，当前分别使用重建 OI／OE／AE 内容。
+
+## 3. 三条知识注入路径
+
+### 3.1 路径 1：文本知识嵌入
+
+设 $`\mathcal T(s)`$ 为已登录的 GloVe tokens，$`e(t)\in\mathbb R^{300}`$：
+
+```math
+E(s)=\mathrm{norm}\!\left(\frac{1}{|\mathcal T(s)|}\sum_{t\in\mathcal T(s)}e(t)\right),
+\qquad
+\mathrm{Agg}(s_0,\ldots,s_L)
+=\mathrm{norm}\!\left(\frac{1}{L+1}\sum_{j=0}^{L}E(s_j)\right).
+```
+
+名称使用 CPF 的 alias／下划线分词规则；描述使用英文 regex 分词并跳过 OOV tokens。描述没有有效向量时回退到名称向量；名称 OOV 则报错。
+
+来源：[文本构建器][builder]，`make_primitive_table`。下列为其聚合核心，`raw_name` 已由名称 tokens 求均值得到：
+
+```python
+def aggregate_glove(raw_name, descriptions, glove, description_tokens):
+    vectors = [F.normalize(raw_name, dim=-1)]
+    for text in descriptions:
+        known = [glove[t] for t in description_tokens(text) if t in glove]
+        sentence = torch.stack(known).mean(0) if known else torch.zeros_like(raw_name)
+        if sentence.norm() < 1e-8:
+            sentence = raw_name
+        vectors.append(F.normalize(sentence, dim=-1))
+    return F.normalize(torch.stack(vectors).mean(0), dim=-1)
+```
+
+**未实现分支**：attention 聚合未接入本版本；实际使用 mean。
+
+### 3.2 路径 2：compatibility calibration
+
+对全部对象×属性计算先验，不先取 object argmax：
+
+```math
+\Pi_{o,a}=\frac{K_{o,a}-\mu_K}{\sigma_K+10^{-8}},
+\qquad
+\mu_K=\frac{1}{NM}\sum_{o,a}K_{o,a},
+\qquad
+\sigma_K=\sqrt{\frac{1}{NM-1}\sum_{o,a}(K_{o,a}-\mu_K)^2}.
+```
+
+标准差为 PyTorch 默认的样本标准差，统计范围为完整 $`N\times M`$ 矩阵。常数矩阵经 centered 变换后为零。
+
+来源：[公式模块][formula]，`centered_prior`；[预处理入口][prepare]在新缓存中重算该值。
+
+```python
+def centered_prior(k, eps=1e-8):
+    return (k - k.mean()) / (k.std() + eps)
+```
+
+**未覆盖分支**：clamped-log prior 未接入当前公式主线；learnable／clamped $`\lambda_k`$ 未实现，当前为固定标量。
+
+### 3.3 路径 3：知识条件 head
+
+知识 head 输出 $`U\in\mathbb R^{B\times N\times M}`$，直接参与联合评分和属性辅助 CE。使用 factorized scoring；视觉输入为共享的 $`B\times300`$ 向量，沿类别维广播。完整算子见 §6.1。
+
+## 4. Phase 1：知识预处理与对齐
+
+### 4.1 交付资产与读取关系
+
+| 文件 | 内容／使用位置 |
+|---|---|
+| `W_o_K.pt`、`W_a_K.pt` | 名称＋描述知识嵌入；Text K 与 head |
+| `W_o_name_raw.pt`、`W_a_name_raw.pt` | CPF 名称初始化向量；对齐检查与描述回退 |
+| `W_ao_K/obj_00000.pt` 等 | 每个对象一个 $`M\times300`$ pair 模板块；head |
+| `K_oa_text.pt` | 当前 min-max 文本兼容性矩阵 |
+| `K_oa_prior_centered.pt` | 当前 sample-std centered prior；联合评分 |
+| `labels.json`、`manifest.json` | 标签顺序、输入与缓存指纹 |
+| `knowledge_coverage_report.json` | 描述覆盖、OOV、回退及 pair 模板覆盖记录 |
+| `logic_bank/bank.pt`、`manifest.json` | 父概念／OE／AE 向量、对象父节点映射及来源 |
+
+文本与 pair 嵌入从服务器父缓存复用；[prepare.py][prepare]复制到新缓存并重算当前 $`K`$ 与 prior。父构建器中保留的旧总体标准差 helper 不参与当前 prior 定义。
+
+**归档缺项**：桌面资料包含文本输入、构建器和缓存 manifest，未包含服务器完整 Text K tensor 缓存；逻辑 `bank.pt` 已包含。原图、GloVe 大文件与 ViT 预训练权重为外部依赖。
+
+### 4.2 构建对象知识 $`W_o^{\mathcal K}`$
+
+```math
+W_o^{\mathcal K}[o]=\mathrm{Agg}(\mathrm{name}(o),d^o_{o,1},d^o_{o,2},d^o_{o,3}).
+```
+
+来源：[文本构建器][builder]。`token_maps` 使用原 CPF alias 规则，`dictionaries['oe']` 为对象描述：
+
+```python
+W_o_name, W_o_K, obj_records = make_primitive_table(
+    objs, dictionaries['oe'], token_maps['object'], glove, 'object')
+```
+
+其中 `make_primitive_table` 执行 §3.1 的聚合，并返回名称原向量、知识向量和 OOV／回退记录。
+
+### 4.3 构建属性知识 $`W_a^{\mathcal K}`$
+
+```math
+W_a^{\mathcal K}[a]=\mathrm{Agg}(\mathrm{name}(a),d^a_{a,1},d^a_{a,2},d^a_{a,3}).
+```
+
+```python
+W_a_name, W_a_K, attr_records = make_primitive_table(
+    attrs, dictionaries['ae'], token_maps['attribute'], glove, 'attribute')
+```
+
+### 4.4 构建全对象×属性 pair 知识
+
+每个组合使用相同三种模板：
+
+```text
+a {object} that is {attribute}
+the {attribute} {object}
+{attribute} appearance of {object}
+```
+
+```math
+E_{oa}=\mathrm{norm}\!\left(\frac{1}{3}\sum_{j=1}^{3}E(\mathrm{template}_j(o,a))\right).
+```
+
+代码按对象保存；`output/W_ao_K` 为已创建的缓存目录，`token_maps` 为名称 alias 分词表。来源：[文本构建器][builder]的模板构建循环：
+
+```python
+FILLERS = (('a', 'that', 'is'), ('the',), ('appearance', 'of'))
+attr_sums = torch.stack([
+    torch.stack([glove[t] for t in token_maps['attribute'][a]]).sum(0)
+    for a in attrs])
+attr_counts = torch.tensor([
+    len(token_maps['attribute'][a]) for a in attrs], dtype=torch.float32)
+for oi, obj in enumerate(objs):
+    obj_tokens = token_maps['object'][obj]
+    obj_sum = torch.stack([glove[t] for t in obj_tokens]).sum(0)
+    sentences = []
+    for fillers in FILLERS:
+        filler_sum = torch.stack([glove[t] for t in fillers]).sum(0)
+        means = (attr_sums + obj_sum + filler_sum) / (
+            attr_counts + len(obj_tokens) + len(fillers)).unsqueeze(1)
+        sentences.append(F.normalize(means, dim=-1))
+    pair_embeddings = F.normalize(torch.stack(sentences).mean(0), dim=-1)
+    torch.save(pair_embeddings, output / 'W_ao_K' / f'obj_{oi:05d}.pt')
+```
+
+GloVe 句向量为词均值，因此代码直接用模板词和计算，结果对应上述三模板聚合。所有 $`N\times M`$ 组合均构建，不依据 seen/unseen 分配不同模板。
+
+**未做分支**：pair-level LLM 描述增强未接入；当前主 H 即 template-only 条件。
+
+### 4.5 构建文本兼容性 $`K_{oa}`$
+
+```math
+R_{oa}=\mathrm{cos}\!\left(E_{oa},\mathrm{norm}\!\left(\frac{W_o^{\mathcal K}[o]+W_a^{\mathcal K}[a]}{2}\right)\right),
+\qquad
+K_{oa}=\frac{R_{oa}-\min R}{\max R-\min R+10^{-8}}.
+```
+
+当前 $`K=K_{text}`$；min/max 范围为完整矩阵。来源：[公式模块][formula]的 `compatibility`，以及[预处理入口][prepare]：
+
+```python
+def compatibility(e_obj, e_attr, e_pair):
+    proto = F.normalize((e_obj[:, None] + e_attr[None, :]) / 2, dim=-1)
+    raw = F.cosine_similarity(e_pair, proto, dim=-1)
+    return (raw - raw.min()) / (raw.max() - raw.min() + 1e-8)
+```
+
+**缺失资产／未做实验**：没有有效 LLM feasibility；LLM-only 与 text＋LLM mixed prior 未构建、未纳入当前分支。
+
+### 4.6 对齐与输入检查
+
+核心检查：知识标签与数据集顺序一致；名称向量对应 CPF 初始化；tensor 有限且形状正确；pair blocks 为单位向量；缓存与输入 SHA256 一致。
+
+语义 prior 输入为名称、描述和模板；split 文件用于标签／候选对齐，未用于构造组合存在性先验。来源：[缓存加载器][cache]：
+
+```python
+if manifest['attrs'] != list(dset.attrs) or manifest['objs'] != list(dset.objs):
+    raise ValueError('cache primitive labels/order mismatch')
+if manifest['pair_axis_order'] != ['object', 'attribute']:
+    raise ValueError('cache K must have [object, attribute] axes')
+expected = (k - k.mean()) / (k.std() + 1e-8)
+if not torch.allclose(expected, prior, atol=1e-6, rtol=1e-5):
+    raise ValueError('K prior is not the sample-std+epsilon standardized K')
+```
+
+## 5. Phase 2：MVP 实现
+
+### 5.1 替换 CPF 文本输入
+
+开启 Text K 时，对象注意力、对象／属性分类器及原生 word composer 读取知识向量；关闭时读取原生名称 embedding。原始名称 embedding 在 CPF 底座中冻结；知识向量作为冻结 buffer 读取。
+
+来源：[缓存加载器][cache]：
+
+```python
+def _kcc_obj_embeddings(self, indices):
+    if self.kcc_text:
+        return self.W_o_K.index_select(0, indices)
+    return self.obj_embedder(indices)
+
+def _kcc_attr_embeddings(self, indices):
+    if self.kcc_text:
+        return self.W_a_K.index_select(0, indices)
+    return self.attr_embedder(indices)
+```
+
+### 5.2 无 Feature K 的条件评分与 calibration
+
+原方案未给出无 Feature K 时 `z_attr_obj` 的完整函数；当前 D／E／F／J0／Jtext 使用以下实现：
+
+```math
+Z^{attr}_{b,a}=\mathrm{cos}(v_a,W_a[a])/T,
+\qquad
+Z^{comp}_{b,o,a}=\mathrm{cos}(f_c(v_o,v_a),f_w(W_o[o],W_a[a]))/T,
+```
+
+```math
+U^{MVP}_{b,o,a}=Z^{comp}_{b,o,a}+Z^{attr}_{b,a},
+\qquad
+S^{MVP}_{b,o,a}=Z^o_{b,o}+U^{MVP}_{b,o,a}+\lambda_k\Pi_{o,a}.
+```
+
+$`f_w`$ 是原生 600→900→600→300 word composer（中间 BatchNorm＋ReLU）；$`f_c`$ 是原生 600→300→300 visual composer（输入 Dropout、隐藏 ReLU）。组合文本拼接顺序为 **object、attribute**。
+
+来源：[公式模块][formula]，`formula_logits`。核心接线为：
+
+```python
+grid_o = self.tot_objs.repeat_interleave(self.num_attrs)
+grid_a = self.tot_attrs.repeat(self.num_objs)
+words = self.compose(torch.cat((
+    self._kcc_obj_embeddings(grid_o),
+    self._kcc_attr_embeddings(grid_a)), dim=-1))
+vo, va, global_feat, ew_o, ew_a = self.formula_features(batch)
+obj = self.classifier(vo, ew_o, scale=True)
+attr = self.classifier(va, ew_a, scale=True)
+comp = self.classifier(self.compose_visual(vo, va), words, scale=True)
+conditional = attr[:, None, :] + comp.reshape(-1, self.num_objs, self.num_attrs)
+prior = self.K_oa_prior if self.kcc_calib else None
+score = joint_score(obj, conditional, prior, self.kcc_lambda)
+```
+
+条件评分先计算完整 $`N\times M`$，组合 CE 再选择训练 pairs；GT-object 属性 CE 保留全部属性。J0／Jtext 用于独立对照该评分接口，见 §10。
+
+### 5.3 MVP 变体
+
+A：原生 CPF；B：原生任务＋逻辑；C：知识文本；D：联合接口＋prior；E：知识文本＋联合接口＋prior；F：E＋逻辑。完整开关与评分关系见 §10.1。
+
+### 5.4 MVP 接口检查
+
+检查联合评分加法、候选顺序、GT-object 切片和逻辑梯度。A/C 保留原生分支；D/E/F 在训练与推理共用 `formula_logits`。性能比较属于后续实验，不在本文填写结果。
+
+## 6. Phase 3：特征层 knowledge-conditioned module
+
+### 6.1 Factorized logit head
+
+定义四个 300→512 线性投影，投影后 L2 normalize：
+
+```math
+q_a=\mathrm{norm}(\phi_a(v_a)),\quad k_a=\mathrm{norm}(\psi_a(W_a^{\mathcal K})),
+\quad
+q_o=\mathrm{norm}(\phi_o(v_o)),\quad k_o=\mathrm{norm}(\psi_o(W_o^{\mathcal K})),
+```
+
+```math
+Z^a=q_ak_a^\top,\qquad Z^{o,aux}=q_ok_o^\top,
+\qquad h(E)=\mathrm{Linear}_{512\to1}(\mathrm{GELU}(\mathrm{Linear}_{300\to512}(E))),
+```
+
+```math
+U_{b,o,a}=Z^a_{b,a}+Z^{o,aux}_{b,o}+h(E_{oa}),
+\qquad
+S_{b,o,a}=Z^o_{b,o}+U_{b,o,a}+\lambda_k\Pi_{o,a}.
+```
+
+$`U`$ 使用 head 原始输出，温度为 1；外部对象分类器仍为 cosine／0.05。主评分不额外加入原生 composition 或 attribute 分数。
+
+来源：[head 实现][head]，完整核心类：
+
+```python
+class FactorizedKnowledgeConditionedHead(nn.Module):
+    def __init__(self, d_vis=300, d_txt=300, hidden_dim=512):
+        super().__init__()
+        self.attr_vis_proj = nn.Linear(d_vis, hidden_dim)
+        self.attr_txt_proj = nn.Linear(d_txt, hidden_dim)
+        self.obj_vis_proj = nn.Linear(d_vis, hidden_dim)
+        self.obj_txt_proj = nn.Linear(d_txt, hidden_dim)
+        self.pair_bias = nn.Sequential(
+            nn.Linear(d_txt, hidden_dim), nn.GELU(), nn.Linear(hidden_dim, 1))
+
+    def forward(self, v_attr, v_obj, e_attr, e_obj, e_pair=None):
+        qa = F.normalize(self.attr_vis_proj(v_attr), dim=-1)
+        ka = F.normalize(self.attr_txt_proj(e_attr), dim=-1)
+        qo = F.normalize(self.obj_vis_proj(v_obj), dim=-1)
+        ko = F.normalize(self.obj_txt_proj(e_obj), dim=-1)
+        za = qa @ ka.t()
+        zo = qo @ ko.t()
+        z = zo[:, :, None] + za[:, None, :]
+        if e_pair is not None:
+            z = z + self.pair_bias(e_pair).squeeze(-1)[None, :, :]
+        return z
+```
+
+模型读取 pair blocks 后堆成 $`N\times M\times300`$。`formula_logits` 直接调用 head：
+
+```python
+pair = self.full_pair_embeddings if self.full_use_pair else None
+conditional = self.full_head(va, vo, self.W_a_K, self.W_o_K, pair)
+score = joint_score(obj, conditional, prior, self.kcc_lambda)
+```
+
+### 6.2 Chunk-wise scoring
+
+当前 head 生成 $`B\times N\times M`$ score，未展开 $`B\times N\times M\times D`$ 视觉特征。
+
+**未实现／未做实验**：object chunk 路径和 C-GQA 大规模显存验证未接入当前版本。
+
+### 6.3 Naive pair-wise MLP
+
+**未采用**：将全部视觉与文本向量展开为 $`B\times N\times M\times D`$ 后拼接的 MLP 路径。当前仅采用 §6.1 factorized head。
+
+### 6.4 Full Model 变体
+
+G：Text K＋prior＋factorized head；H：G＋OI/OE/AE。G/H 的任务损失与推理共用上述 $`U,S`$ 定义。
+
+### 6.5 Full Model 接口检查
+
+核对 $`U=\mathrm{head\_raw}`$、GT-object 属性 CE 输入、head 梯度、AE 到 head 的梯度，以及原生 composition 分支不进入 G/H 主评分。归档中提供对应 CPU 检查及真实图像 smoke 程序，见 §12。
+
+## 7. Logic loss adapter
+
+### 7.1 概念节点与形状
+
+逻辑分数使用对象节点 $`p^o`$、属性节点 $`p^a`$、父节点 $`p^h`$、对象描述节点 $`p^{oe}`$ 和属性描述节点 $`p^{ae}`$。pair 节点输出 $`p^{pair}`$，当前三类规则不消费该节点。
+
+逻辑银行为：父节点 $`H\in\mathbb R^{5\times300}`$、OE $`D^o\in\mathbb R^{N\times3\times300}`$、AE $`D^a\in\mathbb R^{M\times3\times300}`$；向量均冻结且为单位范数。
+
+银行编码为已登录 GloVe tokens 均值后归一化；句子 token 覆盖率低于 0.8 或向量无效时报错。来源：[逻辑银行构建器][bankbuilder]：
+
+```python
+found = [vectors[t] for t in tokens if t in vectors]
+rate = len(found) / len(tokens) if tokens else 0
+if rate < 0.8 or not found:
+    raise ValueError('Low GloVe coverage')
+value = torch.stack(found).mean(dim=0)
+if not torch.isfinite(value).all() or value.norm() < 1e-8:
+    raise ValueError('Invalid phrase embedding')
+encoded.append(value / value.norm())
+```
+
+### 7.2 节点分数构造
+
+训练时，对非训练候选置 $`-\infty`$ 得到 $`S^{mask}`$：
+
+```math
+p^o=\mathrm{softmax}_o(Z^o),\qquad
+p^a=\mathrm{softmax}_a\!\left(\mathrm{logsumexp}_o S^{mask}\right),
+\qquad p^{pair}=\mathrm{sigmoid}(S^{mask}),
+```
+
+```math
+p^h=\mathrm{softmax}_h(gH^\top),\quad
+p^{oe}_{b,o,j}=\mathrm{sigmoid}(g_b^\top D^o_{o,j}),\quad
+p^{ae}_{b,a,j}=\mathrm{sigmoid}(g_b^\top D^a_{a,j}).
+```
+
+$`g=G(CLS)\in\mathbb R^{B\times300}`$；此处直接 raw dot，不做视觉 L2 normalize、温度缩放或描述类别 softmax。
+
+来源：[公式模块][formula]，`concept_nodes`：
+
+```python
+def concept_nodes(obj_logits, masked_joint, image_feat, bank):
+    return {
+        'object': F.softmax(obj_logits, dim=-1),
+        'attribute': F.softmax(torch.logsumexp(masked_joint, dim=1), dim=-1),
+        'pair': torch.sigmoid(masked_joint),
+        'parent': F.softmax(image_feat @ bank.parent.t(), dim=-1),
+        'oe': torch.sigmoid(
+            image_feat @ bank.oe.reshape(-1, 300).t()
+        ).reshape(-1, bank.oe.size(0), 3),
+        'ae': torch.sigmoid(
+            image_feat @ bank.ae.reshape(-1, 300).t()
+        ).reshape(-1, bank.ae.size(0), 3),
+    }
+```
+
+B 的逻辑 grounding 在训练 candidates 上使用 $`Z^o+Z^{attr}+Z^{comp}`$，但任务 CE 和推理仍走原生 CPF；F/H 则使用各自主联合评分。
+
+**未实现分支**：原方案推荐的 CLIP 描述编码未接入；当前为投影 CLS 对 GloVe 描述。
+
+### 7.3 OI／OE／AE 逻辑损失
+
+设 $`r(o)`$ 为对象父节点，$`\mathrm{Child}(h)`$ 为父节点的对象集合，$`q=3`$。对一个节点或规则的 batch 违反度，定义：
+
+```math
+V_q(u)=\left(\frac1B\sum_{b=1}^{B}u_b^q\right)^{1/q}.
+```
+
+```math
+\mathcal L_{oi}
+=\frac1N\sum_o V_q\!\left(p^o_{:,o}(1-p^h_{:,r(o)})\right)
++\frac1{5}\sum_h V_q\!\left(p^h_{:,h}\left(1-\max_{o\in\mathrm{Child}(h)}p^o_{:,o}\right)\right),
+```
+
+```math
+\mathcal L_{oe}=\frac1{3N}\sum_{o,j}V_q\!\left(p^o_{:,o}(1-p^{oe}_{:,o,j})\right),
+\qquad
+\mathcal L_{ae}=\frac1{3M}\sum_{a,j}V_q\!\left(p^a_{:,a}(1-p^{ae}_{:,a,j})\right),
+```
+
+```math
+\mathcal L_{logic}=\mathcal L_{oi}+\mathcal L_{oe}+\mathcal L_{ae}.
+```
+
+来源：[p-mean 实现][logicloss]与[公式模块][formula]，直接消费 §7.2 的概率：
+
+```python
+def pmean_violation(value, q=3.0):
+    return torch.linalg.vector_norm(value.float(), ord=q, dim=0) / (
+        value.shape[0] ** (1.0 / q))
+
+def logic_from_nodes(nodes, bank):
+    obj, parent, attr = nodes['object'], nodes['parent'], nodes['attribute']
+    ids, q = bank.rules.object_parent, bank.rules.q
+    oi_up = pmean_violation(obj * (1 - parent[:, ids]), q).mean()
+    children = torch.stack([
+        obj[:, ids == i].max(dim=1).values
+        for i in range(bank.rules.n_parents)], dim=1)
+    oi_down = pmean_violation(parent * (1 - children), q).mean()
+    oe = pmean_violation(obj.unsqueeze(-1) * (1 - nodes['oe']), q).mean()
+    ae = pmean_violation(attr.unsqueeze(-1) * (1 - nodes['ae']), q).mean()
+    oi = oi_up + oi_down
+    raw = oi + oe + ae
+    return {'loss_oi': oi, 'loss_oe': oe, 'loss_ae': ae,
+            'loss_logic_raw': raw, 'loss_logic_weighted': bank.beta * raw}
+```
+
+**实现范围**：使用重建的 OI/OE/AE 算子及资产；没有新增第四个 pair 逻辑损失。
+
+### 7.4 逻辑项权重
+
+```math
+\mathcal L_{total}=\mathcal L_{task}+\beta\mathcal L_{logic},\qquad \beta=0.01.
+```
+
+权重仅在 `logic_from_nodes` 乘一次；未开启逻辑时该项为零。
+
+**未实现分支**：delayed／warmup／ramp 的 $`\beta(t)`$ 未接入当前版本。
+
+## 8. Attribute loss 的定义
+
+### 8.1 从条件评分到属性 logits
+
+$`U`$ 为 $`B\times N\times M`$，属性标签为 $`B`$；属性 CE 先取每张图的 GT-object 切片，得到 $`B\times M`$。
+
+### 8.2 GT-object conditioned attribute CE
+
+```math
+\mathcal L_{att}=\frac1B\sum_b\left[
+-U_{b,o_b,a_b}+\log\sum_{a'}\exp U_{b,o_b,a'}\right].
+```
+
+G/H 的 $`U`$ 为 head raw；D/E/F/J0/Jtext 的 $`U`$ 为 §5.2 的条件评分。此项不加入外部对象分数或 prior；G/H 也不加入原生 attribute logits。
+
+来源：[公式模块][formula]，`formula_train_terms`：
+
+```python
+rows = torch.arange(batch['obj'].numel(), device=selected.device)
+conditioned = logits['conditional'][rows, batch['obj'], :]
+attr_loss = F.cross_entropy(conditioned, batch['attr'])
+```
+
+A/B/C 的任务属性 CE 保留原生 $`\mathrm{CE}(Z^{attr},y_a)`$。
+
+### 8.3 Object-marginalized attribute CE
+
+原方案备选为：
+
+```math
+\widetilde U_{b,a}=\mathrm{logsumexp}_o U_{b,o,a},\qquad
+\mathcal L_{att}^{marginal}=\mathrm{CE}(\widetilde U,y_a).
+```
+
+**未接入／未做实验**：该辅助 CE 分支未用于当前模型。§7.2 对联合评分的归并用于逻辑节点，不是此属性 CE。
+
+## 9. 训练与推理框架
+
+### 9.1 核心损失接线
+
+对公式联合分支，先按数据集训练 pair 顺序提取 $`S^{tr}`$：
+
+```math
+\mathcal L_{com}=\mathrm{CE}(S^{tr},y_c),\qquad
+\mathcal L_{obj}=\mathrm{CE}(Z^o,y_o),
+```
+
+```math
+\mathcal L_{task}=\mathcal L_{com}+0.6\mathcal L_{att}+0.4\mathcal L_{obj},
+\qquad
+\mathcal L_{total}=\mathcal L_{task}+\beta\mathcal L_{logic}.
+```
+
+来源：[公式模块][formula]，`formula_train_terms` 的评分、mask 和 loss 核心：
+
+```python
+logits = self.formula_logits(batch, self.train_objs, self.train_attrs)
+selected = logits['score'][:, self.train_objs, self.train_attrs]
+mask = torch.zeros(self.num_objs, self.num_attrs,
+                   dtype=torch.bool, device=selected.device)
+mask[self.train_objs, self.train_attrs] = True
+masked = logits['score'].masked_fill(~mask[None], -torch.inf)
+
+if self.formula_joint:
+    rows = torch.arange(batch['obj'].numel(), device=selected.device)
+    conditioned = logits['conditional'][rows, batch['obj'], :]
+    comp_loss = F.cross_entropy(selected, batch['pair'])
+    attr_loss = F.cross_entropy(conditioned, batch['attr'])
+else:
+    comp_loss = F.cross_entropy(logits['comp'], batch['pair'])
+    attr_loss = F.cross_entropy(logits['attr'], batch['attr'])
+obj_loss = F.cross_entropy(logits['obj'], batch['obj'])
+task = comp_loss + 0.6 * attr_loss + 0.4 * obj_loss
+weighted_logic = task.new_zeros(())
+if self.bf_logic.enabled and self.bf_logic.beta > 0:
+    nodes = concept_nodes(logits['obj'], masked,
+                          logits['image_feat'], self.bf_logic)
+    weighted_logic = logic_from_nodes(nodes, self.bf_logic)['loss_logic_weighted']
+loss = task + weighted_logic
+```
+
+模型分支路由为：
+
+```python
+def train_forward(self, batch):
+    if not self.formula_joint and not self.bf_logic.enabled:
+        return super().train_forward(batch)
+    return self.formula_train_terms(batch)
+```
+
+因此 A/C 直接调用原生任务分支，B 调用原生 task CE＋新逻辑 grounding，其他联合分支使用上述条件 loss。
+
+### 9.2 推理评分与候选集合
+
+公式联合分支在推理时仍使用 §1.2 的 $`S`$，按候选顺序取出 $`B\times|\mathcal C|`$ 分数：
+
+```math
+S^{eval}_{b,k}=S_{b,o_k,a_k},\qquad
+\hat c_b=(a_{k^*},o_{k^*}),\quad k^*=\arg\max_k S^{eval}_{b,k}.
+```
+
+closed-world 使用 split 定义的合法 pairs；open-world 使用全属性×对象。模型网格按 `[object, attribute]` 存储，候选表顺序由数据集提供。
+
+来源：[公式模块][formula]，`val_forward`：
+
+```python
+def val_forward(self, batch):
+    if not self.formula_joint:
+        return super().val_forward(batch)
+    logits = self.formula_logits(batch, self.val_objs, self.val_attrs)
+    pred = logits['score'][:, self.val_objs, self.val_attrs]
+    if pred.size(1) != len(self.val_pairs):
+        raise ValueError('Evaluation candidate order/count mismatch')
+    return {'pred': pred,
+            'scores': {p: pred[:, i] for i, p in enumerate(self.val_pairs)}}
+```
+
+训练与推理共用评分函数和温度定义；实际视觉前向仍遵循模型的 train/eval 模式。
+
+## 10. 消融实验结构
+
+### 10.1 核心分支
+
+| 变体 | Text K | prior | Feature K | Logic | 任务／推理评分接口 |
+|---|:---:|:---:|:---:|:---:|---|
+| A | — | — | — | — | 原生 CPF |
+| B | — | — | — | ✓ | 原生 CPF task／推理；新逻辑 grounding |
+| C | ✓ | — | — | — | 原生 CPF，替换文本输入 |
+| D | — | ✓ | — | — | $`Z^o+U^{MVP}+\lambda\Pi`$ |
+| E | ✓ | ✓ | — | — | $`Z^o+U^{MVP}+\lambda\Pi`$ |
+| F | ✓ | ✓ | — | ✓ | E＋逻辑 |
+| G | ✓ | ✓ | ✓ | — | $`Z^o+\mathrm{head\_raw}+\lambda\Pi`$ |
+| H | ✓ | ✓ | ✓ | ✓ | G＋逻辑；pair 为 template-only |
+| J0 | — | — | — | — | $`Z^o+U^{MVP}`$，新增评分接口对照 |
+| Jtext | ✓ | — | — | — | $`Z^o+U^{MVP}`$，新增评分接口对照 |
+
+来源：[模型分支矩阵][matrix]与[预处理入口][prepare]。主评分开关为：
+
+```python
+formula_joint = base_variant not in ('A', 'B', 'C')
+```
+
+**实验记录**：资料中包含上述分支实现与定义，未附本版本正式训练完成日志；本文只记录模型结构。
+
+### 10.2 对应比较问题
+
+| 比较 | 对应问题 |
+|---|---|
+| H−A、H−B、H−F | 完整知识模型相对原生／外部逻辑／MVP 的变化 |
+| G−E、H−G | 条件 head 的作用、在 head 上增加逻辑项的作用 |
+| C−A | 文本知识替换 |
+| J0−A、Jtext−C | 无 prior 时更换评分／属性损失接口 |
+| D−J0、E−Jtext | 固定 MVP 评分接口后加入 prior |
+| F−E、B−A | 对应任务结构下增加逻辑项 |
+
+### 10.3 Sanity checks 的实际实现
+
+| 分支 | 核心变化 | 保留项 |
+|---|---|---|
+| H_shuffle | OE／AE 描述按类别错配，重新聚合 Text K；逻辑银行用相同类别置换 | 名称、OI、pair 模板、原 prior |
+| H_random_prior | 用均匀随机矩阵替换 $`K`$，再做当前 centered 变换 | 文本、pair、head、逻辑资产 |
+| H_uniform_prior | 用全 1 矩阵替换 $`K`$，centered 后为零 | 其他模块与资产 |
+| H_no_pair | head 的 `e_pair=None`，去掉 pair MLP 输出 | Text K、由原模板构建的 prior、逻辑 |
+| Template-only | 由主 H 覆盖 | 全对象×属性统一三模板 |
+
+来源：[对照构建器][legacy]与[预处理入口][prepare]。固定资产随机源用于复现同一对照内容：
+
+```python
+def derangement(n, seed):
+    g = torch.Generator().manual_seed(seed)
+    for _ in range(1000):
+        p = torch.randperm(n, generator=g)
+        if bool((p != torch.arange(n)).all()):
+            return p
+    raise ValueError('Unable to make a derangement')
+
+perm_o = derangement(12, 603352)
+perm_a = derangement(16, 603353)
+bank['oe'] = bank['oe'][perm_o]
+bank['ae'] = bank['ae'][perm_a]
+k_random = torch.rand(12, 16, generator=torch.Generator().manual_seed(603354))
+k_uniform = torch.ones(12, 16)
+pi_random = centered_prior(k_random)
+pi_uniform = centered_prior(k_uniform)
+```
+
+文本对照将每类名称保持不变，把描述列表替换为 `original_texts[perm[i]]` 后按 §3.1 重新聚合。`H_no_pair` 仅去掉 head 的 pair 项，不删除 prior 中的模板信息。
+
+**实验记录**：四个独立控制组已定义；此归档未附本版本的完成日志。
+
+## 11. 附加分析实验
+
+此处只记录对应分支是否提供，不展开数据分析。
+
+| 原方案项目 | 当前资料状态 |
+|---|---|
+| Text-only／LLM-only／mixed prior | Text-only 已实现；另两类缺少有效资产 |
+| 新公式知识噪声 10／30／50% | 当前公式矩阵未接入；旧对照 helper 不构成本版本实验记录 |
+| 每类描述 1／3／5 条 | 当前仅使用 3 条；敏感性实验未提供 |
+| OI 树深 1／2／3 | 当前每个对象对应一个父节点；多深度实验未提供 |
+| Mean／attention 聚合比较 | 当前仅 mean；attention 分支未实现 |
+| Centered／clamped-log 比较 | 当前仅 centered；配对实验未提供 |
+| GT-object／marginalized 属性 CE 比较 | 当前仅 GT-object；备选分支未接入 |
+| Seen/unseen score bias、三类错误分解、失败分类 | 提供分数保存代码；对应分析未提供 |
+| MIT-States／C-GQA 完整矩阵 | 当前预处理入口限定 UT；其他数据集分支未完成 |
+| 跨 benchmark protocol transfer | 未提供 |
+
+## 12. 实现索引与验证
+
+主接线顺序：
+
+```text
+知识嵌入与 prior → CPF 视觉向量 → 条件评分 U → 联合评分 S
+                                            ├→ 训练 pair CE
+                                            ├→ GT-object 属性 CE（读取 U）
+                                            ├→ 逻辑节点与 OI/OE/AE
+                                            └→ 候选组合预测
+```
+
+| 实现位置 | 核心职责 |
+|---|---|
+| [kcc_cpf.py][entry] | `DDM(FormulaMixin, LegacyDDM)` 模型入口 |
+| [formula_model.py][formula] | 视觉前向、条件／联合评分、节点、loss 与推理 |
+| [full_feature.py][head] | factorized head 与 pair blocks 加载 |
+| [kcc_cache.py][cache] | 知识嵌入读取、名称／标签与 prior 检查 |
+| [build_knowledge.py][builder] | GloVe mean 聚合及全组合模板构建 |
+| [prepare.py][prepare] | 重算当前 min-max K／sample-std prior，声明接口与分支 |
+| [bf_logic_loss.py][logicloss] | p-mean violation 算子 |
+| [build_bank.py][bankbuilder] | 父概念与 OE／AE 冻结银行构建 |
+| [test_formula.py][tests] | 公式、梯度、原生分支回归与资产一致性检查 |
+| [smoke_formula.py][smoke] | 真实图像模型接线及梯度检查 |
+
+验证资料记录 27 项本地 CPU 检查通过，见 [local_test.json][testrecord]；其中包括 head raw、GT-object CE、train/infer 评分构造、节点激活与权重只乘一次。服务器真实图像／CUDA 验证完成记录未附在此目录。
+
+`full_feature.py` 中保留的旧残差 helper 不用于当前 G/H 主接线；当前使用 `FormulaMixin.formula_logits → full_head.forward → joint_score`。
+
+[design]: C:/Users/llenovo/Desktop/0601origin/ZSCL实验设计0601.md
+[entry]: C:/Users/llenovo/Desktop/0601复刻实验/0601原设计复刻_代码与配置_20261011/code/faithful_0601_20261011/source/models/kcc_cpf.py
+[formula]: C:/Users/llenovo/Desktop/0601复刻实验/0601原设计复刻_代码与配置_20261011/code/faithful_0601_20261011/source/models/formula_model.py
+[ddm]: C:/Users/llenovo/Desktop/0601复刻实验/0601原设计复刻_代码与配置_20261011/code/faithful_0601_20261011/source/models/ddm.py
+[attention]: C:/Users/llenovo/Desktop/0601复刻实验/0601原设计复刻_代码与配置_20261011/code/faithful_0601_20261011/source/models/ddm_utils.py
+[head]: C:/Users/llenovo/Desktop/0601复刻实验/0601原设计复刻_代码与配置_20261011/code/faithful_0601_20261011/source/models/full_feature.py
+[builder]: C:/Users/llenovo/Desktop/0601复刻实验/0601原设计复刻_代码与配置_20261011/code/faithful_0601_20261011/source/tools/build_knowledge.py
+[cache]: C:/Users/llenovo/Desktop/0601复刻实验/0601原设计复刻_代码与配置_20261011/code/faithful_0601_20261011/source/models/kcc_cache.py
+[prepare]: C:/Users/llenovo/Desktop/0601复刻实验/0601原设计复刻_代码与配置_20261011/code/faithful_0601_20261011/prepare.py
+[legacy]: C:/Users/llenovo/Desktop/0601复刻实验/0601原设计复刻_代码与配置_20261011/code/faithful_0601_20261011/legacy_prepare.py
+[textknowledge]: C:/Users/llenovo/Desktop/0601复刻实验/0601原设计复刻_代码与配置_20261011/knowledge/text_inputs/ut-zap50k/
+[logicjson]: C:/Users/llenovo/Desktop/0601复刻实验/0601原设计复刻_代码与配置_20261011/knowledge/logic_reconstruction/knowledge.json
+[bankmanifest]: C:/Users/llenovo/Desktop/0601复刻实验/0601原设计复刻_代码与配置_20261011/code/faithful_0601_20261011/assets/logic_bank/manifest.json
+[bankbuilder]: C:/Users/llenovo/Desktop/0601复刻实验/0601原设计复刻_代码与配置_20261011/knowledge/logic_reconstruction/build_bank.py
+[logicloss]: C:/Users/llenovo/Desktop/0601复刻实验/0601原设计复刻_代码与配置_20261011/code/faithful_0601_20261011/source/models/bf_logic_loss.py
+[matrix]: C:/Users/llenovo/Desktop/0601复刻实验/0601原设计复刻_代码与配置_20261011/configs/variant_matrix.json
+[tests]: C:/Users/llenovo/Desktop/0601复刻实验/0601原设计复刻_代码与配置_20261011/code/faithful_0601_20261011/test_formula.py
+[smoke]: C:/Users/llenovo/Desktop/0601复刻实验/0601原设计复刻_代码与配置_20261011/code/faithful_0601_20261011/source/tests/smoke_formula.py
+[testrecord]: C:/Users/llenovo/Desktop/0601复刻实验/0601原设计复刻_代码与配置_20261011/code/faithful_0601_20261011/local_test.json

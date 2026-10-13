@@ -70,7 +70,9 @@ def verify():
     if not result['passed']: raise SystemExit(1)
 
 def archive_stage(line,number):
-    if line is None: return number
+    if line is None:
+        if number == 'v2': raise ValueError('Use --line 0601方案 for --stage v2')
+        return number
     matches=[s['id'] for s in read(ROOT/'provenance/stages.json')
       if s.get('line')==line and s.get('number')==number]
     if len(matches)!=1: raise ValueError('Unknown experiment line/number: '+line+'/'+number)
@@ -163,7 +165,7 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     commands=parser.add_subparsers(dest='action',required=True)
     commands.add_parser('verify')
-    m=commands.add_parser('materialize'); m.add_argument('--stage',choices=['{:02d}'.format(x) for x in range(1,19)],required=True); m.add_argument('--dest',required=True)
+    m=commands.add_parser('materialize'); m.add_argument('--stage',choices=['{:02d}'.format(x) for x in range(1,20)]+['v2'],required=True); m.add_argument('--dest',required=True)
     m.add_argument('--line',choices=['前期实验','0601方案'])
     d=commands.add_parser('doctor'); d.add_argument('--stage',required=True); d.add_argument('--project',required=True)
     d.add_argument('--line',choices=['前期实验','0601方案'])
