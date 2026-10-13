@@ -66,3 +66,7 @@ python 0601方案/02-公式对齐版/code/epoch_review_20261012/verify_additiona
 - [执行命令](runbook.json)
 - [results/seed3351-30epoch-20261012/README.md](<results/seed3351-30epoch-20261012/README.md>)
 - [seed 3352、3353：完整结果与校验](results/seeds3352-3353-10epoch-20261012/README.md)
+
+## 数据分析（2026-10-13）
+
+[数据分析与原方案问题覆盖评估](数据分析_原方案问题覆盖评估_20261013.md)：三个 seed 的配对结果、CW/OW 差异、sanity 归因、原始分数诊断，以及原设计已完成和仍待解决的问题。实际训练预算为 30/10/10 轮，统计使用核验后的共同前 10 轮选模视角。
