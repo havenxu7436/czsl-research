@@ -84,6 +84,7 @@ seed3351按首次严格最大VAL CW AUC选模，同一权重评价VAL/TEST CW/OW
 - [原始冻结work配置（含96组计划，不等于96组完成）](configs/seed3351-10epoch-20261015/configs/)
 - [seed3351：指标与训练记录](results/seed3351-10epoch-20261015/README.md)
 - [seed3351：128份完整评价指标](results/seed3351-10epoch-20261015/完整评价指标.md)
+- [seed3351：原实验设计命名对照](results/seed3351-10epoch-20261015/实验命名对照.md)
 - [seed3351：归档与校验说明](results/seed3351-10epoch-20261015/归档与校验.md)
 - [知识、配置与来源索引](inputs.json)
 - [具体执行命令](runbook.json)
