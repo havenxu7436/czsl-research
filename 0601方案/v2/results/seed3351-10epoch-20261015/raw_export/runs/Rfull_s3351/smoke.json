@@ -1,0 +1,41 @@
+{
+  "passed": true,
+  "revision": "unified_20261013",
+  "variant": "Rfull_s3351",
+  "gradients": {
+    "visual_task": 38.440828306421665,
+    "backbone_task": 19.46201135780254,
+    "head_task": 4.778449940282634,
+    "head_attr": 3.120803256116981,
+    "AE_to_head": 0.22296197088651648,
+    "loss_oi_visual": 1.173991917053923,
+    "loss_oe_visual": 0.5962808559089151,
+    "loss_ae_visual": 1.921802771381808
+  },
+  "normalized": true,
+  "same_native_initialization": true,
+  "native_rng_preserved": true,
+  "train_infer_identity": true,
+  "train_images": 4,
+  "test_images_read": 0,
+  "optimizer_steps": 3,
+  "training_acceptance": {
+    "passed": true,
+    "optimizer_steps": 3,
+    "continuous_steps": 2,
+    "replayed_steps": 1,
+    "changed_optimizer_groups": [
+      0,
+      2
+    ],
+    "checkpoint_epoch": 1,
+    "resumed_epoch": 2,
+    "train_mode": true,
+    "model_optimizer_rng_roundtrip": true
+  },
+  "candidate_counts": {
+    "cw": 116,
+    "ow": 192
+  },
+  "scope": "Disposable wiring/train/resume acceptance; not a trained accuracy result"
+}

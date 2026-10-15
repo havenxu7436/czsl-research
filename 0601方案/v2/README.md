@@ -4,7 +4,9 @@
 >
 > 全部已识别公式问题在同一版本统一修订。v1、r2 与已有结果保持不变；v2 是修订后的新模型，不是原 LogiCZSL 数据/成绩的完整复现。
 
-状态：代码、配置、运行说明和34项 CPU 检查已归档；**尚无正式 CUDA 训练或准确率结果**。部署包保留 `revised_0601_20261013` 原名以维持文件哈希，仓库版本名为 `v2`。
+状态：**[seed3351的32组×10 epoch及128份评价已归档](results/seed3351-10epoch-20261015/README.md)**。本批使用20261014修正版，50份实际执行source文件与该修正版逐字节一致；32组真实TRAIN图像CUDA smoke、optimizer/resume acceptance及10轮完成记录均已核对。本次不包含seed3352/3353结果，也未包含posthoc分析。
+
+原20261013发布包及34项CPU验证记录保留不变；修正版原包内仍名为 `revised_0601_20261013`，为避免与旧版覆盖，仓库分区和materialize运行目录单独命名为 `revised_0601_20261014_fix`。修正版随包CPU记录为40项通过，不冒充此次导入重新执行CPU/CUDA测试。
 
 ## 实验设置
 
@@ -19,7 +21,7 @@
 1. `materialize` 恢复分区存储的完整包及必要历史工程输入，不会开始训练。
 2. 运行 CPU 检查，冻结新 work 下的代码、配置、知识、数据 split 与 hash。
 3. 每个修订模型先进行4张真实 TRAIN 图像的 CUDA smoke；通过才正式训练。
-4. 队列完成后，VAL 固定 bias，分析 TEST primitive 错误与同权重 prior 读出；再次导出汇总。
+4. 队列完成后，VAL 固定 bias，分析 TEST primitive 错误与同权重 prior 读出；再次导出汇总。本批快照尚未包含这些后分析文件。
 
 上述是同一完整修正版的验证流程，不是分步修复公式。失败保留证据，不删除旧目录，也不因效果不涨停止。
 
@@ -30,7 +32,7 @@
 ```bash
 REPLAY=/srv/czsl-reproduce-v2
 python tools/reproduce.py materialize --line 0601方案 --stage v2 --dest "$REPLAY"
-V2_PKG="$REPLAY/revised_0601_20261013"
+V2_PKG="$REPLAY/revised_0601_20261014_fix"
 "$CPF_PY" "$V2_PKG/test_revision.py"
 "$CPF_PY" "$V2_PKG/prepare_revision.py" --root "$PROJECT" --work "$WORK" \
   --suite all --epochs 10 --seeds 3351,3352,3353
@@ -64,20 +66,24 @@ V2_PKG="$REPLAY/revised_0601_20261013"
 
 配置目录保存 **34种 variant 的预览 YAML**（all32 + external专属2）。正式 seed/work 配置由 `prepare_revision.py` 生成，不能绕过冻结流程直接使用预览。代码与配置按旧仓库格式分区，恢复执行包后才运行。
 
-三张3090按旧6.2–6.5min/epoch作参照，all预计约38–48小时，core约15–19小时含额外步骤；新模型尚无实测速率。磁盘按10+2×剩余任务数GiB预留，恢复时也检查，不绕过质量/空间护栏。
+初始排期曾按旧6.2–6.5min/epoch估计all约38–48小时、core约15–19小时；这不是当前共享服务器的完成时间承诺，实际逐轮耗时见本批train.log。磁盘按10+2×剩余任务数GiB预留，恢复时也检查，不绕过质量/空间护栏。
 
 ## 结果与文件
 
-- [执行代码](code/revised_0601_20261013/)
-- [所有 variant 预览配置](configs/revised_0601_20261013/configs/)
-- [配置开关索引](configs/revised_0601_20261013/configs/variant_options.json)
+- [本批实际修正版执行代码](code/revised_0601_20261014_fix/)
+- [修正版所有 variant 预览配置](configs/revised_0601_20261014_fix/configs/)
+- [修正版配置开关索引](configs/revised_0601_20261014_fix/configs/variant_options.json)
+- [原始冻结work配置（含96组计划，不等于96组完成）](configs/seed3351-10epoch-20261015/configs/)
+- [seed3351完整结果与成员映射](results/seed3351-10epoch-20261015/README.md)
 - [知识、配置与来源索引](inputs.json)
 - [具体执行命令](runbook.json)
 - [本地CPU检查与独立解压验证](results/README.md)
 - [原部署ZIP（Git LFS）](results/deployment/0601_unified_revision_20261013.zip)
 - [部署ZIP SHA256](results/deployment/0601_unified_revision_20261013.zip.sha256)
+- [本批实际使用的20261014修正版部署ZIP（Git LFS）](results/deployment/0601_unified_revision_20261014_fix.zip)
+- [修正版部署ZIP SHA256](results/deployment/0601_unified_revision_20261014_fix.zip.sha256)
 
-原包README和旧引用资料以原字节保存于 package support；仓库说明只使用相对链接与可配置路径。`materialize --stage v2` 将其恢复为原包文件名，校验原123项manifest及manifest文件本身。源码/TeX的追踪记录见 [发布记录](../../provenance/updates/20261013_v2.json)。
+原包README和旧引用资料以原字节保存于 package support；仓库说明只使用相对链接与可配置路径。`materialize --stage v2` 分别恢复旧包、修正版和本批work快照，修正版125项manifest及导出1765项manifest可独立校验。原发布记录与公式文档不覆盖，本批[导入记录](../../provenance/updates/20261015_v2_seed3351.json)另存。恢复的work含原服务器绝对路径且不含checkpoint，不应当作可直接无损续训的备份。
 
 ## 未完成范围
 

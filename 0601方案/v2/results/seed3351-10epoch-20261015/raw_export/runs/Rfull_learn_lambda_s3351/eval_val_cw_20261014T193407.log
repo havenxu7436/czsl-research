@@ -1,0 +1,44 @@
+
+COMMAND ["/data/xhw/miniconda3/envs/cpf/bin/python", "-u", "tools/eval_mvp.py", "--cfg", "/var/tmp/czsl_0601_revision_all_20261014_fix/configs/Rfull_learn_lambda_s3351.yml", "--load", "/var/tmp/czsl_0601_revision_all_20261014_fix/runs/Rfull_learn_lambda_s3351/checkpoints/ut-zappos-czsl_rev_Rfull_learn_lambda_s3351/best_auc.pth", "--phase", "val", "--setting", "cw", "--out", "/var/tmp/czsl_0601_revision_all_20261014_fix/runs/Rfull_learn_lambda_s3351/eval_val_cw", "--save-scores", "EVAL.open_world", "False"]
+# train pairs: 83 | # val pairs: 30 | # test pairs: 36
+# train images: 22998 | # val images: 3214 | # test images: 2914
+# train pairs: 83 | # val pairs: 30 | # test pairs: 36
+# train images: 22998 | # val images: 3214 | # test images: 2914
+Change Faux.Fur to fake_fur
+fake_fur
+Change Faux.Leather to fake_leather
+fake_leather
+Change Full.grain.leather to thick_leather
+thick_leather
+Change Hair.Calf to hair_leather
+hair_leather
+Change Nubuck to grainy_leather
+grainy_leather
+Change Patent.Leather to shiny_leather
+shiny_leather
+Loaded embeddings from file /data/xhw/czsl_repro/data/ut-zap50k/../glove/glove.6B.300d.txt torch.Size([16, 300])
+Change Boots.Ankle to ankle_boots
+ankle_boots
+Change Boots.Knee.High to knee_high_boots
+knee_high_boots
+Change Boots.Mid-Calf to midcalf_boots
+midcalf_boots
+Change Shoes.Boat.Shoes to boat_shoes
+boat_shoes
+Change Shoes.Clogs.and.Mules to clogs_shoes
+clogs_shoes
+Change Shoes.Flats to flats_shoes
+flats_shoes
+Change Shoes.Heels to heels
+Change Shoes.Loafers to loafers
+Change Shoes.Oxfords to oxford_shoes
+oxford_shoes
+Change Shoes.Sneakers.and.Athletic.Shoes to sneakers
+Loaded embeddings from file /data/xhw/czsl_repro/data/ut-zap50k/../glove/glove.6B.300d.txt torch.Size([12, 300])
+Loaded pretrained weights.
+KCC CACHE LOADED: /var/tmp/czsl_0601_revision_all_20261014_fix/cache_revision_base text=True calib=True lambda=0.1 status=unified_0601_revision_20261013
+FULL_FEATURE_READY hidden=512 pair=True gain=1.0 parameters=771073
+REVISION_READY normalized_joint=True gain=0.1 lambda=0.1 beta=0.01 desc_temperature=0.1 depth=3
+Evaluating with validation pairs
+phase= val setting= cw images= 3214 candidates= 116 score_disk_GiB= 0.0013888776302337646
+Top 1 {"closed_attr_match": 0.6281891465187073, "closed_obj_match": 0.5715619325637817, "closed_match": 0.42003732919692993, "closed_seen_match": 0.0, "closed_unseen_match": 0.5776636600494385, "closed_ca": 2.0, "closed_seen_ca": 1.0, "closed_unseen_ca": 1.0, "closed_ub_attr_match": 0.30149346590042114, "closed_ub_obj_match": 0.7594897150993347, "closed_ub_match": 0.17797137796878815, "closed_ub_seen_match": 0.6431014537811279, "closed_ub_unseen_match": 0.003423192072659731, "closed_ub_ca": 2.0, "closed_ub_seen_ca": 1.0, "closed_ub_unseen_ca": 1.0, "biasterm": 3.8931639194488525, "best_unseen": 0.5776636600494385, "best_seen": 0.6431014537811279, "AUC": 0.25942537137350197, "hm_unseen": 0.34403079748153687, "hm_seen": 0.4606613516807556, "best_hm": 0.3938939688988815}

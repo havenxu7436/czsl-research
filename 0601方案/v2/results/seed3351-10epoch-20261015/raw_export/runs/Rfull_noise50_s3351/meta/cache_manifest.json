@@ -1,0 +1,754 @@
+{
+  "version": "glove_template_v1",
+  "attrs": [
+    "Canvas",
+    "Cotton",
+    "Faux.Fur",
+    "Faux.Leather",
+    "Full.grain.leather",
+    "Hair.Calf",
+    "Leather",
+    "Nubuck",
+    "Nylon",
+    "Patent.Leather",
+    "Rubber",
+    "Satin",
+    "Sheepskin",
+    "Suede",
+    "Synthetic",
+    "Wool"
+  ],
+  "objs": [
+    "Boots.Ankle",
+    "Boots.Knee.High",
+    "Boots.Mid-Calf",
+    "Sandals",
+    "Shoes.Boat.Shoes",
+    "Shoes.Clogs.and.Mules",
+    "Shoes.Flats",
+    "Shoes.Heels",
+    "Shoes.Loafers",
+    "Shoes.Oxfords",
+    "Shoes.Sneakers.and.Athletic.Shoes",
+    "Slippers"
+  ],
+  "dimension": 300,
+  "dtype": "float32",
+  "encoder": "glove.6B.300d",
+  "knowledge_status": "unified_0601_revision_20261013",
+  "source_manifest_status": "bulk_trusted_unverified",
+  "source_compatible_with_formal_results": false,
+  "prior_source": "template",
+  "pair_axis_order": [
+    "object",
+    "attribute"
+  ],
+  "templates": [
+    "a {object} that is {attribute}",
+    "the {attribute} {object}",
+    "{attribute} appearance of {object}"
+  ],
+  "seed": 91001,
+  "name_embedding": "actual baseline aliases; lowercase; underscore-token mean; raw and unit variants saved",
+  "description_embedding": "regex tokens; mean in-vocabulary GloVe; L2 normalize each sentence; mean(name plus descriptions); L2 normalize",
+  "OOV_policy": "skip missing description tokens; sentence with no usable vector falls back to name; name OOV is fatal",
+  "K_formula": "cosine(pair-template-set embedding, normalize(W_o_K + W_a_K)); global min-max; constants -> 0.5",
+  "prior_formula": "global (K-mean)/population_std; std<1e-8 -> zeros",
+  "semantic_inputs": "primitive labels, OE/AE descriptions, baseline GloVe; no pair membership",
+  "split_use": "actual dataset label ordering and coverage audit only",
+  "builder_sha256": "5997b07bee331e9a17c169b11a25c2d2eb9bb27e8cc1b4e3aad10cd5bb6b8687",
+  "files_sha256": {
+    "K_oa_prior_centered.pt": "de17abddb8a6f7b511ef917d8711922c755d39570a5ddbf97164ce85fdc33edc",
+    "K_oa_text.pt": "182f19919c0c25fc389682f790982ba9eb18bb847899b6b088ba2ab61dc9d9a4",
+    "K_oa_text_raw.pt": "61327d7bd56d905aafa0060523f4a979b019bfd9390c570ae26b44e9bd51d97a",
+    "K_oa_text_template.pt": "0c8b1b5db291a9574fd71375fa904db4c5db85300c832a72e8401aad23f0bf04",
+    "W_a_K.pt": "7cf4574aa70854b751e079cbe4c6315cab45a458e7db9aa5f5516d0e8e1d51db",
+    "W_a_name_raw.pt": "bd08bd0b127954a996bff576a152a631b51c84f0d2495575979b209f4a86a4cf",
+    "W_a_name_unit.pt": "a9d195a838bf85faf4a1e7f386cafa07a7fbaa17ecdc4b7f897ba9eb4d7c3574",
+    "W_ao_K/obj_00000.pt": "4b16a1cad5eb36f43f4dffe6a85efdfb8f448e69bf93bfec7e195aab16fcd165",
+    "W_ao_K/obj_00001.pt": "4d3624189ec7b4a7c980d979fc4e5cbf90a7905c66d901b93e2d4ccf2a902e2d",
+    "W_ao_K/obj_00002.pt": "c48aedc10ea4d736ff8d7461d83fa7e01411f09319e6a82639e1ff814f9114a4",
+    "W_ao_K/obj_00003.pt": "298a6c51b5ab38d26fd374c1e819dbaeb8366536b252aaf11f781f05c2909ec3",
+    "W_ao_K/obj_00004.pt": "2e56b8e4850fd0878c6709b41410241cc4cccc44926478439195d7fc017ce4a9",
+    "W_ao_K/obj_00005.pt": "3a61aed7b1cd4cd0ef883951d77e3a1e5718f9820261e5714e6acbeac36a3c46",
+    "W_ao_K/obj_00006.pt": "6d1ccfeaa4236906e6325e63db8166ce8d4ecac949a55aaca7d1e0dc0caf43b0",
+    "W_ao_K/obj_00007.pt": "68d071ba253575aee5b3740e9f1bb6ed67e2b8775b4ee0e3fc78ec5ae493a963",
+    "W_ao_K/obj_00008.pt": "ca9b8ee2be7a9009b59ffdc074a16aa149dd82fa0dc8f6f6d149583aec137e69",
+    "W_ao_K/obj_00009.pt": "8b9b1d208d998b73557db0392a2fd3b143d26d8123845f88129998617f5d7508",
+    "W_ao_K/obj_00010.pt": "a6d82437cec47d9c0e846ce281602a313736e6310112dfc554b9c01f1d59d7a6",
+    "W_ao_K/obj_00011.pt": "d5fa94a22347ec09aab95bf72d41e2a2e9a46fe635ebfe38c1e380001a9bfadf",
+    "W_o_K.pt": "5b6f979f9bdc40d61232519acdacc15047f7c1223fa01b773d97185d604685d9",
+    "W_o_name_raw.pt": "8b4d13ac450e038a552858a4ff95682473c091e6eb53b867a51896e8f613d087",
+    "W_o_name_unit.pt": "eb19f00c08874267b21467b725097ed5346dd96d73a42d52346fb38b1f280886",
+    "knowledge_coverage_report.json": "751f3c9994427f6379451cd1ce07753b39c0382df34c4aa87e197e07f88c443c",
+    "labels.json": "4f6d8140b814ac6a9237fab6889816290033d98d71897bfc33316675067905ec",
+    "report.json": "751f3c9994427f6379451cd1ce07753b39c0382df34c4aa87e197e07f88c443c",
+    "revision_bank.pt": "620085532489f7191b063035647ac1ca82e7be9afcc1c23cd543c0cece3eb649",
+    "revision_evidence.json": "b422a7f268ae02a39b67edd4f47799e09794584b440dc8b3b4dc1a1558dcbcc4"
+  },
+  "revision": "TextK and descriptor constraints use the SAME reconstructed corpus; not original author assets",
+  "control": {
+    "corpus": {
+      "provenance": {
+        "version": "paper_method_reconstructed_ut_v1_20261008",
+        "generator": "Codex assistant, paper-guided reconstruction; not historical GPT-4 outputs",
+        "status": "assistant_reconstructed_requires_user_review",
+        "official_author_data": false,
+        "scope": "UT-Zappos primitive labels only; no image inspection, validation labels or test metrics used",
+        "notice": "Material descriptions are plausible semantic cues, not guarantees that a material can be identified from an image. This is a method reconstruction, not an exact reproduction of the original knowledge corpus.",
+        "revision": "Two additional, distinct sentences per primitive authored on 2026-10-13 from label semantics only. Assistant reconstruction; not original LogiCZSL assets, not verified image annotations. User review required."
+      },
+      "oi": {
+        "boots": [
+          "Boots.Ankle",
+          "Boots.Knee.High",
+          "Boots.Mid-Calf"
+        ],
+        "closed low shoes": [
+          "Shoes.Boat.Shoes",
+          "Shoes.Flats",
+          "Shoes.Loafers",
+          "Shoes.Oxfords",
+          "Shoes.Sneakers.and.Athletic.Shoes"
+        ],
+        "slip on comfort footwear": [
+          "Shoes.Clogs.and.Mules",
+          "Slippers"
+        ],
+        "strapped open footwear": [
+          "Sandals"
+        ],
+        "raised heel shoes": [
+          "Shoes.Heels"
+        ]
+      },
+      "oe": {
+        "Boots.Ankle": [
+          "short shaft around the ankle",
+          "enclosed foot with low boot collar",
+          "boot upper ending near the ankle",
+          "ankle height boot silhouette",
+          "compact boot shaft above a closed shoe"
+        ],
+        "Boots.Knee.High": [
+          "tall shaft reaching the knee",
+          "long boot upper covering the lower leg",
+          "high collar close to the knee",
+          "knee length boot silhouette",
+          "extended shaft rising far above the ankle"
+        ],
+        "Boots.Mid-Calf": [
+          "boot shaft ending around the middle calf",
+          "medium height collar above the ankle",
+          "boot upper below the knee",
+          "calf length boot silhouette",
+          "shaft reaching between ankle and knee"
+        ],
+        "Sandals": [
+          "open upper with straps",
+          "exposed toes and sides of the foot",
+          "straps attached to an open sole",
+          "open footwear held by narrow bands",
+          "ventilated upper leaving parts of the foot uncovered"
+        ],
+        "Shoes.Boat.Shoes": [
+          "low shoe with laces around the sides",
+          "casual shoe with stitched toe seam",
+          "boat style shoe with short front lacing",
+          "moccasin like upper with side lacing",
+          "casual deck shoe silhouette"
+        ],
+        "Shoes.Clogs.and.Mules": [
+          "slip on shoe with an open back",
+          "closed front without a full heel collar",
+          "backless upper covering the front of the foot",
+          "backless slip on footwear silhouette",
+          "easy entry upper with an uncovered heel"
+        ],
+        "Shoes.Flats": [
+          "low heel close to the ground",
+          "shallow collar exposing the top of the foot",
+          "flat sole with a light low upper",
+          "low profile shoe without a tall heel",
+          "shallow low cut upper on a thin sole"
+        ],
+        "Shoes.Heels": [
+          "raised heel under the back of the foot",
+          "heel noticeably higher than the front sole",
+          "elevated rear support with a sloping foot bed",
+          "shoe silhouette with elevated heel support",
+          "raised rear sole lifting the heel above the toes"
+        ],
+        "Shoes.Loafers": [
+          "slip on upper without front laces",
+          "low enclosed shoe with a broad front panel",
+          "casual low collar with a stitched toe seam",
+          "low slip on shoe silhouette",
+          "lace free front with a broad vamp"
+        ],
+        "Shoes.Oxfords": [
+          "front laces on a low enclosed shoe",
+          "formal shoe with a structured leather upper",
+          "closed lacing over the front of the foot",
+          "low formal lace up shoe silhouette",
+          "front lacing integrated into a structured upper"
+        ],
+        "Shoes.Sneakers.and.Athletic.Shoes": [
+          "thick cushioned sole for movement",
+          "sport shoe with a padded collar",
+          "athletic upper with laces and flexible panels",
+          "athletic footwear with supportive padding",
+          "flexible sport shoe on a cushioned sole"
+        ],
+        "Slippers": [
+          "soft slip on indoor footwear",
+          "relaxed upper with a soft lining",
+          "easy entry shoe with light indoor sole",
+          "soft indoor shoe silhouette",
+          "comfortable easy entry footwear for indoor use"
+        ]
+      },
+      "ae": {
+        "Canvas": [
+          "coarse woven cloth",
+          "sturdy fabric with visible threads",
+          "textile surface with a tight weave",
+          "durable plain weave textile",
+          "rough cloth upper with interlaced fibres"
+        ],
+        "Cotton": [
+          "soft cotton cloth",
+          "woven natural fibre fabric",
+          "cotton textile surface",
+          "natural cotton fibre textile",
+          "soft cloth made from cotton yarn"
+        ],
+        "Faux.Fur": [
+          "artificial fur pile",
+          "synthetic fluffy hair surface",
+          "imitation fur texture",
+          "fluffy imitation animal coat",
+          "man made material with raised fur like fibres"
+        ],
+        "Faux.Leather": [
+          "artificial leather surface",
+          "synthetic leather coating",
+          "smooth imitation leather",
+          "man made imitation hide",
+          "synthetic surface resembling animal leather"
+        ],
+        "Full.grain.leather": [
+          "natural leather grain",
+          "leather hide with visible surface texture",
+          "thick leather retaining its grain",
+          "leather with intact natural grain",
+          "unpolished hide showing fine surface markings"
+        ],
+        "Hair.Calf": [
+          "short animal hair on leather",
+          "hair covered hide surface",
+          "calf hide with visible hair",
+          "calf leather retaining short hair",
+          "hair bearing hide with a short fur texture"
+        ],
+        "Leather": [
+          "animal hide surface",
+          "smooth leather texture",
+          "natural leather with fine grain",
+          "tanned hide used as upper material",
+          "animal skin material with a fine grain surface"
+        ],
+        "Nubuck": [
+          "finely brushed leather surface",
+          "short soft nap on leather",
+          "matte leather with a velvet texture",
+          "buffed outer grain leather",
+          "fine velvety nap on a sanded hide surface"
+        ],
+        "Nylon": [
+          "smooth synthetic fibre fabric",
+          "light woven nylon textile",
+          "fine synthetic cloth texture",
+          "lightweight man made nylon fibres",
+          "smooth woven cloth made from synthetic yarn"
+        ],
+        "Patent.Leather": [
+          "glossy coated leather",
+          "shiny reflective leather surface",
+          "smooth leather with a bright finish",
+          "leather finished with a glossy coating",
+          "high shine upper with reflected highlights"
+        ],
+        "Rubber": [
+          "flexible rubber surface",
+          "moulded elastic material",
+          "smooth or textured rubber coating",
+          "elastic polymer material",
+          "flexible moulded surface with a rubber texture"
+        ],
+        "Satin": [
+          "smooth lustrous fabric",
+          "silky textile with a soft sheen",
+          "fine woven cloth with a shiny face",
+          "fabric with a lustrous woven face",
+          "smooth textile showing a bright soft sheen"
+        ],
+        "Sheepskin": [
+          "sheep hide with wool lining",
+          "soft hide with a fleece surface",
+          "sheepskin leather and wool texture",
+          "sheep leather retaining fleece",
+          "wool covered sheep hide material"
+        ],
+        "Suede": [
+          "soft brushed leather",
+          "matte leather with a visible nap",
+          "velvet like leather texture",
+          "leather with a brushed inner surface",
+          "soft napped hide with a dull finish"
+        ],
+        "Synthetic": [
+          "man made upper material",
+          "artificial fibre surface",
+          "synthetic fabric or coating",
+          "manufactured material rather than natural hide",
+          "artificial textile or polymer upper"
+        ],
+        "Wool": [
+          "wool fibre textile",
+          "soft fuzzy woven fabric",
+          "dense natural wool texture",
+          "natural sheep fibre fabric",
+          "warm fuzzy textile made from wool yarn"
+        ]
+      }
+    },
+    "parents": [
+      [
+        "short boots",
+        "tall boots",
+        "lace up low shoes",
+        "low slip on loafers",
+        "flat low shoes",
+        "slip on comfort footwear",
+        "strapped open footwear",
+        "raised heel shoes"
+      ],
+      [
+        "boots",
+        "closed low shoes",
+        "slip on comfort footwear",
+        "strapped open footwear",
+        "raised heel shoes"
+      ],
+      [
+        "boots",
+        "low and raised heel shoes",
+        "open and comfort footwear"
+      ]
+    ],
+    "oov": {
+      "short shaft around the ankle": [],
+      "enclosed foot with low boot collar": [],
+      "boot upper ending near the ankle": [],
+      "ankle height boot silhouette": [],
+      "compact boot shaft above a closed shoe": [],
+      "tall shaft reaching the knee": [],
+      "long boot upper covering the lower leg": [],
+      "high collar close to the knee": [],
+      "knee length boot silhouette": [],
+      "extended shaft rising far above the ankle": [],
+      "boot shaft ending around the middle calf": [],
+      "medium height collar above the ankle": [],
+      "boot upper below the knee": [],
+      "calf length boot silhouette": [],
+      "shaft reaching between ankle and knee": [],
+      "open upper with straps": [],
+      "exposed toes and sides of the foot": [],
+      "straps attached to an open sole": [],
+      "open footwear held by narrow bands": [],
+      "ventilated upper leaving parts of the foot uncovered": [],
+      "low shoe with laces around the sides": [],
+      "casual shoe with stitched toe seam": [],
+      "boat style shoe with short front lacing": [],
+      "moccasin like upper with side lacing": [],
+      "casual deck shoe silhouette": [],
+      "slip on shoe with an open back": [],
+      "closed front without a full heel collar": [],
+      "backless upper covering the front of the foot": [],
+      "backless slip on footwear silhouette": [],
+      "easy entry upper with an uncovered heel": [],
+      "low heel close to the ground": [],
+      "shallow collar exposing the top of the foot": [],
+      "flat sole with a light low upper": [],
+      "low profile shoe without a tall heel": [],
+      "shallow low cut upper on a thin sole": [],
+      "raised heel under the back of the foot": [],
+      "heel noticeably higher than the front sole": [],
+      "elevated rear support with a sloping foot bed": [],
+      "shoe silhouette with elevated heel support": [],
+      "raised rear sole lifting the heel above the toes": [],
+      "slip on upper without front laces": [],
+      "low enclosed shoe with a broad front panel": [],
+      "casual low collar with a stitched toe seam": [],
+      "low slip on shoe silhouette": [],
+      "lace free front with a broad vamp": [],
+      "front laces on a low enclosed shoe": [],
+      "formal shoe with a structured leather upper": [],
+      "closed lacing over the front of the foot": [],
+      "low formal lace up shoe silhouette": [],
+      "front lacing integrated into a structured upper": [],
+      "thick cushioned sole for movement": [],
+      "sport shoe with a padded collar": [],
+      "athletic upper with laces and flexible panels": [],
+      "athletic footwear with supportive padding": [],
+      "flexible sport shoe on a cushioned sole": [],
+      "soft slip on indoor footwear": [],
+      "relaxed upper with a soft lining": [],
+      "easy entry shoe with light indoor sole": [],
+      "soft indoor shoe silhouette": [],
+      "comfortable easy entry footwear for indoor use": [],
+      "coarse woven cloth": [],
+      "sturdy fabric with visible threads": [],
+      "textile surface with a tight weave": [],
+      "durable plain weave textile": [],
+      "rough cloth upper with interlaced fibres": [],
+      "soft cotton cloth": [],
+      "woven natural fibre fabric": [],
+      "cotton textile surface": [],
+      "natural cotton fibre textile": [],
+      "soft cloth made from cotton yarn": [],
+      "artificial fur pile": [],
+      "synthetic fluffy hair surface": [],
+      "imitation fur texture": [],
+      "fluffy imitation animal coat": [],
+      "man made material with raised fur like fibres": [],
+      "artificial leather surface": [],
+      "synthetic leather coating": [],
+      "smooth imitation leather": [],
+      "man made imitation hide": [],
+      "synthetic surface resembling animal leather": [],
+      "natural leather grain": [],
+      "leather hide with visible surface texture": [],
+      "thick leather retaining its grain": [],
+      "leather with intact natural grain": [],
+      "unpolished hide showing fine surface markings": [],
+      "short animal hair on leather": [],
+      "hair covered hide surface": [],
+      "calf hide with visible hair": [],
+      "calf leather retaining short hair": [],
+      "hair bearing hide with a short fur texture": [],
+      "animal hide surface": [],
+      "smooth leather texture": [],
+      "natural leather with fine grain": [],
+      "tanned hide used as upper material": [],
+      "animal skin material with a fine grain surface": [],
+      "finely brushed leather surface": [],
+      "short soft nap on leather": [],
+      "matte leather with a velvet texture": [],
+      "buffed outer grain leather": [],
+      "fine velvety nap on a sanded hide surface": [],
+      "smooth synthetic fibre fabric": [],
+      "light woven nylon textile": [],
+      "fine synthetic cloth texture": [],
+      "lightweight man made nylon fibres": [],
+      "smooth woven cloth made from synthetic yarn": [],
+      "glossy coated leather": [],
+      "shiny reflective leather surface": [],
+      "smooth leather with a bright finish": [],
+      "leather finished with a glossy coating": [],
+      "high shine upper with reflected highlights": [],
+      "flexible rubber surface": [],
+      "moulded elastic material": [],
+      "smooth or textured rubber coating": [],
+      "elastic polymer material": [],
+      "flexible moulded surface with a rubber texture": [],
+      "smooth lustrous fabric": [],
+      "silky textile with a soft sheen": [],
+      "fine woven cloth with a shiny face": [],
+      "fabric with a lustrous woven face": [],
+      "smooth textile showing a bright soft sheen": [],
+      "sheep hide with wool lining": [],
+      "soft hide with a fleece surface": [],
+      "sheepskin leather and wool texture": [],
+      "sheep leather retaining fleece": [],
+      "wool covered sheep hide material": [],
+      "soft brushed leather": [],
+      "matte leather with a visible nap": [],
+      "velvet like leather texture": [],
+      "leather with a brushed inner surface": [],
+      "soft napped hide with a dull finish": [],
+      "man made upper material": [],
+      "artificial fibre surface": [],
+      "synthetic fabric or coating": [],
+      "manufactured material rather than natural hide": [],
+      "artificial textile or polymer upper": [],
+      "wool fibre textile": [],
+      "soft fuzzy woven fabric": [],
+      "dense natural wool texture": [],
+      "natural sheep fibre fabric": [],
+      "warm fuzzy textile made from wool yarn": [],
+      "short boots": [],
+      "tall boots": [],
+      "lace up low shoes": [],
+      "low slip on loafers": [],
+      "flat low shoes": [],
+      "slip on comfort footwear": [],
+      "strapped open footwear": [],
+      "raised heel shoes": [],
+      "boots": [],
+      "closed low shoes": [],
+      "low and raised heel shoes": [],
+      "open and comfort footwear": []
+    },
+    "glove_sha256": "91125602f730fea7ca768736c6f442e668b49db095682bf2aad375db061c21ed",
+    "labels": {
+      "attrs": [
+        "Canvas",
+        "Cotton",
+        "Faux.Fur",
+        "Faux.Leather",
+        "Full.grain.leather",
+        "Hair.Calf",
+        "Leather",
+        "Nubuck",
+        "Nylon",
+        "Patent.Leather",
+        "Rubber",
+        "Satin",
+        "Sheepskin",
+        "Suede",
+        "Synthetic",
+        "Wool"
+      ],
+      "objs": [
+        "Boots.Ankle",
+        "Boots.Knee.High",
+        "Boots.Mid-Calf",
+        "Sandals",
+        "Shoes.Boat.Shoes",
+        "Shoes.Clogs.and.Mules",
+        "Shoes.Flats",
+        "Shoes.Heels",
+        "Shoes.Loafers",
+        "Shoes.Oxfords",
+        "Shoes.Sneakers.and.Athletic.Shoes",
+        "Slippers"
+      ]
+    },
+    "knowledge_source": "assistant reconstruction, labels only, no images/VAL/TEST statistics",
+    "description_count": 3,
+    "noise_percent": 50,
+    "permutations": {},
+    "deleted_slots": {
+      "oe": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          5,
+          1
+        ],
+        [
+          7,
+          1
+        ],
+        [
+          7,
+          2
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          8,
+          2
+        ],
+        [
+          9,
+          1
+        ],
+        [
+          9,
+          2
+        ],
+        [
+          11,
+          0
+        ],
+        [
+          11,
+          2
+        ]
+      ],
+      "ae": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          4,
+          2
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          5,
+          1
+        ],
+        [
+          7,
+          0
+        ],
+        [
+          7,
+          1
+        ],
+        [
+          7,
+          2
+        ],
+        [
+          8,
+          1
+        ],
+        [
+          9,
+          2
+        ],
+        [
+          10,
+          0
+        ],
+        [
+          11,
+          1
+        ],
+        [
+          12,
+          2
+        ],
+        [
+          13,
+          0
+        ],
+        [
+          13,
+          1
+        ],
+        [
+          14,
+          1
+        ],
+        [
+          14,
+          2
+        ],
+        [
+          15,
+          1
+        ],
+        [
+          15,
+          2
+        ]
+      ]
+    },
+    "oe_name_fallback_classes": [
+      0
+    ],
+    "ae_name_fallback_classes": [
+      7
+    ],
+    "aggregation": "mean",
+    "prior_fixed": true,
+    "pair_templates_preserved": true,
+    "ontology_levels": [
+      8,
+      5,
+      3
+    ]
+  },
+  "parent_cache_manifest_sha256": "b7a7e056f2a7bfc57e69b3702bd638f655a52478a676b22a57b4dcf64bfb03de",
+  "legacy_input_sha256": {
+    "/data/xhw/czsl_repro/src/KCC0601_v1/config/ut-zappos.yml": "a02fded3fd16a66bb43a2e0e469e73d6bd244ca9a7137bbaa363657867046c8d",
+    "/data/xhw/czsl_repro/src/KCC0601_v1/dataset.py": "430ac2b7f388ce28dd84e1218a7e3180b87d4620a86f9ab339240f204948086f",
+    "/data/xhw/czsl_repro/data/ut-zap50k/compositional-split-natural/train_pairs.txt": "f0d134c668661180ed9464083898e5d7c8631aaa81cc01a061d5bac61aa8340f",
+    "/data/xhw/czsl_repro/data/ut-zap50k/compositional-split-natural/val_pairs.txt": "26370ddbe6a0eb49f2f5059dffc5d25ea34f6c8bcf2c1040ec7b1e77a3dc3f3c",
+    "/data/xhw/czsl_repro/data/ut-zap50k/compositional-split-natural/test_pairs.txt": "435668fa870685f1d4930e9ec76711f3d8949348d96d72ad2d2e29cfaf899c6b",
+    "/data/xhw/czsl_repro/knowledge/kcc0601_v1/trusted_v1/ut-zap50k/attributes.txt": "42067c4af6a6a02f39ad92906b445abc6037afc88915e2a711a06720e5d7a4ed",
+    "/data/xhw/czsl_repro/knowledge/kcc0601_v1/trusted_v1/ut-zap50k/objects.txt": "237da35e1fbbd59945bca11a9d293e8ea1c15d39609f2663242ae56364647e9c",
+    "/data/xhw/czsl_repro/knowledge/kcc0601_v1/trusted_v1/ut-zap50k/oi_dict.json": "f048e790c4effb8a61797bf903cad4a93371fbe1bfbeac75b445d7dd1e19ba6f",
+    "/data/xhw/czsl_repro/knowledge/kcc0601_v1/trusted_v1/ut-zap50k/oe_dict.json": "ca72dddc8645c85b8dc2f7346d10aa9b6a68da35876cfd0e75bdc287335bafaa",
+    "/data/xhw/czsl_repro/knowledge/kcc0601_v1/trusted_v1/ut-zap50k/ae_dict.json": "f161f0021c0ccbf7d672d584b6d3ab4257f849f8ad419e094023ad915946235c",
+    "/data/xhw/czsl_repro/knowledge/kcc0601_v1/trusted_v1/ut-zap50k/manifest.json": "b322fa76a65e77b617ca59562711773abfab8868937957eed6b4fd36306a54f0",
+    "/data/xhw/czsl_repro/knowledge/kcc0601_v1/trusted_v1/ut-zap50k/review_status.csv": "f2b969eed4737bf5b60b856406fbb596d18b8e30f6d734a52803664db17501c6",
+    "/data/xhw/czsl_repro/src/KCC0601_v1/models/word_embedding_utils.py": "6f445018649eee4b2f60adbf2c865203e227d81a964d176b9a44e0010e5e35a3",
+    "/data/xhw/czsl_repro/data/glove/glove.6B.300d.txt": "91125602f730fea7ca768736c6f442e668b49db095682bf2aad375db061c21ed"
+  },
+  "input_sha256": {
+    "/var/tmp/czsl_0601_revision_release_20261014_fix/revised_0601_20261013/assets/knowledge_revision.json": "549bfe4550a99c266eb6bb5df04202aba7657ab285e444213de5af59a0cd1538",
+    "/var/tmp/czsl_0601_revision_release_20261014_fix/revised_0601_20261013/assets/additional_descriptions.json": "e0148075d037171173e0000e63d3e129830bd24d10d60da16145679a98298c47"
+  },
+  "input_provenance": "Current corpus above; original name/pair vectors and GloVe identities retained in parent cache manifest and revision_evidence.json"
+}

@@ -1,0 +1,292 @@
+# 0601 统一修订版：实际结果
+
+这是公式修订后的新模型，不与旧 r2 / 30epoch 结果混合计算均值。
+
+全部公式统一修正；10epoch；seeds=[3351, 3352, 3353]；suite=all；完整=False。
+
+|组|划分|设置|n|AUC (%)|HM (%)|
+|---|---|---|---:|---|---|
+|A_native|val|cw|1|40.6141 (n=1)|54.7466 (n=1)|
+|A_native|val|ow|1|24.0402 (n=1)|37.3689 (n=1)|
+|A_native|test|cw|1|36.6853 (n=1)|50.8668 (n=1)|
+|A_native|test|ow|1|28.3609 (n=1)|44.9105 (n=1)|
+|R0|val|cw|1|32.2161 (n=1)|47.1497 (n=1)|
+|R0|val|ow|1|19.7573 (n=1)|32.9717 (n=1)|
+|R0|test|cw|1|30.2555 (n=1)|47.0379 (n=1)|
+|R0|test|ow|1|22.3223 (n=1)|39.8726 (n=1)|
+|R0_native_attention|val|cw|1|29.7500 (n=1)|41.7836 (n=1)|
+|R0_native_attention|val|ow|1|20.7136 (n=1)|34.1577 (n=1)|
+|R0_native_attention|test|cw|1|32.3795 (n=1)|47.3473 (n=1)|
+|R0_native_attention|test|ow|1|26.0986 (n=1)|42.8033 (n=1)|
+|Rexternal|val|cw|1|33.4303 (n=1)|47.8090 (n=1)|
+|Rexternal|val|ow|1|21.1235 (n=1)|34.4879 (n=1)|
+|Rexternal|test|cw|1|30.1276 (n=1)|46.7029 (n=1)|
+|Rexternal|test|ow|1|22.8737 (n=1)|40.2810 (n=1)|
+|Rfeature|val|cw|1|26.0254 (n=1)|39.7238 (n=1)|
+|Rfeature|val|ow|1|21.1747 (n=1)|36.0591 (n=1)|
+|Rfeature|test|cw|1|31.0298 (n=1)|46.1463 (n=1)|
+|Rfeature|test|ow|1|23.7132 (n=1)|40.1334 (n=1)|
+|Rfull|val|cw|1|26.4968 (n=1)|39.7932 (n=1)|
+|Rfull|val|ow|1|22.2853 (n=1)|37.5597 (n=1)|
+|Rfull|test|cw|1|26.9538 (n=1)|43.4987 (n=1)|
+|Rfull|test|ow|1|20.4649 (n=1)|37.7448 (n=1)|
+|Rfull_attention_K|val|cw|1|28.7426 (n=1)|41.8872 (n=1)|
+|Rfull_attention_K|val|ow|1|21.9429 (n=1)|36.1129 (n=1)|
+|Rfull_attention_K|test|cw|1|32.5257 (n=1)|48.1662 (n=1)|
+|Rfull_attention_K|test|ow|1|24.6645 (n=1)|41.5710 (n=1)|
+|Rfull_clamped_log|val|cw|1|26.2713 (n=1)|40.3528 (n=1)|
+|Rfull_clamped_log|val|ow|1|21.4815 (n=1)|36.7147 (n=1)|
+|Rfull_clamped_log|test|cw|1|30.9268 (n=1)|46.2520 (n=1)|
+|Rfull_clamped_log|test|ow|1|23.7615 (n=1)|40.2760 (n=1)|
+|Rfull_count1|val|cw|1|28.8246 (n=1)|41.5535 (n=1)|
+|Rfull_count1|val|ow|1|23.2305 (n=1)|37.3918 (n=1)|
+|Rfull_count1|test|cw|1|30.5733 (n=1)|45.6478 (n=1)|
+|Rfull_count1|test|ow|1|24.5224 (n=1)|41.3630 (n=1)|
+|Rfull_count5|val|cw|1|25.0347 (n=1)|38.7315 (n=1)|
+|Rfull_count5|val|ow|1|17.6179 (n=1)|32.0624 (n=1)|
+|Rfull_count5|test|cw|1|30.2060 (n=1)|45.6135 (n=1)|
+|Rfull_count5|test|ow|1|23.0402 (n=1)|39.8433 (n=1)|
+|Rfull_delayed_beta|val|cw|1|25.8612 (n=1)|38.8173 (n=1)|
+|Rfull_delayed_beta|val|ow|1|21.2366 (n=1)|36.7773 (n=1)|
+|Rfull_delayed_beta|test|cw|1|26.6128 (n=1)|43.0267 (n=1)|
+|Rfull_delayed_beta|test|ow|1|19.6459 (n=1)|36.7255 (n=1)|
+|Rfull_depth1|val|cw|1|27.2514 (n=1)|40.8972 (n=1)|
+|Rfull_depth1|val|ow|1|22.0830 (n=1)|37.2790 (n=1)|
+|Rfull_depth1|test|cw|1|30.3112 (n=1)|45.6371 (n=1)|
+|Rfull_depth1|test|ow|1|23.3130 (n=1)|39.9202 (n=1)|
+|Rfull_depth2|val|cw|1|26.3656 (n=1)|39.3486 (n=1)|
+|Rfull_depth2|val|ow|1|21.5957 (n=1)|36.6076 (n=1)|
+|Rfull_depth2|test|cw|1|26.8656 (n=1)|43.2492 (n=1)|
+|Rfull_depth2|test|ow|1|20.2787 (n=1)|37.4186 (n=1)|
+|Rfull_descT005|val|cw|1|26.5622 (n=1)|40.4512 (n=1)|
+|Rfull_descT005|val|ow|1|21.2889 (n=1)|36.2047 (n=1)|
+|Rfull_descT005|test|cw|1|30.8862 (n=1)|45.9579 (n=1)|
+|Rfull_descT005|test|ow|1|23.9097 (n=1)|40.5234 (n=1)|
+|Rfull_descT020|val|cw|1|26.3890 (n=1)|39.8001 (n=1)|
+|Rfull_descT020|val|ow|1|21.4492 (n=1)|36.7351 (n=1)|
+|Rfull_descT020|test|cw|1|26.6143 (n=1)|42.8017 (n=1)|
+|Rfull_descT020|test|ow|1|20.2682 (n=1)|37.1634 (n=1)|
+|Rfull_learn_lambda|val|cw|1|25.9425 (n=1)|39.3894 (n=1)|
+|Rfull_learn_lambda|val|ow|1|21.8428 (n=1)|37.0982 (n=1)|
+|Rfull_learn_lambda|test|cw|1|26.5393 (n=1)|42.8957 (n=1)|
+|Rfull_learn_lambda|test|ow|1|19.9063 (n=1)|36.9340 (n=1)|
+|Rfull_marginal_attr|val|cw|1|30.1230 (n=1)|43.7039 (n=1)|
+|Rfull_marginal_attr|val|ow|1|22.4465 (n=1)|36.7400 (n=1)|
+|Rfull_marginal_attr|test|cw|1|31.2812 (n=1)|47.2823 (n=1)|
+|Rfull_marginal_attr|test|ow|1|25.5608 (n=1)|42.5545 (n=1)|
+|Rfull_native_attention|val|cw|1|26.4342 (n=1)|38.4792 (n=1)|
+|Rfull_native_attention|val|ow|1|21.2187 (n=1)|35.9987 (n=1)|
+|Rfull_native_attention|test|cw|1|26.2887 (n=1)|42.8346 (n=1)|
+|Rfull_native_attention|test|ow|1|19.9265 (n=1)|37.5017 (n=1)|
+|Rfull_noise10|val|cw|1|26.8238 (n=1)|39.7842 (n=1)|
+|Rfull_noise10|val|ow|1|21.4695 (n=1)|36.1335 (n=1)|
+|Rfull_noise10|test|cw|1|32.0476 (n=1)|47.8583 (n=1)|
+|Rfull_noise10|test|ow|1|24.8402 (n=1)|41.8646 (n=1)|
+|Rfull_noise30|val|cw|1|30.1896 (n=1)|43.1360 (n=1)|
+|Rfull_noise30|val|ow|1|24.0974 (n=1)|38.0079 (n=1)|
+|Rfull_noise30|test|cw|1|31.4940 (n=1)|46.2645 (n=1)|
+|Rfull_noise30|test|ow|1|24.1673 (n=1)|41.0590 (n=1)|
+|Rfull_noise50|val|cw|1|32.1087 (n=1)|44.5968 (n=1)|
+|Rfull_noise50|val|ow|1|23.7833 (n=1)|38.4073 (n=1)|
+|Rfull_noise50|test|cw|1|31.7630 (n=1)|46.0797 (n=1)|
+|Rfull_noise50|test|ow|1|25.6942 (n=1)|42.1245 (n=1)|
+|Rfull_nopair_all|val|cw|1|26.3878 (n=1)|39.7493 (n=1)|
+|Rfull_nopair_all|val|ow|1|21.8185 (n=1)|37.5562 (n=1)|
+|Rfull_nopair_all|test|cw|1|27.3165 (n=1)|43.4544 (n=1)|
+|Rfull_nopair_all|test|ow|1|20.9135 (n=1)|38.0319 (n=1)|
+|Rfull_nopair_head|val|cw|1|26.2006 (n=1)|40.4092 (n=1)|
+|Rfull_nopair_head|val|ow|1|21.0944 (n=1)|36.7693 (n=1)|
+|Rfull_nopair_head|test|cw|1|29.9130 (n=1)|45.2251 (n=1)|
+|Rfull_nopair_head|test|ow|1|22.3015 (n=1)|38.7670 (n=1)|
+|Rfull_prior_off|val|cw|1|25.6411 (n=1)|38.6314 (n=1)|
+|Rfull_prior_off|val|ow|1|21.0103 (n=1)|36.3849 (n=1)|
+|Rfull_prior_off|test|cw|1|26.7648 (n=1)|43.1160 (n=1)|
+|Rfull_prior_off|test|ow|1|20.2543 (n=1)|37.0849 (n=1)|
+|Rfull_random_prior|val|cw|1|26.1143 (n=1)|40.1419 (n=1)|
+|Rfull_random_prior|val|ow|1|21.2755 (n=1)|36.4379 (n=1)|
+|Rfull_random_prior|test|cw|1|30.0376 (n=1)|45.2144 (n=1)|
+|Rfull_random_prior|test|ow|1|23.0252 (n=1)|39.4559 (n=1)|
+|Rfull_shuffle|val|cw|1|24.4786 (n=1)|38.2760 (n=1)|
+|Rfull_shuffle|val|ow|1|19.1959 (n=1)|32.7597 (n=1)|
+|Rfull_shuffle|test|cw|1|21.3317 (n=1)|40.0002 (n=1)|
+|Rfull_shuffle|test|ow|1|16.6590 (n=1)|34.8395 (n=1)|
+|Rfull_static_head|val|cw|1|26.4818 (n=1)|39.7238 (n=1)|
+|Rfull_static_head|val|ow|1|22.1595 (n=1)|37.7931 (n=1)|
+|Rfull_static_head|test|cw|1|26.7191 (n=1)|43.2492 (n=1)|
+|Rfull_static_head|test|ow|1|20.1327 (n=1)|37.1970 (n=1)|
+|Rfull_uniform_prior|val|cw|1|25.6411 (n=1)|38.6314 (n=1)|
+|Rfull_uniform_prior|val|ow|1|21.0103 (n=1)|36.3849 (n=1)|
+|Rfull_uniform_prior|test|cw|1|26.7648 (n=1)|43.1160 (n=1)|
+|Rfull_uniform_prior|test|ow|1|20.2543 (n=1)|37.0849 (n=1)|
+|Rmvp|val|cw|1|26.4760 (n=1)|39.8812 (n=1)|
+|Rmvp|val|ow|1|21.9927 (n=1)|37.6745 (n=1)|
+|Rmvp|test|cw|1|25.7268 (n=1)|42.1924 (n=1)|
+|Rmvp|test|ow|1|19.6122 (n=1)|36.9041 (n=1)|
+|Rmvp_logic|val|cw|1|26.6925 (n=1)|39.9761 (n=1)|
+|Rmvp_logic|val|ow|1|22.2013 (n=1)|38.0082 (n=1)|
+|Rmvp_logic|test|cw|1|26.2343 (n=1)|42.5349 (n=1)|
+|Rmvp_logic|test|ow|1|19.7523 (n=1)|37.0454 (n=1)|
+|Rprior|val|cw|1|31.6019 (n=1)|44.8006 (n=1)|
+|Rprior|val|ow|1|21.8278 (n=1)|35.7188 (n=1)|
+|Rprior|test|cw|1|31.0198 (n=1)|45.4042 (n=1)|
+|Rprior|test|ow|1|24.6457 (n=1)|40.9424 (n=1)|
+|Rtext|val|cw|1|25.9672 (n=1)|40.4277 (n=1)|
+|Rtext|val|ow|1|21.2094 (n=1)|36.3255 (n=1)|
+|Rtext|test|cw|1|30.4675 (n=1)|45.7962 (n=1)|
+|Rtext|test|ow|1|23.3836 (n=1)|39.9019 (n=1)|
+
+## 配对差分（百分点）
+
+|比较|划分|设置|n|ΔAUC|ΔHM|
+|---|---|---|---:|---|---|
+|Rfull-A_native|val|cw|1|-14.1173 (n=1)|-14.9534 (n=1)|
+|Rfull-A_native|val|ow|1|-1.7549 (n=1)|0.1908 (n=1)|
+|Rfull-A_native|test|cw|1|-9.7315 (n=1)|-7.3680 (n=1)|
+|Rfull-A_native|test|ow|1|-7.8960 (n=1)|-7.1657 (n=1)|
+|Rtext-R0|val|cw|1|-6.2489 (n=1)|-6.7220 (n=1)|
+|Rtext-R0|val|ow|1|1.4521 (n=1)|3.3538 (n=1)|
+|Rtext-R0|test|cw|1|0.2120 (n=1)|-1.2417 (n=1)|
+|Rtext-R0|test|ow|1|1.0613 (n=1)|0.0292 (n=1)|
+|Rprior-R0|val|cw|1|-0.6142 (n=1)|-2.3491 (n=1)|
+|Rprior-R0|val|ow|1|2.0705 (n=1)|2.7471 (n=1)|
+|Rprior-R0|test|cw|1|0.7643 (n=1)|-1.6336 (n=1)|
+|Rprior-R0|test|ow|1|2.3234 (n=1)|1.0698 (n=1)|
+|Rmvp-Rtext|val|cw|1|0.5089 (n=1)|-0.5464 (n=1)|
+|Rmvp-Rtext|val|ow|1|0.7832 (n=1)|1.3490 (n=1)|
+|Rmvp-Rtext|test|cw|1|-4.7407 (n=1)|-3.6038 (n=1)|
+|Rmvp-Rtext|test|ow|1|-3.7713 (n=1)|-2.9978 (n=1)|
+|Rexternal-R0|val|cw|1|1.2142 (n=1)|0.6593 (n=1)|
+|Rexternal-R0|val|ow|1|1.3662 (n=1)|1.5162 (n=1)|
+|Rexternal-R0|test|cw|1|-0.1278 (n=1)|-0.3350 (n=1)|
+|Rexternal-R0|test|ow|1|0.5515 (n=1)|0.4084 (n=1)|
+|Rmvp_logic-Rmvp|val|cw|1|0.2165 (n=1)|0.0948 (n=1)|
+|Rmvp_logic-Rmvp|val|ow|1|0.2086 (n=1)|0.3338 (n=1)|
+|Rmvp_logic-Rmvp|test|cw|1|0.5074 (n=1)|0.3425 (n=1)|
+|Rmvp_logic-Rmvp|test|ow|1|0.1401 (n=1)|0.1413 (n=1)|
+|Rfeature-Rmvp|val|cw|1|-0.4506 (n=1)|-0.1574 (n=1)|
+|Rfeature-Rmvp|val|ow|1|-0.8180 (n=1)|-1.6154 (n=1)|
+|Rfeature-Rmvp|test|cw|1|5.3030 (n=1)|3.9539 (n=1)|
+|Rfeature-Rmvp|test|ow|1|4.1010 (n=1)|3.2293 (n=1)|
+|Rfull-Rfeature|val|cw|1|0.4714 (n=1)|0.0694 (n=1)|
+|Rfull-Rfeature|val|ow|1|1.1106 (n=1)|1.5006 (n=1)|
+|Rfull-Rfeature|test|cw|1|-4.0760 (n=1)|-2.6476 (n=1)|
+|Rfull-Rfeature|test|ow|1|-3.2483 (n=1)|-2.3886 (n=1)|
+|Rfull-Rexternal|val|cw|1|-6.9335 (n=1)|-8.0158 (n=1)|
+|Rfull-Rexternal|val|ow|1|1.1618 (n=1)|3.0718 (n=1)|
+|Rfull-Rexternal|test|cw|1|-3.1738 (n=1)|-3.2041 (n=1)|
+|Rfull-Rexternal|test|ow|1|-2.4088 (n=1)|-2.5362 (n=1)|
+|Rfull-Rmvp_logic|val|cw|1|-0.1957 (n=1)|-0.1828 (n=1)|
+|Rfull-Rmvp_logic|val|ow|1|0.0841 (n=1)|-0.4485 (n=1)|
+|Rfull-Rmvp_logic|test|cw|1|0.7196 (n=1)|0.9638 (n=1)|
+|Rfull-Rmvp_logic|test|ow|1|0.7126 (n=1)|0.6995 (n=1)|
+|R0-R0_native_attention|val|cw|1|2.4661 (n=1)|5.3661 (n=1)|
+|R0-R0_native_attention|val|ow|1|-0.9563 (n=1)|-1.1860 (n=1)|
+|R0-R0_native_attention|test|cw|1|-2.1241 (n=1)|-0.3094 (n=1)|
+|R0-R0_native_attention|test|ow|1|-3.7763 (n=1)|-2.9306 (n=1)|
+|Rfull-Rfull_attention_K|val|cw|1|-2.2458 (n=1)|-2.0940 (n=1)|
+|Rfull-Rfull_attention_K|val|ow|1|0.3424 (n=1)|1.4468 (n=1)|
+|Rfull-Rfull_attention_K|test|cw|1|-5.5719 (n=1)|-4.6675 (n=1)|
+|Rfull-Rfull_attention_K|test|ow|1|-4.1996 (n=1)|-3.8262 (n=1)|
+|Rfull-Rfull_clamped_log|val|cw|1|0.2255 (n=1)|-0.5596 (n=1)|
+|Rfull-Rfull_clamped_log|val|ow|1|0.8039 (n=1)|0.8450 (n=1)|
+|Rfull-Rfull_clamped_log|test|cw|1|-3.9729 (n=1)|-2.7533 (n=1)|
+|Rfull-Rfull_clamped_log|test|ow|1|-3.2966 (n=1)|-2.5312 (n=1)|
+|Rfull-Rfull_count1|val|cw|1|-2.3278 (n=1)|-1.7603 (n=1)|
+|Rfull-Rfull_count1|val|ow|1|-0.9452 (n=1)|0.1679 (n=1)|
+|Rfull-Rfull_count1|test|cw|1|-3.6194 (n=1)|-2.1491 (n=1)|
+|Rfull-Rfull_count1|test|ow|1|-4.0575 (n=1)|-3.6182 (n=1)|
+|Rfull-Rfull_count5|val|cw|1|1.4621 (n=1)|1.0618 (n=1)|
+|Rfull-Rfull_count5|val|ow|1|4.6674 (n=1)|5.4973 (n=1)|
+|Rfull-Rfull_count5|test|cw|1|-3.2521 (n=1)|-2.1148 (n=1)|
+|Rfull-Rfull_count5|test|ow|1|-2.5753 (n=1)|-2.0985 (n=1)|
+|Rfull-Rfull_delayed_beta|val|cw|1|0.6356 (n=1)|0.9759 (n=1)|
+|Rfull-Rfull_delayed_beta|val|ow|1|1.0487 (n=1)|0.7824 (n=1)|
+|Rfull-Rfull_delayed_beta|test|cw|1|0.3410 (n=1)|0.4720 (n=1)|
+|Rfull-Rfull_delayed_beta|test|ow|1|0.8190 (n=1)|1.0194 (n=1)|
+|Rfull-Rfull_depth1|val|cw|1|-0.7546 (n=1)|-1.1039 (n=1)|
+|Rfull-Rfull_depth1|val|ow|1|0.2023 (n=1)|0.2807 (n=1)|
+|Rfull-Rfull_depth1|test|cw|1|-3.3574 (n=1)|-2.1384 (n=1)|
+|Rfull-Rfull_depth1|test|ow|1|-2.8481 (n=1)|-2.1754 (n=1)|
+|Rfull-Rfull_depth2|val|cw|1|0.1312 (n=1)|0.4446 (n=1)|
+|Rfull-Rfull_depth2|val|ow|1|0.6896 (n=1)|0.9521 (n=1)|
+|Rfull-Rfull_depth2|test|cw|1|0.0882 (n=1)|0.2495 (n=1)|
+|Rfull-Rfull_depth2|test|ow|1|0.1862 (n=1)|0.3262 (n=1)|
+|Rfull-Rfull_descT005|val|cw|1|-0.0654 (n=1)|-0.6579 (n=1)|
+|Rfull-Rfull_descT005|val|ow|1|0.9965 (n=1)|1.3550 (n=1)|
+|Rfull-Rfull_descT005|test|cw|1|-3.9324 (n=1)|-2.4592 (n=1)|
+|Rfull-Rfull_descT005|test|ow|1|-3.4448 (n=1)|-2.7785 (n=1)|
+|Rfull-Rfull_descT020|val|cw|1|0.1078 (n=1)|-0.0069 (n=1)|
+|Rfull-Rfull_descT020|val|ow|1|0.8362 (n=1)|0.8246 (n=1)|
+|Rfull-Rfull_descT020|test|cw|1|0.3395 (n=1)|0.6970 (n=1)|
+|Rfull-Rfull_descT020|test|ow|1|0.1967 (n=1)|0.5814 (n=1)|
+|Rfull-Rfull_learn_lambda|val|cw|1|0.5542 (n=1)|0.4038 (n=1)|
+|Rfull-Rfull_learn_lambda|val|ow|1|0.4426 (n=1)|0.4614 (n=1)|
+|Rfull-Rfull_learn_lambda|test|cw|1|0.4146 (n=1)|0.6030 (n=1)|
+|Rfull-Rfull_learn_lambda|test|ow|1|0.5586 (n=1)|0.8108 (n=1)|
+|Rfull-Rfull_marginal_attr|val|cw|1|-3.6262 (n=1)|-3.9107 (n=1)|
+|Rfull-Rfull_marginal_attr|val|ow|1|-0.1612 (n=1)|0.8197 (n=1)|
+|Rfull-Rfull_marginal_attr|test|cw|1|-4.3274 (n=1)|-3.7836 (n=1)|
+|Rfull-Rfull_marginal_attr|test|ow|1|-5.0959 (n=1)|-4.8097 (n=1)|
+|Rfull-Rfull_native_attention|val|cw|1|0.0626 (n=1)|1.3141 (n=1)|
+|Rfull-Rfull_native_attention|val|ow|1|1.0666 (n=1)|1.5610 (n=1)|
+|Rfull-Rfull_native_attention|test|cw|1|0.6652 (n=1)|0.6642 (n=1)|
+|Rfull-Rfull_native_attention|test|ow|1|0.5384 (n=1)|0.2431 (n=1)|
+|Rfull-Rfull_noise10|val|cw|1|-0.3270 (n=1)|0.0090 (n=1)|
+|Rfull-Rfull_noise10|val|ow|1|0.8158 (n=1)|1.4262 (n=1)|
+|Rfull-Rfull_noise10|test|cw|1|-5.0938 (n=1)|-4.3596 (n=1)|
+|Rfull-Rfull_noise10|test|ow|1|-4.3753 (n=1)|-4.1198 (n=1)|
+|Rfull-Rfull_noise30|val|cw|1|-3.6929 (n=1)|-3.3427 (n=1)|
+|Rfull-Rfull_noise30|val|ow|1|-1.8121 (n=1)|-0.4482 (n=1)|
+|Rfull-Rfull_noise30|test|cw|1|-4.5402 (n=1)|-2.7658 (n=1)|
+|Rfull-Rfull_noise30|test|ow|1|-3.7024 (n=1)|-3.3142 (n=1)|
+|Rfull-Rfull_noise50|val|cw|1|-5.6119 (n=1)|-4.8036 (n=1)|
+|Rfull-Rfull_noise50|val|ow|1|-1.4980 (n=1)|-0.8476 (n=1)|
+|Rfull-Rfull_noise50|test|cw|1|-4.8092 (n=1)|-2.5810 (n=1)|
+|Rfull-Rfull_noise50|test|ow|1|-5.2293 (n=1)|-4.3797 (n=1)|
+|Rfull-Rfull_nopair_all|val|cw|1|0.1090 (n=1)|0.0439 (n=1)|
+|Rfull-Rfull_nopair_all|val|ow|1|0.4669 (n=1)|0.0035 (n=1)|
+|Rfull-Rfull_nopair_all|test|cw|1|-0.3627 (n=1)|0.0444 (n=1)|
+|Rfull-Rfull_nopair_all|test|ow|1|-0.4486 (n=1)|-0.2871 (n=1)|
+|Rfull-Rfull_nopair_head|val|cw|1|0.2962 (n=1)|-0.6160 (n=1)|
+|Rfull-Rfull_nopair_head|val|ow|1|1.1909 (n=1)|0.7904 (n=1)|
+|Rfull-Rfull_nopair_head|test|cw|1|-2.9591 (n=1)|-1.7264 (n=1)|
+|Rfull-Rfull_nopair_head|test|ow|1|-1.8366 (n=1)|-1.0221 (n=1)|
+|Rfull-Rfull_prior_off|val|cw|1|0.8557 (n=1)|1.1618 (n=1)|
+|Rfull-Rfull_prior_off|val|ow|1|1.2750 (n=1)|1.1748 (n=1)|
+|Rfull-Rfull_prior_off|test|cw|1|0.1890 (n=1)|0.3827 (n=1)|
+|Rfull-Rfull_prior_off|test|ow|1|0.2106 (n=1)|0.6599 (n=1)|
+|Rfull-Rfull_random_prior|val|cw|1|0.3825 (n=1)|-0.3487 (n=1)|
+|Rfull-Rfull_random_prior|val|ow|1|1.0098 (n=1)|1.1217 (n=1)|
+|Rfull-Rfull_random_prior|test|cw|1|-3.0838 (n=1)|-1.7157 (n=1)|
+|Rfull-Rfull_random_prior|test|ow|1|-2.5603 (n=1)|-1.7111 (n=1)|
+|Rfull-Rfull_shuffle|val|cw|1|2.0182 (n=1)|1.5172 (n=1)|
+|Rfull-Rfull_shuffle|val|ow|1|3.0894 (n=1)|4.8000 (n=1)|
+|Rfull-Rfull_shuffle|test|cw|1|5.6221 (n=1)|3.4985 (n=1)|
+|Rfull-Rfull_shuffle|test|ow|1|3.8059 (n=1)|2.9053 (n=1)|
+|Rfull-Rfull_static_head|val|cw|1|0.0150 (n=1)|0.0694 (n=1)|
+|Rfull-Rfull_static_head|val|ow|1|0.1259 (n=1)|-0.2334 (n=1)|
+|Rfull-Rfull_static_head|test|cw|1|0.2347 (n=1)|0.2495 (n=1)|
+|Rfull-Rfull_static_head|test|ow|1|0.3322 (n=1)|0.5478 (n=1)|
+|Rfull-Rfull_uniform_prior|val|cw|1|0.8557 (n=1)|1.1618 (n=1)|
+|Rfull-Rfull_uniform_prior|val|ow|1|1.2750 (n=1)|1.1748 (n=1)|
+|Rfull-Rfull_uniform_prior|test|cw|1|0.1890 (n=1)|0.3827 (n=1)|
+|Rfull-Rfull_uniform_prior|test|ow|1|0.2106 (n=1)|0.6599 (n=1)|
+
+## 边界
+
+logP=log_softmax(z_object)+log_softmax(U_native+0.1*coupled_delta+lambda*prior,attributes)
+
+JS categorical consistency; disjoint child probabilities summed; TRAIN-label descriptor CE anchors0.1; no pair sigmoid
+
+unified assistant-reconstructed GloVe300 corpus; pair templates retained; not original author knowledge
+
+No TEST model/budget/bias selection. Prior TEST results already observed; follow-up is not a fresh unseen holdout claim.
+
+AUC/HM 的 bias 曲线是评测统计，不等于可以在 TEST 上挑部署 bias。
+
+未完成/未覆盖：
+- Original-author lost corpus / original Troika LogiCZSL score replication
+- MIT-States/C-GQA end-to-end cache, CUDA memory and full dataset matrix
+- CLIP image+text dual-encoder semantic teacher integration
+- Cross-benchmark transfer and human-reviewed qualitative visual failure taxonomy
+- LLM/mixed feasibility requires actual --llm-prior asset; code provided, not run

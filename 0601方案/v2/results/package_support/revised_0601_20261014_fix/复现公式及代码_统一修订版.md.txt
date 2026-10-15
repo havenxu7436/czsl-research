@@ -1,0 +1,273 @@
+# 0601 方案：公式审计与统一修订版
+
+日期：2026-10-13。所有公式修正一次性进入同一个版本，不按“修一条、训练一次”的方式推进。
+
+本文件替代原文作为**后续实验的规范**，不覆盖原文，不改写旧 r2 代码、checkpoint 或结果。原文完整保存在 [原文归档](legacy_reference/复现公式及代码_原文_未改动.md)。原文 SHA256：`2b03ad53c5cf97e082e917fab6a6ac6b4c72f87726b4ac63dec59f732465cdc6`。
+
+必须区分三个目标：旧 r2 是当时对 0601 公式的具体接线；此版是修复数学定义、结构退化和实验缺口后的**新模型**；两者均不等于恢复 LogiCZSL 原作者丢失的数据或复现原论文全部成绩。描述和多层树是明确标注的助手重建资产，不能改称原作者资产。
+
+## 1. 审计结论：哪些是错，哪些只是选择
+
+|位置|原定义/实现|问题性质|统一处理|
+|---|---|---|---|
+|§5/9 联合评分|`z_object + U + lambda*Pi`|可以是合法能量分数，但**不等于**声称的 `P(o|x)P(a|x,o)`，缺少对象相关的条件归一化项|两层 `log_softmax`，明确完整概率与候选条件化|
+|§6 head|`f(x,a)+g(x,o)+h(o,a)`|共享视觉向量下，属性相对分数的图像变化不依赖对象；固定 GT-object 时对象加性项抵消|三线性交互和图像相关 pair 相似度；不再使用静态 pair MLP bias|
+|§6 G/H 只用 head|删除原 CPF composition/attribute 分支|不是代数错误，是会同时改变模型容量、语义基底和尺度的设计选择，不能把退化都归因于知识|统一保留 native conditional 基底，再加小幅动态知识残差；明确新模型，不伪称原 §6 唯一形式|
+|§7 pair 激活|`sigmoid(masked_joint)`|任意整体分数平移改变节点真值；pair 节点也没有对应的实际额外规则|pair 为完整联合概率；本版本不添加无依据的第四项逻辑损失|
+|§7 attribute grounding|先训练 pair mask，再边缘化|知识节点受 train pair 可用性影响；不是完整模型的属性边缘概率|从完整未屏蔽的联合分布求和；pair CE 才限制训练候选|
+|§7 description grounding|`sigmoid(g dot D)`|视觉特征范数可放大“真值”；GloVe 文本相似度不能直接宣称物理事实概率|归一化 cosine、显式温度、类别语义分布；明确只是相似度诱导分布|
+|§7 父/子约束|parent 与 `max(child)` 比较；product implication|对互斥类别，父事件概率应是 child 概率之和；匹配的概率分布也可能产生非零乘积违反量|父类分布与互斥子类概率和做 JS 一致性；不是照搬原 fuzzy 算子|
+|§7 正例蕴含|所有描述趋于“真”可以降低 loss|存在平凡解风险；不能把 OE/AE3 当成独立且完备的可见事实|改用类别分布一致性，并用 TRAIN primitive 标签锚定描述分类分布；不把其他类描述当物理事实负例|
+|§3/7 知识来源|TextK 和逻辑 bank 使用两套描述|消费者不同的同时资产也变了，无法清楚归因|一个冻结 corpus 同时生成 TextK 与描述约束|
+|§4 prior|sample std，直接 min-max compatibility|单元素/常量时需定义；min-max 的最小值不是“不可能”的证据|新 prior 用 population std + epsilon；clamped-log 有明确 floor；仍标注为启发式 compatibility|
+|§8 属性 CE|训练读取无 prior 的 U，推理加 prior|辅助目标与实际条件预测分布不同；不是必然无效，但不能称一致目标|GT-object CE 读取实际 `log P(a|x,o,K)`；另一配置才改成真正的对象加权属性边缘 CE|
+|§2 native attention|归一化 cosine 再除 `sqrt(300)`|并非标准 scaled-dot 的等价实现；分数范围很窄，注意力趋近均匀。这是 CPF 原生设计，不能偷改原始 baseline|修订模型用 cosine/0.07；保留 A_native 和 native-attention 消融，说明是设计修订而非论文笔误|
+|§10 no-pair|仅删除 pair head，仍保留 template prior|名字容易夸大为“删掉所有 pair 知识”|分别命名 `nopair_head` 与 `nopair_all`；后一组同时去掉 prior，是双机制删除|
+|§11 小实验|描述数/树深/噪声等只有表格|“helper 存在”不等于正式训练完成|提供全部 UT 配置、真实队列、冻结资产、后分析和未实现范围|
+
+不能从上述审计推断“失败一定由这些问题导致”或“修正版一定涨点”。它证明的是旧模型没有完整表达预期的概率与动态交互；性能原因仍需新训练及消融证据。
+
+## 2. 统一符号、候选集与资产
+
+属性集合为 \(\mathcal A\)，对象集合为 \(\mathcal O\)，训练 pair 集合为 \(\mathcal C_{tr}\subset\mathcal O\times\mathcal A\)。张量顺序统一为 `[batch, object, attribute]`，而 dataset pair 元组顺序仍为 `(attribute, object)`；代码做显式索引转换，二者不能混淆。
+
+UT：16 attributes、12 objects、192 全组合。训练 83 pairs；CW 使用固定 split 的全集候选；OW 使用完整 192 候选。只允许从训练样本读取标签进入 loss；构建文本知识允许使用 primitive vocabulary，但不按 seen/unseen split 定义可行性。
+
+名称向量 \(e_c^0\) 保留原 CPF GloVe 初始化与别名规则。一个描述句子：
+
+\[
+d_{ck}=\operatorname{norm}\left(\frac{1}{|T_{ck}^{known}|}\sum_{t\in T_{ck}^{known}}w_t\right).
+\]
+
+未知词逐句记录；整句无已知词时构建失败，不能悄悄写零向量。知识池包括归一化 name 和保留下来的描述：
+
+\[
+E_c^K=\operatorname{norm}\Big(\sum_{k=0}^{K_c}\alpha_{ck}v_{ck}\Big),\quad
+v_{c0}=\operatorname{norm}(e_c^0),\quad v_{ck}=d_{ck}.
+\]
+
+Mean：有效 slot 权重均匀。Attention：\(\alpha_{ck}=\operatorname{softmax}_k(\cos(v_{c0},v_{ck})/0.5)\)，删除 slot 先 mask 为负无穷。整个类的描述被删除时，TextK 退化为 name；描述约束也明确用 name fallback，记入 evidence，绝不暗中保留已删除描述。
+
+描述数 1/3/5 为固定顺序的前缀，不按效果筛句子。第 4/5 句是新增的助手重建描述，位于 [additional_descriptions.json](assets/additional_descriptions.json)，不同句子并不保证信息独立。三类噪声使用同一固定随机排列的前缀删除，10%/30%/50% 掩码嵌套；它测试的是**缺失鲁棒性**，不是错误事实注入鲁棒性。
+
+Pair 文本保持原来统一模板的全组合 embedding，不从训练 pair 的出现频率学习可行性。模板相似度本身不等于真实物理兼容性，尤其 GloVe 的加性编码较弱，这是仍需验证的建模局限。
+
+## 3. 视觉 attention 与动态知识 head
+
+原生 ViT B16、层 3/6/9/12 和 CPF 对象/属性融合路径保持。改用明确的 cosine attention：
+
+\[
+\alpha_j=\operatorname{softmax}_j\big(\cos(q,k_j)/\tau_{att}\big),\quad \tau_{att}=0.07.
+\]
+
+若 cosine 再除 \(\sqrt d\)，任意两 token 的权重比最多为 \(\exp(2/\sqrt d)\)，在 \(d=300\) 约 1.122；这说明近均匀范围，而不证明所有图像 attention 完全相同。新温度不是根据 TEST 挑选的，也尚未证明优于 native。
+
+对象与属性向量 \(v_o(x),v_a(x)\) 都是 300d，共享图像向量并不要求把 head 写成可分离加法。保留 native CPF 条件基底：
+
+\[
+U^0_{xoa}=z^{comp}_{xoa}+z^{attr}_{xa},\quad
+z^{comp}=\cos(g_{vis}(v_o,v_a),g_{text}(E_o,E_a))/T,\quad T=0.05.
+\]
+
+新增 rank-128 交互（所有投影输出 L2 归一化）：
+
+\[
+q_x=\operatorname{norm}(W_q[v_o;v_a]),\quad
+k_o=\operatorname{norm}(W_oE_o^K),\quad k_a=\operatorname{norm}(W_aE_a^K),
+\]
+\[
+\Delta_{xoa}=\frac{\sqrt r\sum_{j=1}^r q_{xj}k_{oj}k_{aj}
++\langle\operatorname{norm}(W_{qp}[v_o;v_a]),\operatorname{norm}(W_{kp}E_{oa}^K)\rangle}{T},
+\quad U_{xoa}=U^0_{xoa}+\gamma\Delta_{xoa},\quad\gamma=0.1.
+\]
+
+这样属性相对分数可以随图像及候选对象同时变化。`nopair_head` 去掉上式第二个内积，而不是删除三线性对象—属性交互。`static_head` 把两个 image query 换成固定单位向量，作为静态知识对照，保留相同参数定义，但不是完全等同的有效参数容量。
+
+对象维按 chunk=32 计算动态残差，不构造 `[B,O,A,D]`。**这并不解决**大数据集 native word composer 的全 Cartesian 内存问题；不得据此声称 C-GQA 已可用。
+
+保留 native conditional 基底是新修订的明确选择。它不是原 r2 G/H “head_raw 独立替换 native 分支”的复刻，不能把新结果写回旧 G/H 表。
+
+## 4. Compatibility 与两种 prior
+
+先计算全组合文本启发式相似度：
+
+\[
+h_{oa}=\cos\left(E_{oa}^K,\operatorname{norm}(E_o^K+E_a^K)\right),\quad
+K^{text}_{oa}=\frac{h_{oa}-h_{min}}{h_{max}-h_{min}+10^{-8}}.
+\]
+
+若所有 \(h\) 相同，则 \(K=0\)，两种 prior 经中心化都无差异偏置。不得把 min-max 得到的 0 解读为真实不可能组合，也不能硬 mask 掉它。
+
+Centered（默认，新 population 标准差）：
+
+\[
+\Pi^{ctr}_{oa}=\frac{K_{oa}-\mu_{O\times A}(K)}{\sigma_{pop}(K)+10^{-8}}.
+\]
+
+Clamped-log：
+
+\[
+\widetilde\Pi_{oa}=\log\max(K_{oa},10^{-3}),\quad
+\Pi^{log}_{oa}=\widetilde\Pi_{oa}-\frac1{|\mathcal A|}\sum_a\widetilde\Pi_{oa}.
+\]
+
+行常量在属性 `log_softmax` 中抵消。Centered 的全局减均值并不是收益来源；它留下的是相对属性差异和尺度。Clamped-log 对文本启发式 min-max 的末端值更敏感，必须与 centered 配对验证。
+
+默认 \(\lambda=0.1\)。可学习配置单独使用 \(\lambda=\operatorname{sigmoid}(\eta)\in(0,1)\)，初值 \(\eta=\log(0.1/0.9)\)。它进入 optimizer/checkpoint，采用单独的零 weight-decay 参数组（否则正则隐式将 lambda 拉向0.5），评估记录实际学到的 lambda，不能只汇报配置初值。
+
+LLM-only/mixed 已有严格输入接口：所有 primitive 标签/顺序与轴匹配；有限 `[0,1]` 值；记录生成器、prompt、日期；明确未使用 split membership 或 VAL/TEST 结果。LLM-only 要求全覆盖，mixed 对已评分 pair 使用 0.5 text+0.5 LLM，对未知 pair 回退 text。未知不等于不可行，空模板不构成实验。
+
+## 5. 真正的联合概率与候选 CE
+
+对象分数 \(z^o=\cos(v_o,E_o)/T\)。所有概率修正统一为：
+
+\[
+\ell_o=\log\operatorname{softmax}_{o}(z^o),\quad
+\ell_{a|o}=\log\operatorname{softmax}_{a}(U+\lambda\Pi),\quad
+\ell_{oa}=\ell_o+\ell_{a|o}.
+\]
+
+由此 \(\sum_{oa}e^{\ell_{oa}}=1\)，\(\sum_a e^{\ell_{oa}}=P(o|x)\)。公式使用 float32 `log_softmax`，避免直接乘小概率下溢。
+
+旧加法分数与新公式相差 \(-\log\sum_a e^{U_{xoa}+\lambda\Pi_{oa}}\) 等归一化项；该项依对象变化，不能以“argmax 不受归一化影响”省略。
+
+训练 pair CE 仅在实际 train candidates 上条件化：
+
+\[
+\mathcal L_{pair}=-\ell_{o^*a^*}+\log\sum_{(o,a)\in\mathcal C_{tr}}e^{\ell_{oa}}.
+\]
+
+它不是把完整 joint 先 mask 后拿去定义逻辑节点。推理读取同一个 \(\ell_{oa}\) 并按 CW/OW 候选顺序 gather；候选集归一化只改变该图像所有候选的公共常数，不改变排名。逻辑仍来自完整模型概率。
+
+一个结构限制也应明确：在这种因子分解中，prior 调整的是条件属性分布，**不会改变完整模型的对象边缘概率**。如果未来要让知识修正对象概率，必须显式改变对象支路或采用另一种 joint energy 归一化模型；不能悄悄把后者称为当前因子分解。
+
+## 6. 统一、可检验的语义约束
+
+完整模型节点：\(p_o=e^{\ell_o}\)，\(p_a=\sum_o e^{\ell_{oa}}\)，\(p_{oa}=e^{\ell_{oa}}\)。不用训练 pair mask；不用 `sigmoid` 将任意 pair score 当真值。
+
+多层 ontology 是互斥对象标签的分区，不是开放世界所有物理事实的 ontology。新重建树有 8→5→3 个群组（细到粗），每个对象每层恰属一组；组非空、层嵌套，没有拿全 1 根节点凑第三层。原 5 组被保留在中间层。
+
+层 \(l\) 的父事件概率：\(p^{child}_{h,l}=\sum_{o\in children_l(h)}p_o\)。独立父文本预测：
+
+\[
+q^{parent}_{h,l}=\operatorname{softmax}_{h}\big(\cos(g(x),D^{parent}_{h,l})/\tau_d\big),\quad \tau_d=0.1.
+\]
+
+OI：\(\mathcal L_{OI}=L^{-1}\sum_l JS(p^{child}_l,q^{parent}_l)\)。只有互斥单标签的分区才可用概率和；若标签多义、多重归属，需重新定义模型，不能套当前代码。
+
+OE/AE 各类的平均有效描述相似度先形成**类别分布**：
+
+\[
+s_c(x)=\frac{\sum_k m_{ck}\cos(g(x),d_{ck})}{\sum_k m_{ck}},\quad
+q_c(x)=\operatorname{softmax}_c(s_c(x)/\tau_d).
+\]
+\[
+\mathcal L_{OE}=JS(p_o,q^{OE})+\alpha[-\log q^{OE}_{o^*}],\quad
+\mathcal L_{AE}=JS(p_a,q^{AE})+\alpha[-\log q^{AE}_{a^*}],\quad\alpha=0.1.
+\]
+
+JS：\(JS(p,q)=\frac12 KL(p\|m)+\frac12 KL(q\|m)\)，\(m=(p+q)/2\)。先在类别轴求和、再按 batch 均值。代码不 detach 任一分支，梯度要回到视觉与相应知识 head；也提供匹配分布损失为零的单元测试。
+
+TRAIN-label anchors 使用现有 primitive 标签，目的是降低两个学习分布共同漂移的风险；它**不等于**新增了真实描述真值监督，也不证明完全排除坍塌。这套约束应称“层级/描述语义分布一致性”，不是原 LogiCZSL OI/OE/AE fuzzy 规则的逐式复现，更不是已校准事实概率。
+
+CLIP 未接入本版：原 CPF 使用 ViT→GloVe300，而 CLIP 必须使用兼容的 image/text 双编码器。把 CLIP 文本向量与当前视觉向量直接点乘，即使维度映射为 300 也不自动获得对齐。这项不能靠改一个开关冒充已完成。
+
+## 7. 同一概率模型下的辅助目标与总损失
+
+默认：
+
+\[
+\mathcal L_{obj}=-\ell_o(o^*),\quad
+\mathcal L^{GT}_{attr}=-\ell_{a|o^*}(a^*).
+\]
+
+可选 marginal 配置：
+
+\[
+\mathcal L^{marg}_{attr}=-\log\sum_o \exp(\ell_o(o)+\ell_{a|o}(a^*)).
+\]
+
+不能直接 `logsumexp(U,objects)` 来冒充对象加权的属性边缘概率，也不能忽略条件归一化。
+
+总损失：
+
+\[
+\mathcal L=\mathcal L_{pair}+0.4\mathcal L_{obj}+0.6\mathcal L_{attr}
++\beta(t)(\mathcal L_{OI}+\mathcal L_{OE}+\mathcal L_{AE}).
+\]
+
+默认 \(\beta(t)=0.01\)，只乘一次。Delayed 配置：epoch1–2 为 0，epoch3/4/5 为 1/3、2/3、1 倍 0.01，此后保持；读取绝对 epoch，resume 不重新 warmup。delay=0 时无 warmup，属于同一完整实现的配置消融。
+
+## 8. 要重跑哪些，哪些不必重做
+
+旧数据、原 CPF 权重初始化、split、GloVe、原 template pair embeddings 可复用；**旧训练权重不得当成新公式主实验的已完成结果**。错误公式在本版已一次性替换，新 main matrix 必须从头训练、统一 10 epochs 和相同 seeds。原 A 的历史成绩可作背景；新主表仍 fresh A_native 以控制预算和执行环境。
+
+原先 seed3351 的 30epochs 与 seed3352/3353 的 10epochs 不混成一张同预算均值表。旧新公式成绩可以并列描述，但既改公式又改预算时不能声称差分只由某一公式导致。
+
+代码提供三个 knowledge-entry 路线和共享接口基准：
+
+|组|TextK|prior|动态 feature K|语义约束|含义|
+|---|---:|---:|---:|---:|---|
+|A_native|否|否|否|否|原生 CPF baseline，保留原推理尺度/attention|
+|R0|否|否|否|否|完整修正后的共同概率/损失/attention 接口基准|
+|Rtext|是|否|否|否|文本知识进入对象与属性输入|
+|Rprior|否|是|否|否|固定 compatibility 进入条件概率建模|
+|Rmvp|是|是|否|否|Text+prior 路线|
+|Rexternal|否|否|否|是|外部 loss-only 语义约束；task 是共同修正版，不冒称旧 B 原生 task|
+|Rmvp_logic|是|是|否|是|MVP+语义约束|
+|Rfeature|是|是|是|否|视觉动态知识进入条件建模|
+|Rfull|是|是|是|是|完整统一修正版|
+
+R0−A_native 同时包含概率/辅助 loss/attention 接口修订，不能称纯 normalization 因果效应。`R0_native_attention` 提供 attention 对照。原 B/C 的原生任务路线已存在旧 r2，不在新模型表中冒名复用。
+
+主对照：Rtext−R0；Rprior−R0；Rmvp−Rtext；Rexternal−R0；Rmvp_logic−Rmvp；Rfeature−Rmvp；Rfull−Rfeature。这是一版完整模型的消融，不是分批修错误。
+
+## 9. 后续配置：末尾小实验已补到哪里
+
+全部配置预览在 [configs](configs/variant_options.json)，正式配置由 `prepare_revision.py` 在新 work 下生成并冻结，不建议绕过预处理直接运行预览 YAML。
+
+|小实验|实际代码/配置|控制范围|
+|---|---|---|
+|知识删除 10/30/50%|Rfull_noise10/30/50|同一嵌套 slot mask 同时影响 TextK 和描述约束；name、OI、prior、pair 模板固定|
+|每类描述 1/3/5|Rfull_count1、Rfull、Rfull_count5|真实独立句子前缀；prior 固定，避免不同句数连带改变 prior|
+|树深 1/2/3|Rfull_depth1、depth2、Rfull|取新树细到粗前 1/2/3 层；loss 按层均值，不能称与旧 5 组树完全相同|
+|Mean/attention TextK 聚合|Rfull、Rfull_attention_K|只改 TextK 聚合；语义节点仍是 masked mean cosine，prior 固定|
+|Centered/clamped-log|Rfull、Rfull_clamped_log|同一 K，仅变换不同|
+|Learnable lambda|Rfull_learn_lambda|0.1 初值，sigmoid 有界，记录学到的值|
+|Delayed beta|Rfull_delayed_beta|epoch2 后启动、3 epochs 线性升权|
+|GT-object/marginal CE|Rfull、Rfull_marginal_attr|同一 joint、同一 prior，改变 attribute objective|
+|动态/静态 feature K|Rfull、Rfull_static_head|静态查询对照，不是相同有效参数容量的等价网络|
+|视觉 attention|Rfull_native_attention、R0_native_attention|对照 native cosine/sqrt(d) 与修订温度|
+|描述温度|Rfull_descT005、Rfull、Rfull_descT020|只改 semantic constraints 的温度 .05/.1/.2|
+|pair knowledge 删除|Rfull_nopair_head、Rfull_nopair_all|前者只删除动态 pair 项；后者还关掉 prior，是两个机制共同删除|
+|prior 删除/随机/统一|Rfull_prior_off、random_prior、uniform_prior|固定其他输入；随机 prior 不是“随机整个语义图”|
+|错配描述|Rfull_shuffle|保留 name/OI/prior/template；TextK 和约束用同一类别 derangement|
+|seen/unseen bias 与三类错误|posthoc_revision.py|VAL 挑 bias，TEST 只应用；统计 object-only、attribute-only、both 错误|
+|固定权重 prior 作用|posthoc_revision.py|完整 OW joint 上先去 prior、再行归一化；不是简单直接减分，也不是重新训练|
+|LLM/mixed prior|external suite 已实现|缺少真实生成资产时拒绝运行；模板不能算结果|
+|MIT/C-GQA、跨 benchmark|尚未接入本 release|UT cache guard 会拒绝；需独立数据/知识 cache builder、label 核查、composer 内存方案和真实 CUDA 测试|
+|视觉失败语义分类|输出待人工复核例子|错误类别统计不自动推断“知识错误/视觉不可辨/背景干扰”这些因果标签|
+
+`all`：13 个主/控制组 +19 小实验组，32 variants×3 seeds=96 jobs；每组10epochs。`core`=39 jobs；单独 `small` 因含 fresh Rfull baseline 共60 jobs。`all` 不重复 Rfull，所以96而不是99。
+
+## 10. 代码索引、验证和边界
+
+- [revision_math.py](revision_math.py)：稳定概率、prior、JS、描述聚合、动态 head、删除与 schedule。
+- [revision_model.py](revision_model.py)：实际模型前向、统一 task、语义 loss、train/infer 接线。
+- [build_revision_assets.py](build_revision_assets.py)：同 corpus、三层树、1/3/5句、删除、shuffle、外部 feasibility。
+- [prepare_revision.py](prepare_revision.py)：全部组的正式 YAML、split/source/cache hash 与新 protocol。
+- [source/train.py](source/train.py)：native 全参数训练，新增绝对 epoch schedule hook；原 durable best/last_resume 流程。
+- [smoke_revision.py](smoke_revision.py)：4 张真实 TRAIN 图像的 CUDA 概率/梯度/初始权重/RNG/训练推理一致性检查，零 optimizer steps。
+- [test_revision.py](test_revision.py)：CPU 代数与 synthetic integration/config 测试；[local_revision_test.json](local_revision_test.json) 为本地记录。
+- [run_suite.py](run_suite.py)：空闲 GPU 排队、独立 process group、resume、磁盘护栏、失败保留证据；不因效果差停止。
+- [posthoc_revision.py](posthoc_revision.py)：VAL 固定 bias、错误统计、GT-object 属性 oracle、正确去 prior 的只读诊断。
+- [report_revision.py](report_revision.py)：实际完成组、三 seed 均值和样本 std、同 seed 配对差分；不拼旧成绩。
+- [README.md](README.md)：上传、一次性启动全部修正、监测、恢复与下载命令。
+
+当前 CPU 测试通过不等于服务器 CUDA 测试通过，也不等于所有正式任务完成。本地没有执行真实图像训练，没有任何本版 accuracy 数值可交付。服务器失败时保留 logs/checkpoints，不要删除工作目录反复启动；根据错误新建修正版 release，不在冻结 source/cfg 上临时改参。
+
+在所有任务完整后，汇总生成 `summary/0601_统一修订版训练汇总.md`；追加 posthoc 后需再次导出 ZIP 才包含新分析。至少按相同 seeds 报告配对差分，3 seed 统计不应被夸大为显著性证明。
+
+## 11. 定义来源
+
+两层 log-softmax、候选 CE 与 JS 是此版明确给出的数学定义，不冒充论文原式。PyTorch 的类别分布与 CE 输入语义可见 [Categorical distributions](https://docs.pytorch.org/docs/stable/distributions.html)、[CrossEntropyLoss](https://docs.pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html)。CLIP 需要相互对齐的视觉与文本编码器，见 [OpenAI CLIP 官方实现](https://github.com/openai/CLIP)。

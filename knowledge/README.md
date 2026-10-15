@@ -11,6 +11,7 @@
 | `text-cache/reviewed-v2/` | v2 向量与缓存 |
 | `logic/reconstructed-v1/` | 重建层级、逻辑知识与 bank |
 | `conditional-cache/stage11/` | 条件属性阶段的冻结输入 |
+| `text-cache/0601-v2-20261014-fix/` | v2修正版的冻结基础cache与描述数/删除/聚合等变体输入；相同内容继续链接已有canonical资产 |
 
 各数据集的实际文件见 [registry.json](registry.json)，其中记录 SHA256、大小、来源别名与归档阶段。
 相同内容合并存储；同名异内容使用版本目录与哈希后缀区分。
