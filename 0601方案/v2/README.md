@@ -4,7 +4,7 @@
 >
 > 全部已识别公式问题在同一版本统一修订。v1、r2 与已有结果保持不变；v2 是修订后的新模型，不是原 LogiCZSL 数据/成绩的完整复现。
 
-状态：**[seed3351的32组×10 epoch及128份评价已归档](results/seed3351-10epoch-20261015/README.md)**。本批使用20261014修正版，50份实际执行source文件与该修正版逐字节一致；32组真实TRAIN图像CUDA smoke、optimizer/resume acceptance及10轮完成记录均已核对。本次不包含seed3352/3353结果，也未包含posthoc分析。
+状态：seed3351的32组矩阵已完成，每组10 epoch，共128份评价，使用20261014修正版。seed3352、3353未纳入本次归档。指标表见下方[结果与文件](#结果与文件)。本页只整理数据与入口，不进行结果分析。
 
 原20261013发布包及34项CPU验证记录保留不变；修正版原包内仍名为 `revised_0601_20261013`，为避免与旧版覆盖，仓库分区和materialize运行目录单独命名为 `revised_0601_20261014_fix`。修正版随包CPU记录为40项通过，不冒充此次导入重新执行CPU/CUDA测试。
 
@@ -70,11 +70,21 @@ V2_PKG="$REPLAY/revised_0601_20261014_fix"
 
 ## 结果与文件
 
+| seed | 每组实际 epoch | 训练组数 | 评价份数 | 结果入口 |
+|---|---:|---:|---:|---|
+| 3351 | 10 | 32 | 128 | [指标与训练记录](results/seed3351-10epoch-20261015/README.md) |
+| 3352 | — | — | — | 未纳入本次归档 |
+| 3353 | — | — | — | 未纳入本次归档 |
+
+seed3351按首次严格最大VAL CW AUC选模，同一权重评价VAL/TEST CW/OW。表格单位、列顺序和结果页结构沿用02公式对齐版；未导出的seed不填0，不生成跨seed统计。原始记录保持不变，未执行posthoc分析。
+
 - [本批实际修正版执行代码](code/revised_0601_20261014_fix/)
 - [修正版所有 variant 预览配置](configs/revised_0601_20261014_fix/configs/)
 - [修正版配置开关索引](configs/revised_0601_20261014_fix/configs/variant_options.json)
 - [原始冻结work配置（含96组计划，不等于96组完成）](configs/seed3351-10epoch-20261015/configs/)
-- [seed3351完整结果与成员映射](results/seed3351-10epoch-20261015/README.md)
+- [seed3351：指标与训练记录](results/seed3351-10epoch-20261015/README.md)
+- [seed3351：128份完整评价指标](results/seed3351-10epoch-20261015/完整评价指标.md)
+- [seed3351：归档与校验说明](results/seed3351-10epoch-20261015/归档与校验.md)
 - [知识、配置与来源索引](inputs.json)
 - [具体执行命令](runbook.json)
 - [本地CPU检查与独立解压验证](results/README.md)
