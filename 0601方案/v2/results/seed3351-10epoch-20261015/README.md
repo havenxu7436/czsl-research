@@ -12,44 +12,46 @@
 - 组别和顺序沿用原protocol的32组，不按成绩排序；点击组名可查看原始训练与评价文件。
 - 本次仅包含seed3351；seed3352、3353未纳入此快照，不以缺失记录填0。
 
+命名格式为“实际组名（原设计对照名）”；括号只对照研究角色或项目，不表示修订组与旧公式模型等同。原设计没有的独立对照注明“新增”；[32组命名对照及实现边界](实验命名对照.md)单独列出，原始run_id不变。
+
 ## 选中 checkpoint 的指标
 
 AUC单位为百分比，显示4位小数；每行的四项指标来自同一选中checkpoint。最佳轮次直接读取归档记录，不重新选模。
 
 | 组 | 最佳轮次 | VAL CW | VAL OW | TEST CW | TEST OW |
 |---|---:|---:|---:|---:|---:|
-| [A_native](raw_export/runs/A_native_s3351/) | 5 | 40.6141 | 24.0402 | 36.6853 | 28.3609 |
-| [R0](raw_export/runs/R0_s3351/) | 6 | 32.2161 | 19.7573 | 30.2555 | 22.3223 |
-| [Rtext](raw_export/runs/Rtext_s3351/) | 5 | 25.9672 | 21.2094 | 30.4675 | 23.3836 |
-| [Rprior](raw_export/runs/Rprior_s3351/) | 5 | 31.6019 | 21.8278 | 31.0198 | 24.6457 |
-| [Rmvp](raw_export/runs/Rmvp_s3351/) | 2 | 26.4760 | 21.9927 | 25.7268 | 19.6122 |
-| [Rexternal](raw_export/runs/Rexternal_s3351/) | 6 | 33.4303 | 21.1235 | 30.1276 | 22.8737 |
-| [Rmvp_logic](raw_export/runs/Rmvp_logic_s3351/) | 2 | 26.6925 | 22.2013 | 26.2343 | 19.7523 |
-| [Rfeature](raw_export/runs/Rfeature_s3351/) | 5 | 26.0254 | 21.1747 | 31.0298 | 23.7132 |
-| [Rfull](raw_export/runs/Rfull_s3351/) | 2 | 26.4968 | 22.2853 | 26.9538 | 20.4649 |
-| [Rfull_nopair_head](raw_export/runs/Rfull_nopair_head_s3351/) | 5 | 26.2006 | 21.0944 | 29.9130 | 22.3015 |
-| [Rfull_shuffle](raw_export/runs/Rfull_shuffle_s3351/) | 2 | 24.4786 | 19.1959 | 21.3317 | 16.6590 |
-| [Rfull_random_prior](raw_export/runs/Rfull_random_prior_s3351/) | 5 | 26.1143 | 21.2755 | 30.0376 | 23.0252 |
-| [Rfull_uniform_prior](raw_export/runs/Rfull_uniform_prior_s3351/) | 2 | 25.6411 | 21.0103 | 26.7648 | 20.2543 |
-| [Rfull_noise10](raw_export/runs/Rfull_noise10_s3351/) | 5 | 26.8238 | 21.4695 | 32.0476 | 24.8402 |
-| [Rfull_noise30](raw_export/runs/Rfull_noise30_s3351/) | 5 | 30.1896 | 24.0974 | 31.4940 | 24.1673 |
-| [Rfull_noise50](raw_export/runs/Rfull_noise50_s3351/) | 5 | 32.1087 | 23.7833 | 31.7630 | 25.6942 |
-| [Rfull_count1](raw_export/runs/Rfull_count1_s3351/) | 5 | 28.8246 | 23.2305 | 30.5733 | 24.5224 |
-| [Rfull_count5](raw_export/runs/Rfull_count5_s3351/) | 5 | 25.0347 | 17.6179 | 30.2060 | 23.0402 |
-| [Rfull_depth1](raw_export/runs/Rfull_depth1_s3351/) | 5 | 27.2514 | 22.0830 | 30.3112 | 23.3130 |
-| [Rfull_depth2](raw_export/runs/Rfull_depth2_s3351/) | 2 | 26.3656 | 21.5957 | 26.8656 | 20.2787 |
-| [Rfull_attention_K](raw_export/runs/Rfull_attention_K_s3351/) | 5 | 28.7426 | 21.9429 | 32.5257 | 24.6645 |
-| [Rfull_clamped_log](raw_export/runs/Rfull_clamped_log_s3351/) | 5 | 26.2713 | 21.4815 | 30.9268 | 23.7615 |
-| [Rfull_learn_lambda](raw_export/runs/Rfull_learn_lambda_s3351/) | 2 | 25.9425 | 21.8428 | 26.5393 | 19.9063 |
-| [Rfull_delayed_beta](raw_export/runs/Rfull_delayed_beta_s3351/) | 2 | 25.8612 | 21.2366 | 26.6128 | 19.6459 |
-| [Rfull_marginal_attr](raw_export/runs/Rfull_marginal_attr_s3351/) | 5 | 30.1230 | 22.4465 | 31.2812 | 25.5608 |
-| [Rfull_static_head](raw_export/runs/Rfull_static_head_s3351/) | 2 | 26.4818 | 22.1595 | 26.7191 | 20.1327 |
-| [Rfull_native_attention](raw_export/runs/Rfull_native_attention_s3351/) | 2 | 26.4342 | 21.2187 | 26.2887 | 19.9265 |
-| [Rfull_prior_off](raw_export/runs/Rfull_prior_off_s3351/) | 2 | 25.6411 | 21.0103 | 26.7648 | 20.2543 |
-| [Rfull_nopair_all](raw_export/runs/Rfull_nopair_all_s3351/) | 2 | 26.3878 | 21.8185 | 27.3165 | 20.9135 |
-| [Rfull_descT005](raw_export/runs/Rfull_descT005_s3351/) | 5 | 26.5622 | 21.2889 | 30.8862 | 23.9097 |
-| [Rfull_descT020](raw_export/runs/Rfull_descT020_s3351/) | 2 | 26.3890 | 21.4492 | 26.6143 | 20.2682 |
-| [R0_native_attention](raw_export/runs/R0_native_attention_s3351/) | 5 | 29.7500 | 20.7136 | 32.3795 | 26.0986 |
+| [A_native（A. CPF-only）](raw_export/runs/A_native_s3351/) | 5 | 40.6141 | 24.0402 | 36.6853 | 28.3609 |
+| [R0（新增：修订接口基准）](raw_export/runs/R0_s3351/) | 6 | 32.2161 | 19.7573 | 30.2555 | 22.3223 |
+| [Rtext（C. CPF + richer text）](raw_export/runs/Rtext_s3351/) | 5 | 25.9672 | 21.2094 | 30.4675 | 23.3836 |
+| [Rprior（D. CPF + calibration）](raw_export/runs/Rprior_s3351/) | 5 | 31.6019 | 21.8278 | 31.0198 | 24.6457 |
+| [Rmvp（E. CPF + text + calib）](raw_export/runs/Rmvp_s3351/) | 2 | 26.4760 | 21.9927 | 25.7268 | 19.6122 |
+| [Rexternal（B. CPF + external K）](raw_export/runs/Rexternal_s3351/) | 6 | 33.4303 | 21.1235 | 30.1276 | 22.8737 |
+| [Rmvp_logic（F. CPF + naive full K）](raw_export/runs/Rmvp_logic_s3351/) | 2 | 26.6925 | 22.2013 | 26.2343 | 19.7523 |
+| [Rfeature（G. CPF + feature K）](raw_export/runs/Rfeature_s3351/) | 5 | 26.0254 | 21.1747 | 31.0298 | 23.7132 |
+| [Rfull（H. Full Model）](raw_export/runs/Rfull_s3351/) | 2 | 26.4968 | 22.2853 | 26.9538 | 20.4649 |
+| [Rfull_nopair_head（No-pair-knowledge：仅head pair）](raw_export/runs/Rfull_nopair_head_s3351/) | 5 | 26.2006 | 21.0944 | 29.9130 | 22.3015 |
+| [Rfull_shuffle（Shuffled descriptions）](raw_export/runs/Rfull_shuffle_s3351/) | 2 | 24.4786 | 19.1959 | 21.3317 | 16.6590 |
+| [Rfull_random_prior（Random K_oa）](raw_export/runs/Rfull_random_prior_s3351/) | 5 | 26.1143 | 21.2755 | 30.0376 | 23.0252 |
+| [Rfull_uniform_prior（Uniform K_oa）](raw_export/runs/Rfull_uniform_prior_s3351/) | 2 | 25.6411 | 21.0103 | 26.7648 | 20.2543 |
+| [Rfull_noise10（Knowledge noise sensitivity：删除10%）](raw_export/runs/Rfull_noise10_s3351/) | 5 | 26.8238 | 21.4695 | 32.0476 | 24.8402 |
+| [Rfull_noise30（Knowledge noise sensitivity：删除30%）](raw_export/runs/Rfull_noise30_s3351/) | 5 | 30.1896 | 24.0974 | 31.4940 | 24.1673 |
+| [Rfull_noise50（Knowledge noise sensitivity：删除50%）](raw_export/runs/Rfull_noise50_s3351/) | 5 | 32.1087 | 23.7833 | 31.7630 | 25.6942 |
+| [Rfull_count1（Description count sensitivity：1条）](raw_export/runs/Rfull_count1_s3351/) | 5 | 28.8246 | 23.2305 | 30.5733 | 24.5224 |
+| [Rfull_count5（Description count sensitivity：5条）](raw_export/runs/Rfull_count5_s3351/) | 5 | 25.0347 | 17.6179 | 30.2060 | 23.0402 |
+| [Rfull_depth1（Tree depth sensitivity：1层）](raw_export/runs/Rfull_depth1_s3351/) | 5 | 27.2514 | 22.0830 | 30.3112 | 23.3130 |
+| [Rfull_depth2（Tree depth sensitivity：2层）](raw_export/runs/Rfull_depth2_s3351/) | 2 | 26.3656 | 21.5957 | 26.8656 | 20.2787 |
+| [Rfull_attention_K（Text aggregation：attention）](raw_export/runs/Rfull_attention_K_s3351/) | 5 | 28.7426 | 21.9429 | 32.5257 | 24.6645 |
+| [Rfull_clamped_log（方案B：clamped log prior）](raw_export/runs/Rfull_clamped_log_s3351/) | 5 | 26.2713 | 21.4815 | 30.9268 | 23.7615 |
+| [Rfull_learn_lambda（Learnable lambda_k）](raw_export/runs/Rfull_learn_lambda_s3351/) | 2 | 25.9425 | 21.8428 | 26.5393 | 19.9063 |
+| [Rfull_delayed_beta（Delayed logic loss schedule）](raw_export/runs/Rfull_delayed_beta_s3351/) | 2 | 25.8612 | 21.2366 | 26.6128 | 19.6459 |
+| [Rfull_marginal_attr（object-marginalized attribute loss）](raw_export/runs/Rfull_marginal_attr_s3351/) | 5 | 30.1230 | 22.4465 | 31.2812 | 25.5608 |
+| [Rfull_static_head（新增：静态feature head）](raw_export/runs/Rfull_static_head_s3351/) | 2 | 26.4818 | 22.1595 | 26.7191 | 20.1327 |
+| [Rfull_native_attention（新增：Full Model原生注意力）](raw_export/runs/Rfull_native_attention_s3351/) | 2 | 26.4342 | 21.2187 | 26.2887 | 19.9265 |
+| [Rfull_prior_off（新增：关闭prior）](raw_export/runs/Rfull_prior_off_s3351/) | 2 | 25.6411 | 21.0103 | 26.7648 | 20.2543 |
+| [Rfull_nopair_all（新增：No-pair-knowledge／head pair＋prior）](raw_export/runs/Rfull_nopair_all_s3351/) | 2 | 26.3878 | 21.8185 | 27.3165 | 20.9135 |
+| [Rfull_descT005（新增：描述温度0.05）](raw_export/runs/Rfull_descT005_s3351/) | 5 | 26.5622 | 21.2889 | 30.8862 | 23.9097 |
+| [Rfull_descT020（新增：描述温度0.20）](raw_export/runs/Rfull_descT020_s3351/) | 2 | 26.3890 | 21.4492 | 26.6143 | 20.2682 |
+| [R0_native_attention（新增：接口基准＋原生注意力）](raw_export/runs/R0_native_attention_s3351/) | 5 | 29.7500 | 20.7136 | 32.3795 | 26.0986 |
 
 ## 训练记录与完整指标
 

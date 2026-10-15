@@ -1,0 +1,244 @@
+{
+  "original_design": {
+    "git_ref": "archive-20261011",
+    "git_path": "archive_inputs/formula_aligned_bundle/docs/ZSCL实验设计0601.md",
+    "url": "https://github.com/havenxu7436/czsl-research/blob/archive-20261011/archive_inputs/formula_aligned_bundle/docs/ZSCL%E5%AE%9E%E9%AA%8C%E8%AE%BE%E8%AE%A10601.md"
+  },
+  "revision_design": "0601方案/v2/复现公式与代码v2.md",
+  "variant_options": "0601方案/v2/configs/revised_0601_20261014_fix/configs/variant_options.json",
+  "policy": "括号仅对照原设计的研究角色或项目，不是旧版模型的等价别名；原设计没有的独立对照注明新增。实际run_id、公式、配置、组序和数值不变。",
+  "variants": [
+    {
+      "base_variant": "A_native",
+      "comparison_name": "A. CPF-only",
+      "original_design_variant": "A",
+      "source_section": "§10.1 核心消融表",
+      "implementation_note": "原生CPF基准，本批fresh训练10轮，不复用旧训练成绩。",
+      "expected_options": {"text": false, "prior": false, "feature": false, "logic": false, "rev_enabled": false}
+    },
+    {
+      "base_variant": "R0",
+      "comparison_name": "新增：修订接口基准",
+      "source_section": "原设计无同名组；v2 §10.1",
+      "implementation_note": "无知识的修订概率、loss和attention共同接口；不是原设计A，也不是旧J0的等价别名。",
+      "expected_options": {"text": false, "prior": false, "feature": false, "logic": false, "rev_enabled": true}
+    },
+    {
+      "base_variant": "Rtext",
+      "comparison_name": "C. CPF + richer text",
+      "original_design_variant": "C",
+      "source_section": "§10.1 核心消融表",
+      "implementation_note": "对应仅Text K的设计角色；本批基于修订接口，不是原C的原生task实现。",
+      "expected_options": {"text": true, "prior": false, "feature": false, "logic": false}
+    },
+    {
+      "base_variant": "Rprior",
+      "comparison_name": "D. CPF + calibration",
+      "original_design_variant": "D",
+      "source_section": "§10.1 核心消融表",
+      "implementation_note": "对应仅compatibility prior的设计角色；本批prior位于修订条件归一化内。",
+      "expected_options": {"text": false, "prior": true, "feature": false, "logic": false}
+    },
+    {
+      "base_variant": "Rmvp",
+      "comparison_name": "E. CPF + text + calib",
+      "original_design_variant": "E",
+      "source_section": "§10.1 核心消融表",
+      "implementation_note": "对应Text K与prior两条路径的设计角色，采用修订概率与loss。",
+      "expected_options": {"text": true, "prior": true, "feature": false, "logic": false}
+    },
+    {
+      "base_variant": "Rexternal",
+      "comparison_name": "B. CPF + external K",
+      "original_design_variant": "B",
+      "source_section": "§10.1 核心消融表",
+      "implementation_note": "仅对应external loss研究角色；task是R0修订接口，语义项为JS约束，不是旧B的原生CPF task。",
+      "expected_options": {"text": false, "prior": false, "feature": false, "logic": true}
+    },
+    {
+      "base_variant": "Rmvp_logic",
+      "comparison_name": "F. CPF + naive full K",
+      "original_design_variant": "F",
+      "source_section": "§10.1 核心消融表",
+      "implementation_note": "对应MVP加external logic的设计角色；本批为修订后的JS语义约束。",
+      "expected_options": {"text": true, "prior": true, "feature": false, "logic": true}
+    },
+    {
+      "base_variant": "Rfeature",
+      "comparison_name": "G. CPF + feature K",
+      "original_design_variant": "G",
+      "source_section": "§10.1 核心消融表",
+      "implementation_note": "对应feature-level K且无logic的设计角色；实际使用coupled residual head，不等同旧G。",
+      "expected_options": {"text": true, "prior": true, "feature": true, "logic": false}
+    },
+    {
+      "base_variant": "Rfull",
+      "comparison_name": "H. Full Model",
+      "original_design_variant": "H",
+      "source_section": "§10.1；§10.3 Template-only；§11",
+      "implementation_note": "对应完整模型角色；本批同时是Template-only、3条描述、3层树、mean聚合的共同基准，不是LLM-only或旧H。",
+      "expected_options": {"text": true, "prior": true, "feature": true, "logic": true, "count": 3, "rev_oi_depth": 3, "aggregation": "mean", "kind": "text"}
+    },
+    {
+      "base_variant": "Rfull_nopair_head",
+      "comparison_name": "No-pair-knowledge：仅head pair",
+      "source_section": "§10.3 Sanity checks；v2 §10.3",
+      "implementation_note": "原设计pair移除问题的局部修订对照；只去掉新增head的pair内积，仍保留prior、CPF composer和对象属性交互。",
+      "expected_options": {"use_pair": false, "prior": true}
+    },
+    {
+      "base_variant": "Rfull_shuffle",
+      "comparison_name": "Shuffled descriptions",
+      "source_section": "§10.3 Sanity checks",
+      "implementation_note": "OE/AE描述按类别错配；Text K和描述约束使用同一置换，保留名称、OI、模板和主prior。",
+      "expected_options": {"shuffle": true}
+    },
+    {
+      "base_variant": "Rfull_random_prior",
+      "comparison_name": "Random K_oa",
+      "source_section": "§10.3 Sanity checks",
+      "implementation_note": "固定随机compatibility矩阵后centered；不是随机整个语义图。",
+      "expected_options": {"kind": "random", "rev_prior_mode": "centered"}
+    },
+    {
+      "base_variant": "Rfull_uniform_prior",
+      "comparison_name": "Uniform K_oa",
+      "source_section": "§10.3 Sanity checks",
+      "implementation_note": "compatibility矩阵全1，再进行centered变换；这是独立训练的对照组。",
+      "expected_options": {"kind": "uniform", "rev_prior_mode": "centered"}
+    },
+    {
+      "base_variant": "Rfull_noise10",
+      "comparison_name": "Knowledge noise sensitivity：删除10%",
+      "source_section": "§11 附加分析实验",
+      "implementation_note": "实际执行描述槽删除10%，不是注入错误事实；名称、OI、prior和pair模板固定。",
+      "expected_options": {"noise": 10}
+    },
+    {
+      "base_variant": "Rfull_noise30",
+      "comparison_name": "Knowledge noise sensitivity：删除30%",
+      "source_section": "§11 附加分析实验",
+      "implementation_note": "实际执行描述槽删除30%，不是注入错误事实；使用嵌套删除mask。",
+      "expected_options": {"noise": 30}
+    },
+    {
+      "base_variant": "Rfull_noise50",
+      "comparison_name": "Knowledge noise sensitivity：删除50%",
+      "source_section": "§11 附加分析实验",
+      "implementation_note": "实际执行描述槽删除50%，不是注入错误事实；使用嵌套删除mask。",
+      "expected_options": {"noise": 50}
+    },
+    {
+      "base_variant": "Rfull_count1",
+      "comparison_name": "Description count sensitivity：1条",
+      "source_section": "§11 附加分析实验",
+      "implementation_note": "每类取同一固定语料的1条描述；3条由Rfull提供，prior固定。",
+      "expected_options": {"count": 1}
+    },
+    {
+      "base_variant": "Rfull_count5",
+      "comparison_name": "Description count sensitivity：5条",
+      "source_section": "§11 附加分析实验",
+      "implementation_note": "每类取同一固定语料的5条描述；3条由Rfull提供，prior固定。",
+      "expected_options": {"count": 5}
+    },
+    {
+      "base_variant": "Rfull_depth1",
+      "comparison_name": "Tree depth sensitivity：1层",
+      "source_section": "§11 附加分析实验",
+      "implementation_note": "修订OI嵌套标签层级取1层；3层由Rfull提供，不冒称旧树结构完全相同。",
+      "expected_options": {"rev_oi_depth": 1}
+    },
+    {
+      "base_variant": "Rfull_depth2",
+      "comparison_name": "Tree depth sensitivity：2层",
+      "source_section": "§11 附加分析实验",
+      "implementation_note": "修订OI嵌套标签层级取2层；3层由Rfull提供，不冒称旧树结构完全相同。",
+      "expected_options": {"rev_oi_depth": 2}
+    },
+    {
+      "base_variant": "Rfull_attention_K",
+      "comparison_name": "Text aggregation：attention",
+      "source_section": "§3.1 推荐聚合方式",
+      "implementation_note": "对应原设计的attention聚合选项；仅改变Text K聚合，主prior固定。",
+      "expected_options": {"aggregation": "attention"}
+    },
+    {
+      "base_variant": "Rfull_clamped_log",
+      "comparison_name": "方案B：clamped log prior",
+      "source_section": "§3.2 prior形式：方案B",
+      "implementation_note": "对应原设计prior变换选项；相对于Rfull的centered变换切换为clamped log，不是核心消融B组。",
+      "expected_options": {"rev_prior_mode": "clamped_log"}
+    },
+    {
+      "base_variant": "Rfull_learn_lambda",
+      "comparison_name": "Learnable lambda_k",
+      "source_section": "§5.2 calibration权重建议",
+      "implementation_note": "对应可学习标量权重建议；实际实现为有界sigmoid权重，初值0.1。",
+      "expected_options": {"rev_learn_lambda": true}
+    },
+    {
+      "base_variant": "Rfull_delayed_beta",
+      "comparison_name": "Delayed logic loss schedule",
+      "source_section": "§7.4 Delayed logic loss schedule",
+      "implementation_note": "对应延迟逻辑权重；实际设置delay=2、ramp=3，按绝对epoch调度。",
+      "expected_options": {"rev_beta_delay": 2, "rev_beta_ramp": 3}
+    },
+    {
+      "base_variant": "Rfull_marginal_attr",
+      "comparison_name": "object-marginalized attribute loss",
+      "source_section": "§8.3 推荐实现2",
+      "implementation_note": "对应对象边缘化属性损失；本批读取修订joint概率，不沿用旧未归一化分数。",
+      "expected_options": {"rev_attr_mode": "marginal"}
+    },
+    {
+      "base_variant": "Rfull_static_head",
+      "comparison_name": "新增：静态feature head",
+      "source_section": "原设计无独立同名组；v2 §10.3、§11",
+      "implementation_note": "新增head的视觉query置为常数，原生视觉分支仍工作，不是严格有效容量匹配。",
+      "expected_options": {"rev_static_head": true}
+    },
+    {
+      "base_variant": "Rfull_native_attention",
+      "comparison_name": "新增：Full Model原生注意力",
+      "source_section": "原设计无独立同名组；v2 §11",
+      "implementation_note": "完整修订模型使用native视觉attention，其他修订接口保留；不是原H。",
+      "expected_options": {"rev_visual_attention": "native", "feature": true}
+    },
+    {
+      "base_variant": "Rfull_prior_off",
+      "comparison_name": "新增：关闭prior",
+      "source_section": "原设计无独立同名组；v2 §10.3",
+      "implementation_note": "仅关闭条件prior；保留新增head的pair项。",
+      "expected_options": {"prior": false, "use_pair": true}
+    },
+    {
+      "base_variant": "Rfull_nopair_all",
+      "comparison_name": "新增：No-pair-knowledge／head pair＋prior",
+      "source_section": "§10.3 pair移除问题的扩展；v2 §10.3",
+      "implementation_note": "同时关闭新增head pair项和prior；CPF composer及对象属性交互仍保留，不是移除所有组合知识。",
+      "expected_options": {"use_pair": false, "prior": false}
+    },
+    {
+      "base_variant": "Rfull_descT005",
+      "comparison_name": "新增：描述温度0.05",
+      "source_section": "原设计无独立同名组；v2 §11",
+      "implementation_note": "描述约束温度0.05；Rfull使用0.1，不是视觉attention温度。",
+      "expected_options": {"rev_desc_temperature": 0.05}
+    },
+    {
+      "base_variant": "Rfull_descT020",
+      "comparison_name": "新增：描述温度0.20",
+      "source_section": "原设计无独立同名组；v2 §11",
+      "implementation_note": "描述约束温度0.20；Rfull使用0.1，不是视觉attention温度。",
+      "expected_options": {"rev_desc_temperature": 0.2}
+    },
+    {
+      "base_variant": "R0_native_attention",
+      "comparison_name": "新增：接口基准＋原生注意力",
+      "source_section": "原设计无同名组；v2 §10.1、§10.2",
+      "implementation_note": "无知识R0使用native视觉attention，修订概率和loss接口仍保留；不是A或旧J0。",
+      "expected_options": {"text": false, "prior": false, "feature": false, "logic": false, "rev_enabled": true, "rev_visual_attention": "native"}
+    }
+  ]
+}
