@@ -1,0 +1,75 @@
+{
+  "date": "2026-10-16",
+  "stage": "v2",
+  "archive_stage": "19",
+  "operation": "Publish single-seed analysis with saved-score diagnostics and reproducible read-only verification",
+  "source_revision": "090181a",
+  "seed": 3351,
+  "epochs_per_run": 10,
+  "completed_runs": 32,
+  "evaluations": 128,
+  "source_files_sha256": {
+    "0601方案/v2/results/seed3351-10epoch-20261015/raw_export/summary/summary.json": "f7d5b0f8d3ec1fbb750d4636f93dff813496c354852dc144190c7086c837e6f5",
+    "0601方案/v2/results/seed3351-10epoch-20261015/raw_export/protocol.json": "357f3cca53e938142a06d0e2f4c956a6bd7f0564ff00c318472bdb7a085c78c8",
+    "0601方案/v2/results/seed3351-10epoch-20261015/raw_export/checks/split_pairs.json": "7174bb669dc2a11610796daf8efeb45e65fc447016f9db56bc75a3aaee980228",
+    "0601方案/v2/results/seed3351-10epoch-20261015/raw_export/export_manifest.json": "7beb9cc723ee00404bf48407e249d09e706641ae273d13af6bc84eeeb4da6470",
+    "knowledge/ut-zap50k/definitions/legacy-v1/labels.json": "4f6d8140b814ac6a9237fab6889816290033d98d71897bfc33316675067905ec"
+  },
+  "artifacts": [
+    {
+      "path": "0601方案/v2/results/seed3351-10epoch-20261015/v2单seed数据分析.md",
+      "sha256": "9cc6914c00eaeaa89f927fae606a669274f4d439c3237a6d3295d0e4b9e1ff5e",
+      "bytes": 30891
+    },
+    {
+      "path": "0601方案/v2/results/seed3351-10epoch-20261015/v2单seed后分析读数_20261016.json",
+      "sha256": "16a6ce44b02463e3e33e5ddc30986f3f7c5a3e83b37133f475584613e57694db",
+      "bytes": 47651
+    },
+    {
+      "path": "tools/analyze_v2_seed3351.py",
+      "sha256": "78865d2c07f42b84f9dce9059e8f3e40823846b716007e4f83370e88c0e95bf5",
+      "bytes": 9146
+    }
+  ],
+  "analysis_scope": [
+    "12 core comparisons",
+    "7 mechanism controls",
+    "13 sensitivity and setting topics",
+    "4 original research questions",
+    "VAL-fixed TEST bias calibration, error decomposition and unbiased OW marginal readouts"
+  ],
+  "diagnostics": {
+    "method": "NumPy-only read of archived scores, labels, candidates and splits; no checkpoint reselection",
+    "verified_runs": 32,
+    "retained_models": 13,
+    "retained_rows": 26,
+    "bias": "VAL HM on [-5,5] with step 0.05; ties: minimum absolute bias, then lower bias; TEST uses frozen bias",
+    "command": "python tools/analyze_v2_seed3351.py --verify-archived",
+    "verified_with": {
+      "numpy": "2.3.5"
+    },
+    "omitted": [
+      "same-weight prior on/off diagnostic",
+      "human semantic failure taxonomy",
+      "LLM-only/mixed prior"
+    ]
+  },
+  "checks": {
+    "derived_json_recomputed": true,
+    "raw_auc_cells_checked": 128,
+    "core_comparison_rows_checked": 12,
+    "sensitivity_rows_checked": 33,
+    "diagnostic_table_rows_checked": 28,
+    "uniform_and_prior_off_identical_score_files": 4,
+    "original_result_pages_checked": 4,
+    "original_epoch_readings_checked": 320
+  },
+  "preservation": {
+    "raw_export_bytes_modified": false,
+    "frozen_source_or_configs_modified": false,
+    "training_started": false,
+    "original_import_receipts_preserved": true,
+    "remote_readme_short_model_names_preserved": true
+  }
+}

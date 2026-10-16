@@ -119,19 +119,21 @@ def render():
         '记录日期：2026-10-15。UT-Zappos，32组各10 epoch；按首次严格最大VAL CW AUC选模，',
         '同一checkpoint评价VAL/TEST CW/OW，共128份评价。', '',
         '本页沿用02公式对齐版的“组、最佳轮次、VAL CW、VAL OW、TEST CW、TEST OW”表头。只展示原始记录，不做差分、排名、跨seed统计或结果分析。', '',
+        '分析另见：[v2 单 seed 数据分析](v2单seed数据分析.md)（2026-10-16）。依次对应模型比较、机制对照、敏感性设置和原设计四个核心问题，并补充校准与错误分解；[派生读数](v2单seed后分析读数_20261016.json)独立保存。', '',
         '## 训练设置', '',
         '- seed：3351；ViT B16、GloVe 300d；batch=64；每组实际10 epoch。',
         '- 版本：20261014修正版；与旧02公式对齐版r2的30/10/10 epoch结果分别归档。',
         '- 组别和顺序沿用原protocol的32组，不按成绩排序；点击组名可查看原始训练与评价文件。',
         '- 本次仅包含seed3351；seed3352、3353未纳入此快照，不以缺失记录填0。', '',
-        '命名格式为“实际组名（原设计对照名）”；括号只对照研究角色或项目，不表示修订组与旧公式模型等同。原设计没有的独立对照注明“新增”；[32组命名对照及实现边界](实验命名对照.md)单独列出，原始run_id不变。', '',
+        '表中使用实际组名；原设计研究角色与新增对照见[32组命名对照及实现边界](实验命名对照.md)，原始run_id不变。', '',
         '## 选中 checkpoint 的指标', '',
         'AUC单位为百分比，显示4位小数；每行的四项指标来自同一选中checkpoint。最佳轮次直接读取归档记录，不重新选模。', '',
     ]
     auc = []
     for job in jobs:
         values = [rows[job['variant'], phase, setting] for phase, setting, _ in SETTINGS]
-        auc.append([group_link(job, labels), values[0]['best_epoch']] + [f"{v['AUC_pct']:.4f}" for v in values])
+        link = '['+job['base_variant']+'](raw_export/runs/'+job['variant']+'/)'
+        auc.append([link, values[0]['best_epoch']] + [f"{v['AUC_pct']:.4f}" for v in values])
     page += table(['组', '最佳轮次', 'VAL CW', 'VAL OW', 'TEST CW', 'TEST OW'], auc)
     page += ['', '## 训练记录与完整指标', '',
              '- [逐轮训练记录](训练记录.md)：32组各10轮VAL CW AUC原始日志读数，不计算增益或趋势。',
@@ -144,7 +146,7 @@ def render():
              '- [导出文件映射](export_member_map.json)、[原始文件SHA256](raw_export/export_manifest.json)与[已完成的核验记录](audit.json)。',
              '- [源码映射](source_links.json)关联20261014修正版；知识与缓存通过[inputs.json](../../inputs.json)索引。',
              '- [归档与校验说明](归档与校验.md)：完整文件分区、原ZIP身份和恢复命令。', '',
-             '本次仅进行网页展示整理，未从score重算指标，也未执行后分析。模型checkpoint权重和数据集图像原本不在下载包中。', '']
+             '2026-10-15 归档仅整理原始记录；2026-10-16 新增的只读分数分析见上述报告，不覆盖原始 AUC 或重选 checkpoint。模型checkpoint权重和数据集图像原本不在下载包中。', '']
 
     detail = ['# 统一修订版 v2：seed 3351 完整评价指标', '', '[返回结果首页](README.md) · [逐轮训练记录](训练记录.md) · [命名对照](实验命名对照.md)', '',
               '32组 × VAL/TEST × CW/OW = 128份评价。数值直接读取原始汇总，单位均为百分比，显示4位小数；点击组名查看对应metrics.json。', '',
@@ -204,9 +206,9 @@ def register(pages):
     inputs = read(STAGE+'/inputs.json')
     names = sorted(set(pages) | {BATCH+'/归档与校验.md'})
     inputs['data_files'] = sorted(set(inputs['data_files']) | set(names) | {NAMING})
-    inputs['result_batches'][0]['web_pages'] = {'summary': BATCH+'/README.md',
+    inputs['result_batches'][0]['web_pages'].update({'summary': BATCH+'/README.md',
              'all_metrics': BATCH+'/完整评价指标.md', 'epoch_records': BATCH+'/训练记录.md',
-             'archive_notes': BATCH+'/归档与校验.md', 'design_names': BATCH+'/实验命名对照.md'}
+             'archive_notes': BATCH+'/归档与校验.md', 'design_names': BATCH+'/实验命名对照.md'})
     write_json(STAGE+'/inputs.json', inputs)
     stages = read('provenance/stages.json')
     for stage in stages:
