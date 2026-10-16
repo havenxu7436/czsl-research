@@ -4,7 +4,7 @@
 >
 > 全部已识别公式问题在同一版本统一修订。v1、r2 与已有结果保持不变；v2 是修订后的新模型，不是原 LogiCZSL 数据/成绩的完整复现。
 
-状态：seed3351的32组矩阵已完成，每组10 epoch，共128份评价，使用20261014修正版。seed3352、3353未纳入本次归档。指标表见下方[结果与文件](#结果与文件)。本页只整理数据与入口，不进行结果分析。
+状态：seed3351的32组矩阵已完成，每组10 epoch，共128份评价，使用20261014修正版。seed3352、3353未纳入本次归档。指标表见下方[结果与文件](#结果与文件)；[单 seed 数据分析](results/seed3351-10epoch-20261015/v2单seed数据分析.md)已补充模型比较、原设计问题评估及只读分数诊断。
 
 原20261013发布包及34项CPU验证记录保留不变；修正版原包内仍名为 `revised_0601_20261013`，为避免与旧版覆盖，仓库分区和materialize运行目录单独命名为 `revised_0601_20261014_fix`。修正版随包CPU记录为40项通过，不冒充此次导入重新执行CPU/CUDA测试。
 
@@ -21,7 +21,7 @@
 1. `materialize` 恢复分区存储的完整包及必要历史工程输入，不会开始训练。
 2. 运行 CPU 检查，冻结新 work 下的代码、配置、知识、数据 split 与 hash。
 3. 每个修订模型先进行4张真实 TRAIN 图像的 CUDA smoke；通过才正式训练。
-4. 队列完成后，VAL 固定 bias，分析 TEST primitive 错误与同权重 prior 读出；再次导出汇总。本批快照尚未包含这些后分析文件。
+4. 队列完成后，VAL 固定 bias，分析 TEST primitive 错误与同权重 prior 读出；再次导出汇总。原始服务器快照未包含这些后分析文件；2026-10-16 已从归档分数另行计算 VAL 固定 bias、TEST 错误分解和无 bias 概率读出，同权重 prior 开关诊断尚未完成。
 
 上述是同一完整修正版的验证流程，不是分步修复公式。失败保留证据，不删除旧目录，也不因效果不涨停止。
 
@@ -76,13 +76,16 @@ V2_PKG="$REPLAY/revised_0601_20261014_fix"
 | 3352 | — | — | — | 未纳入本次归档 |
 | 3353 | — | — | — | 未纳入本次归档 |
 
-seed3351按首次严格最大VAL CW AUC选模，同一权重评价VAL/TEST CW/OW。表格单位、列顺序和结果页结构沿用02公式对齐版；未导出的seed不填0，不生成跨seed统计。原始记录保持不变，未执行posthoc分析。
+seed3351按首次严格最大VAL CW AUC选模，同一权重评价VAL/TEST CW/OW。表格单位、列顺序和结果页结构沿用02公式对齐版；未导出的seed不填0，不生成跨seed统计。原始记录保持不变，新增分析与派生读数单独保存。
 
 - [本批实际修正版执行代码](code/revised_0601_20261014_fix/)
 - [修正版所有 variant 预览配置](configs/revised_0601_20261014_fix/configs/)
 - [修正版配置开关索引](configs/revised_0601_20261014_fix/configs/variant_options.json)
 - [原始冻结work配置（含96组计划，不等于96组完成）](configs/seed3351-10epoch-20261015/configs/)
 - [seed3351：指标与训练记录](results/seed3351-10epoch-20261015/README.md)
+- [seed3351：单 seed 数据分析](results/seed3351-10epoch-20261015/v2单seed数据分析.md)
+- [seed3351：派生诊断读数](results/seed3351-10epoch-20261015/v2单seed后分析读数_20261016.json)
+- [只读分析复核脚本](../../tools/analyze_v2_seed3351.py)与[分析发布记录](../../provenance/updates/20261016_v2_seed3351_analysis.json)
 - [seed3351：128份完整评价指标](results/seed3351-10epoch-20261015/完整评价指标.md)
 - [seed3351：原实验设计命名对照](results/seed3351-10epoch-20261015/实验命名对照.md)
 - [seed3351：归档与校验说明](results/seed3351-10epoch-20261015/归档与校验.md)
