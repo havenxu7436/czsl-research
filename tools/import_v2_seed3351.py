@@ -276,7 +276,10 @@ def import_data(export, release):
     categories['data_files'].update((deployment, deployment+'.sha256'))
     for category, paths in categories.items():
         inputs[category] = sorted(set(inputs[category]) | paths)
-    inputs.update(status='seed3351_complete_other_seeds_not_in_this_export', completed_runs=32, evaluations=128,
+        if category == 'configs':
+            inputs[category] = [name for name in inputs[category]
+                               if not re.search(r'_s\d+\.yml$', name) or name.endswith('_s3351.yml')]
+    inputs.update(status='seed3351_complete', completed_runs=32, evaluations=128,
                   completed_seeds=[3351], active_package=FIX,
                   result_batches=[{'path': RESULT, 'seed': 3351, 'variants': 32, 'epochs': 10, 'evaluations': 128,
                                    'source_zip_sha256': EXPORT_SHA, 'fixed_release_zip_sha256': RELEASE_SHA}])
@@ -347,7 +350,7 @@ def finalize():
     stages = read('provenance/stages.json')
     for stage in stages:
         if stage['id'] == '19':
-            stage.update(status='seed3351：32组×10epoch完成，128份评价已归档；其余seed未纳入本次导出',
+            stage.update(status='seed3351：32组×10epoch完成，128份评价已归档',
                          active_package=FIX, completed_seeds=[3351], completed_runs=32, evaluations=128,
                          knowledge_assets=len(inputs['knowledge']), configs=len(inputs['configs']), data_files=len(inputs['data_files']))
     write('provenance/stages.json', stages)

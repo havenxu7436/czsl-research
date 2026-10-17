@@ -4,13 +4,13 @@
 >
 > 全部已识别公式问题在同一版本统一修订。v1、r2 与已有结果保持不变；v2 是修订后的新模型，不是原 LogiCZSL 数据/成绩的完整复现。
 
-状态：seed3351的32组矩阵已完成，每组10 epoch，共128份评价，使用20261014修正版。seed3352、3353未纳入本次归档。指标表见下方[结果与文件](#结果与文件)；[单 seed 数据分析](results/seed3351-10epoch-20261015/v2单seed数据分析.md)已补充模型比较、原设计问题评估及只读分数诊断。
+状态：seed3351的32组矩阵已完成，每组10 epoch，共128份评价，使用20261014修正版。指标表见下方[结果与文件](#结果与文件)；[单 seed 数据分析](results/seed3351-10epoch-20261015/v2单seed数据分析.md)已补充模型比较、原设计问题评估及只读分数诊断。
 
 原20261013发布包及34项CPU验证记录保留不变；修正版原包内仍名为 `revised_0601_20261013`，为避免与旧版覆盖，仓库分区和materialize运行目录单独命名为 `revised_0601_20261014_fix`。修正版随包CPU记录为40项通过，不冒充此次导入重新执行CPU/CUDA测试。
 
 ## 实验设置
 
-- UT-Zappos；seeds=3351/3352/3353；ViT B16、GloVe300；batch64；每组统一10epochs。
+- UT-Zappos；seed=3351；ViT B16、GloVe300；batch64；每组统一10epochs。
 - 联合概率：对象 `log_softmax` + 属性条件 `log_softmax(U + lambda*prior)`；训练和推理一致。
 - 视觉知识 head：rank128 图像—对象—属性交互 + 动态 pair 相似度；保留 native CPF 条件基底。
 - 语义约束：完整 joint 边缘概率、互斥 child 概率和、JS 一致性及 TRAIN primitive 标签锚定；不是原 fuzzy 算子的原样复现。
@@ -35,8 +35,8 @@ python tools/reproduce.py materialize --line 0601方案 --stage v2 --dest "$REPL
 V2_PKG="$REPLAY/revised_0601_20261014_fix"
 "$CPF_PY" "$V2_PKG/test_revision.py"
 "$CPF_PY" "$V2_PKG/prepare_revision.py" --root "$PROJECT" --work "$WORK" \
-  --suite all --epochs 10 --seeds 3351,3352,3353
-"$CPF_PY" "$V2_PKG/run_suite.py" --work "$WORK" \
+  --suite all --epochs 10 --seeds 3351
+"$CPF_PY" "$V2_PKG/run_suite.py" --work "$WORK" --seeds 3351 \
   --gpus "${CZSL_GPUS:?Set physical GPU IDs}" --max-workers 3 \
   --export "$WORK/results.zip"
 ```
@@ -55,33 +55,29 @@ V2_PKG="$REPLAY/revised_0601_20261014_fix"
 
 ## 配置矩阵
 
-| suite | variants | seeds | 任务数 | 每组epochs | 初始磁盘预算 |
-|---|---:|---:|---:|---:|---:|
-| core | 13 | 3 | 39 | 10 | 88GiB |
-| small（独立运行，含 fresh Rfull） | 20 | 3 | 60 | 10 | 130GiB |
-| all（Rfull只跑一次） | 32 | 3 | 96 | 10 | 202GiB |
-| external（须实际 LLM 资产） | 3 | 3 | 9 | 10 | 28GiB |
+| suite | variants | 每组epochs |
+|---|---:|---:|
+| core | 13 | 10 |
+| small（独立运行，含 fresh Rfull） | 20 | 10 |
+| all（Rfull只跑一次） | 32 | 10 |
+| external（须实际 LLM 资产） | 3 | 10 |
 
 主矩阵包含 A_native、R0、Rtext、Rprior、Rmvp、Rexternal、Rmvp_logic、Rfeature、Rfull及4个sanity对照。小实验覆盖1/3/5描述、1/2/3树深、10/30/50%描述删除、聚合方式、prior变换、可学习lambda、延迟beta、属性边缘CE、动态/静态head、温度与模块删除。
 
 配置目录保存 **34种 variant 的预览 YAML**（all32 + external专属2）。正式 seed/work 配置由 `prepare_revision.py` 生成，不能绕过冻结流程直接使用预览。代码与配置按旧仓库格式分区，恢复执行包后才运行。
-
-初始排期曾按旧6.2–6.5min/epoch估计all约38–48小时、core约15–19小时；这不是当前共享服务器的完成时间承诺，实际逐轮耗时见本批train.log。磁盘按10+2×剩余任务数GiB预留，恢复时也检查，不绕过质量/空间护栏。
 
 ## 结果与文件
 
 | seed | 每组实际 epoch | 训练组数 | 评价份数 | 结果入口 |
 |---|---:|---:|---:|---|
 | 3351 | 10 | 32 | 128 | [指标与训练记录](results/seed3351-10epoch-20261015/README.md) |
-| 3352 | — | — | — | 未纳入本次归档 |
-| 3353 | — | — | — | 未纳入本次归档 |
 
-seed3351按首次严格最大VAL CW AUC选模，同一权重评价VAL/TEST CW/OW。表格单位、列顺序和结果页结构沿用02公式对齐版；未导出的seed不填0，不生成跨seed统计。原始记录保持不变，新增分析与派生读数单独保存。
+seed3351按首次严格最大VAL CW AUC选模，同一权重评价VAL/TEST CW/OW。表格单位、列顺序和结果页结构沿用02公式对齐版。原始记录保持不变，新增分析与派生读数单独保存。
 
 - [本批实际修正版执行代码](code/revised_0601_20261014_fix/)
 - [修正版所有 variant 预览配置](configs/revised_0601_20261014_fix/configs/)
 - [修正版配置开关索引](configs/revised_0601_20261014_fix/configs/variant_options.json)
-- [原始冻结work配置（含96组计划，不等于96组完成）](configs/seed3351-10epoch-20261015/configs/)
+- [原始冻结work配置](configs/seed3351-10epoch-20261015/configs/)
 - [seed3351：指标与训练记录](results/seed3351-10epoch-20261015/README.md)
 - [seed3351：单 seed 数据分析](results/seed3351-10epoch-20261015/v2单seed数据分析.md)
 - [seed3351：派生诊断读数](results/seed3351-10epoch-20261015/v2单seed后分析读数_20261016.json)

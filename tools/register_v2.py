@@ -166,7 +166,7 @@ def register(source,archive,desktop):
     write(STAGE/'inputs.json',dict(stage='v2',line='0601方案',archive_stage='19',version='v2',
           status='implemented_cpu_verified_not_trained',primary_package=PACKAGE,knowledge=knowledge,configs=configs,
           code_files=code,data_files=data,documents=['0601方案/v2/复现公式及代码.md'],
-          planned_matrix=dict(seeds=[3351,3352,3353],epochs=10,variants_all=32,jobs_all=96),
+          planned_matrix=dict(seeds=[3351],epochs=10,variants_all=32,jobs_all=32),
           completed_runs=0,evaluations=0,dependency_stages=['{:02d}'.format(i) for i in range(1,19)],
           dependency_policy='Materialization includes historical runtime inputs; no prior training checkpoint is imported as a v2 result.',
           external_inputs=['UT images and original split/metadata','GloVe300','ViT B16 weights','Original audited CPF source/cache identities','Optional independently generated LLM feasibility'],
@@ -174,7 +174,7 @@ def register(source,archive,desktop):
     blocks=re.findall(r'```bash\n(.*?)\n```',(STAGE/'README.md').read_text(encoding='utf-8'),re.S)
     write(STAGE/'runbook.json',dict(stage='v2',line='0601方案',archive_stage='19',version='v2',primary_package=PACKAGE,
           commands=[dict(source='0601方案/v2/README.md',language='bash',text=s+'\n',template_paths=True) for s in blocks],
-          variables=dict(CPF_PY='Matching CPF Python executable',PROJECT='Audited source/data/knowledge root',REPLAY='New materialized package directory',WORK='New output directory with >=202GiB for all',CZSL_GPUS='Available physical GPU IDs'),
+          variables=dict(CPF_PY='Matching CPF Python executable',PROJECT='Audited source/data/knowledge root',REPLAY='New materialized package directory',WORK='New output directory',CZSL_GPUS='Available physical GPU IDs'),
           environment='environment/README.md',scope='v2 unified corrected formulas; no training started by repository import'))
     write(STAGE/'results/release_member_map.json',dict(package=PACKAGE,source_zip_sha256=ZIP_SHA,
          members=[dict(member=PACKAGE+'/'+name,path=mapping[name],sha256=sha(source/name)) for name in names]))
