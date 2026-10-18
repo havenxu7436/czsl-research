@@ -4,6 +4,7 @@
 |---|---|
 | [CPU检查](local-validation-20261018/result.json)与[日志](local-validation-20261018/tests_cpu.log) | 本机12项数值/合成流程测试；包括9组前向、训练、选模和评价 |
 | [验证说明](验证记录.md) | 运行环境与检查范围 |
+| [GitHub网页版检查](repository-validation-20261018/github_browser_rendering.json) | 修复51处不兼容宏；4个网页的324个公式全部生成MathML，渲染错误为0 |
 | [公式审计](formula-audit-20261018/) | 桌面公式文档的梯度核对、渲染报告和46个独立公式的截图 |
 | [部署包](deployment/VG-CPOD方案v1.zip) | 36个冻结文件，恢复时逐项校验；ZIP/BPE/图片由Git LFS存储 |
 | [成员映射](release_member_map.json) | 原运行路径到code/configs/results分区的对应 |
