@@ -32,7 +32,7 @@
 
 ```math
 \nu(z)=\frac{z}{\max(\lVert z\rVert_2,10^{-8})},\qquad
-\operatorname{LSE}_{k}z_k=\log\sum_k\exp z_k.
+\mathop{\mathrm{LSE}}\nolimits_{k}z_k=\log\sum_k\exp z_k.
 ```
 
 依赖：
@@ -60,13 +60,13 @@ CLIP：ViT-L/14；输入分辨率 $`224\times224`$。视觉Transformer宽度为1
 
 ```math
 \begin{aligned}
-z_\ell&=\operatorname{Conv}_{14,14}(x)_\ell,\\
-X^{(0)}&=\operatorname{LN}_{\mathrm{pre}}
+z_\ell&=\mathop{\mathrm{Conv}}\nolimits_{14,14}(x)_\ell,\\
+X^{(0)}&=\mathop{\mathrm{LN}}\nolimits_{\mathrm{pre}}
 \left([c_{\mathrm{CLS}};z_1;\ldots;z_L]+E_{\mathrm{pos}}\right),\\
-H&=\operatorname{Transformer}_{\mathrm{vis}}(X^{(0)})
+H&=\mathop{\mathrm{Transformer}}\nolimits_{\mathrm{vis}}(X^{(0)})
 \in\mathbb{R}^{257\times1024},\\
-g&=\nu\!\left(P_v^\top\operatorname{LN}_{\mathrm{post}}(H_0)\right),\\
-p_\ell&=\nu\!\left(P_v^\top\operatorname{LN}_{\mathrm{post}}(H_\ell)\right),
+g&=\nu\!\left(P_v^\top\mathop{\mathrm{LN}}\nolimits_{\mathrm{post}}(H_0)\right),\\
+p_\ell&=\nu\!\left(P_v^\top\mathop{\mathrm{LN}}\nolimits_{\mathrm{post}}(H_\ell)\right),
 \qquad P_v\in\mathbb{R}^{1024\times768}.
 \end{aligned}
 ```
@@ -183,7 +183,7 @@ def query_patches(patches, queries, tau):
 
 ```math
 \widehat z
-=\operatorname{cast}_{32}\!\left(\operatorname{cast}_{16}(z)\right),
+=\mathop{\mathrm{cast}}\nolimits_{32}\!\left(\mathop{\mathrm{cast}}\nolimits_{16}(z)\right),
 \qquad z\in\{g_b,f_{bi}^a,f_{bj}^o\}.
 ```
 
@@ -249,7 +249,7 @@ C_o&=C_c=0,\qquad W_c=W_a=0,\\
 
 ```math
 \begin{aligned}
-\operatorname{Var}(u_{ik})&=\operatorname{Var}(v_{jk})=r^{-1/2},\\
+\mathop{\mathrm{Var}}\nolimits(u_{ik})&=\mathop{\mathrm{Var}}\nolimits(v_{jk})=r^{-1/2},\\
 \mathbb{E}\lVert u_i\odot v_j\rVert_2^2
 &=\sum_{k=1}^{r}\mathbb{E}[u_{ik}^2]\mathbb{E}[v_{jk}^2]=1.
 \end{aligned}
@@ -261,8 +261,8 @@ C_o&=C_c=0,\qquad W_c=W_a=0,\\
 \begin{aligned}
 Z&\in\mathbb{R}^{d\times r},\qquad Z_{kt}\sim\mathcal{N}(0,1),\\
 Z&=QR,\qquad Q^\top Q=I_r,\\
-s_k&=\begin{cases}\operatorname{sign}(R_{kk}),&R_{kk}\ne0,\\1,&R_{kk}=0,\end{cases}\\
-B_{\mathrm{vis}}&=(Q\operatorname{diag}(s))^\top,\qquad
+s_k&=\begin{cases}\mathop{\mathrm{sign}}\nolimits(R_{kk}),&R_{kk}\ne0,\\1,&R_{kk}=0,\end{cases}\\
+B_{\mathrm{vis}}&=(Q\mathop{\mathrm{diag}}\nolimits(s))^\top,\qquad
 B_{\mathrm{vis}}B_{\mathrm{vis}}^\top=I_r.
 \end{aligned}
 ```
@@ -346,11 +346,11 @@ u_{ik}v_{jk}\gamma_{bjk}\bigl(w_k^\top f_{bj}^o\bigr).
 ```math
 \begin{aligned}
 \delta_{bji}
-&=W_c\operatorname{diag}(v_j\odot\gamma_{bj})A_ue_i^a,\\
-L_{bj}&:=W_c\operatorname{diag}(v_j\odot\gamma_{bj})A_u,\\
+&=W_c\mathop{\mathrm{diag}}\nolimits(v_j\odot\gamma_{bj})A_ue_i^a,\\
+L_{bj}&:=W_c\mathop{\mathrm{diag}}\nolimits(v_j\odot\gamma_{bj})A_u,\\
 \delta_{bji}&=L_{bj}e_i^a,\\
-\operatorname{rank}(L_{bj})
-&\le\min\{\operatorname{rank}W_c,\operatorname{rank}A_u,r\}\le r.
+\mathop{\mathrm{rank}}\nolimits(L_{bj})
+&\le\min\{\mathop{\mathrm{rank}}\nolimits W_c,\mathop{\mathrm{rank}}\nolimits A_u,r\}\le r.
 \end{aligned}
 ```
 
@@ -361,7 +361,7 @@ L_{bj}&:=W_c\operatorname{diag}(v_j\odot\gamma_{bj})A_u,\\
 =\sum_{k=1}^{r}u_{:,k}\circ
 \bigl(v_{:,k}\odot\gamma_{b,:,k}\bigr)\circ w_k,
 \qquad \Delta_b\in\mathbb{R}^{M\times N\times d},\qquad
-\operatorname{rank}_{\mathrm{CP}}(\Delta_b)\le r.
+\mathop{\mathrm{rank}}\nolimits_{\mathrm{CP}}(\Delta_b)\le r.
 ```
 
 实际前向使用模式收缩，不显式构造 $`L_{bj}`$ 或 $`\Delta_b`$；对应代码见§5。
@@ -389,7 +389,7 @@ $`\pi`$ 的张量轴为 `[batch, attribute, object]`。查询特征与文本表�
 R_{bi}&=\kappa g_b^\top e_i^a
 +\rho_a\kappa(f_{bi}^a)^\top\delta_{bi}^a,
 \qquad\rho_a=0.1,\\
-p^{\mathrm{prim}}_{bi}&=\operatorname{softmax}_i R_{bi}.
+p^{\mathrm{prim}}_{bi}&=\mathop{\mathrm{softmax}}\nolimits_i R_{bi}.
 \end{aligned}
 ```
 
@@ -407,8 +407,8 @@ R_{bi}=\kappa g_b^\top e_i^a
 
 ```math
 \begin{aligned}
-\ell^o_{bj}&=O_{bj}-\operatorname{LSE}_{s=1}^{N}O_{bs},\\
-\ell^{a\mid o}_{bji}&=U_{bji}-\operatorname{LSE}_{p=1}^{M}U_{bjp},\\
+\ell^o_{bj}&=O_{bj}-\mathop{\mathrm{LSE}}\nolimits_{s=1}^{N}O_{bs},\\
+\ell^{a\mid o}_{bji}&=U_{bji}-\mathop{\mathrm{LSE}}\nolimits_{p=1}^{M}U_{bjp},\\
 S_{bji}&=\ell^o_{bj}+\ell^{a\mid o}_{bji},\\
 P_{bji}&=\exp S_{bji}
 =P_\theta(o_j\mid x_b)P_\theta(a_i\mid o_j,x_b).
@@ -501,7 +501,7 @@ P^s_{bji}
 \mathcal{L}_{\mathrm{pair}}
 &=\frac1B\sum_{b=1}^{B}
 \left[-S_{b,j_b,i_b}
-+\operatorname{LSE}_{(a_i,o_j)\in\mathcal{C}^s}S_{bji}\right],\\
++\mathop{\mathrm{LSE}}\nolimits_{(a_i,o_j)\in\mathcal{C}^s}S_{bji}\right],\\
 \mathcal{L}_{\mathrm{cond}}
 &=-\frac1B\sum_b\ell^{a\mid o}_{b,j_b,i_b},\\
 \mathcal{L}_o&=-\frac1B\sum_b\ell^o_{b,j_b},\\
@@ -722,7 +722,7 @@ $`\partial\mathcal{L}/\partial u_i`$ 与 $`\partial\mathcal{L}/\partial v_j`$ �
 ```math
 \begin{aligned}
 d_t&=\nabla_\vartheta\mathcal{L}_{\mathrm{VG}},\qquad
-n_t=\sqrt{\sum_{\theta\in\vartheta}\lVert\operatorname{vec}(\nabla_\theta\mathcal{L}_{\mathrm{VG}})\rVert_2^2},\\
+n_t=\sqrt{\sum_{\theta\in\vartheta}\lVert\mathop{\mathrm{vec}}\nolimits(\nabla_\theta\mathcal{L}_{\mathrm{VG}})\rVert_2^2},\\
 \bar d_t&=d_t\min\left(1,\frac1{n_t+10^{-12}}\right).
 \end{aligned}
 ```
@@ -824,7 +824,7 @@ def predict(model, cache, phase, cfg, device):
 \mathcal{C}_{\mathrm{test,cw}}&=\mathcal{C}^s\cup\mathcal{C}_{\mathrm{test}},\\
 \mathcal{C}_{\mathrm{ow}}&=\mathcal{C}_{\mathrm{all}},\\
 \log P_{\mathcal{C}}(a_i,o_j\mid x_b)
-&=S_{bji}-\operatorname{LSE}_{(a_p,o_s)\in\mathcal{C}}S_{bsp}.
+&=S_{bji}-\mathop{\mathrm{LSE}}\nolimits_{(a_p,o_s)\in\mathcal{C}}S_{bsp}.
 \end{aligned}
 ```
 
@@ -836,18 +836,18 @@ def predict(model, cache, phase, cfg, device):
 
 ```math
 \begin{aligned}
-\operatorname{Acc}_{\mathrm{pair}}
+\mathop{\mathrm{Acc}}\nolimits_{\mathrm{pair}}
 &=\frac1B\sum_b\mathbf{1}\{\widehat c_b=c_b\},\\
-\operatorname{Acc}_{\mathrm{macro}}
+\mathop{\mathrm{Acc}}\nolimits_{\mathrm{macro}}
 &=\frac1{\lvert\mathcal{C}_{\mathrm{obs}}\rvert}
 \sum_{c\in\mathcal{C}_{\mathrm{obs}}}
 \frac1{\lvert\mathcal{I}_c\rvert}
 \sum_{b\in\mathcal{I}_c}\mathbf{1}\{\widehat c_b=c\},\\
-\operatorname{NLL}_{\mathrm{pair}}
+\mathop{\mathrm{NLL}}\nolimits_{\mathrm{pair}}
 &=-\frac1B\sum_b\log P_{\mathcal{C}}(c_b\mid x_b),\\
-\operatorname{Acc}_{a\mid o}
+\mathop{\mathrm{Acc}}\nolimits_{a\mid o}
 &=\frac1B\sum_b\mathbf{1}\left\{\arg\max_iU_{b,j_b,i}=i_b\right\},\\
-\operatorname{NLL}_{a\mid o}
+\mathop{\mathrm{NLL}}\nolimits_{a\mid o}
 &=-\frac1B\sum_b\ell^{a\mid o}_{b,j_b,i_b}.
 \end{aligned}
 ```
@@ -921,11 +921,11 @@ S(\beta)&=\frac{\sum_{b:c_b\in\mathcal{C}^s}\mathbf{1}\{\widehat c_b(\beta)=c_b\
 {\lvert\{b:c_b\in\mathcal{C}^s\}\rvert},\\
 U(\beta)&=\frac{\sum_{b:c_b\notin\mathcal{C}^s}\mathbf{1}\{\widehat c_b(\beta)=c_b\}}
 {\lvert\{b:c_b\notin\mathcal{C}^s\}\rvert},\\
-\operatorname{HM}(\beta)&=\begin{cases}
+\mathop{\mathrm{HM}}\nolimits(\beta)&=\begin{cases}
 \dfrac{2S(\beta)U(\beta)}{S(\beta)+U(\beta)},&S(\beta)+U(\beta)>0,\\
 0,&S(\beta)+U(\beta)=0,
 \end{cases}\\
-\operatorname{AUC}&=100\sum_{k=1}^{K-1}
+\mathop{\mathrm{AUC}}\nolimits&=100\sum_{k=1}^{K-1}
 \frac{S_k+S_{k+1}}2(U_{k+1}-U_k).
 \end{aligned}
 ```
@@ -1060,7 +1060,7 @@ def exact_curve(scores, truth, seen_classes):
 
 ```math
 t^*=\min\underset{t}{\arg\max}\;
-\operatorname{AUC}_{\mathrm{native}}^{\mathrm{VAL,CW}}(t).
+\mathop{\mathrm{AUC}}\nolimits_{\mathrm{native}}^{\mathrm{VAL,CW}}(t).
 ```
 
 [vgcpod/engine.py · train（局部）](code/vgcpod_v1/vgcpod/engine.py#L161)
@@ -1117,7 +1117,7 @@ def evaluate_run(cache, run, device):
 | V6 | $`f_{bj}^o`$ | 同批循环错配门控 | 关闭 | $`(0,0,10^{-3})`$ |
 | V7 | $`f_{bj}^o`$ | 类别查询门控 | 类别查询伙伴概率 | $`(0.2,0.1,0)`$ |
 
-V3：$`t_{bj}=B_{\mathrm{vis}}g_b/\tau_\gamma`$。V6：令 $`\sigma_B(b)=1+\operatorname{mod}(b-2,B)`$，则
+V3：$`t_{bj}=B_{\mathrm{vis}}g_b/\tau_\gamma`$。V6：令 $`\sigma_B(b)=1+\mathop{\mathrm{mod}}\nolimits(b-2,B)`$，则
 
 ```math
 \gamma^{\mathrm{V6}}_{bj}
