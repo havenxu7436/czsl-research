@@ -43,7 +43,7 @@ def verify():
             if not p.is_file() or sha(p)!=r['sha256']: failures.append(r['path'])
     syntax=[]; links=[]; formatting=[]
     docs=[ROOT/'README.md',ROOT/'environment/README.md',ROOT/'knowledge/README.md']
-    for line in ('前期实验','0601方案'):
+    for line in ('前期实验','0601方案','VG-CPOD方案'):
         docs.extend((ROOT/line).rglob('README.md'))
     imported=ROOT/'provenance/documents'
     if imported.is_dir():
@@ -63,14 +63,19 @@ def verify():
         if rel.endswith('.py'):
             try: ast.parse((ROOT/rel).read_text(encoding='utf-8-sig'))
             except (SyntaxError,UnicodeError) as exc: syntax.append({'file':rel,'error':str(exc)})
+    route_check=None
+    if (ROOT/'VG-CPOD方案/v1/inputs.json').is_file():
+        from register_vgcpod_v1 import check as check_vgcpod
+        route_check=check_vgcpod()
     result={'passed':not(failures or links or formatting or syntax),'original_canonical_files':len(expected),
       'changed_or_missing':failures,'broken_links':links,'formatting_errors':formatting,
-      'python_syntax_errors':syntax,'training_started':False}
+      'python_syntax_errors':syntax,'vgcpod':route_check,'training_started':False}
     print(json.dumps(result,ensure_ascii=False))
     if not result['passed']: raise SystemExit(1)
 
 def archive_stage(line,number):
     if line is None:
+        if number == 'v1': raise ValueError('Use --line VG-CPOD方案 for --stage v1')
         if number == 'v2': raise ValueError('Use --line 0601方案 for --stage v2')
         return number
     matches=[s['id'] for s in read(ROOT/'provenance/stages.json')
@@ -79,6 +84,10 @@ def archive_stage(line,number):
     return matches[0]
 
 def materialize(stage,destination,line=None,number=None):
+    if stage=='20':
+        from register_vgcpod_v1 import materialize as materialize_vgcpod
+        print(json.dumps(materialize_vgcpod(destination),ensure_ascii=False))
+        return
     layout=read(ROOT/'provenance/layout.json'); destination=Path(destination).expanduser()
     if not destination.is_absolute(): raise ValueError('Choose an absolute destination')
     destination=destination.resolve()
@@ -142,6 +151,12 @@ def materialize(stage,destination,line=None,number=None):
       'note':'External inputs and frozen absolute paths still require setup; see environment/README.md'},ensure_ascii=False))
 
 def doctor(stage,project,line=None,number=None):
+    if stage=='20':
+        from register_vgcpod_v1 import doctor as doctor_vgcpod
+        result=doctor_vgcpod(project)
+        print(json.dumps(result,ensure_ascii=False))
+        if not result['ready_for_package_preflight']: raise SystemExit(2)
+        return
     project=Path(project).resolve()
     required=[project/'src/KCC0601_v1/train.py',project/'data/glove/glove.6B.300d.txt',
       project/'data/ut-zap50k',project/'knowledge/kcc0601_v1/cache_trusted_v1/ut-zap50k/manifest.json']
@@ -165,10 +180,10 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     commands=parser.add_subparsers(dest='action',required=True)
     commands.add_parser('verify')
-    m=commands.add_parser('materialize'); m.add_argument('--stage',choices=['{:02d}'.format(x) for x in range(1,20)]+['v2'],required=True); m.add_argument('--dest',required=True)
-    m.add_argument('--line',choices=['前期实验','0601方案'])
+    m=commands.add_parser('materialize'); m.add_argument('--stage',choices=['{:02d}'.format(x) for x in range(1,21)]+['v1','v2'],required=True); m.add_argument('--dest',required=True)
+    m.add_argument('--line',choices=['前期实验','0601方案','VG-CPOD方案'])
     d=commands.add_parser('doctor'); d.add_argument('--stage',required=True); d.add_argument('--project',required=True)
-    d.add_argument('--line',choices=['前期实验','0601方案'])
+    d.add_argument('--line',choices=['前期实验','0601方案','VG-CPOD方案'])
     args=parser.parse_args()
     if args.action=='verify': verify()
     elif args.action=='materialize': materialize(archive_stage(args.line,args.stage),args.dest,args.line,args.stage)

@@ -1,0 +1,63 @@
+{
+  "schema": "vgcpod_matrix_v1",
+  "dataset": "ut-zap50k",
+  "pilot": {
+    "seeds": [
+      3351
+    ],
+    "variants": [
+      "V0",
+      "V1",
+      "V1L",
+      "V2",
+      "V4",
+      "V5"
+    ],
+    "epochs": 10
+  },
+  "full": {
+    "seeds": [
+      3351,
+      3352,
+      3353
+    ],
+    "variants": [
+      "V0",
+      "V1",
+      "V1L",
+      "V2",
+      "V3",
+      "V4",
+      "V5",
+      "V6",
+      "V7"
+    ],
+    "epochs": 10,
+    "jobs": 27
+  },
+  "sensitivity": {
+    "seeds": [
+      3351
+    ],
+    "rank_variants": [
+      "V2",
+      "V5"
+    ],
+    "ranks": [
+      16,
+      64
+    ],
+    "tau_pi_variant": "V5",
+    "tau_pi": [
+      0.05,
+      0.2
+    ]
+  },
+  "baseline_evaluations": [
+    "name_clip",
+    "chain_zeroshot"
+  ],
+  "selection": "first strict maximum VAL CW AUC_native",
+  "provenance": "Derived previews of default.json and the frozen scripts; not completed run configs.",
+  "cli_variant_rule": "run.py explicitly applies --variant; use --variant alongside a variant preview."
+}

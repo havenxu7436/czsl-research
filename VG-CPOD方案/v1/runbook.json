@@ -1,0 +1,119 @@
+{
+  "stage": "v1",
+  "line": "VG-CPOD方案",
+  "archive_stage": "20",
+  "primary_package": "vgcpod_v1",
+  "commands": [
+    {
+      "source": "VG-CPOD方案/v1/README.md",
+      "language": "bash",
+      "text": "git lfs pull\npython tools/reproduce.py verify\nREPLAY=/srv/czsl-reproduce-vgcpod-v1\npython tools/reproduce.py materialize --line VG-CPOD方案 --stage v1 --dest \"$REPLAY\"\nVG_PKG=\"$REPLAY/vgcpod_v1\"\npython \"$VG_PKG/tools/verify_release.py\"",
+      "template_paths": true
+    },
+    {
+      "source": "VG-CPOD方案/v1/README.md",
+      "language": "bash",
+      "text": "export CPF_PY=\"$(command -v python)\"\nexport VG_DATA=/data/xhw/czsl_repro/data/ut-zap50k\nexport VG_CLIP=/data/xhw/.cache/clip/ViT-L-14.pt\nexport VG_WORK=/data/xhw/vgcpod_v1_runs\nexport VG_GPU=1\ncd \"$VG_PKG\"\n\"$CPF_PY\" -m pip install -r requirements.txt\nbash scripts/prepare.sh\nbash scripts/train_matrix.sh pilot",
+      "template_paths": true
+    },
+    {
+      "source": "VG-CPOD方案/v1/README.md",
+      "language": "bash",
+      "text": "python tools/register_vgcpod_v1.py --check\npython tools/register_vgcpod_v1.py --restore-check",
+      "template_paths": true
+    },
+    {
+      "source": "VG-CPOD方案/v1/服务器实践_v1.md",
+      "language": "bash",
+      "text": "mkdir -p /data/xhw/vgcpod_project\ncd /data/xhw/vgcpod_project\nunzip '/data/xhw/VG-CPOD方案v1.zip'\ncd vgcpod_v1\npython tools/verify_release.py\n\n# 在原 CPF 环境激活后，固定其解释器。\nexport CPF_PY=\"$(command -v python)\"\n\"$CPF_PY\" -c 'import sys,torch,torchvision; print(sys.executable,torch.__version__,torchvision.__version__,torch.cuda.is_available())'\n\"$CPF_PY\" -m pip install -r requirements.txt",
+      "template_paths": true
+    },
+    {
+      "source": "VG-CPOD方案/v1/服务器实践_v1.md",
+      "language": "bash",
+      "text": "conda create -n vgcpod_v1 python=3.8.18 -y\nconda activate vgcpod_v1\nexport CPF_PY=\"$(command -v python)\"\n\"$CPF_PY\" -m pip install 'torch==1.13.1+cu117' 'torchvision==0.14.1+cu117' \\\n  --extra-index-url https://download.pytorch.org/whl/cu117\n\"$CPF_PY\" -m pip install 'setuptools==69.5.1' -r requirements.txt",
+      "template_paths": true
+    },
+    {
+      "source": "VG-CPOD方案/v1/服务器实践_v1.md",
+      "language": "bash",
+      "text": "export VG_DATA=/data/xhw/czsl_repro/data/ut-zap50k\nexport VG_CLIP=/data/xhw/.cache/clip/ViT-L-14.pt\nexport VG_WORK=/data/xhw/vgcpod_v1_runs\nexport VG_CACHE=\"$VG_WORK/cache_ut_clip_l14\"\nexport VG_OUT=\"$VG_WORK/main\"\nexport VG_GPU=1\nsource scripts/env.sh",
+      "template_paths": true
+    },
+    {
+      "source": "VG-CPOD方案/v1/服务器实践_v1.md",
+      "language": "bash",
+      "text": "mkdir -p \"$(dirname \"$VG_CLIP\")\"\ncurl --fail --location --output \"$VG_CLIP\" \\\n  'https://openaipublic.azureedge.net/clip/models/b8cca3fd41ae0c99ba7e8951adf17d267cdb84cd88be6f7c2e0eca1737a03836/ViT-L-14.pt'\nsha256sum \"$VG_CLIP\"",
+      "template_paths": true
+    },
+    {
+      "source": "VG-CPOD方案/v1/服务器实践_v1.md",
+      "language": "bash",
+      "text": "bash scripts/prepare.sh",
+      "template_paths": true
+    },
+    {
+      "source": "VG-CPOD方案/v1/服务器实践_v1.md",
+      "language": "bash",
+      "text": "\"$CPF_PY\" run.py doctor --data-root \"$VG_DATA\" --checkpoint \"$VG_CLIP\"\n\"$CPF_PY\" -m unittest discover -s tests -v\n\"$CPF_PY\" -u run.py prepare --data-root \"$VG_DATA\" --checkpoint \"$VG_CLIP\" \\\n  --cache \"$VG_CACHE\" --device cuda --batch-size 16 --workers 4\n\"$CPF_PY\" run.py smoke --cache \"$VG_CACHE\" --out \"$VG_WORK/preflight\" --device cuda\n\"$CPF_PY\" run.py baselines --cache \"$VG_CACHE\" --out \"$VG_OUT\" --device cuda",
+      "template_paths": true
+    },
+    {
+      "source": "VG-CPOD方案/v1/服务器实践_v1.md",
+      "language": "bash",
+      "text": "bash scripts/train_matrix.sh pilot",
+      "template_paths": true
+    },
+    {
+      "source": "VG-CPOD方案/v1/服务器实践_v1.md",
+      "language": "bash",
+      "text": "\"$CPF_PY\" -u run.py train --cache \"$VG_CACHE\" --out \"$VG_OUT\" \\\n  --variant V2 --seed 3351 --device cuda",
+      "template_paths": true
+    },
+    {
+      "source": "VG-CPOD方案/v1/服务器实践_v1.md",
+      "language": "bash",
+      "text": "mkdir -p \"$VG_WORK/logs\"\nnohup bash scripts/train_matrix.sh pilot > \"$VG_WORK/logs/pilot_queue.log\" 2>&1 &\necho $!\ntail -f \"$VG_WORK/logs/pilot_queue.log\"",
+      "template_paths": true
+    },
+    {
+      "source": "VG-CPOD方案/v1/服务器实践_v1.md",
+      "language": "bash",
+      "text": "bash scripts/train_matrix.sh full",
+      "template_paths": true
+    },
+    {
+      "source": "VG-CPOD方案/v1/服务器实践_v1.md",
+      "language": "bash",
+      "text": "\"$CPF_PY\" -u run.py train --cache \"$VG_CACHE\" --out \"$VG_OUT\" \\\n  --variant V5 --seed 3351 --device cuda --resume",
+      "template_paths": true
+    },
+    {
+      "source": "VG-CPOD方案/v1/服务器实践_v1.md",
+      "language": "bash",
+      "text": "# 重评选中的权重。\n\"$CPF_PY\" run.py evaluate --cache \"$VG_CACHE\" \\\n  --run \"$VG_OUT/ut-zap50k/V5/seed3351\" --device cuda\n\n# 生成各组均值/样本标准差，以及同seed差分。\n\"$CPF_PY\" run.py summarize --out \"$VG_OUT\"\n\"$CPF_PY\" run.py compare --cache \"$VG_CACHE\" --out \"$VG_OUT\" --seeds 3351 3352 3353\n\n# 导出VAL门控、伙伴均值/方差及热图。\n\"$CPF_PY\" run.py diagnose --cache \"$VG_CACHE\" \\\n  --run \"$VG_OUT/ut-zap50k/V5/seed3351\" --device cuda",
+      "template_paths": true
+    },
+    {
+      "source": "VG-CPOD方案/v1/服务器实践_v1.md",
+      "language": "bash",
+      "text": "bash scripts/sensitivity.sh",
+      "template_paths": true
+    },
+    {
+      "source": "VG-CPOD方案/v1/results/验证记录.md",
+      "language": "bash",
+      "text": "python tools/verify_release.py",
+      "template_paths": true
+    }
+  ],
+  "variables": {
+    "REPLAY": "New directory outside the repository",
+    "CPF_PY": "Matching Python executable",
+    "VG_DATA": "UT-Zappos root",
+    "VG_CLIP": "ViT-L/14 weights",
+    "VG_WORK": "Run/cache root",
+    "VG_GPU": "Physical GPU ID"
+  },
+  "scope": "Only materialize restores files; training starts only with explicit run.py/scripts commands."
+}

@@ -1,0 +1,271 @@
+# VG-CPOD方案v1：实现与服务器实践
+
+2026-10-18 · 对齐当日修订的 VG-CPOD v1 公式。
+
+## 1 交付与实验范围
+
+本包直接使用 CLIP ViT-L/14 的图文共同空间。图像 Transformer、文本 Transformer、视觉投影和名称文本表全部冻结；新训练对象是两个基线低秩适配器、属性/物体因子映射、视觉模式门控及组合/属性方向矩阵。
+
+已实现 UT-Zappos `compositional-split-natural` 的完整首轮矩阵：V0、V1、V1L、V2、V3、V4、V5、V6、V7，各 10 epoch，种子3351/3352/3353。第一轮先执行其中6组、seed3351，形成局部读出、视觉门控和伙伴聚合三项独立比较。
+
+包含官方 CLIP 的固定源码、历史标签轴、自然语言名称映射、图像路径别名与 TRAIN/VAL 输入哈希。图像全集和约1.7GB的 CLIP 权重使用服务器原有资产。旧 CPF 的 ImageNet 特征、GloVe 和已监督 checkpoint 不进入本方案的 CLIP 训练。
+
+完整公式保存在 [数学与实验设计_v1.md](数学与实验设计_v1.md)。
+
+## 2 公式到代码的对应
+
+存储轴统一为 `[batch, object, attribute]`；修正因子的模式维为 `rank`。
+
+| 修订定义 | 实现 |
+|---|---|
+| 视觉末层序列；每个 token 使用 `ln_post`、视觉投影、单位化 | `features.visual_tokens` |
+| 名称查询补丁 softmax、加权求和后单位化 | `features.query_patches` |
+| 对象与组合适配器、链式联合概率 | `model.VGCPOD.forward` |
+| CP 因子、类别门控、隐式低秩算子 | `model.VGCPOD.forward` |
+| 伙伴分布、属性原语分支、JS | `model.VGCPOD.forward/objective` |
+| TRAIN pair 条件化、条件属性与物体损失 | `model.VGCPOD.objective` |
+| AdamW、逐更新余弦学习率、梯度裁剪 | `engine.train` |
+| 原生有限 bias 扫描、完整临界 bias 曲线 | `metrics.native_curve/exact_curve` |
+| VAL 选模、四套预测和固定 VAL bias 的 TEST HM | `engine.train/evaluate_run` |
+
+核心组合修正按模式收缩：
+
+$$
+U_{ij}-U^0_{ij}
+=\rho\kappa\sum_{k=1}^{r}
+u_{ik}v_{jk}\gamma_{jk}(x)\,[w_k^\top f_j^o(x)].
+$$
+
+它与显式构造以下算子完全一致：
+
+$$
+L_j(x)=W_c\operatorname{diag}(v_j\odot\gamma_j(x))A_u,
+\qquad\delta_{ij}(x)=L_j(x)e_i^a.
+$$
+
+训练只构造低秩因子，避免保存每幅图像所有组合的768维修正向量。
+
+初始化采用修订后的 $A_u,A_v$ 元素标准差 $r^{-1/4}$；$W_c,W_a$ 和适配器第二矩阵置零。完整 V5 的可训练参数为147456。各组先分配相同名称的参数、再冻结不用的模块，共享参数的初值与同 seed 的样本顺序相同。
+
+| 组 | 可训练参数 | 组合读出 | 门控 | 伙伴与辅助项 |
+|---|---:|---|---|---|
+| V0 | 24576 | 基线 | 关闭 | 关闭 |
+| V1 | 98304 | 全局图像 | 常数1 | 关闭 |
+| V1L | 98304 | 类别局部 | 常数1 | 关闭 |
+| V2 | 122880 | 类别局部 | 类别局部 | 正交项 |
+| V3 | 122880 | 全局图像 | 全局图像 | 正交项 |
+| V4 | 147456 | 类别局部 | 类别局部 | 均匀伙伴、原语CE、JS、正交 |
+| V5 | 147456 | 类别局部 | 类别局部 | 视觉伙伴、原语CE、JS、正交 |
+| V6 | 122880 | 类别局部 | 同批图像循环错配 | 正交项 |
+| V7 | 147456 | 类别局部 | 类别局部 | 视觉伙伴、原语CE、JS |
+
+V6 按原方案在 batch 维循环移动一次门控输入，读出仍使用本图。验证/测试固定 metadata 顺序与 batch=64，因此它是依赖固定批次上下文的错配对照。单样本批次的错配退化为自身；改变评价 batch 将改变该对照的定义。
+
+## 3 服务器环境
+
+优先使用原实验环境：Python3.8.18、torch1.13.1+cu117、torchvision0.14.1+cu117。单卡 RTX3090；编码 batch16，训练 batch64；DataLoader workers4。
+
+将 ZIP 上传到 `/data/xhw/` 后解压。压缩包内部顶层目录固定为 `vgcpod_v1`，避免服务器路径包含中文：
+
+```bash
+mkdir -p /data/xhw/vgcpod_project
+cd /data/xhw/vgcpod_project
+unzip '/data/xhw/VG-CPOD方案v1.zip'
+cd vgcpod_v1
+python tools/verify_release.py
+
+# 在原 CPF 环境激活后，固定其解释器。
+export CPF_PY="$(command -v python)"
+"$CPF_PY" -c 'import sys,torch,torchvision; print(sys.executable,torch.__version__,torchvision.__version__,torch.cuda.is_available())'
+"$CPF_PY" -m pip install -r requirements.txt
+```
+
+输出应确认 CUDA 可用。若另建环境，执行：
+
+```bash
+conda create -n vgcpod_v1 python=3.8.18 -y
+conda activate vgcpod_v1
+export CPF_PY="$(command -v python)"
+"$CPF_PY" -m pip install 'torch==1.13.1+cu117' 'torchvision==0.14.1+cu117' \
+  --extra-index-url https://download.pytorch.org/whl/cu117
+"$CPF_PY" -m pip install 'setuptools==69.5.1' -r requirements.txt
+```
+
+`setuptools` 提供固定 CLIP 源码使用的 `pkg_resources`。
+
+## 4 设置路径
+
+以下默认路径来自历史探针记录；仅按服务器实际目录修改变量：
+
+```bash
+export VG_DATA=/data/xhw/czsl_repro/data/ut-zap50k
+export VG_CLIP=/data/xhw/.cache/clip/ViT-L-14.pt
+export VG_WORK=/data/xhw/vgcpod_v1_runs
+export VG_CACHE="$VG_WORK/cache_ut_clip_l14"
+export VG_OUT="$VG_WORK/main"
+export VG_GPU=1
+source scripts/env.sh
+```
+
+`VG_GPU=1` 表示物理GPU1；程序内部使用可见设备 `cuda:0`。脚本由 `CUDA_VISIBLE_DEVICES` 统一映射。单卡顺序队列从头到尾复用同一个缓存。
+
+数据目录应有：
+
+```text
+ut-zap50k/
+  metadata_compositional-split-natural.t7
+  compositional-split-natural/
+    train_pairs.txt
+    val_pairs.txt
+    test_pairs.txt
+  images/<metadata中的image相对路径>
+```
+
+也支持历史 `_images_extract/ut-zap50k-images-square/<_image>` 布局，并复用两条明确的品牌目录别名。以 metadata 图像身份定位，不做同名图片搜索。
+
+CLIP 文件 SHA256 固定为：
+
+```text
+b8cca3fd41ae0c99ba7e8951adf17d267cdb84cd88be6f7c2e0eca1737a03836
+```
+
+使用已有权重即可。若该文件确实尚未下载，可从固定官方地址获取：
+
+```bash
+mkdir -p "$(dirname "$VG_CLIP")"
+curl --fail --location --output "$VG_CLIP" \
+  'https://openaipublic.azureedge.net/clip/models/b8cca3fd41ae0c99ba7e8951adf17d267cdb84cd88be6f7c2e0eca1737a03836/ViT-L-14.pt'
+sha256sum "$VG_CLIP"
+```
+
+## 5 第一步：缓存与公式验收
+
+```bash
+bash scripts/prepare.sh
+```
+
+这个入口顺序完成：
+
+1. 核对 natural split、历史输入哈希、全部图像路径和权重 SHA256。
+2. 运行数值测试及合成数据的训练/恢复/评估测试。
+3. 用冻结 CLIP 编码 TRAIN/VAL/TEST 的全局和类别查询特征。
+4. 在缓存的4张真实 TRAIN 图像和完整 TRAIN 小批次上验证前向、反向与概率归一化。
+5. 导出名称 CLIP 与链式零样本两组结果。
+
+编码为确定性 Resize/CenterCrop 单视图，视觉 Transformer 在 FP32 中执行，投影和查询计算后以FP16缓存；训练读取为FP32。为固定首次实验口径，此实现统一重新编码全局特征，便于与本轮补丁查询保持相同图像顺序和数值路径。每个 shard 首批检查抽取的 CLS 与官方 `encode_image` 一致。
+
+TRAIN 的 $g,f^a,f^o$ 缓存约1.02GB，另保留可续编的 shards。预留10GB工作空间可容纳全 split 缓存、shards、checkpoint 和预测。程序按512张形成提交单元；编码中断后重复运行同一命令即可复用已完成 shards。
+
+`features_manifest.json` 包含标签轴、split哈希、CLIP身份、模板、查询温度、软件版本与缓存哈希；shard 回执另记录每张源图像的 SHA256。TEST 编码只生成固定特征，训练循环仅使用 TRAIN 标签和 VAL 选模指标。
+
+单步命令也可分别运行：
+
+```bash
+"$CPF_PY" run.py doctor --data-root "$VG_DATA" --checkpoint "$VG_CLIP"
+"$CPF_PY" -m unittest discover -s tests -v
+"$CPF_PY" -u run.py prepare --data-root "$VG_DATA" --checkpoint "$VG_CLIP" \
+  --cache "$VG_CACHE" --device cuda --batch-size 16 --workers 4
+"$CPF_PY" run.py smoke --cache "$VG_CACHE" --out "$VG_WORK/preflight" --device cuda
+"$CPF_PY" run.py baselines --cache "$VG_CACHE" --out "$VG_OUT" --device cuda
+```
+
+## 6 第二步：先跑单 seed 的6组
+
+```bash
+bash scripts/train_matrix.sh pilot
+```
+
+执行顺序为 V0 → V1 → V1L → V2 → V4 → V5，各10 epoch，总60个模型epoch。
+
+首先看同 seed 的三个差分：V1L−V1测局部读出，V2−V1L测视觉门控，V5−V4测视觉伙伴聚合。`summary.json` 自动列出配对增量；`per_pair_gains.csv` 给出各组合无bias准确率及 GT-object 条件属性变化。
+
+只运行一个模型：
+
+```bash
+"$CPF_PY" -u run.py train --cache "$VG_CACHE" --out "$VG_OUT" \
+  --variant V2 --seed 3351 --device cuda
+```
+
+服务器退出会话后继续运行首轮队列：
+
+```bash
+mkdir -p "$VG_WORK/logs"
+nohup bash scripts/train_matrix.sh pilot > "$VG_WORK/logs/pilot_queue.log" 2>&1 &
+echo $!
+tail -f "$VG_WORK/logs/pilot_queue.log"
+```
+
+不要同时启动两份指向同一运行目录的队列。
+
+## 7 第三步：补齐27次正式训练
+
+```bash
+bash scripts/train_matrix.sh full
+```
+
+脚本对已有 checkpoint 自动添加 `--resume`。已完成10轮的组直接重新导出选中权重的评价；未完成组从最后一个完整epoch继续。故先跑pilot再跑full，仍是27次正式模型训练、270个模型epoch。
+
+手动续训：
+
+```bash
+"$CPF_PY" -u run.py train --cache "$VG_CACHE" --out "$VG_OUT" \
+  --variant V5 --seed 3351 --device cuda --resume
+```
+
+checkpoint保存参数、AdamW状态、更新次数、随机状态和完整历史。数据顺序由 seed 与 epoch 独立决定。中断所在的未提交epoch重新执行；若首轮尚未提交，则从相同种子重跑首轮。续训采用原来的10轮总余弦日程。
+
+## 8 选模、评价与结果读取
+
+每轮依据 VAL CW `AUC_native`，严格大于历史最佳值才更新 `best.pt`，相等时保留更早轮次。训练结束只用该权重评价 VAL/TEST CW/OW。
+
+`AUC_native` 复现历史 CPF 的有限扫描，包括正确 unseen 样本差值、减去 $10^{-4}$、约20档取样与bias1000端点。其数值已经与随包保存的历史评价器对照。
+
+`AUC_exact` 扫描全部 seen/unseen 最大分数差的临界事件，并纳入两端。相同临界值的事件同时更新，以事件区间内的分数计算曲线；原始面积乘100。两个AUC口径单独保存，选模只用前者。
+
+VAL CW/OW 分别选择 native 曲线的最佳HM bias，固定用于对应 TEST 设置。主表读取 `HM_at_val_bias`；`HM_oracle_native/exact` 作为曲线诊断保留。
+
+```bash
+# 重评选中的权重。
+"$CPF_PY" run.py evaluate --cache "$VG_CACHE" \
+  --run "$VG_OUT/ut-zap50k/V5/seed3351" --device cuda
+
+# 生成各组均值/样本标准差，以及同seed差分。
+"$CPF_PY" run.py summarize --out "$VG_OUT"
+"$CPF_PY" run.py compare --cache "$VG_CACHE" --out "$VG_OUT" --seeds 3351 3352 3353
+
+# 导出VAL门控、伙伴均值/方差及热图。
+"$CPF_PY" run.py diagnose --cache "$VG_CACHE" \
+  --run "$VG_OUT/ut-zap50k/V5/seed3351" --device cuda
+```
+
+每组产物：
+
+```text
+main/ut-zap50k/V5/seed3351/
+  protocol.json
+  history.json
+  checkpoints/best.pt
+  checkpoints/last.pt
+  metrics.json
+  curves/{val_cw,val_ow,test_cw,test_ow}.json
+  predictions/{val_cw,val_ow,test_cw,test_ow}.npz
+  diagnostics/                 # diagnose生成
+```
+
+逐图预测包含 `image_ids`、`candidate_pairs`、`attribute_truth`、`object_truth`、`log_probabilities`、`probabilities` 和 GT-object 条件 logits。概率在对应候选集上归一化；其余指标包含 pair NLL、pair-macro、条件属性准确率/NLL和四类错误计数。
+
+## 9 敏感性与继续实验
+
+```bash
+bash scripts/sensitivity.sh
+```
+
+新增6次seed3351实验：V2/V5各比较rank16/64，V5比较伙伴温度0.05/0.2。默认rank32和温度0.1的结果复用主矩阵。配置选取依据 VAL CW，再用同一覆盖参数补3352/3353；更改秩或温度时使用相应的独立输出目录。
+
+跨数据集阶段再增加 MIT-States/C-GQA 的 metadata、文本模板与 object 分块实现，沿用本包已验收的数学模块。
+
+## 10 本机验证记录
+
+本机使用隔离的 CPU 测试依赖运行，记录见 [验证记录](验证记录.md)。数学测试涵盖概率与对象边缘、初始D0恢复、显式算子与模式收缩、伙伴与原语读出、JS、9组参数量、共享初始化及完整损失有限差分。流程测试覆盖训练、完整epoch续训、选模、四套导出、VAL bias复用、零样本基线和汇总。
+
+真实图像全集、正式ViT-L/14权重、CUDA训练准确率由服务器命令生成；本机合成数据结果只用于实现验收。

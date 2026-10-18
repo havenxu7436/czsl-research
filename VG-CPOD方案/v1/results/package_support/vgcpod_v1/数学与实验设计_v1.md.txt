@@ -1,0 +1,557 @@
+# VG-CPOD 视觉引导类别低秩算子实验方案
+
+第一版 v1 · 公式优化日期 2026-10-18
+
+目标是在 CLIP 的条件概率框架中，以类别局部补丁驱动低秩组合修正，并完成视觉条件伙伴聚合的独立验证。
+
+## 1 实验定位与本地资产
+
+本方案以冻结的 CLIP ViT-L/14 双编码器为主体，在 UT-Zappos 上完成第一轮机制验证，再迁移至 MIT-States 与 C-GQA。交付内容为数学定义、训练日程、对照矩阵与实现验收规格。
+
+本机已有资产提供以下基础。
+
+| 本地记录 | 本方案的复用内容 |
+|---|---|
+| [冻结 CLIP 探针](C:/Users/llenovo/Documents/ChatGPT/CZSL/前期实验/14-clip-probe/README.md) | ViT-L/14、224px、名称映射、预处理、TRAIN/VAL 图像身份及知识文本 |
+| [条件属性实验](C:/Users/llenovo/Documents/ChatGPT/CZSL/前期实验/12-conditional-pilot/README.md) | GT-object 条件属性诊断、全候选预测导出、CW/OW 评价接口 |
+| [Generic 内容对照](C:/Users/llenovo/Documents/ChatGPT/CZSL/前期实验/13-generic-controls/README.md) | 正确知识、名称、两份固定类别置换的配对比较 |
+| [0601 v2 分析](C:/Users/llenovo/Documents/ChatGPT/CZSL/0601方案/v2/results/seed3351-10epoch-20261015/v2单seed数据分析.md) | 先验开关、动态/静态 head、统一预算、VAL 固定 bias 与 TEST 错误分解 |
+| [现有评价器](C:/Users/llenovo/Documents/ChatGPT/CZSL/src/CPF_fixed/evaluator_ge.py) | split 对应候选集合、seen/unseen 曲线、AUC 与 HM |
+
+0601 v2 的历史模型采用 ViT-B/16 与 GloVe300；本方案重新建立 CLIP 对照组。其 `noise10/30/50` 实际删除部分描述槽位，本文将这类操作记为“描述删除”，将连续随机扰动单独记为“高斯噪声”。
+
+CLIP 沿用本地探针锁定的源码提交 `a1d071733d7111c9c014f024669f959182114e33`，ViT-L/14 权重 SHA256 为 `b8cca3fd41ae0c99ba7e8951adf17d267cdb84cd88be6f7c2e0eca1737a03836`。运行入口的数据根目录由现有 [输入索引](C:/Users/llenovo/Documents/ChatGPT/CZSL/provenance/external_inputs.csv) 恢复。
+
+训练环境沿用归档主线：Python 3.8.18、PyTorch 1.13.1+cu117、torchvision 0.14.1+cu117、NumPy 1.24.4、SciPy 1.10.1。按历史 RTX3090 的单卡队列组织训练，DataLoader workers=4；模型 epoch 数作为统一预算，实际耗时在新运行中记录。
+
+## 2 数据与 CLIP 特征的逐步定义
+
+### 2.1 标签集合和张量轴
+
+设属性集合、物体集合及训练样本为
+
+$$
+\begin{aligned}
+\mathcal{A}&=\{a_1,\ldots,a_M\},\qquad
+\mathcal{O}=\{o_1,\ldots,o_N\},\\
+\mathcal{D}_{\mathrm{tr}}
+&=\{(x_n,i_n,j_n)\}_{n=1}^{n_{\mathrm{tr}}},\\
+\mathcal{C}^s&\subseteq\mathcal{A}\times\mathcal{O},\qquad
+\mathcal{C}_{\mathrm{all}}=\mathcal{A}\times\mathcal{O}.
+\end{aligned}
+$$
+
+UT-Zappos 沿用 `compositional-split-natural`：$M=16$、$N=12$、$|\mathcal{C}^s|=83$、$n_{\mathrm{tr}}=22998$；VAL 共 3214 张，其中 seen/unseen 为 877/2337 张。属性与物体索引由本地 `labels.json` 决定。数学下标 $(i,j)$ 表示“属性、物体”；存储张量采用 $[b,j,i]$，即 batch、object、attribute。
+
+### 2.2 图像编码与补丁投影
+
+输入使用官方 CLIP 的 Resize、CenterCrop、RGB 转换和归一化，分辨率固定为 $224\times224$。第一版使用确定性单视图缓存。
+
+ViT-L/14 的末层视觉序列、冻结投影分别记为
+
+$$
+H(x)\in\mathbb{R}^{257\times1024},\qquad
+P_v\in\mathbb{R}^{1024\times768}.
+$$
+
+定义 $d=768$、$L=256$，以及带数值下界的归一化
+
+$$
+\nu(z)=\frac{z}{\max(\|z\|_2,10^{-8})}.
+$$
+
+全局特征和局部补丁为
+
+$$
+\begin{aligned}
+g(x)&=\nu\!\left(P_v^\top\operatorname{LN}_{\mathrm{post}}(H_0(x))\right)
+\in\mathbb{R}^d,\\
+p_\ell(x)&=\nu\!\left(P_v^\top\operatorname{LN}_{\mathrm{post}}(H_\ell(x))\right)
+\in\mathbb{R}^d,\quad\ell=1,\ldots,L.
+\end{aligned}
+$$
+
+向量取列形式，CLIP 原实现中的行向量右乘投影与此式等价。对补丁应用同一末层归一化与投影，是本方案的局部特征读出定义；CLS 输出与现有 CLIP 图像接口保持一致。视觉 Transformer、投影及文本编码器全部冻结。
+
+先复用已有全局特征。编码时逐批计算补丁与类别查询；UT 的 VG/EU 默认只持久化最终的全局特征和类别查询特征，原始补丁用于可视化或重建查询。原始 TRAIN FP16 补丁占用为
+
+$$
+22998\times256\times768\times2
+\approx9.04\times10^9\ \text{bytes}.
+$$
+
+UT 只保存 $g,f_i^a,f_j^o$ 时，FP16 大小为
+
+$$
+22998\times(1+16+12)\times768\times2
+\approx1.02\times10^9\ \text{bytes}.
+$$
+
+查询只依赖冻结特征与固定名称，因此可在编码阶段预计算。AKTR 的独立 D0 教师只需 $g$，与 VG 结合时再读局部查询。大词表数据按 $L$ 与 $M+N$ 的大小选择保存补丁还是查询；训练时转为 FP32，所有组采用同一缓存精度和图像 ID 映射。
+
+### 2.3 文本原语和组合嵌入
+
+UT 名称使用现有探针的自然语言映射，如 `Patent.Leather` 对应 `patent leather`。三个固定模板为：
+
+- 属性：`a photo of footwear made of {attribute}`。
+- 物体：`a photo of {object}`。
+- 组合：`a photo of {object} made of {attribute}`。
+
+冻结文本编码器 $E_T$，预计算
+
+$$
+\begin{aligned}
+e_i^a&=\nu(E_T(t_i^a)),\qquad
+e_j^o=\nu(E_T(t_j^o)),\\
+e_{ij}^c&=\nu(E_T(t_{ij}^c))\in\mathbb{R}^d.
+\end{aligned}
+$$
+
+全部 $MN=192$ 个组合的名称嵌入由已知原语词表生成。监督标签仅取自 TRAIN。候选 mask 只在损失与评价阶段读取，不进入文本嵌入、知识势或图选择特征。
+
+### 2.4 类别查询补丁
+
+给定单位查询 $e$，定义
+
+$$
+\begin{aligned}
+\alpha_\ell(x;e)
+&=\frac{\exp(e^\top p_\ell(x)/\tau_v)}
+{\sum_{q=1}^{L}\exp(e^\top p_q(x)/\tau_v)},\\
+f(x;e)&=\nu\!\left(\sum_{\ell=1}^{L}\alpha_\ell(x;e)p_\ell(x)\right),\\
+f_j^o(x)&=f(x;e_j^o),\qquad
+f_i^a(x)=f(x;e_i^a),\qquad\tau_v=0.07.
+\end{aligned}
+$$
+
+这些特征可在编码缓存时一并计算。推断时对全部候选类别计算查询，GT-object 只用于训练条件损失和诊断。
+
+## 3 统一的 CLIP 概率基线
+
+### 3.1 名称评分和可训练适配器
+
+固定分类尺度 $\kappa=1/0.05=20$。设 $q=8$，两个低秩适配器为
+
+$$
+A_o=B_oC_o^\top,\qquad
+A_c=B_cC_c^\top,
+\qquad B_o,C_o,B_c,C_c\in\mathbb{R}^{d\times q}.
+$$
+
+其对象与条件属性 logits 定义为
+
+$$
+\begin{aligned}
+O_j(x)&=\kappa g(x)^\top e_j^o+g(x)^\top A_o e_j^o,\\
+U^0_{ij}(x)&=\kappa g(x)^\top e_{ij}^c+g(x)^\top A_c e_{ij}^c.
+\end{aligned}
+$$
+
+$B_o,B_c$ 以标准差 0.02 的高斯初始化，$C_o,C_c$ 初始化为零。这样初始适配器输出为零，且梯度能够先更新 $C_o,C_c$。本方案的新增模块统一接在 $U^0$ 上。
+
+### 3.2 归一化与联合分布
+
+对最终条件 logits $U_{ij}$，先分别归一化：
+
+$$
+\begin{aligned}
+\ell_j^o(x)&=O_j(x)-\operatorname{LSE}_{q=1}^{N}O_q(x),\\
+\ell_{i\mid j}^a(x)&=U_{ij}(x)-\operatorname{LSE}_{p=1}^{M}U_{pj}(x),\\
+S_{ij}(x)&=\ell_j^o(x)+\ell_{i\mid j}^a(x),\\
+P_\theta(a_i,o_j\mid x)&=\exp S_{ij}(x).
+\end{aligned}
+$$
+
+这里 $\operatorname{LSE}(z)=\log\sum_t\exp z_t$。于是
+
+$$
+\sum_{j=1}^{N}\sum_{i=1}^{M}\exp S_{ij}=1,
+\qquad
+\sum_{i=1}^{M}\exp S_{ij}=\exp\ell_j^o.
+$$
+
+训练 pair 损失在 TRAIN 组合上重新归一化，条件属性损失覆盖全部属性：
+
+$$
+\begin{aligned}
+\mathcal{L}_{\mathrm{pair}}(x,i,j)
+&=-S_{ij}(x)+\operatorname{LSE}_{(p,q)\in\mathcal{C}^s}S_{pq}(x),\\
+\mathcal{L}_{\mathrm{cond}}(x,i,j)&=-\ell_{i\mid j}^a(x),\\
+\mathcal{L}_o(x,j)&=-\ell_j^o(x),\\
+\mathcal{L}_{\mathrm{task}}
+&=\frac{1}{|\mathcal{B}|}\sum_{(x,i,j)\in\mathcal{B}}
+\left[\mathcal{L}_{\mathrm{pair}}+0.5\mathcal{L}_{\mathrm{cond}}+0.5\mathcal{L}_o\right].
+\end{aligned}
+$$
+
+“名称 CLIP”使用原始组合余弦评分；“链式零样本”使用 $A_o=A_c=0$ 的上述概率；“D0”训练两个适配器并取 $U=U^0$。三个基准分别报告，用于区分 CLIP 名称能力、概率接口和可训练 head 的贡献。
+
+### 3.3 基础训练参数
+
+| 项目 | 第一版固定值 |
+|---|---|
+| 主数据集 | UT-Zappos，现有 natural split |
+| backbone | CLIP ViT-L/14，224px，双编码器冻结 |
+| batch | 64，最后不足一批保留 |
+| 训练预算 | 每个正式模型 10 epoch，每轮验证一次 |
+| 随机种子 | 3351、3352、3353 |
+| 优化器 | AdamW，$\beta_1=0.9,\beta_2=0.999,\epsilon=10^{-8}$ |
+| 学习率 | 新参数 $10^{-3}$，余弦衰减至 $10^{-5}$ |
+| weight decay | 矩阵参数 $10^{-4}$；偏置与变分尺度参数为 0 |
+| gradient clipping | 全部可训练参数的梯度总范数截至 1 |
+| 精度 | 特征缓存 FP16，数学运算与优化器 FP32 |
+
+给定本批损失 $\mathcal{L}_t$，优化器的具体更新为
+
+$$
+\begin{aligned}
+d_t&=\nabla_\vartheta\mathcal{L}_t,\qquad
+\bar d_t=d_t\min\!\left(1,\frac{1}{\|d_t\|_2+10^{-12}}\right),\\
+m_t&=0.9m_{t-1}+0.1\bar d_t,\\
+v_t&=0.999v_{t-1}+0.001\bar d_t\odot\bar d_t,\\
+\hat m_t&=m_t/(1-0.9^t),\qquad
+\hat v_t=v_t/(1-0.999^t),\\
+\vartheta_t&=(1-\eta_t w_d)\vartheta_{t-1}
+-\eta_t\frac{\hat m_t}{\sqrt{\hat v_t}+10^{-8}},\\
+\eta_t&=10^{-5}+\frac{10^{-3}-10^{-5}}{2}
+\left[1+\cos\!\left(\frac{\pi(t-1)}{T-1}\right)\right].
+\end{aligned}
+$$
+
+$T$ 为该优化阶段的总更新次数。各正式组使用相同 batch 顺序与同种子共享参数初始化；机制对照更换相应模块。
+
+## 4 评估和模型选择
+
+按现有评价器，VAL CW 的候选集为 $\mathcal{C}^s\cup\mathcal{C}_{\mathrm{val}}$，TEST CW 为 $\mathcal{C}^s\cup\mathcal{C}_{\mathrm{test}}$，OW 为 $\mathcal{C}_{\mathrm{all}}$。对候选集 $\mathcal{C}$ 定义
+
+$$
+P_{\mathcal{C}}(i,j\mid x)
+=\frac{\exp S_{ij}(x)}{\sum_{(p,q)\in\mathcal{C}}\exp S_{pq}(x)},
+\qquad(i,j)\in\mathcal{C}.
+$$
+
+seen/unseen 校准使用
+
+$$
+\hat c_b(x)=\underset{(i,j)\in\mathcal{C}}{\arg\max}
+\left[S_{ij}(x)+b\,\mathbf{1}\{(i,j)\notin\mathcal{C}^s\}\right].
+$$
+
+主表沿用评价器的图像级 seen/unseen 准确率 $S(b),U(b)$，以及
+
+$$
+\begin{aligned}
+\operatorname{HM}(b)&=\frac{2S(b)U(b)}{S(b)+U(b)},\\
+\operatorname{AUC}
+&=\sum_{t=1}^{R-1}
+\frac{S_t+S_{t+1}}{2}(U_{t+1}-U_t).
+\end{aligned}
+$$
+
+$S+U=0$ 时 HM 取零；曲线点按 $U$ 递增排序，扫描点与端点沿用原评价器。AUC 报告值为原始面积乘 100。
+
+每组取首次达到最高 VAL CW AUC 的 checkpoint，并用同一权重评价 VAL/TEST CW/OW。点式 HM 的 bias 在对应 VAL 候选设置上选取后固定应用于 TEST；TEST 曲线 AUC 另行完整报告。
+
+同时导出无 bias 的 pair NLL、GT-object 条件属性 NLL/准确率、pair-macro 准确率，以及四类错误：属性错/物体对、属性对/物体错、二者皆错、二者皆对。NLL 使用对应候选集重新归一化后的概率。原生 evaluator 的有限 bias 扫描作为历史可比主指标；另导出全部临界 bias 的精确曲线 AUC，二者分别命名为 `AUC_native` 与 `AUC_exact`，选模统一使用前者。
+
+三 seed 指标报告
+
+$$
+\bar m=\frac{1}{3}\sum_{s=1}^{3}m_s,
+\qquad
+\operatorname{SD}(m)=\sqrt{\frac{1}{2}\sum_{s=1}^{3}(m_s-\bar m)^2}.
+$$
+
+主要结论依据同 seed 的配对增量和其均值，保留每个 seed 的原始读数。
+
+### 4.1 运行目录和产物字段
+
+未来运行目录统一为 `{idea}/{dataset}/{variant}/seed{seed}/`。每次运行保存 `protocol.json`、`history.json`、`checkpoints/best.pt` 和 `metrics.json`，预测保存为 `predictions/val_cw.npz`、`val_ow.npz`、`test_cw.npz`、`test_ow.npz`。
+
+预测文件包含 `image_ids`、`candidate_pairs`、`attribute_truth`、`object_truth`、`log_probabilities` 和无 bias 的 `probabilities`。`protocol.json` 记录原语轴、数据 split 哈希、CLIP 权重哈希、文本/知识哈希、特征缓存哈希、种子、配置和选模规则。缓存阶段另存 `features_manifest.json`，使每张图与缓存行号一一对应。
+
+执行验收顺序固定为：4 张真实 TRAIN 图像的前向与反向检查、一个完整小批次的数学检查、单 seed 正式训练、多 seed 复核、跨数据集扩展。
+
+## 5 核心假设与完整前向流程
+
+VG-CPOD 将组合修正分成属性因子、物体因子和图像条件模式门控。模型使用图像中的类别局部证据选择交互模式，并以视觉条件的伙伴聚合训练属性原语分支。
+
+主假设 H1：类别视觉门控优于相同局部读出下的静态修正场；H2：类别局部伙伴聚合优于全物体均匀聚合。分别用 §8 的 V2−V1L 和 V5−V4 检验；V1L−V1 单独测量局部视觉读出的作用。
+
+### 5.1 由 CLIP 原语生成低秩因子
+
+默认 $r=32$，训练两个线性映射：
+
+$$
+\begin{aligned}
+A_u,A_v&\in\mathbb{R}^{r\times d},\\
+u_i&=A_u e_i^a\in\mathbb{R}^r,\qquad
+v_j=A_v e_j^o\in\mathbb{R}^r.
+\end{aligned}
+$$
+
+采用线性映射，使原语因子与后文的线性算子严格对应。$A_u,A_v$ 的元素独立初始化为 $\mathcal{N}(0,r^{-1/2})$，即标准差为 $r^{-1/4}$。对单位文本向量，有
+
+$$
+\operatorname{Var}(u_{ik})=\operatorname{Var}(v_{jk})=r^{-1/2},
+\qquad
+\mathbb{E}\|u_i\odot v_j\|_2^2=1.
+$$
+
+该初始化使不同秩的初始交互能量保持一致；$W_c$ 仍为零初始化。
+
+### 5.2 类别条件模式门控
+
+训练视觉模式基 $B_{\mathrm{vis}}\in\mathbb{R}^{r\times d}$，以行正交随机矩阵初始化。以 §2.4 的类别查询特征生成门控：
+
+$$
+\begin{aligned}
+t_j(x)&=B_{\mathrm{vis}}f_j^o(x)/\tau_\gamma,\qquad\tau_\gamma=0.1,\\
+\gamma_j(x)&=2\sigma(t_j(x))\in(0,2)^r.
+\end{aligned}
+$$
+
+门控以 1 为中性值，同时允许增强和抑制模式。固定温度 $\tau_\gamma$ 调整单位特征投影后的门控动态范围；所有动态门控组使用相同温度。定义正交正则：
+
+$$
+\mathcal{L}_{\mathrm{orth}}
+=\frac{1}{r^2}
+\|B_{\mathrm{vis}}B_{\mathrm{vis}}^\top-I_r\|_F^2.
+$$
+
+它控制模式基的线性冗余。第一版只使用此项，不引入 nHSIC。
+
+### 5.3 动态低秩修正与条件 logits
+
+训练共享方向矩阵 $W_c\in\mathbb{R}^{d\times r}$，定义
+
+$$
+\begin{aligned}
+h_{ij}(x)&=u_i\odot v_j\odot\gamma_j(x),\\
+\delta_{ij}(x)&=W_ch_{ij}(x)\\
+&=\sum_{k=1}^{r}u_{ik}v_{jk}\gamma_{jk}(x)w_k,\\
+U_{ij}(x)&=U^0_{ij}(x)
++\rho\kappa\,f_j^o(x)^\top\delta_{ij}(x),
+\qquad\rho=0.1.
+\end{aligned}
+$$
+
+$w_k$ 是 $W_c$ 第 $k$ 列。修正项使用线性内积读出；$\delta$ 的量纲为 CLIP 特征偏移，$U$ 的量纲为 logit。$W_c$ 零初始化，保证初始条件 logits 等于 D0；首个任务梯度先更新 $W_c$，随后传播到两个因子映射和视觉门控。
+
+把最终 $U$ 代入 §3.2，即得到完整对象后验、条件属性后验和联合分布。
+
+实际张量计算直接收缩模式维：
+
+$$
+U_{ij}(x)-U^0_{ij}(x)
+=\rho\kappa\sum_{k=1}^{r}
+u_{ik}v_{jk}\gamma_{jk}(x)\,[w_k^\top f_j^o(x)].
+$$
+
+该式与先构造 $\delta$ 再内积完全相同，可省去 batch×object×attribute×$d$ 的中间张量；修正向量只在可视化时按需恢复。
+
+### 5.4 线性算子推导
+
+因为 $u_i=A_ue_i^a$，有
+
+$$
+\begin{aligned}
+\delta_{ij}(x)
+&=W_c\operatorname{diag}(v_j\odot\gamma_j(x))A_ue_i^a,\\
+L_j(x)
+&:=W_c\operatorname{diag}(v_j\odot\gamma_j(x))A_u
+\in\mathbb{R}^{d\times d},\\
+\delta_{ij}(x)&=L_j(x)e_i^a,\qquad
+\operatorname{rank}(L_j(x))\leq r.
+\end{aligned}
+$$
+
+因此类别条件低秩算子在当前参数化下直接成立，无需构造属性锚点伪逆。实现只计算 $r$ 维逐元素乘积和 $W_c$ 映射，保持 $d\times d$ 算子为隐式形式。
+
+固定 $x$ 后，令 $\tilde v_{jk}(x)=v_{jk}\gamma_{jk}(x)$，则
+
+$$
+\Delta(x)=\sum_{k=1}^{r}
+u_{:,k}\circ\tilde v_{:,k}(x)\circ w_k
+\in\mathbb{R}^{M\times N\times d}.
+$$
+
+这是每幅图像对应的三阶 CP 修正场，CP 秩至多为 $r$。这里的低秩结论针对固定图像的三阶张量。
+
+## 6 视觉条件伙伴聚合与类别局部向心目标
+
+### 6.1 按属性查询构建伙伴分布
+
+用冻结的属性查询特征 $f_i^a(x)$ 和物体名称原型计算
+
+$$
+\begin{aligned}
+c_{ij}(x)&=f_i^a(x)^\top e_j^o,\\
+\pi_{ij}(x)&=\frac{\exp(c_{ij}(x)/\tau_\pi)}
+{\sum_{q=1}^{N}\exp(c_{iq}(x)/\tau_\pi)},
+\qquad\tau_\pi=0.1,\\
+\tilde v_i(x)&=\sum_{j=1}^{N}\pi_{ij}(x)v_j.
+\end{aligned}
+$$
+
+$\pi$ 是由冻结 CLIP 视觉证据确定的概率分布；梯度通过聚合结果进入 $v_j$。所有物体原语参与聚合，包括当前属性在 TRAIN 中没有配对过的物体。
+
+### 6.2 属性原语分支
+
+训练 $W_a\in\mathbb{R}^{d\times r}$，零初始化，定义
+
+$$
+\begin{aligned}
+\delta_i^a(x)&=W_a(u_i\odot\tilde v_i(x)),\\
+R_i(x)&=\kappa g(x)^\top e_i^a
++\rho_a\kappa f_i^a(x)^\top\delta_i^a(x),
+\qquad\rho_a=0.1,\\
+p_i^{\mathrm{prim}}(x)&=\operatorname{softmax}_i R_i(x),\\
+\mathcal{L}_{\mathrm{prim}}
+&=-\frac{1}{|\mathcal{B}|}\sum_{(x,i,j)\in\mathcal{B}}
+\log p_i^{\mathrm{prim}}(x).
+\end{aligned}
+$$
+
+联合分布给出的属性边缘为
+
+$$
+p_i^{\mathrm{joint}}(x)
+=\sum_{j=1}^{N}\exp S_{ij}(x).
+$$
+
+两个属性读出的向心目标定义为对称 JS 散度：
+
+$$
+\begin{aligned}
+m_i(x)&=\tfrac12\bigl(p_i^{\mathrm{prim}}(x)+p_i^{\mathrm{joint}}(x)\bigr),\\
+\mathcal{L}_{\mathrm{cent}}
+&=\frac{1}{2|\mathcal{B}|}\sum_{x\in\mathcal{B}}\sum_{i=1}^{M}
+\left[
+p_i^{\mathrm{prim}}\log\frac{p_i^{\mathrm{prim}}}{m_i}
++p_i^{\mathrm{joint}}\log\frac{p_i^{\mathrm{joint}}}{m_i}
+\right].
+\end{aligned}
+$$
+
+两侧均参与梯度更新；$\mathcal{L}_{\mathrm{prim}}$ 提供真实属性标签锚点。该目标把类别局部伙伴聚合与联合预测绑定在一起。
+
+### 6.3 完整训练目标
+
+$$
+\mathcal{L}_{\mathrm{VG}}
+=\mathcal{L}_{\mathrm{task}}
++0.2\mathcal{L}_{\mathrm{prim}}
++0.1\mathcal{L}_{\mathrm{cent}}
++10^{-3}\mathcal{L}_{\mathrm{orth}}.
+$$
+
+可训练参数为 $B_o,C_o,B_c,C_c,A_u,A_v,B_{\mathrm{vis}},W_c,W_a$。默认矩阵规模为
+
+$$
+4dq+5dr
+=4\times768\times8+5\times768\times32
+=147456.
+$$
+
+该计数包括两个基础适配器、三个 $r\times d$ 因子/模式映射，以及两个 $d\times r$ 方向矩阵；全部映射均无偏置。
+
+## 7 梯度推导与单批计算顺序
+
+### 7.1 关键梯度
+
+对任一标量损失 $\mathcal{L}$，记 $a_{ij}=\partial\mathcal{L}/\partial U_{ij}$，则新增组合分支有
+
+$$
+\begin{aligned}
+\frac{\partial\mathcal{L}}{\partial\delta_{ij}}
+&=a_{ij}\rho\kappa f_j^o,\\
+\frac{\partial\mathcal{L}}{\partial W_c}
+&=\sum_{x,i,j}a_{ij}\rho\kappa f_j^o h_{ij}^\top,\\
+\left.\frac{\partial\mathcal{L}}{\partial u_i}\right|_{ij}
+&=a_{ij}\rho\kappa(W_c^\top f_j^o)\odot v_j\odot\gamma_j,\\
+\left.\frac{\partial\mathcal{L}}{\partial\gamma_j}\right|_{ij}
+&=a_{ij}\rho\kappa(W_c^\top f_j^o)\odot u_i\odot v_j,\\
+\frac{\partial\gamma_j}{\partial t_j}
+&=\operatorname{diag}\!\left(2\sigma(t_j)\odot[1-\sigma(t_j)]\right),\\
+\nabla_{B_{\mathrm{vis}}}\mathcal{L}_{\mathrm{orth}}
+&=\frac{4}{r^2}(B_{\mathrm{vis}}B_{\mathrm{vis}}^\top-I_r)B_{\mathrm{vis}}.
+\end{aligned}
+$$
+
+上式按当前分支计算；$t_j$ 对 $B_{\mathrm{vis}}$ 的链式导数另含 $1/\tau_\gamma$。共享因子还接收属性原语分支的梯度。对 $u_i=A_ue_i^a$，再应用外积链式法则 $\nabla_{A_u}\mathcal{L}=\sum_i(\nabla_{u_i}\mathcal{L})(e_i^a)^\top$。
+
+### 7.2 单批执行步骤
+
+1. 读取 $g,p_\ell$ 与标签；加载冻结文本表。
+2. 计算全部 $f_j^o,f_i^a$，或读取其冻结缓存。
+3. 计算 $O,U^0,u,v,\gamma$；形成 $\delta$ 与最终 $U$。
+4. 计算 $\pi,\tilde v,R,p^{\mathrm{prim}}$。
+5. 在完整 $N\times M$ 网格上计算 $S$ 和 $p^{\mathrm{joint}}$。
+6. 计算四项损失，按 §3.3 更新可训练参数。
+7. 累积损失、梯度范数、门控均值/方差及伙伴分布熵。
+
+推断执行步骤 1–3 和联合归一化，随后按候选集合抽取分数。属性原语分支用于训练与诊断，主预测读取联合分布。
+
+## 8 实验矩阵与执行日程
+
+### 8.1 主矩阵
+
+| 编号 | 模型 | 精确定义 | 主要比较 |
+|---|---|---|---|
+| V0 | D0 | $U=U^0$ | 统一 CLIP head |
+| V1 | 静态场＋全局读出 | $\gamma_j=\mathbf{1}_r$，修正项由 $g$ 读出；关闭 §6 | 静态修正场基线 |
+| V1L | 静态场＋局部读出 | $\gamma_j=\mathbf{1}_r$，修正项由 $f_j^o$ 读出；关闭 §6 | V1L−V1：局部读出 |
+| V2 | 类别视觉 CP | 使用 $f_j^o$ 的门控与读出；关闭 §6 | V2−V1L：视觉门控 |
+| V3 | 全局视觉 CP | 将 V2 中所有 $f_j^o$ 替换为 $g$ | V2−V3：类别局部证据 |
+| V4 | 视觉 CP＋均匀 CR | 使用 §6，但 $\pi_{ij}=1/N$ | 全局伙伴均值 |
+| V5 | VG-CPOD 完整版 | §5–§6 完整定义 | V5−V4：局部聚合；V5−V2：CR |
+| V6 | 图像错配门控 | V2 的 $\gamma_j(x)$ 改用同批循环错配图像，读出仍用本图 | 视觉证据对应关系 |
+| V7 | 去正交项 | V5 中正交系数为零 | 模式冗余约束 |
+
+9 组 × 3 seed × 10 epoch，共 27 次正式训练、270 个模型 epoch。名称 CLIP 与链式零样本只需编码和评价。V0 与其他方案的同定义同 seed D0 共享已完成结果。
+
+### 8.2 执行顺序
+
+1. **资产阶段：** 核对 split、CLIP 权重、原语文本；生成局部特征缓存与轴映射。
+2. **公式验收阶段：** 完成 §9 的数值验收，固定配置。
+3. **UT 单 seed：** seed3351 依次执行 V0、V1、V1L、V2–V7，各 10 epoch，输出四套评价。
+4. **UT 多 seed：** 用完全相同配置补 seed3352、3353。
+5. **敏感性：** 对 V2/V5 在 seed3351 比较 $r\in\{16,64\}$，以及 V5 的 $\tau_\pi\in\{0.05,0.2\}$；选项取 VAL CW AUC 最高者，再补其余 seed。
+6. **跨数据集：** 在 MIT-States、C-GQA 重建文本模板和标签轴，运行 V0/V1/V1L/V2/V5 三 seed；backbone、秩和损失系数沿用 UT 选择。
+
+MIT-States/C-GQA 的组合模板改为 `a photo of a {attribute} {object}`，属性模板改为 `a photo of something {attribute}`。按 object 分块 32 个计算全部候选，最后统一归一化；分块不改变数学候选集。
+
+## 9 公式验收与结果交付规格
+
+| 验收项 | 数学标准 |
+|---|---|
+| 概率归一化 | 完整网格概率和误差 $<10^{-5}$；对象边缘误差 $<10^{-5}$ |
+| 零修正恢复 | $W_c=0$ 时 $U-U^0$ 最大绝对值 $<10^{-6}$ |
+| 静态极限 | $\gamma=\mathbf{1}$ 时动态公式与静态 CP 一致，误差 $<10^{-6}$ |
+| 算子等价 | 随机取 $i,j,x$，比较 $L_j(x)e_i^a$ 与逐元素实现，误差 $<10^{-5}$ |
+| 伙伴分布 | $\sum_j\pi_{ij}=1$，$\pi_{ij}\geq0$；均匀设置恢复全局均值 |
+| JS | 同分布时为 0，取值在 $[0,\log2]$ 内 |
+| 梯度 | FP64 中心差分步长 $10^{-5}$；非零分量相对误差 $<10^{-4}$ |
+| 初始化 | 首批 $W_c$ 梯度非零；更新后 $A_u,A_v,B_{\mathrm{vis}}$ 获得任务梯度 |
+
+逐组保存配置、参数量、选中轮次、四套 AUC/HM、无 bias NLL、逐图预测及误差类别。机制图包括门控热图、属性伙伴分布、V2−V1L 与 V1L−V1 的逐组合增益，以及 V5−V4 的条件属性变化。
+
+主结论依次回答：视觉条件低秩交互是否带来增量；增量来自类别局部补丁还是全局图像；伙伴聚合是否改善未见组合；模式正交约束是否产生可重复贡献。全部结论对应矩阵中的固定差分。
+
+## 10 参考依据
+
+- [CLIP 原论文](https://cdn.openai.com/papers/Learning_Transferable_Visual_Models_From_Natural_Language_Supervision.pdf)：双编码器与余弦对齐。
+- [CLIP 官方模型定义](https://github.com/openai/CLIP/blob/main/clip/model.py)：视觉序列、末层归一化、图像/文本投影。
+- [CPF 原论文](https://openaccess.thecvf.com/content/ICCV2025/html/Wu_A_Conditional_Probability_Framework_for_Compositional_Zero-shot_Learning_ICCV_2025_paper.html)：CZSL 的对象—条件属性建模背景。
+
+本文 §5–§9 给出 VG-CPOD 第一版的具体数学模型与实验设计。
+
+
+## 11 与总方案的对应及组合接口
+
+本方案落实总方案的“类别视觉补丁—模式门控—CP 修正场—低秩算子”主线，以及类别局部伙伴聚合。式 $L_j(x)=W_c\operatorname{diag}(v_j\odot\gamma_j(x))A_u$ 是原总方案 $\Theta$ 的显式可学习实例。
+
+总方案中的“向心”在这里具体化为原语属性分布与联合属性边缘之间的 JS 目标，属于可执行的分布一致性实现。静态场和动态场均使用同样的条件归一化。
+
+与 AKTR 组合时，仅在条件 logits 上再加入冻结的 $\lambda_K\Pi_{ij}^\omega$；先分别完成单模块矩阵，再在同一初始化与预算下比较 D0、VG、AKTR、VG＋AKTR。与 EU-VLRF 组合时，使用该方案 §9.4 的门控均值与协方差公式。
