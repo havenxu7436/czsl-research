@@ -133,7 +133,8 @@ def check():
     manifest = read(ROOT / mapping['release_manifest.json'])['files_sha256']
     if set(mapping) != set(manifest) | {'release_manifest.json'}:
         raise ValueError('Incomplete release mapping')
-    records = [r for r in read(ROOT / 'provenance/layout.json')['files'] if r['stage'] == ARCHIVE_STAGE]
+    records = [r for r in read(ROOT / 'provenance/layout.json')['files']
+               if r['stage'] == ARCHIVE_STAGE and r['kind'] == 'vgcpod_v1_release_member']
     if len(records) != len(mapping):
         raise ValueError('Layout count differs')
     for r in records:
@@ -152,9 +153,11 @@ def check():
         for name, target in mapping.items():
             if z.read(PACKAGE + '/' + name) != (ROOT / target).read_bytes():
                 raise ValueError('Deployment member differs: ' + name)
+    inputs = read(ROOT / STAGE / 'inputs.json')
     result = {'passed': True, 'line': LINE, 'stage': 'v1', 'release_members': len(mapping),
               'manifest_hashes_verified': len(manifest), 'byte_identity_preserved': True,
-              'formal_training_results_included': False, 'training_started': False}
+              'formal_training_results_included': inputs.get('formal_training_results_included', False),
+              'completed_runs': inputs.get('completed_runs', 0), 'training_started': False}
     return result
 
 

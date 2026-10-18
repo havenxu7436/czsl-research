@@ -105,6 +105,18 @@
       "language": "bash",
       "text": "python tools/verify_release.py",
       "template_paths": true
+    },
+    {
+      "source": "VG-CPOD方案/v1/results/ut-zap50k-3seeds-20261018/README.md",
+      "language": "bash",
+      "text": "git lfs pull\npython tools/import_vgcpod_results_20261018.py --check\npython tools/import_vgcpod_results_20261018.py --restore /srv/vgcpod-results-20261018",
+      "template_paths": true
+    },
+    {
+      "source": "VG-CPOD方案/v1/results/ut-zap50k-3seeds-20261018/analysis/README.md",
+      "language": "bash",
+      "text": "cd /srv/vgcpod-results-20261018\npython analysis_20261018/analyze_results.py\npython analysis_20261018/detail_breakdown.py\npython analysis_20261018/build_report.py",
+      "template_paths": true
     }
   ],
   "variables": {

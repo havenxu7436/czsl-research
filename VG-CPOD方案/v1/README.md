@@ -2,13 +2,13 @@
 
 **[完整公式及核心代码](VG-CPOD公式及代码v1.md)** · [数学与实验设计](数学与实验设计_v1.md) 
 
-状态：实现、配置和本机CPU验收已归档。12项检查覆盖数学恒等式、合成缓存的9组训练与四套评价、续训及诊断；本路线未归档服务器正式训练精度。
+状态：三seed主矩阵27组与敏感性6组均完成10 epochs，已归档两组冻结基线、140份评价、66份best/last权重和完整预测。**[正式结果](results/ut-zap50k-3seeds-20261018/README.md)** · **[完整分析](results/ut-zap50k-3seeds-20261018/analysis/分析报告.md)**。原有12项CPU检查、冻结发布包与公式审计继续保留。
 
 ## 实验设置
 
 - 冻结CLIP ViT-L/14图像与文本双编码器，224px，768维共同空间。
 - UT-Zappos natural split；全局图像与类别查询特征统一缓存。
-- V0、V1、V1L、V2–V7；正式计划27次训练、每组10 epoch。
+- V0、V1、V1L、V2–V7；seed3351/3352/3353共27次正式训练，每组10 epoch；另完成6组seed3351敏感性训练。
 - 首次严格最大VAL CW `AUC_native`选模；同一权重评价VAL/TEST CW/OW，分别保存`AUC_exact`。
 
 ## 分区
@@ -23,7 +23,7 @@ VG-CPOD方案/
     服务器实践_v1.md
     code/          # 模型、缓存、训练、评价、测试、CLIP源码和审计算子
     configs/       # 默认配置、9组预览、矩阵、名称与输入哈希
-    results/       # CPU记录、公式审计、原始文档、部署ZIP与成员映射
+    results/       # 正式结果、权重、预测、分析、CPU记录、公式审计、部署包与映射
     inputs.json
     runbook.json
     external_inputs.json
@@ -75,6 +75,8 @@ bash scripts/train_matrix.sh pilot
 
 ## 结果与校验
 
+- [三seed正式结果与逐运行指标](results/ut-zap50k-3seeds-20261018/README.md)、[七图分析报告](results/ut-zap50k-3seeds-20261018/analysis/分析报告.md)与[复算说明](results/ut-zap50k-3seeds-20261018/analysis/README.md)
+- [服务器原始导出包](results/ut-zap50k-3seeds-20261018/archives/VG-CPOD_v1_results_20261018.tar.gz)与[完整成员映射](results/ut-zap50k-3seeds-20261018/export_member_map.json)
 - [结果索引](results/README.md)与[CPU验证说明](results/验证记录.md)
 - [12项CPU测试日志](results/local-validation-20261018/tests_cpu.log)和[检查记录](results/local-validation-20261018/result.json)
 - [公式梯度审计](results/formula-audit-20261018/derivative_qa.json)与[排版截图](results/formula-audit-20261018/screenshots/)
@@ -84,6 +86,7 @@ bash scripts/train_matrix.sh pilot
 ```bash
 python tools/register_vgcpod_v1.py --check
 python tools/register_vgcpod_v1.py --restore-check
+python tools/import_vgcpod_results_20261018.py --check
 ```
 
 名称CLIP、链式零样本、D0和完整VG-CPOD各自保持评分定义；本机合成数据检查不作为UT正式精度。
