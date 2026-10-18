@@ -55,3 +55,7 @@ python tools/reproduce.py doctor --line 0601方案 --stage 02 --project /srv/czs
 记录字段包括 dataset、split、seed、epoch、知识哈希、选模规则与 checkpoint 身份。
 0601方案 01、02按首次严格最大 VAL CW AUC 选模，同一权重评价 VAL/TEST CW/OW。
 分数、指标、逐轮日志和权重身份由各阶段的结果索引关联。
+
+## VG-CPOD独立路线
+
+[VG-CPOD v1](../VG-CPOD方案/v1/README.md)使用冻结CLIP ViT-L/14双编码器，运行输入为UT原图/split与CLIP权重；不需要GloVe或CPF checkpoint。`VG_DATA`、`VG_CLIP`、`VG_WORK`、`VG_GPU`分别指定数据、权重、输出和物理GPU。版本页提供独立materialize与训练入口，现有前两条路线的恢复方式不变。
