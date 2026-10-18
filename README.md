@@ -2,6 +2,8 @@
 
 按实验依赖顺序组织 CPF、知识增强、条件属性、0601评分接口与CLIP视觉分解的代码、配置和结果。
 
+最新归档（2026-10-18）：[VG-CPOD v1 三 seed 正式结果](VG-CPOD方案/v1/results/ut-zap50k-3seeds-20261018/README.md)，主矩阵27组、敏感性6组、两组冻结基线，共140份评价；包含权重、逐图预测、图像与[完整分析](VG-CPOD方案/v1/results/ut-zap50k-3seeds-20261018/analysis/分析报告.md)。
+
 ## 目录
 
 ```text
