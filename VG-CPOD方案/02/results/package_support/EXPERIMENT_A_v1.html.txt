@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>VG-CPOD v1 A组实验实施计划</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+  <link href="data:text/css;charset=utf-8,html%20%7B%20color%3A%20%23203043%3B%20background%3A%20%23f3f6fa%3B%20%7D%0Abody%20%7B%20max%2Dwidth%3A%201240px%3B%20margin%3A%2036px%20auto%3B%20padding%3A%2042px%2052px%3B%20background%3A%20%23fff%3B%20border%3A%201px%20solid%20%23e0e6ef%3B%20border%2Dradius%3A%2012px%3B%20font%3A%2016px%2F1%2E85%20%27Microsoft%20YaHei%27%2C%20%27Noto%20Sans%20CJK%20SC%27%2C%20sans%2Dserif%3B%20%7D%0Ah1%20%7B%20font%2Dsize%3A%202em%3B%20line%2Dheight%3A%201%2E35%3B%20color%3A%20%23173b58%3B%20%7D%0Ah2%20%7B%20margin%2Dtop%3A%202%2E3em%3B%20border%2Dbottom%3A%202px%20solid%20%23e5edf4%3B%20padding%2Dbottom%3A%20%2E3em%3B%20color%3A%20%23173b58%3B%20%7D%0Ah3%20%7B%20margin%2Dtop%3A%201%2E7em%3B%20color%3A%20%23245c78%3B%20%7D%0Ap%2C%20ul%2C%20ol%20%7B%20margin%3A%201em%200%3B%20%7D%0Atable%20%7B%20display%3A%20table%3B%20border%2Dcollapse%3A%20collapse%3B%20font%2Dsize%3A%2013px%3B%20line%2Dheight%3A%201%2E65%3B%20width%3A%20100%25%20%21important%3B%20margin%3A%201%2E4em%200%3B%20%7D%0Ath%2C%20td%20%7B%20border%3A%201px%20solid%20%23dce4ed%3B%20padding%3A%208px%2010px%3B%20text%2Dalign%3A%20left%3B%20vertical%2Dalign%3A%20top%3B%20%7D%0Ath%20%7B%20background%3A%20%23eaf1f7%3B%20font%2Dweight%3A%20600%3B%20white%2Dspace%3A%20nowrap%3B%20%7D%0Atbody%20tr%3Anth%2Dchild%28even%29%20%7B%20background%3A%20%23f7f9fc%3B%20%7D%0Aimg%20%7B%20max%2Dwidth%3A%20100%25%3B%20height%3A%20auto%3B%20%7D%0Afigure%20%7B%20margin%3A%201%2E5em%200%3B%20%7D%0Afigcaption%20%7B%20color%3A%20%23657185%3B%20font%2Dsize%3A%2013px%3B%20%7D%0Acode%20%7B%20background%3A%20%23edf2f7%3B%20border%2Dradius%3A%203px%3B%20padding%3A%201px%204px%3B%20overflow%2Dwrap%3A%20anywhere%3B%20%7D%0Apre%20%7B%20padding%3A%2015px%3B%20background%3A%20%23edf2f7%3B%20overflow%2Dx%3A%20auto%3B%20%7D%0Aa%20%7B%20color%3A%20%2317658a%3B%20text%2Dunderline%2Doffset%3A%203px%3B%20%7D%0Amath%5Bdisplay%3D%27block%27%5D%20%7B%20margin%3A%201%2E4em%200%3B%20overflow%2Dx%3A%20auto%3B%20%7D%0A%40media%20%28max%2Dwidth%3A%20800px%29%20%7B%20body%20%7B%20padding%3A%2020px%3B%20margin%3A%200%3B%20border%3A%200%3B%20border%2Dradius%3A%200%3B%20%7D%20table%20%7B%20display%3A%20block%3B%20overflow%2Dx%3A%20auto%3B%20font%2Dsize%3A%2012px%3B%20%7D%20%7D%0A" rel="stylesheet">
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="vg-cpod-方案-v1下一轮首先执行的-a-组实验">VG-CPOD 方案 v1：下一轮首先执行的 A 组实验</h1>
+<p>实施日期：2026-10-19。主要框架为冻结 CLIP ViT-L/14，沿用已生成的 UT-Zappos 图像、属性查询和物体查询特征。先运行 A1–A6，seed3351，共 60 个模型 epoch。三张 GPU 各串行运行两个独立模型。</p>
+<p>这组实验回答：降低 CP 更新速度能否改善泛化，减弱已见组合支持压力能否恢复未见属性识别，以及两项调整能否叠加。完成后再决定 B 组的训练设置。</p>
+<h2 id="具体实验表">1. 具体实验表</h2>
+<table>
+<thead>
+<tr class="header">
+<th>编号</th>
+<th>模型</th>
+<th>适配器 LR：起点→终点</th>
+<th>CP LR：起点→终点</th>
+<th style="text-align: right;">β</th>
+<th>物理 GPU / 顺序</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>A1</td>
+<td>V1：静态全局 CP</td>
+<td>1e-3→1e-5</td>
+<td>3e-4→3e-6</td>
+<td style="text-align: right;">0.5</td>
+<td>GPU1 第一组</td>
+</tr>
+<tr class="even">
+<td>A2</td>
+<td>V1：静态全局 CP</td>
+<td>1e-3→1e-5</td>
+<td>1e-4→1e-6</td>
+<td style="text-align: right;">0.5</td>
+<td>GPU1 第二组</td>
+</tr>
+<tr class="odd">
+<td>A3</td>
+<td>V1：静态全局 CP</td>
+<td>1e-3→1e-5</td>
+<td>1e-3→1e-5</td>
+<td style="text-align: right;">0.25</td>
+<td>GPU2 第一组</td>
+</tr>
+<tr class="even">
+<td>A4</td>
+<td>V1：静态全局 CP</td>
+<td>1e-3→1e-5</td>
+<td>1e-3→1e-5</td>
+<td style="text-align: right;">0.1</td>
+<td>GPU2 第二组</td>
+</tr>
+<tr class="odd">
+<td>A5</td>
+<td>V1：静态全局 CP</td>
+<td>1e-3→1e-5</td>
+<td>3e-4→3e-6</td>
+<td style="text-align: right;">0.1</td>
+<td>GPU3 第二组</td>
+</tr>
+<tr class="even">
+<td>A6</td>
+<td>V0：D0 对照</td>
+<td>1e-3→1e-5</td>
+<td>不启用 CP</td>
+<td style="text-align: right;">0.1</td>
+<td>GPU3 第一组</td>
+</tr>
+</tbody>
+</table>
+<p>所有组使用 batch64、rank32、adapter rank8、10 epochs、相同 seed3351 和原始数据划分；ρ=0.1、κ=20、weight decay=1e-4、gradient clip=1。原 V1/seed3351 和原 D0/seed3351 为现成参考，数值随代码包保存。</p>
+<p>A1/A2 与原 V1 比学习率；A3/A4 与原 V1 比任务损失；A5 与 A1/A4 比联合调整；A4/A5 与 A6 比相同 β 下的 CP 增量。配置均从相同初始化重新训练，逐步恢复仅用于同一实验中断后的续训。</p>
+<h2 id="本次公式改动">2. 本次公式改动</h2>
+<p>前向仍为原 V1 的全局静态修正：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right"><msub><mi>u</mi><mi>i</mi></msub></mtd><mtd columnalign="left"><mo>=</mo><msub><mi>A</mi><mi>u</mi></msub><msubsup><mi>e</mi><mi>i</mi><mi>a</mi></msubsup><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>v</mi><mi>j</mi></msub><mo>=</mo><msub><mi>A</mi><mi>v</mi></msub><msubsup><mi>e</mi><mi>j</mi><mi>o</mi></msubsup><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><mi>Δ</mi><msub><mi>U</mi><mrow><mi>b</mi><mi>j</mi><mi>i</mi></mrow></msub></mtd><mtd columnalign="left"><mo>=</mo><mi>ρ</mi><mi>κ</mi><mspace width="0.167em"></mspace><msubsup><mi>g</mi><mi>b</mi><mi>⊤</mi></msubsup><msub><mi>W</mi><mi>c</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>u</mi><mi>i</mi></msub><mo>⊙</mo><msub><mi>v</mi><mi>j</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><mi>P</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>a</mi><mi>i</mi></msub><mo>,</mo><msub><mi>o</mi><mi>j</mi></msub><mo>∣</mo><msub><mi>x</mi><mi>b</mi></msub><mo stretchy="false" form="postfix">)</mo></mtd><mtd columnalign="left"><mo>=</mo><mi>P</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>o</mi><mi>j</mi></msub><mo>∣</mo><msub><mi>x</mi><mi>b</mi></msub><mo stretchy="false" form="postfix">)</mo><mi>P</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>a</mi><mi>i</mi></msub><mo>∣</mo><msub><mi>o</mi><mi>j</mi></msub><mo>,</mo><msub><mi>x</mi><mi>b</mi></msub><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">
+\begin{aligned}
+u_i&amp;=A_ue_i^a,\qquad v_j=A_ve_j^o,\\
+\Delta U_{bji}&amp;=\rho\kappa\,g_b^\top W_c(u_i\odot v_j),\\
+P(a_i,o_j\mid x_b)&amp;=P(o_j\mid x_b)P(a_i\mid o_j,x_b).
+\end{aligned}
+</annotation></semantics></math></p>
+<p>定义训练组合概率质量与支持损失：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right"><msub><mi>Z</mi><mi>s</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mtd><mtd columnalign="left"><mo>=</mo><munder><mo>∑</mo><mrow><mo stretchy="false" form="prefix">(</mo><mi>a</mi><mo>,</mo><mi>o</mi><mo stretchy="false" form="postfix">)</mo><mo>∈</mo><msup><mstyle mathvariant="script"><mi>𝒞</mi></mstyle><mi>s</mi></msup></mrow></munder><mi>P</mi><mo stretchy="false" form="prefix">(</mo><mi>a</mi><mo>,</mo><mi>o</mi><mo>∣</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><msub><mi>ℓ</mi><mstyle mathvariant="normal"><mi>s</mi><mi>u</mi><mi>p</mi><mi>p</mi><mi>o</mi><mi>r</mi><mi>t</mi></mstyle></msub></mtd><mtd columnalign="left"><mo>=</mo><mo>−</mo><mo>log</mo><msub><mi>Z</mi><mi>s</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><msub><mi>ℓ</mi><mstyle mathvariant="normal"><mi>p</mi><mi>a</mi><mi>i</mi><mi>r</mi></mstyle></msub></mtd><mtd columnalign="left"><mo>=</mo><mo>−</mo><mo>log</mo><mi>P</mi><mo stretchy="false" form="prefix">(</mo><mi>y</mi><mo>∣</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mo>log</mo><msub><mi>Z</mi><mi>s</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><msub><mi>ℓ</mi><mstyle mathvariant="normal"><mi>c</mi><mi>o</mi><mi>n</mi><mi>d</mi></mstyle></msub><mo>+</mo><msub><mi>ℓ</mi><mi>o</mi></msub></mtd><mtd columnalign="left"><mo>=</mo><mo>−</mo><mo>log</mo><mi>P</mi><mo stretchy="false" form="prefix">(</mo><mi>y</mi><mo>∣</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">
+\begin{aligned}
+Z_s(x)&amp;=\sum_{(a,o)\in\mathcal{C}^s}P(a,o\mid x),\\
+\ell_{\mathrm{support}}&amp;=-\log Z_s(x),\\
+\ell_{\mathrm{pair}}&amp;=-\log P(y\mid x)+\log Z_s(x),\\
+\ell_{\mathrm{cond}}+\ell_o&amp;=-\log P(y\mid x).
+\end{aligned}
+</annotation></semantics></math></p>
+<p>将任务损失改为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right"><msub><mi>ℓ</mi><mstyle mathvariant="normal"><mi>t</mi><mi>a</mi><mi>s</mi><mi>k</mi></mstyle></msub><mo stretchy="false" form="prefix">(</mo><mi>β</mi><mo stretchy="false" form="postfix">)</mo></mtd><mtd columnalign="left"><mo>=</mo><mfrac><mn>1.5</mn><mrow><mn>1</mn><mo>+</mo><mi>β</mi></mrow></mfrac><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>ℓ</mi><mstyle mathvariant="normal"><mi>p</mi><mi>a</mi><mi>i</mi><mi>r</mi></mstyle></msub><mo>+</mo><mi>β</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>ℓ</mi><mstyle mathvariant="normal"><mi>c</mi><mi>o</mi><mi>n</mi><mi>d</mi></mstyle></msub><mo>+</mo><msub><mi>ℓ</mi><mi>o</mi></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="true" form="postfix">]</mo></mrow></mtd></mtr><mtr><mtd columnalign="right"></mtd><mtd columnalign="left"><mo>=</mo><mn>1.5</mn><msub><mi>ℓ</mi><mstyle mathvariant="normal"><mi>p</mi><mi>a</mi><mi>i</mi><mi>r</mi></mstyle></msub><mo>+</mo><mfrac><mrow><mn>1.5</mn><mi>β</mi></mrow><mrow><mn>1</mn><mo>+</mo><mi>β</mi></mrow></mfrac><msub><mi>ℓ</mi><mstyle mathvariant="normal"><mi>s</mi><mi>u</mi><mi>p</mi><mi>p</mi><mi>o</mi><mi>r</mi><mi>t</mi></mstyle></msub><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">
+\begin{aligned}
+\ell_{\mathrm{task}}(\beta)
+&amp;=\frac{1.5}{1+\beta}
+\left[\ell_{\mathrm{pair}}+\beta(\ell_{\mathrm{cond}}+\ell_o)\right]\\
+&amp;=1.5\ell_{\mathrm{pair}}
++\frac{1.5\beta}{1+\beta}\ell_{\mathrm{support}}.
+\end{aligned}
+</annotation></semantics></math></p>
+<p>β=0.5 精确恢复原任务损失；β=0.25、0.1 分别把支持项系数从 0.5 降至 0.3、0.13636，同时保持组合内排序项系数 1.5。代码对 β=0.5 保留原运算顺序，方便直接比较。</p>
+<p>适配器与 CP 的学习率共享原十轮余弦进程，使用固定比例：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right"><msub><mi>η</mi><mi>t</mi></msub></mtd><mtd columnalign="left"><mo>=</mo><msub><mi>η</mi><mo>min</mo></msub><mo>+</mo><mfrac><mrow><msub><mi>η</mi><mo>max</mo></msub><mo>−</mo><msub><mi>η</mi><mo>min</mo></msub></mrow><mn>2</mn></mfrac><mrow><mo stretchy="true" form="prefix">[</mo><mn>1</mn><mo>+</mo><mo>cos</mo><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mrow><mi>π</mi><mi>t</mi></mrow><mrow><mi>T</mi><mo>−</mo><mn>1</mn></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo><mspace width="1.0em"></mspace><mi>t</mi><mo>=</mo><mn>0</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>T</mi><mo>−</mo><mn>1</mn><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><msubsup><mi>η</mi><mi>t</mi><mstyle mathvariant="normal"><mi>a</mi><mi>d</mi><mi>a</mi><mi>p</mi><mi>t</mi><mi>e</mi><mi>r</mi></mstyle></msubsup></mtd><mtd columnalign="left"><mo>=</mo><msub><mi>η</mi><mi>t</mi></msub><mo>,</mo><mspace width="2.0em"></mspace><msubsup><mi>η</mi><mi>t</mi><mstyle mathvariant="normal"><mi>C</mi><mi>P</mi></mstyle></msubsup><mo>=</mo><msub><mi>s</mi><mstyle mathvariant="normal"><mi>C</mi><mi>P</mi></mstyle></msub><msub><mi>η</mi><mi>t</mi></msub><mo>,</mo><mspace width="1.0em"></mspace><msub><mi>s</mi><mstyle mathvariant="normal"><mi>C</mi><mi>P</mi></mstyle></msub><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo>,</mo><mn>0.3</mn><mo>,</mo><mn>0.1</mn><mo stretchy="false" form="postfix">}</mo><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">
+\begin{aligned}
+\eta_t&amp;=\eta_{\min}+\frac{\eta_{\max}-\eta_{\min}}{2}
+\left[1+\cos\left(\frac{\pi t}{T-1}\right)\right],\quad t=0,\ldots,T-1,\\
+\eta_t^{\mathrm{adapter}}&amp;=\eta_t,\qquad
+\eta_t^{\mathrm{CP}}=s_{\mathrm{CP}}\eta_t,\quad
+s_{\mathrm{CP}}\in\{1,0.3,0.1\}.
+\end{aligned}
+</annotation></semantics></math></p>
+<p>本数据集 T=3600。适配器参数为 <code>Bo/Co/Bc/Cc</code>；V1 的 CP 参数为 <code>Au/Av/Wc</code>。分组学习率降低 CP 的实际更新量；梯度仍按原公式统一裁剪。</p>
+<h2 id="已实施的代码改动">3. 已实施的代码改动</h2>
+<table style="width:11%;">
+<colgroup>
+<col style="width: 5%"></col>
+<col style="width: 5%"></col>
+</colgroup>
+<thead>
+<tr class="header">
+<th>文件</th>
+<th>改动</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>vgcpod/model.py</code></td>
+<td><code>task_aux_beta</code> 控制归一化任务损失；新增 <code>task/support</code> 日志</td>
+</tr>
+<tr class="even">
+<td><code>vgcpod/engine.py</code></td>
+<td><code>make_optimizer</code> 建立参数组；<code>set_learning_rates</code> 在每步保留 <code>lr_scale</code>；每轮同一 VAL 前向评 CW/OW</td>
+</tr>
+<tr class="odd">
+<td><code>vgcpod/engine.py</code></td>
+<td>记录未见条件属性准确率、完整 joint 的已见组合概率质量、中心化修正 RMS、被裁剪步骤比例</td>
+</tr>
+<tr class="even">
+<td><code>run.py</code></td>
+<td>没有显式 <code>--variant</code> 时，采用配置文件中的模型，A6 因而读取 V0</td>
+</tr>
+<tr class="odd">
+<td><code>configs/round_a/A1.json</code>–<code>A6.json</code></td>
+<td>保存每组完整超参与实验编号</td>
+</tr>
+<tr class="even">
+<td><code>round_a.py</code></td>
+<td>三卡任务分配、日志、自动续训、完成组跳过和独立组汇总</td>
+</tr>
+<tr class="odd">
+<td><code>scripts/start_round_a_tmux.sh</code></td>
+<td>启动持久 tmux 会话，传入当前环境的绝对 Python 路径</td>
+</tr>
+<tr class="even">
+<td><code>references/original_v1.json</code></td>
+<td>原 V0/V1 的三 seed 指标和缓存身份，用于同 seed 对照</td>
+</tr>
+</tbody>
+</table>
+<p>损失实现：</p>
+<div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python">beta <span class="op">=</span> <span class="va">self</span>.cfg.get(<span class="st">'task_aux_beta'</span>, <span class="fl">0.5</span>)
+task <span class="op">=</span> (pair <span class="op">+</span> <span class="fl">0.5</span> <span class="op">*</span> cond <span class="op">+</span> <span class="fl">0.5</span> <span class="op">*</span> obj) <span class="cf">if</span> beta <span class="op">==</span> <span class="fl">0.5</span> <span class="cf">else</span> (
+    <span class="fl">1.5</span> <span class="op">/</span> (<span class="fl">1.0</span> <span class="op">+</span> beta) <span class="op">*</span> (pair <span class="op">+</span> beta <span class="op">*</span> (cond <span class="op">+</span> obj)))
+support <span class="op">=</span> <span class="op">-</span>torch.logsumexp(s[:, train_mask], dim<span class="op">=-</span><span class="dv">1</span>).mean()</code></pre></div>
+<p>学习率分组使用 <code>cp_lr_scale</code>，调度的关键行是：</p>
+<div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="cf">for</span> group <span class="kw">in</span> optimizer.param_groups:
+    group[<span class="st">'lr'</span>] <span class="op">=</span> eta <span class="op">*</span> group[<span class="st">'lr_scale'</span>]</code></pre></div>
+<p>单独建立参数组后仍写 <code>group['lr'] = eta</code> 会抹掉比例，本次实现已处理这一点。</p>
+<h2 id="本地上传windows-powershell">4. 本地上传：Windows PowerShell</h2>
+<p>交付压缩包的文件名为 <code>vgcpod_v1_roundA_20261019.zip</code>，内部顶层目录为 <code>vgcpod_v1_roundA</code>，使用英文路径以便服务器解压。</p>
+<p>在本机 PowerShell 中执行；将第一行替换为你平时 SSH 使用的服务器地址，端口按实际登录设置填写：</p>
+<pre class="powershell"><code>$VgServer = 'xhw@你的服务器IP'
+$VgPort = 22
+scp -P $VgPort 'C:\Users\llenovo\Documents\ChatGPT\VG-CPOD\vgcpod_v1_roundA_20261019.zip' &quot;${VgServer}:/data/xhw/vgcpod_project/&quot;
+ssh -p $VgPort $VgServer</code></pre>
+<p>服务器上执行：</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="bu">cd</span> /data/xhw/vgcpod_project
+<span class="fu">unzip</span> -n vgcpod_v1_roundA_20261019.zip
+<span class="ex">conda</span> activate vgcpod_v1
+<span class="bu">cd</span> /data/xhw/vgcpod_project/vgcpod_v1_roundA</code></pre></div>
+<p>代码包已带训练模块、原 CLIP 实现、配置与参考指标。沿用已有 conda 环境，不需要重新安装或重新准备数据。</p>
+<h2 id="三卡训练并挂-tmux">5. 三卡训练，并挂 tmux</h2>
+<p>在服务器、已激活的 <code>vgcpod_v1</code> 环境中执行：</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="bu">cd</span> /data/xhw/vgcpod_project/vgcpod_v1_roundA
+<span class="bu">export</span> <span class="va">VG_CACHE=</span>/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14
+<span class="bu">export</span> <span class="va">VG_A_OUT=</span>/data/xhw/vgcpod_v1_runs/roundA_20261019
+<span class="fu">bash</span> scripts/start_round_a_tmux.sh --gpus 1 2 3
+<span class="ex">tmux</span> attach -t vgcpod_A</code></pre></div>
+<p><code>VG_CACHE</code> 指向上一轮实际使用的特征缓存。这里直接读取现有 <code>train/val/test</code> 下的 <code>g.npy、fa.npy、fo.npy</code>，不执行 <code>prepare</code>，训练也不需要访问 <code>ViT-L-14.pt</code>。</p>
+<p>任务分配为 GPU1：A1→A2，GPU2：A3→A4，GPU3：A6→A5。每个子进程只看到分配给自己的物理 GPU，其内部设备编号显示为 <code>cuda:0</code>，这是正常映射。</p>
+<p>按 <strong>Ctrl+b，松开，再按 d</strong> 离开 tmux，训练继续。重新进入：</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">tmux</span> attach -t vgcpod_A</code></pre></div>
+<p>查看总队列与某组训练日志：</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="fu">tail</span> -f /data/xhw/vgcpod_v1_runs/roundA_20261019/launcher.log</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="fu">tail</span> -f /data/xhw/vgcpod_v1_runs/roundA_20261019/logs/A1_seed3351.log</code></pre></div>
+<h2 id="完成续训与单组运行">6. 完成、续训与单组运行</h2>
+<p>完成时总日志打印 <code>ROUND_A_COMPLETE</code>；以下文件显示各组状态与总退出码：</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="fu">cat</span> /data/xhw/vgcpod_v1_runs/roundA_20261019/round_a_status.json
+<span class="fu">cat</span> /data/xhw/vgcpod_v1_runs/roundA_20261019/launcher.exitcode</code></pre></div>
+<p>总退出码 <code>0</code> 表示成功，<code>RUNNING</code> 表示队列仍在运行。每组日志各有自己的 <code>TRAIN_COMPLETE</code>；总队列在六组处理完成后输出完成标记。</p>
+<p>同一配置中断后，在 tmux 中重新执行：</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="bu">cd</span> /data/xhw/vgcpod_project/vgcpod_v1_roundA
+<span class="fu">bash</span> scripts/run_round_a.sh --gpus 1 2 3</code></pre></div>
+<p>已完成组核对身份后跳过；未完成组自动添加 <code>--resume</code>，从最后一个完整 epoch 继续。该行为沿用同一 seed、数据顺序和原余弦进程。</p>
+<p>只重跑或续训 A5、指定 GPU2：</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="fu">bash</span> scripts/run_round_a.sh --gpus 2 --cases A5</code></pre></div>
+<p>直接运行单组的完整命令示例：</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="va">CUDA_VISIBLE_DEVICES=</span>1 <span class="ex">python</span> -u run.py train \
+  --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14 \
+  --out /data/xhw/vgcpod_v1_runs/roundA_20261019/A1 \
+  --config configs/round_a/A1.json --variant V1 --seed 3351 --device cuda</code></pre></div>
+<p>单组断点继续时在同一命令末尾加 <code>--resume</code>。批量脚本已经自动处理，不需要手工逐组判断。</p>
+<h2 id="读取结果并决定下一步">7. 读取结果并决定下一步</h2>
+<p>总队列结束时自动汇总，也可手动执行：</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">python</span> round_a.py summarize --out /data/xhw/vgcpod_v1_runs/roundA_20261019</code></pre></div>
+<p>主要文件：</p>
+<pre class="text"><code>/data/xhw/vgcpod_v1_runs/roundA_20261019/
+  round_a_summary.csv
+  round_a_summary.json
+  round_a_status.json
+  launcher.log
+  launcher.exitcode
+  logs/A1_seed3351.log ... A6_seed3351.log
+  A1/ut-zap50k/V1/seed3351/
+    protocol.json
+    history.json
+    metrics.json
+    checkpoints/best.pt
+    checkpoints/last.pt
+    predictions/val_cw.npz ... test_ow.npz
+    curves/val_cw.json ... test_ow.json</code></pre>
+<p>各组权重仍按 <strong>VAL CW AUC_native 首次最大值</strong> 选择；每轮增加 VAL OW 与未见属性诊断，TEST 在训练结束后使用同一选中权重导出。</p>
+<p>优先比较三列：<code>val_cw_AUC_native</code>、<code>val_ow_AUC_native</code>、<code>val_ow_gt_object_attr_acc_unseen</code>，再结合 <code>val_ow_support_mass_unseen</code> 解释概率偏好是否改变。支持概率越低不是独立的胜出标准，仍看准确率与 AUC。</p>
+<p><code>round_a_summary.json</code> 中的 <code>deltas_to_original</code> 给出相同 seed、相同缓存的旧 V1/D0 差值；<code>v1_val_cw_ranking</code> 按 VAL CW 排列新 V1 配置。原 V1/seed3351 的 VAL CW AUC 约为 41.92，原 D0 约为 33.47（完整精度见参考 JSON）。新配置若未改善验证表现，原 V1 仍可作为 B 组起点。</p>
+<p>A 组完成后，用候选 V1 配置进入 B 组的三个结构对照。当前代码交付覆盖首先要做的 A1–A6，B 组的混合读出与门控结构将在确定训练设置后实施。</p>
+<h2 id="下载本轮结果">8. 下载本轮结果</h2>
+<p>服务器执行：</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="fu">tar</span> -czf /data/xhw/vgcpod_project/vgcpod_roundA_results_20261019.tar.gz \
+  -C /data/xhw/vgcpod_v1_runs roundA_20261019</code></pre></div>
+<p>本机 PowerShell 执行：</p>
+<pre class="powershell"><code>$VgServer = 'xhw@你的服务器IP'
+$VgPort = 22
+scp -P $VgPort &quot;${VgServer}:/data/xhw/vgcpod_project/vgcpod_roundA_results_20261019.tar.gz&quot; 'C:\Users\llenovo\Documents\ChatGPT\VG-CPOD\'</code></pre>
+<p>该结果包包含日志、历史、权重和逐图预测，无须再次打包上一轮图像特征缓存。</p>
+<h2 id="本地验证记录">9. 本地验证记录</h2>
+<p>数学与训练链路共 17 项检查通过，覆盖 β 损失恒等式及梯度、β=0.5 的旧目标恢复、学习率端点与组间比例、默认组比例下与旧优化器的逐参数一致更新、六组训练导出及恢复、原九种变体与评价公式。详见 <code>validation/test_output.txt</code>。</p>
+<p>本地测试使用 CPU PyTorch 2.5.1 与合成缓存；实际 UT-Zappos 训练由上述服务器命令启动。服务器继续使用原 Python 3.8 / PyTorch 1.13.1 conda 环境。</p>
+</body>
+</html>

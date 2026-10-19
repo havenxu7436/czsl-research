@@ -84,6 +84,10 @@ def archive_stage(line,number):
     return matches[0]
 
 def materialize(stage,destination,line=None,number=None):
+    if stage=='21':
+        from register_vgcpod_round_a import materialize as materialize_vgcpod_a
+        print(json.dumps(materialize_vgcpod_a(destination),ensure_ascii=False))
+        return
     if stage=='20':
         from register_vgcpod_v1 import materialize as materialize_vgcpod
         print(json.dumps(materialize_vgcpod(destination),ensure_ascii=False))

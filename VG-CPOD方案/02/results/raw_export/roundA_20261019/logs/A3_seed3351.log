@@ -1,0 +1,28 @@
+
+ROUND_A_START ["/data/xhw/miniconda3/envs/vgcpod_v1/bin/python", "-u", "/data/xhw/vgcpod_project/vgcpod_v1_roundA/run.py", "train", "--cache", "/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14", "--out", "/data/xhw/vgcpod_v1_runs/roundA_20261019/A3", "--config", "/data/xhw/vgcpod_project/vgcpod_v1_roundA/configs/round_a/A3.json", "--variant", "V1", "--seed", "3351", "--device", "cuda"]
+Traceback (most recent call last):
+  File "/data/xhw/vgcpod_project/vgcpod_v1_roundA/run.py", line 91, in <module>
+    main()
+  File "/data/xhw/vgcpod_project/vgcpod_v1_roundA/run.py", line 87, in main
+    getattr(engine, args.command)(args, cfg)
+  File "/data/xhw/vgcpod_project/vgcpod_v1_roundA/vgcpod/engine.py", line 196, in train
+    val_ow, _, _, _ = evaluate_scores(joint, cond, attrs, objs, manifest['labels'],
+  File "/data/xhw/vgcpod_project/vgcpod_v1_roundA/vgcpod/metrics.py", line 91, in evaluate_scores
+    native = native_curve(scores, truth, seen)
+  File "/data/xhw/vgcpod_project/vgcpod_v1_roundA/vgcpod/metrics.py", line 31, in native_curve
+    z[:, ~seen] += bias
+KeyboardInterrupt
+
+ROUND_A_START ["/data/xhw/miniconda3/envs/vgcpod_v1/bin/python", "-u", "/data/xhw/vgcpod_project/vgcpod_v1_roundA/run.py", "train", "--cache", "/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14", "--out", "/data/xhw/vgcpod_v1_runs/roundA_20261019/A3", "--config", "/data/xhw/vgcpod_project/vgcpod_v1_roundA/configs/round_a/A3.json", "--variant", "V1", "--seed", "3351", "--device", "cuda", "--resume"]
+RESTART_FIRST_EPOCH_FROM_MATCHED_SEED /data/xhw/vgcpod_v1_runs/roundA_20261019/A3/ut-zap50k/V1/seed3351
+EPOCH 1 A3 V1 seed 3351 loss 3.213626 VAL_CW_AUC_native 13.294388 VAL_OW_AUC_native 11.887884 VAL_unseen_attr 18.271287976037655 VAL_unseen_support 0.7788148535083159 best 13.294388 seconds 9.7
+EPOCH 2 A3 V1 seed 3351 loss 2.066985 VAL_CW_AUC_native 28.438037 VAL_OW_AUC_native 20.606387 VAL_unseen_attr 19.897304236200256 VAL_unseen_support 0.7662555802987121 best 28.438037 seconds 6.9
+EPOCH 3 A3 V1 seed 3351 loss 1.855505 VAL_CW_AUC_native 35.746254 VAL_OW_AUC_native 24.94461 VAL_unseen_attr 19.16987590928541 VAL_unseen_support 0.7825356707320822 best 35.746254 seconds 6.8
+EPOCH 4 A3 V1 seed 3351 loss 1.769973 VAL_CW_AUC_native 38.059105 VAL_OW_AUC_native 24.207228 VAL_unseen_attr 17.75780915703894 VAL_unseen_support 0.823918944034926 best 38.059105 seconds 7.3
+EPOCH 5 A3 V1 seed 3351 loss 1.719034 VAL_CW_AUC_native 40.018902 VAL_OW_AUC_native 26.116014 VAL_unseen_attr 16.08900299529311 VAL_unseen_support 0.8470595964340953 best 40.018902 seconds 7.8
+EPOCH 6 A3 V1 seed 3351 loss 1.681839 VAL_CW_AUC_native 37.306037 VAL_OW_AUC_native 24.757276 VAL_unseen_attr 17.67222935387249 VAL_unseen_support 0.8338942390498941 best 40.018902 seconds 8.2
+EPOCH 7 A3 V1 seed 3351 loss 1.656917 VAL_CW_AUC_native 37.978331 VAL_OW_AUC_native 24.825218 VAL_unseen_attr 17.030380830124088 VAL_unseen_support 0.8385496221886598 best 40.018902 seconds 8.1
+EPOCH 8 A3 V1 seed 3351 loss 1.640527 VAL_CW_AUC_native 37.777677 VAL_OW_AUC_native 24.668354 VAL_unseen_attr 16.68806161745828 VAL_unseen_support 0.8460675598031143 best 40.018902 seconds 7.9
+EPOCH 9 A3 V1 seed 3351 loss 1.630688 VAL_CW_AUC_native 37.537161 VAL_OW_AUC_native 24.661035 VAL_unseen_attr 17.073170731707318 VAL_unseen_support 0.8415629401796311 best 40.018902 seconds 7.8
+EPOCH 10 A3 V1 seed 3351 loss 1.626099 VAL_CW_AUC_native 37.593295 VAL_OW_AUC_native 24.813898 VAL_unseen_attr 17.073170731707318 VAL_unseen_support 0.8423981868723037 best 40.018902 seconds 7.8
+TRAIN_COMPLETE /data/xhw/vgcpod_v1_runs/roundA_20261019/A3/ut-zap50k/V1/seed3351

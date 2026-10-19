@@ -1,0 +1,50 @@
+
+ROUND_A_START ["/data/xhw/miniconda3/envs/vgcpod_v1/bin/python", "-u", "/data/xhw/vgcpod_project/vgcpod_v1_roundA/run.py", "train", "--cache", "/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14", "--out", "/data/xhw/vgcpod_v1_runs/roundA_20261019/A6", "--config", "/data/xhw/vgcpod_project/vgcpod_v1_roundA/configs/round_a/A6.json", "--variant", "V0", "--seed", "3351", "--device", "cuda"]
+EPOCH 1 A6 V0 seed 3351 loss 3.583893 VAL_CW_AUC_native 15.265675 VAL_OW_AUC_native 9.825747 VAL_unseen_attr 12.066752246469834 VAL_unseen_support 0.7460816458814432 best 15.265675 seconds 8.8
+Exception in thread Thread-3:
+Traceback (most recent call last):
+  File "/data/xhw/miniconda3/envs/vgcpod_v1/lib/python3.8/threading.py", line 932, in _bootstrap_inner
+    self.run()
+  File "/data/xhw/miniconda3/envs/vgcpod_v1/lib/python3.8/threading.py", line 870, in run
+    self._target(*self._args, **self._kwargs)
+  File "/data/xhw/miniconda3/envs/vgcpod_v1/lib/python3.8/site-packages/torch/utils/data/_utils/pin_memory.py", line 49, in _pin_memory_loop
+    do_one_step()
+  File "/data/xhw/miniconda3/envs/vgcpod_v1/lib/python3.8/site-packages/torch/utils/data/_utils/pin_memory.py", line 26, in do_one_step
+    r = in_queue.get(timeout=MP_STATUS_CHECK_INTERVAL)
+  File "/data/xhw/miniconda3/envs/vgcpod_v1/lib/python3.8/multiprocessing/queues.py", line 116, in get
+    return _ForkingPickler.loads(res)
+  File "/data/xhw/miniconda3/envs/vgcpod_v1/lib/python3.8/site-packages/torch/multiprocessing/reductions.py", line 305, in rebuild_storage_fd
+    fd = df.detach()
+  File "/data/xhw/miniconda3/envs/vgcpod_v1/lib/python3.8/multiprocessing/resource_sharer.py", line 57, in detach
+    with _resource_sharer.get_connection(self._id) as conn:
+  File "/data/xhw/miniconda3/envs/vgcpod_v1/lib/python3.8/multiprocessing/resource_sharer.py", line 87, in get_connection
+    c = Client(address, authkey=process.current_process().authkey)
+  File "/data/xhw/miniconda3/envs/vgcpod_v1/lib/python3.8/multiprocessing/connection.py", line 502, in Client
+    c = SocketClient(address)
+  File "/data/xhw/miniconda3/envs/vgcpod_v1/lib/python3.8/multiprocessing/connection.py", line 630, in SocketClient
+    s.connect(address)
+FileNotFoundError: [Errno 2] No such file or directory
+Traceback (most recent call last):
+  File "/data/xhw/vgcpod_project/vgcpod_v1_roundA/run.py", line 91, in <module>
+    main()
+  File "/data/xhw/vgcpod_project/vgcpod_v1_roundA/run.py", line 87, in main
+    getattr(engine, args.command)(args, cfg)
+  File "/data/xhw/vgcpod_project/vgcpod_v1_roundA/vgcpod/engine.py", line 174, in train
+    losses['total'].backward()
+  File "/data/xhw/miniconda3/envs/vgcpod_v1/lib/python3.8/site-packages/torch/_tensor.py", line 488, in backward
+    torch.autograd.backward(
+  File "/data/xhw/miniconda3/envs/vgcpod_v1/lib/python3.8/site-packages/torch/autograd/__init__.py", line 197, in backward
+    Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+KeyboardInterrupt
+
+ROUND_A_START ["/data/xhw/miniconda3/envs/vgcpod_v1/bin/python", "-u", "/data/xhw/vgcpod_project/vgcpod_v1_roundA/run.py", "train", "--cache", "/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14", "--out", "/data/xhw/vgcpod_v1_runs/roundA_20261019/A6", "--config", "/data/xhw/vgcpod_project/vgcpod_v1_roundA/configs/round_a/A6.json", "--variant", "V0", "--seed", "3351", "--device", "cuda", "--resume"]
+EPOCH 2 A6 V0 seed 3351 loss 2.462896 VAL_CW_AUC_native 22.311689 VAL_OW_AUC_native 13.27475 VAL_unseen_attr 12.70860077021823 VAL_unseen_support 0.746974801155007 best 22.311689 seconds 9.0
+EPOCH 3 A6 V0 seed 3351 loss 2.175834 VAL_CW_AUC_native 27.158535 VAL_OW_AUC_native 18.342352 VAL_unseen_attr 13.093709884467266 VAL_unseen_support 0.7392063772340836 best 27.158535 seconds 6.6
+EPOCH 4 A6 V0 seed 3351 loss 2.049412 VAL_CW_AUC_native 30.707731 VAL_OW_AUC_native 19.703408 VAL_unseen_attr 13.692768506632436 VAL_unseen_support 0.7432069585673652 best 30.707731 seconds 6.3
+EPOCH 5 A6 V0 seed 3351 loss 1.98867 VAL_CW_AUC_native 33.315109 VAL_OW_AUC_native 21.28966 VAL_unseen_attr 14.548566538296962 VAL_unseen_support 0.745320083750762 best 33.315109 seconds 6.7
+EPOCH 6 A6 V0 seed 3351 loss 1.953162 VAL_CW_AUC_native 33.637888 VAL_OW_AUC_native 21.942315 VAL_unseen_attr 14.848095849379547 VAL_unseen_support 0.7423560833491168 best 33.637888 seconds 6.2
+EPOCH 7 A6 V0 seed 3351 loss 1.932638 VAL_CW_AUC_native 33.510494 VAL_OW_AUC_native 20.88074 VAL_unseen_attr 15.661103979460847 VAL_unseen_support 0.7292234431127468 best 33.637888 seconds 6.6
+EPOCH 8 A6 V0 seed 3351 loss 1.920119 VAL_CW_AUC_native 34.455531 VAL_OW_AUC_native 21.721706 VAL_unseen_attr 15.489944373127942 VAL_unseen_support 0.7381404238710829 best 34.455531 seconds 6.7
+EPOCH 9 A6 V0 seed 3351 loss 1.914116 VAL_CW_AUC_native 34.152489 VAL_OW_AUC_native 21.692748 VAL_unseen_attr 15.61831407787762 VAL_unseen_support 0.7358163706950775 best 34.455531 seconds 6.2
+EPOCH 10 A6 V0 seed 3351 loss 1.911509 VAL_CW_AUC_native 34.124995 VAL_OW_AUC_native 21.633881 VAL_unseen_attr 15.661103979460847 VAL_unseen_support 0.7359267858500051 best 34.455531 seconds 6.2
+TRAIN_COMPLETE /data/xhw/vgcpod_v1_runs/roundA_20261019/A6/ut-zap50k/V0/seed3351

@@ -1,0 +1,256 @@
+# VG-CPOD 方案 v1：下一轮首先执行的 A 组实验
+
+实施日期：2026-10-19。主要框架为冻结 CLIP ViT-L/14，沿用已生成的 UT-Zappos 图像、属性查询和物体查询特征。先运行 A1–A6，seed3351，共 60 个模型 epoch。三张 GPU 各串行运行两个独立模型。
+
+这组实验回答：降低 CP 更新速度能否改善泛化，减弱已见组合支持压力能否恢复未见属性识别，以及两项调整能否叠加。完成后再决定 B 组的训练设置。
+
+## 1. 具体实验表
+
+| 编号 | 模型 | 适配器 LR：起点→终点 | CP LR：起点→终点 | β | 物理 GPU / 顺序 |
+|---|---|---|---|---:|---|
+| A1 | V1：静态全局 CP | 1e-3→1e-5 | 3e-4→3e-6 | 0.5 | GPU1 第一组 |
+| A2 | V1：静态全局 CP | 1e-3→1e-5 | 1e-4→1e-6 | 0.5 | GPU1 第二组 |
+| A3 | V1：静态全局 CP | 1e-3→1e-5 | 1e-3→1e-5 | 0.25 | GPU2 第一组 |
+| A4 | V1：静态全局 CP | 1e-3→1e-5 | 1e-3→1e-5 | 0.1 | GPU2 第二组 |
+| A5 | V1：静态全局 CP | 1e-3→1e-5 | 3e-4→3e-6 | 0.1 | GPU3 第二组 |
+| A6 | V0：D0 对照 | 1e-3→1e-5 | 不启用 CP | 0.1 | GPU3 第一组 |
+
+所有组使用 batch64、rank32、adapter rank8、10 epochs、相同 seed3351 和原始数据划分；ρ=0.1、κ=20、weight decay=1e-4、gradient clip=1。原 V1/seed3351 和原 D0/seed3351 为现成参考，数值随代码包保存。
+
+A1/A2 与原 V1 比学习率；A3/A4 与原 V1 比任务损失；A5 与 A1/A4 比联合调整；A4/A5 与 A6 比相同 β 下的 CP 增量。配置均从相同初始化重新训练，逐步恢复仅用于同一实验中断后的续训。
+
+## 2. 本次公式改动
+
+前向仍为原 V1 的全局静态修正：
+
+$$
+\begin{aligned}
+u_i&=A_ue_i^a,\qquad v_j=A_ve_j^o,\\
+\Delta U_{bji}&=\rho\kappa\,g_b^\top W_c(u_i\odot v_j),\\
+P(a_i,o_j\mid x_b)&=P(o_j\mid x_b)P(a_i\mid o_j,x_b).
+\end{aligned}
+$$
+
+定义训练组合概率质量与支持损失：
+
+$$
+\begin{aligned}
+Z_s(x)&=\sum_{(a,o)\in\mathcal{C}^s}P(a,o\mid x),\\
+\ell_{\mathrm{support}}&=-\log Z_s(x),\\
+\ell_{\mathrm{pair}}&=-\log P(y\mid x)+\log Z_s(x),\\
+\ell_{\mathrm{cond}}+\ell_o&=-\log P(y\mid x).
+\end{aligned}
+$$
+
+将任务损失改为：
+
+$$
+\begin{aligned}
+\ell_{\mathrm{task}}(\beta)
+&=\frac{1.5}{1+\beta}
+\left[\ell_{\mathrm{pair}}+\beta(\ell_{\mathrm{cond}}+\ell_o)\right]\\
+&=1.5\ell_{\mathrm{pair}}
++\frac{1.5\beta}{1+\beta}\ell_{\mathrm{support}}.
+\end{aligned}
+$$
+
+β=0.5 精确恢复原任务损失；β=0.25、0.1 分别把支持项系数从 0.5 降至 0.3、0.13636，同时保持组合内排序项系数 1.5。代码对 β=0.5 保留原运算顺序，方便直接比较。
+
+适配器与 CP 的学习率共享原十轮余弦进程，使用固定比例：
+
+$$
+\begin{aligned}
+\eta_t&=\eta_{\min}+\frac{\eta_{\max}-\eta_{\min}}{2}
+\left[1+\cos\left(\frac{\pi t}{T-1}\right)\right],\quad t=0,\ldots,T-1,\\
+\eta_t^{\mathrm{adapter}}&=\eta_t,\qquad
+\eta_t^{\mathrm{CP}}=s_{\mathrm{CP}}\eta_t,\quad
+s_{\mathrm{CP}}\in\{1,0.3,0.1\}.
+\end{aligned}
+$$
+
+本数据集 T=3600。适配器参数为 `Bo/Co/Bc/Cc`；V1 的 CP 参数为 `Au/Av/Wc`。分组学习率降低 CP 的实际更新量；梯度仍按原公式统一裁剪。
+
+## 3. 已实施的代码改动
+
+| 文件 | 改动 |
+|---|---|
+| `vgcpod/model.py` | `task_aux_beta` 控制归一化任务损失；新增 `task/support` 日志 |
+| `vgcpod/engine.py` | `make_optimizer` 建立参数组；`set_learning_rates` 在每步保留 `lr_scale`；每轮同一 VAL 前向评 CW/OW |
+| `vgcpod/engine.py` | 记录未见条件属性准确率、完整 joint 的已见组合概率质量、中心化修正 RMS、被裁剪步骤比例 |
+| `run.py` | 没有显式 `--variant` 时，采用配置文件中的模型，A6 因而读取 V0 |
+| `configs/round_a/A1.json`–`A6.json` | 保存每组完整超参与实验编号 |
+| `round_a.py` | 三卡任务分配、日志、自动续训、完成组跳过和独立组汇总 |
+| `scripts/start_round_a_tmux.sh` | 启动持久 tmux 会话，传入当前环境的绝对 Python 路径 |
+| `references/original_v1.json` | 原 V0/V1 的三 seed 指标和缓存身份，用于同 seed 对照 |
+
+损失实现：
+
+```python
+beta = self.cfg.get('task_aux_beta', 0.5)
+task = (pair + 0.5 * cond + 0.5 * obj) if beta == 0.5 else (
+    1.5 / (1.0 + beta) * (pair + beta * (cond + obj)))
+support = -torch.logsumexp(s[:, train_mask], dim=-1).mean()
+```
+
+学习率分组使用 `cp_lr_scale`，调度的关键行是：
+
+```python
+for group in optimizer.param_groups:
+    group['lr'] = eta * group['lr_scale']
+```
+
+单独建立参数组后仍写 `group['lr'] = eta` 会抹掉比例，本次实现已处理这一点。
+
+## 4. 本地上传：Windows PowerShell
+
+交付压缩包的文件名为 `vgcpod_v1_roundA_20261019.zip`，内部顶层目录为 `vgcpod_v1_roundA`，使用英文路径以便服务器解压。
+
+在本机 PowerShell 中执行；将第一行替换为你平时 SSH 使用的服务器地址，端口按实际登录设置填写：
+
+```powershell
+$VgServer = 'xhw@你的服务器IP'
+$VgPort = 22
+scp -P $VgPort 'C:\Users\llenovo\Documents\ChatGPT\VG-CPOD\vgcpod_v1_roundA_20261019.zip' "${VgServer}:/data/xhw/vgcpod_project/"
+ssh -p $VgPort $VgServer
+```
+
+服务器上执行：
+
+```bash
+cd /data/xhw/vgcpod_project
+unzip -n vgcpod_v1_roundA_20261019.zip
+conda activate vgcpod_v1
+cd /data/xhw/vgcpod_project/vgcpod_v1_roundA
+```
+
+代码包已带训练模块、原 CLIP 实现、配置与参考指标。沿用已有 conda 环境，不需要重新安装或重新准备数据。
+
+## 5. 三卡训练，并挂 tmux
+
+在服务器、已激活的 `vgcpod_v1` 环境中执行：
+
+```bash
+cd /data/xhw/vgcpod_project/vgcpod_v1_roundA
+export VG_CACHE=/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14
+export VG_A_OUT=/data/xhw/vgcpod_v1_runs/roundA_20261019
+bash scripts/start_round_a_tmux.sh --gpus 1 2 3
+tmux attach -t vgcpod_A
+```
+
+`VG_CACHE` 指向上一轮实际使用的特征缓存。这里直接读取现有 `train/val/test` 下的 `g.npy、fa.npy、fo.npy`，不执行 `prepare`，训练也不需要访问 `ViT-L-14.pt`。
+
+任务分配为 GPU1：A1→A2，GPU2：A3→A4，GPU3：A6→A5。每个子进程只看到分配给自己的物理 GPU，其内部设备编号显示为 `cuda:0`，这是正常映射。
+
+按 **Ctrl+b，松开，再按 d** 离开 tmux，训练继续。重新进入：
+
+```bash
+tmux attach -t vgcpod_A
+```
+
+查看总队列与某组训练日志：
+
+```bash
+tail -f /data/xhw/vgcpod_v1_runs/roundA_20261019/launcher.log
+```
+
+```bash
+tail -f /data/xhw/vgcpod_v1_runs/roundA_20261019/logs/A1_seed3351.log
+```
+
+## 6. 完成、续训与单组运行
+
+完成时总日志打印 `ROUND_A_COMPLETE`；以下文件显示各组状态与总退出码：
+
+```bash
+cat /data/xhw/vgcpod_v1_runs/roundA_20261019/round_a_status.json
+cat /data/xhw/vgcpod_v1_runs/roundA_20261019/launcher.exitcode
+```
+
+总退出码 `0` 表示成功，`RUNNING` 表示队列仍在运行。每组日志各有自己的 `TRAIN_COMPLETE`；总队列在六组处理完成后输出完成标记。
+
+同一配置中断后，在 tmux 中重新执行：
+
+```bash
+cd /data/xhw/vgcpod_project/vgcpod_v1_roundA
+bash scripts/run_round_a.sh --gpus 1 2 3
+```
+
+已完成组核对身份后跳过；未完成组自动添加 `--resume`，从最后一个完整 epoch 继续。该行为沿用同一 seed、数据顺序和原余弦进程。
+
+只重跑或续训 A5、指定 GPU2：
+
+```bash
+bash scripts/run_round_a.sh --gpus 2 --cases A5
+```
+
+直接运行单组的完整命令示例：
+
+```bash
+CUDA_VISIBLE_DEVICES=1 python -u run.py train \
+  --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14 \
+  --out /data/xhw/vgcpod_v1_runs/roundA_20261019/A1 \
+  --config configs/round_a/A1.json --variant V1 --seed 3351 --device cuda
+```
+
+单组断点继续时在同一命令末尾加 `--resume`。批量脚本已经自动处理，不需要手工逐组判断。
+
+## 7. 读取结果并决定下一步
+
+总队列结束时自动汇总，也可手动执行：
+
+```bash
+python round_a.py summarize --out /data/xhw/vgcpod_v1_runs/roundA_20261019
+```
+
+主要文件：
+
+```text
+/data/xhw/vgcpod_v1_runs/roundA_20261019/
+  round_a_summary.csv
+  round_a_summary.json
+  round_a_status.json
+  launcher.log
+  launcher.exitcode
+  logs/A1_seed3351.log ... A6_seed3351.log
+  A1/ut-zap50k/V1/seed3351/
+    protocol.json
+    history.json
+    metrics.json
+    checkpoints/best.pt
+    checkpoints/last.pt
+    predictions/val_cw.npz ... test_ow.npz
+    curves/val_cw.json ... test_ow.json
+```
+
+各组权重仍按 **VAL CW AUC_native 首次最大值** 选择；每轮增加 VAL OW 与未见属性诊断，TEST 在训练结束后使用同一选中权重导出。
+
+优先比较三列：`val_cw_AUC_native`、`val_ow_AUC_native`、`val_ow_gt_object_attr_acc_unseen`，再结合 `val_ow_support_mass_unseen` 解释概率偏好是否改变。支持概率越低不是独立的胜出标准，仍看准确率与 AUC。
+
+`round_a_summary.json` 中的 `deltas_to_original` 给出相同 seed、相同缓存的旧 V1/D0 差值；`v1_val_cw_ranking` 按 VAL CW 排列新 V1 配置。原 V1/seed3351 的 VAL CW AUC 约为 41.92，原 D0 约为 33.47（完整精度见参考 JSON）。新配置若未改善验证表现，原 V1 仍可作为 B 组起点。
+
+A 组完成后，用候选 V1 配置进入 B 组的三个结构对照。当前代码交付覆盖首先要做的 A1–A6，B 组的混合读出与门控结构将在确定训练设置后实施。
+
+## 8. 下载本轮结果
+
+服务器执行：
+
+```bash
+tar -czf /data/xhw/vgcpod_project/vgcpod_roundA_results_20261019.tar.gz \
+  -C /data/xhw/vgcpod_v1_runs roundA_20261019
+```
+
+本机 PowerShell 执行：
+
+```powershell
+$VgServer = 'xhw@你的服务器IP'
+$VgPort = 22
+scp -P $VgPort "${VgServer}:/data/xhw/vgcpod_project/vgcpod_roundA_results_20261019.tar.gz" 'C:\Users\llenovo\Documents\ChatGPT\VG-CPOD\'
+```
+
+该结果包包含日志、历史、权重和逐图预测，无须再次打包上一轮图像特征缓存。
+
+## 9. 本地验证记录
+
+数学与训练链路共 17 项检查通过，覆盖 β 损失恒等式及梯度、β=0.5 的旧目标恢复、学习率端点与组间比例、默认组比例下与旧优化器的逐参数一致更新、六组训练导出及恢复、原九种变体与评价公式。详见 `validation/test_output.txt`。
+
+本地测试使用 CPU PyTorch 2.5.1 与合成缓存；实际 UT-Zappos 训练由上述服务器命令启动。服务器继续使用原 Python 3.8 / PyTorch 1.13.1 conda 环境。

@@ -1,0 +1,27 @@
+
+ROUND_A_START ["/data/xhw/miniconda3/envs/vgcpod_v1/bin/python", "-u", "/data/xhw/vgcpod_project/vgcpod_v1_roundA/run.py", "train", "--cache", "/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14", "--out", "/data/xhw/vgcpod_v1_runs/roundA_20261019/A1", "--config", "/data/xhw/vgcpod_project/vgcpod_v1_roundA/configs/round_a/A1.json", "--variant", "V1", "--seed", "3351", "--device", "cuda"]
+EPOCH 1 A1 V1 seed 3351 loss 3.54543 VAL_CW_AUC_native 16.566279 VAL_OW_AUC_native 11.720262 VAL_unseen_attr 12.152332049636286 VAL_unseen_support 0.8193800564395906 best 16.566279 seconds 9.2
+Traceback (most recent call last):
+  File "/data/xhw/vgcpod_project/vgcpod_v1_roundA/run.py", line 91, in <module>
+    main()
+  File "/data/xhw/vgcpod_project/vgcpod_v1_roundA/run.py", line 87, in main
+    getattr(engine, args.command)(args, cfg)
+  File "/data/xhw/vgcpod_project/vgcpod_v1_roundA/vgcpod/engine.py", line 170, in train
+    out = model(g.to(args.device), fa.to(args.device), fo.to(args.device))
+  File "/data/xhw/miniconda3/envs/vgcpod_v1/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/data/xhw/vgcpod_project/vgcpod_v1_roundA/vgcpod/model.py", line 69, in forward
+    modes = (local @ self.Wc) * gamma * v[None, :, :]
+KeyboardInterrupt
+
+ROUND_A_START ["/data/xhw/miniconda3/envs/vgcpod_v1/bin/python", "-u", "/data/xhw/vgcpod_project/vgcpod_v1_roundA/run.py", "train", "--cache", "/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14", "--out", "/data/xhw/vgcpod_v1_runs/roundA_20261019/A1", "--config", "/data/xhw/vgcpod_project/vgcpod_v1_roundA/configs/round_a/A1.json", "--variant", "V1", "--seed", "3351", "--device", "cuda", "--resume"]
+EPOCH 2 A1 V1 seed 3351 loss 2.232981 VAL_CW_AUC_native 33.01053 VAL_OW_AUC_native 21.173048 VAL_unseen_attr 15.789473684210526 VAL_unseen_support 0.8024034432806383 best 33.01053 seconds 9.6
+EPOCH 3 A1 V1 seed 3351 loss 1.984869 VAL_CW_AUC_native 38.541723 VAL_OW_AUC_native 25.842416 VAL_unseen_attr 16.816431322207958 VAL_unseen_support 0.8109670044354117 best 38.541723 seconds 7.0
+EPOCH 4 A1 V1 seed 3351 loss 1.895755 VAL_CW_AUC_native 40.654724 VAL_OW_AUC_native 26.399198 VAL_unseen_attr 16.602481814291828 VAL_unseen_support 0.8315818202143572 best 40.654724 seconds 7.4
+EPOCH 5 A1 V1 seed 3351 loss 1.846317 VAL_CW_AUC_native 41.877628 VAL_OW_AUC_native 28.324182 VAL_unseen_attr 16.68806161745828 VAL_unseen_support 0.8375866914325379 best 41.877628 seconds 7.8
+EPOCH 6 A1 V1 seed 3351 loss 1.812938 VAL_CW_AUC_native 41.808612 VAL_OW_AUC_native 29.40808 VAL_unseen_attr 16.602481814291828 VAL_unseen_support 0.8374308982136424 best 41.877628 seconds 8.3
+EPOCH 7 A1 V1 seed 3351 loss 1.792059 VAL_CW_AUC_native 41.930518 VAL_OW_AUC_native 28.700168 VAL_unseen_attr 16.730851519041508 VAL_unseen_support 0.8276361930125182 best 41.930518 seconds 8.3
+EPOCH 8 A1 V1 seed 3351 loss 1.778775 VAL_CW_AUC_native 42.245952 VAL_OW_AUC_native 29.296104 VAL_unseen_attr 16.516902011125374 VAL_unseen_support 0.836680603779336 best 42.245952 seconds 7.4
+EPOCH 9 A1 V1 seed 3351 loss 1.771943 VAL_CW_AUC_native 42.053447 VAL_OW_AUC_native 29.237921 VAL_unseen_attr 16.5596919127086 VAL_unseen_support 0.8349308208353199 best 42.245952 seconds 7.0
+EPOCH 10 A1 V1 seed 3351 loss 1.768978 VAL_CW_AUC_native 41.865943 VAL_OW_AUC_native 29.142948 VAL_unseen_attr 16.516902011125374 VAL_unseen_support 0.8354357069817215 best 42.245952 seconds 7.0
+TRAIN_COMPLETE /data/xhw/vgcpod_v1_runs/roundA_20261019/A1/ut-zap50k/V1/seed3351

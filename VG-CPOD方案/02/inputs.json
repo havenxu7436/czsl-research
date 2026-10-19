@@ -1,0 +1,82 @@
+{
+  "line": "VG-CPOD方案",
+  "stage": "02",
+  "version": "v1",
+  "title": "支持损失重加权与 CP 分组学习率",
+  "knowledge": [],
+  "completed_runs": 12,
+  "evaluations": 48,
+  "confirmed_cases": [
+    "A1",
+    "A5",
+    "A6"
+  ],
+  "confirmed_seeds": [
+    3351,
+    3352,
+    3353
+  ],
+  "initial_only_cases": [
+    "A2",
+    "A3",
+    "A4"
+  ],
+  "initial_seed": 3351,
+  "package_member_map": "package_members.json",
+  "experiment_inventory": "configs/experiment_inventory.json",
+  "code_files": [
+    "code/original_analysis/analysis_roundA_20261019/analyze_round_a.py",
+    "code/original_analysis/analysis_roundA_20261019/build_report.py",
+    "code/original_analysis/analysis_roundA_confirm_20261019/analyze_confirm.py",
+    "code/original_analysis/analysis_roundA_confirm_20261019/build_report.py",
+    "code/README.md",
+    "code/source_changes.patch",
+    "code/vgcpod_v1_roundA/requirements.txt",
+    "code/vgcpod_v1_roundA/round_a.py",
+    "code/vgcpod_v1_roundA/run.py",
+    "code/vgcpod_v1_roundA/scripts/run_round_a.sh",
+    "code/vgcpod_v1_roundA/scripts/start_round_a_tmux.sh",
+    "code/vgcpod_v1_roundA/scripts/tmux_round_a_entry.sh",
+    "code/vgcpod_v1_roundA/tests/__init__.py",
+    "code/vgcpod_v1_roundA/tests/test_math.py",
+    "code/vgcpod_v1_roundA/tests/test_round_a.py",
+    "code/vgcpod_v1_roundA/tools/verify_release.py",
+    "code/vgcpod_v1_roundA/vendor/clip/__init__.py",
+    "code/vgcpod_v1_roundA/vendor/clip/bpe_simple_vocab_16e6.txt.gz",
+    "code/vgcpod_v1_roundA/vendor/clip/clip.py",
+    "code/vgcpod_v1_roundA/vendor/clip/model.py",
+    "code/vgcpod_v1_roundA/vendor/clip/simple_tokenizer.py",
+    "code/vgcpod_v1_roundA/vendor/CLIP_LICENSE",
+    "code/vgcpod_v1_roundA/vendor/native_evaluator.py",
+    "code/vgcpod_v1_roundA/vgcpod/__init__.py",
+    "code/vgcpod_v1_roundA/vgcpod/common.py",
+    "code/vgcpod_v1_roundA/vgcpod/data.py",
+    "code/vgcpod_v1_roundA/vgcpod/diagnostics.py",
+    "code/vgcpod_v1_roundA/vgcpod/engine.py",
+    "code/vgcpod_v1_roundA/vgcpod/features.py",
+    "code/vgcpod_v1_roundA/vgcpod/metrics.py",
+    "code/vgcpod_v1_roundA/vgcpod/model.py"
+  ],
+  "configs": [
+    "configs/assets/historical_inputs.json",
+    "configs/assets/labels.json",
+    "configs/assets/names.json",
+    "configs/assets/path_aliases.json",
+    "configs/default.json",
+    "configs/experiment_inventory.json",
+    "configs/references/original_v1.json",
+    "configs/round_a/A1.json",
+    "configs/round_a/A2.json",
+    "configs/round_a/A3.json",
+    "configs/round_a/A4.json",
+    "configs/round_a/A5.json",
+    "configs/round_a/A6.json"
+  ],
+  "documents": [
+    "analysis/README.md",
+    "code/README.md",
+    "configs/README.md",
+    "README.md",
+    "results/README.md"
+  ]
+}

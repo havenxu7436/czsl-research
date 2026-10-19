@@ -1,6 +1,6 @@
 # CZSL 研究：实验记录与复现
 
-最新归档（2026-10-18）：[VG-CPOD v1 三 seed 正式结果](VG-CPOD方案/v1/results/ut-zap50k-3seeds-20261018/README.md)，主矩阵27组、敏感性6组、两组冻结基线，共140份评价；包含权重、逐图预测、图像与[完整分析](VG-CPOD方案/v1/results/ut-zap50k-3seeds-20261018/analysis/分析报告.md)。
+最新归档（2026-10-19）：[VG-CPOD 02 · 支持损失重加权与 CP 分组学习率](VG-CPOD方案/02/README.md)，A 组 12 次训练、48 份评价、24 份权重及预测；包含公式与代码修订、超参数策略和[三 seed 数据分析](VG-CPOD方案/02/analysis/README.md)。[01 原正式结果](VG-CPOD方案/v1/results/ut-zap50k-3seeds-20261018/README.md)继续保留。
 
 ## 目录
 
@@ -21,7 +21,7 @@ provenance/    文件来源、路径映射与 SHA256
 |---|---|---|
 | 前期实验 | 01–15 | [实验索引](前期实验/README.md) |
 | 0601方案 | 01–04 | [方案索引](0601方案/README.md) |
-| VG-CPOD | 01-01 | [方案索引](VG-CPOD方案/README.md) |
+| VG-CPOD | 01–02 | [方案索引](VG-CPOD方案/README.md) |
 
 ## 使用流程
 
@@ -38,7 +38,7 @@ python tools/reproduce.py verify
 3. 各阶段 README 提供实验设置、关键流程、入口和结果链接。
 4. `inputs.json` 索引知识、配置和结果；`runbook.json` 保存该阶段的执行命令。
 
-`materialize` 将分区存储的文件恢复为独立运行目录中的原包布局。VG-CPOD使用 `--line VG-CPOD方案 --stage v1`，只恢复第三条路线。训练输入包括数据集图像、GloVe、预训练权重，以及对应阶段使用的前序 checkpoint。
+`materialize` 将分区存储的文件恢复为独立运行目录中的原包布局。VG-CPOD 的 01 使用 `--line VG-CPOD方案 --stage v1`，02 使用 `--line VG-CPOD方案 --stage 02`。各实验的外部输入见对应索引；02 可直接复用服务器已有的冻结 CLIP 特征缓存。
 
 评价中的 CW/OW 分别表示 closed-world/open-world。训练组按对应 VAL 规则选模，选中权重用于结果评价。
 

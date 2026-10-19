@@ -1,0 +1,193 @@
+--- a/vgcpod/model.py
++++ b/vgcpod/model.py
+@@ -101,10 +101,15 @@
+             orth = (self.Bvis @ self.Bvis.T - torch.eye(r, device=truth.device,
+                     dtype=truth.dtype)).square().sum() / (r * r)
+         orth_weight = 0.0 if self.variant == 'V7' else self.cfg['lambda_orth']
+-        total = pair + 0.5 * cond + 0.5 * obj
++        beta = self.cfg.get('task_aux_beta', 0.5)
++        # Preserve the original operation order exactly at the reference setting.
++        task = (pair + 0.5 * cond + 0.5 * obj) if beta == 0.5 else (
++            1.5 / (1.0 + beta) * (pair + beta * (cond + obj)))
++        support = -torch.logsumexp(s[:, train_mask], dim=-1).mean()
++        total = task
+         total = total + self.cfg['lambda_prim'] * prim + self.cfg['lambda_cent'] * cent + orth_weight * orth
+         return {'total': total, 'pair': pair, 'cond': cond, 'object': obj,
+-                'prim': prim, 'cent': cent, 'orth': orth}
++                'prim': prim, 'cent': cent, 'orth': orth, 'task': task, 'support': support}
+ 
+     def trainable_count(self):
+         return sum(p.numel() for p in self.parameters() if p.requires_grad)
+--- a/vgcpod/engine.py
++++ b/vgcpod/engine.py
+@@ -26,6 +26,41 @@
+     for gradient in gradients:
+         gradient.mul_(coefficient)
+     return norm
++
++
++def make_optimizer(model, cfg):
++    """Separate adapter and CP step sizes while preserving parameter order."""
++    base_names = {'Bo', 'Co', 'Bc', 'Cc'}
++    groups = []
++    for label, scale in [('adapter', 1.0), ('cp', cfg.get('cp_lr_scale', 1.0))]:
++        parameters = [p for name, p in model.named_parameters() if p.requires_grad
++                      and ((name in base_names) == (label == 'adapter'))]
++        if parameters:
++            groups.append({'params': parameters, 'name': label, 'lr_scale': scale,
++                           'lr': cfg['lr'] * scale})
++    return torch.optim.AdamW(groups, betas=tuple(cfg['adam_betas']), eps=cfg['adam_eps'],
++                             weight_decay=cfg['weight_decay'])
++
++
++def set_learning_rates(optimizer, cfg, step, total_steps):
++    eta = cfg['min_lr'] + 0.5 * (cfg['lr'] - cfg['min_lr']) * (
++        1 + math.cos(math.pi * step / max(total_steps - 1, 1)))
++    for group in optimizer.param_groups:
++        group['lr'] = eta * group['lr_scale']
++    return eta
++
++
++def distribution_diagnostics(joint, cond, attrs, objs, labels, pairs):
++    """Full joint probabilities before CW restriction or calibration bias."""
++    mask = mask_from_pairs(labels, pairs['train']).numpy()
++    seen_images = mask[objs, attrs]
++    support = np.exp(joint.astype(np.float64))[:, mask].sum(-1)
++    attr_ok = cond[np.arange(len(attrs)), objs].argmax(-1) == attrs
++    result = {'support_mass_all': float(support.mean())}
++    for name, sm in [('seen', seen_images), ('unseen', ~seen_images)]:
++        result['support_mass_' + name] = float(support[sm].mean()) if sm.any() else None
++        result['gt_object_attr_acc_' + name] = float(attr_ok[sm].mean() * 100) if sm.any() else None
++    return result
+ 
+ 
+ def make_model(cache, cfg, seed, device, verify=True):
+@@ -104,8 +139,7 @@
+         write_json(p, current)
+     mask = mask_from_pairs(manifest['labels'], manifest['pairs']['train']).to(args.device)
+     parameters = [p for p in model.parameters() if p.requires_grad]
+-    optimizer = torch.optim.AdamW(parameters, lr=cfg['lr'], betas=tuple(cfg['adam_betas']),
+-                                 eps=cfg['adam_eps'], weight_decay=cfg['weight_decay'])
++    optimizer = make_optimizer(model, cfg)
+     steps_per_epoch = math.ceil(manifest['counts']['train'] / cfg['batch_size'])
+     total_steps = steps_per_epoch * cfg['epochs']
+     start_epoch, step, best, history = 0, 0, -math.inf, []
+@@ -128,13 +162,9 @@
+     for epoch in range(start_epoch, cfg['epochs']):
+         model.train()
+         tic = time.time()
+-        sums, count = {}, 0
++        sums, count, clipped_steps, epoch_steps = {}, 0, 0, 0
+         for g, fa, fo, attrs, objs in loader(args.cache, 'train', cfg, epoch=epoch, seed=args.seed):
+-            # t=step+1 gives cosine endpoints eta_1=lr and eta_T=min_lr.
+-            eta = cfg['min_lr'] + 0.5 * (cfg['lr'] - cfg['min_lr']) * (
+-                1 + math.cos(math.pi * step / max(total_steps - 1, 1)))
+-            for group in optimizer.param_groups:
+-                group['lr'] = eta
++            eta = set_learning_rates(optimizer, cfg, step, total_steps)
+             optimizer.zero_grad(set_to_none=True)
+             attrs, objs = attrs.to(args.device), objs.to(args.device)
+             out = model(g.to(args.device), fa.to(args.device), fo.to(args.device))
+@@ -143,11 +173,16 @@
+                 raise FloatingPointError('Nonfinite loss at epoch %d step %d' % (epoch + 1, step))
+             losses['total'].backward()
+             norm = clip_total_norm(parameters, cfg['gradient_clip'])
++            clipped_steps += int(norm > cfg['gradient_clip'])
++            epoch_steps += 1
+             optimizer.step()
+             batch = len(attrs)
+             logs = {key: float(value.detach()) for key, value in losses.items()}
+             logs.update(gradient_norm=float(norm), gamma_mean=float(out['gamma'].mean()),
+                         gamma_variance=float(out['gamma'].var(unbiased=False)))
++            delta = (out['cond'] - out['base']).detach()
++            logs['centered_delta_mse'] = float((delta - delta.mean(-1, keepdim=True)).square().mean())
++            logs['support_mass'] = float(out['joint'].detach().exp()[:, mask].sum(-1).mean())
+             if 'pi' in out:
+                 pi = out['pi']
+                 logs['partner_entropy'] = float(-(pi * pi.clamp_min(1e-30).log()).sum(-1).mean())
+@@ -158,12 +193,20 @@
+         joint, cond, attrs, objs = predict(model, args.cache, 'val', cfg, args.device)
+         metrics, _, _, _ = evaluate_scores(joint, cond, attrs, objs, manifest['labels'],
+                                            manifest['pairs'], 'val', 'cw')
++        val_ow, _, _, _ = evaluate_scores(joint, cond, attrs, objs, manifest['labels'],
++                                          manifest['pairs'], 'val', 'ow')
++        diagnostics = distribution_diagnostics(joint, cond, attrs, objs, manifest['labels'], manifest['pairs'])
+         selected = metrics['AUC_native'] > best
+         if selected:
+             best = metrics['AUC_native']
+         entry = {'epoch': epoch + 1, 'step': step, 'lr_last': eta,
+                  'train': {k: v / count for k, v in sums.items()}, 'val_cw': metrics,
++                 'val_ow': val_ow, 'val_diagnostics': diagnostics,
++                 'lr_groups': {g['name']: g['lr'] for g in optimizer.param_groups},
+                  'selected': selected, 'seconds': time.time() - tic}
++        entry['train'].update(clipped_steps=clipped_steps, batches=epoch_steps,
++                              clipped_step_fraction=clipped_steps / epoch_steps,
++                              centered_delta_rms=math.sqrt(entry['train']['centered_delta_mse']))
+         history.append(entry)
+         state = {'epoch': epoch + 1, 'step': step, 'best_auc': best, 'history': history,
+                  'model': model.state_dict(), 'optimizer': optimizer.state_dict(), 'rng': rng_state(),
+@@ -172,8 +215,11 @@
+             save_torch(run / 'checkpoints' / 'best.pt', state)
+         save_torch(last, state)
+         write_json(run / 'history.json', history)
+-        print('EPOCH', epoch + 1, cfg['variant'], 'seed', args.seed,
++        print('EPOCH', epoch + 1, cfg.get('experiment_id', cfg['variant']), cfg['variant'], 'seed', args.seed,
+               'loss', round(entry['train']['total'], 6), 'VAL_CW_AUC_native', round(metrics['AUC_native'], 6),
++              'VAL_OW_AUC_native', round(val_ow['AUC_native'], 6),
++              'VAL_unseen_attr', diagnostics['gt_object_attr_acc_unseen'],
++              'VAL_unseen_support', diagnostics['support_mass_unseen'],
+               'best', round(best, 6), 'seconds', round(entry['seconds'], 1), flush=True)
+     evaluate_run(args.cache, run, args.device)
+     print('TRAIN_COMPLETE', run, flush=True)
+@@ -182,6 +228,7 @@
+ def write_evaluation(cache, run, manifest, cfg, phase, joint, cond, attrs, objs, world, fixed_bias):
+     metrics, curves, candidates, log_probs = evaluate_scores(joint, cond, attrs, objs,
+                 manifest['labels'], manifest['pairs'], phase, world, fixed_bias=fixed_bias)
++    metrics.update(distribution_diagnostics(joint, cond, attrs, objs, manifest['labels'], manifest['pairs']))
+     key = phase + '_' + world
+     folder = Path(run) / 'predictions'
+     folder.mkdir(parents=True, exist_ok=True)
+--- a/run.py
++++ b/run.py
+@@ -30,7 +30,7 @@
+         p.add_argument('--config', default=str(ROOT / 'configs' / 'default.json'))
+         p.add_argument('--device', default='cuda')
+         p.add_argument('--seed', type=int, default=3351)
+-        p.add_argument('--variant', choices=VARIANTS, default='V5')
++        p.add_argument('--variant', choices=VARIANTS)
+         p.add_argument('--rank', type=int)
+         p.add_argument('--tau-pi', type=float)
+         p.add_argument('--workers', type=int)
+@@ -70,7 +70,11 @@
+         engine.summarize(args)
+     else:
+         cfg = read_json(args.config)
+-        cfg['variant'] = args.variant
++        cfg['variant'] = args.variant or cfg['variant']
++        if not 0 <= cfg.get('task_aux_beta', 0.5) <= 1:
++            parser.error('task_aux_beta must be in [0,1]')
++        if not 0 < cfg.get('cp_lr_scale', 1.0) <= 1:
++            parser.error('cp_lr_scale must be in (0,1]')
+         for name in ('rank', 'tau_pi', 'workers'):
+             if getattr(args, name) is not None:
+                 cfg[name] = getattr(args, name)
+--- a/configs/default.json
++++ b/configs/default.json
+@@ -17,9 +17,14 @@
+   "workers": 4,
+   "epochs": 10,
+   "lr": 0.001,
+-  "min_lr": 0.00001,
++  "min_lr": 1e-05,
+   "weight_decay": 0.0001,
+   "gradient_clip": 1.0,
+-  "adam_betas": [0.9, 0.999],
+-  "adam_eps": 1e-8
++  "adam_betas": [
++    0.9,
++    0.999
++  ],
++  "adam_eps": 1e-08,
++  "task_aux_beta": 0.5,
++  "cp_lr_scale": 1.0
+ }
