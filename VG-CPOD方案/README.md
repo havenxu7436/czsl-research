@@ -4,6 +4,6 @@
 
 **[完整公式及核心代码v1](v1/VG-CPOD公式及代码v1.md)** · [数学与实验设计](v1/数学与实验设计_v1.md) 
 
-| 版本 | 模型与数据 | 已归档内容 | 入口 |
+| 编号 | 实验 | 入口 |
 |---|---|---|---|
-| 01 | CLIP ViT-L/14；UT-Zappos natural split | 27组主矩阵、6组敏感性、两组冻结基线；140份评价、66份权重、原始预测、诊断图及完整分析；保留公式、配置与CPU检查 | [版本索引](v1/README.md) · [结果](v1/results/ut-zap50k-3seeds-20261018/README.md) |
+| 01 | CLIP ViT-L/14；UT-Zappos natural split | [版本索引](v1/README.md) · [结果](v1/results/ut-zap50k-3seeds-20261018/README.md) |
