@@ -1,0 +1,589 @@
+--- /dev/null
++++ b/configs/round_c/C1.json
+@@ -0,0 +1,36 @@
++{
++  "dataset": "ut-zap50k",
++  "variant": "V1",
++  "rank": 32,
++  "adapter_rank": 8,
++  "kappa": 20.0,
++  "rho": 0.125,
++  "rho_a": 0.1,
++  "tau_v": 0.07,
++  "tau_gamma": 0.1,
++  "tau_pi": 0.1,
++  "lambda_prim": 0.2,
++  "lambda_cent": 0.1,
++  "lambda_orth": 0.001,
++  "batch_size": 64,
++  "eval_batch_size": 64,
++  "workers": 4,
++  "epochs": 10,
++  "lr": 0.001,
++  "min_lr": 1e-05,
++  "weight_decay": 0.0001,
++  "gradient_clip": 1.0,
++  "adam_betas": [
++    0.9,
++    0.999
++  ],
++  "adam_eps": 1e-08,
++  "task_aux_beta": 0.1,
++  "cp_lr_scale": 0.3,
++  "experiment_id": "C1",
++  "readout_feature": "global",
++  "readout_alpha": 0.5,
++  "gate_input": "none",
++  "gate_eta": 0.0,
++  "gate_center_modes": false
++}
+--- /dev/null
++++ b/configs/round_c/C2.json
+@@ -0,0 +1,36 @@
++{
++  "dataset": "ut-zap50k",
++  "variant": "V1",
++  "rank": 32,
++  "adapter_rank": 8,
++  "kappa": 20.0,
++  "rho": 0.1,
++  "rho_a": 0.1,
++  "tau_v": 0.07,
++  "tau_gamma": 0.1,
++  "tau_pi": 0.1,
++  "lambda_prim": 0.2,
++  "lambda_cent": 0.1,
++  "lambda_orth": 0.001,
++  "batch_size": 64,
++  "eval_batch_size": 64,
++  "workers": 4,
++  "epochs": 10,
++  "lr": 0.001,
++  "min_lr": 1e-05,
++  "weight_decay": 0.0001,
++  "gradient_clip": 1.0,
++  "adam_betas": [
++    0.9,
++    0.999
++  ],
++  "adam_eps": 1e-08,
++  "task_aux_beta": 0.1,
++  "cp_lr_scale": 0.3,
++  "experiment_id": "C2",
++  "readout_feature": "global",
++  "readout_alpha": 0.5,
++  "gate_input": "local",
++  "gate_eta": 0.25,
++  "gate_center_modes": true
++}
+--- /dev/null
++++ b/round_c.py
+@@ -0,0 +1,272 @@
++"""C1/C2 and an original-source B3 repeat on three independent GPUs."""
++import argparse
++import os
++import subprocess
++import sys
++import threading
++from concurrent.futures import ThreadPoolExecutor, as_completed
++from pathlib import Path
++
++import round_b as shared
++
++ROOT = Path(__file__).resolve().parent
++CASES = ('C1', 'C2')
++DEFAULT_OUT = Path('/data/xhw/vgcpod_v1_runs/roundC_20261020')
++DEFAULT_A_OUT = Path('/data/xhw/vgcpod_v1_runs/roundA_20261019')
++DEFAULT_B_OUT = Path('/data/xhw/vgcpod_v1_runs/roundB_20261019')
++DEFAULT_B_ROOT = Path('/data/xhw/vgcpod_project/vgcpod_v1_roundB')
++PRINT_LOCK = threading.Lock()
++
++
++def announce(*items):
++    with PRINT_LOCK:
++        print(' '.join(map(str, items)), flush=True)
++
++
++def collect(root, cases, source_group):
++    rows, records = [], {}
++    for case in cases:
++        for path in sorted((Path(root) / case).glob('ut-zap50k/V*/seed*/metrics.json')):
++            saved = shared.read(path)
++            protocol = shared.read(path.parent / 'protocol.json')
++            cfg = protocol['config']
++            history = shared.read(path.parent / 'history.json')
++            selected = history[saved['selected_epoch'] - 1]['train']
++            row = dict(case=case, seed=protocol['seed'], source_group=source_group,
++                run_dir=str(path.parent), variant=cfg['variant'], rho=cfg['rho'],
++                readout_feature=cfg.get('readout_feature', 'global'), gate_input=cfg.get('gate_input', 'none'),
++                gate_eta=cfg.get('gate_eta', 0.), gate_center_modes=cfg.get('gate_center_modes', False),
++                beta=cfg['task_aux_beta'], cp_lr=cfg['lr']*cfg['cp_lr_scale'],
++                selected_epoch=saved['selected_epoch'], completed_epochs=len(history),
++                feature_manifest_sha256=protocol['feature_manifest_sha256'])
++            row.update(shared.metric_columns(saved['metrics']))
++            row.update(train_delta_rms=selected['centered_delta_rms'],
++                train_clip_fraction=selected['clipped_step_fraction'], train_gamma_mean=selected['gamma_mean'],
++                train_gamma_image_variance=selected.get('gamma_image_variance'),
++                train_gamma_abs_deviation=selected.get('gamma_abs_deviation'),
++                train_gamma_mode_mean_deviation=selected.get('gamma_mode_mean_deviation'))
++            rows.append(row)
++            records[(case, row['seed'])] = row
++    return rows, records
++
++
++def reference_records(a_out):
++    raw = shared.references(a_out)
++    for record in shared.read(ROOT / 'references/round_b_pilot.json')['runs']:
++        raw[(record['case'], record['seed'])] = record
++    refs = {}
++    for key, record in raw.items():
++        refs[key] = dict(case=record['case'], seed=record['seed'],
++            feature_manifest_sha256=record['feature_manifest_sha256'],
++            **shared.metric_columns(record['metrics']))
++        variant = record['config']['variant']
++        path = Path(a_out) / record['case'] / 'ut-zap50k' / variant / ('seed%d' % record['seed'])
++        if record['case'].startswith('A') and (path / 'metrics.json').exists():
++            refs[key]['run_dir'] = str(path)
++    return refs
++
++
++def export_pair_gains(out, pairs):
++    """Read saved predictions for every scalar comparison that has both exports."""
++    import numpy as np
++    rows = []
++    for left, right in pairs:
++        if 'run_dir' not in left or 'run_dir' not in right:
++            continue
++        run = Path(left['run_dir'])
++        manifest = Path(shared.read(run / 'protocol.json')['cache_path_at_run']) / 'features_manifest.json'
++        labels = shared.read(manifest)['labels'] if manifest.exists() else shared.read(ROOT / 'assets/labels.json')
++        for setting in shared.SETTINGS:
++            lp = run / 'predictions' / (setting + '.npz')
++            rp = Path(right['run_dir']) / 'predictions' / (setting + '.npz')
++            if not lp.exists() or not rp.exists():
++                continue
++            with np.load(lp, allow_pickle=False) as l, np.load(rp, allow_pickle=False) as r:
++                for key in ('image_ids', 'candidate_pairs', 'attribute_truth', 'object_truth'):
++                    if not np.array_equal(l[key], r[key]):
++                        raise ValueError('Prediction axes differ: ' + str(lp) + ' vs ' + str(rp))
++                a, o = l['attribute_truth'], l['object_truth']
++                lc = l['conditional_logits_gt_object'].argmax(-1) == a
++                rc = r['conditional_logits_gt_object'].argmax(-1) == a
++                li, ri = l['log_probabilities'].argmax(-1), r['log_probabilities'].argmax(-1)
++                for obj, attr in sorted(set(zip(o.tolist(), a.tolist()))):
++                    mask = (o == obj) & (a == attr)
++                    pair = np.array([labels['attrs'][attr], labels['objs'][obj]])
++                    lok = np.all(l['candidate_pairs'][li[mask]] == pair, axis=-1)
++                    rok = np.all(r['candidate_pairs'][ri[mask]] == pair, axis=-1)
++                    rows.append(dict(comparison=left['case']+'-'+right['case'], seed=left['seed'],
++                        setting=setting, attribute=pair[0], object=pair[1], images=int(mask.sum()),
++                        pair_gain_unbiased_pct=float((lok.mean()-rok.mean())*100),
++                        gt_object_attr_gain_pct=float((lc[mask].mean()-rc[mask].mean())*100),
++                        conditional_correct_delta=int(lc[mask].sum())-int(rc[mask].sum())))
++    shared.csv_write(Path(out) / 'per_pair_gains.csv', rows)
++    return len(rows)
++
++
++def summarize(out, a_out=DEFAULT_A_OUT, b_out=DEFAULT_B_OUT):
++    out = Path(out)
++    rows, records = collect(out, CASES, 'roundC')
++    b_rows, b_records = collect(b_out, ('B3',), 'roundB')
++    rows += b_rows
++    if not rows:
++        raise FileNotFoundError('No completed C1/C2/B3 metrics')
++    out.mkdir(parents=True, exist_ok=True)
++    refs = reference_records(a_out)
++    refs.update(b_records)
++    refs.update(records)
++    deltas, pairs = [], []
++    for row in rows:
++        reference_names = ('A5', 'A6', 'B3') if row['case'] in CASES else ('A5', 'A6')
++        if row['case'] == 'C2':
++            reference_names += ('C1',)
++        for name in reference_names:
++            other = refs.get((name, row['seed']))
++            if other and other['feature_manifest_sha256'] == row['feature_manifest_sha256']:
++                deltas.append(dict(comparison=row['case']+'-'+name, seed=row['seed'],
++                    **{key:row[key]-other[key] for key in shared.COLUMNS}))
++                pairs.append((row, other))
++    grouped = shared.aggregate(rows)
++    paired = shared.aggregate(deltas, 'comparison') if deltas else []
++    pair_count = export_pair_gains(out, pairs)
++    shared.csv_write(out / 'round_c_summary.csv', rows)
++    shared.csv_write(out / 'round_c_mean_sd.csv', grouped)
++    shared.csv_write(out / 'round_c_paired_deltas.csv', deltas)
++    shared.csv_write(out / 'round_c_paired_mean_sd.csv', paired)
++    ranking = sorted([r for r in grouped if r['case'] in CASES], key=lambda r:(-r['val_cw_AUC_native_mean'],r['case']))
++    shared.dump(out / 'round_c_summary.json', dict(runs=rows, by_case=grouped, paired_deltas=deltas,
++        paired_mean_sd=paired, c_val_cw_ranking=ranking, per_pair_rows=pair_count,
++        selection_rule='epoch: first strict maximum VAL CW AUC_native; C cases: mean VAL CW across available seeds; deltas use matching seeds'))
++    announce('SUMMARY', out / 'round_c_summary.csv')
++    for row in rows:
++        announce(row['case'], 'seed', row['seed'], 'VAL_CW', round(row['val_cw_AUC_native'],4),
++            'VAL_OW', round(row['val_ow_AUC_native'],4), 'TEST_CW', round(row['test_cw_AUC_native'],4),
++            'TEST_OW', round(row['test_ow_AUC_native'],4),
++            'TEST_unseen_attr', round(row['test_ow_gt_object_attr_acc_unseen'],4))
++    return rows
++
++
++def environment(gpu=None):
++    env = dict(os.environ, PYTHONHASHSEED='0', CUBLAS_WORKSPACE_CONFIG=':4096:8',
++               OMP_NUM_THREADS='4', MKL_NUM_THREADS='4')
++    if gpu is not None:
++        env['CUDA_VISIBLE_DEVICES'] = str(gpu)
++    return env
++
++
++def worker_c(gpu, jobs, args):
++    events = []
++    for case, seed in jobs:
++        config = ROOT / 'configs/round_c' / (case + '.json')
++        cfg = shared.read(config)
++        run = args.out / case / cfg['dataset'] / cfg['variant'] / ('seed%d' % seed)
++        log = args.out / 'logs' / ('%s_seed%d.log' % (case, seed))
++        if (run / 'metrics.json').exists():
++            if shared.validate_completed(run, cfg, seed, args.cache):
++                announce('ALREADY_COMPLETE', case, seed, 'GPU', gpu)
++                events.append(dict(case=case, seed=seed, gpu=gpu, status='already_complete'))
++                continue
++            raise ValueError('Existing run has different configuration/source: ' + str(run))
++        command = [sys.executable, '-u', str(ROOT / 'run.py'), 'train', '--cache', str(args.cache),
++            '--out', str(args.out / case), '--config', str(config), '--seed', str(seed), '--device', args.device]
++        if (run / 'protocol.json').exists():
++            command.append('--resume')
++        announce('START', case, seed, 'GPU', gpu, 'log', log)
++        with log.open('a', encoding='utf-8') as f:
++            f.write('\nROUND_C_START ' + ' '.join(command) + '\n')
++            f.flush()
++            process = subprocess.run(command, cwd=str(ROOT), env=environment(gpu), stdout=f, stderr=subprocess.STDOUT)
++        status = 'complete' if process.returncode == 0 else 'failed'
++        events.append(dict(case=case, seed=seed, gpu=gpu, status=status, exit_code=process.returncode, log=str(log)))
++        announce(status.upper(), case, seed, 'GPU', gpu)
++    return events
++
++
++def worker_b3(gpu, args):
++    """Delegate to the unchanged B launcher, which owns its original output lock."""
++    log = args.out / 'logs' / ('B3_seed%d.log' % args.b3_seed)
++    command = [sys.executable, '-u', str(args.b_root / 'round_b.py'), 'run', '--cache', str(args.cache),
++        '--out', str(args.b_out), '--reference-out', str(args.a_out), '--gpus', str(gpu),
++        '--cases', 'B3', '--seeds', str(args.b3_seed), '--device', args.device]
++    announce('START', 'B3', args.b3_seed, 'GPU', gpu, 'original_source', args.b_root)
++    with log.open('a', encoding='utf-8') as f:
++        process = subprocess.run(command, cwd=str(args.b_root), env=environment(), stdout=f, stderr=subprocess.STDOUT)
++    status = 'complete' if process.returncode == 0 else 'failed'
++    if process.returncode == 0:
++        event = next((r for r in shared.read(args.b_out / 'round_b_status.json')
++                      if r.get('case')=='B3' and r.get('seed')==args.b3_seed), None)
++        if event and event['status'] == 'already_complete':
++            status = 'already_complete'
++    announce(status.upper(), 'B3', args.b3_seed, 'GPU', gpu)
++    return [dict(case='B3', seed=args.b3_seed, gpu=gpu, status=status,
++                 exit_code=process.returncode, log=str(log), source_root=str(args.b_root), output_root=str(args.b_out))]
++
++
++def launch(args):
++    for key in ('out','cache','a_out','b_out','b_root'):
++        setattr(args, key, getattr(args, key).resolve())
++    if not (args.cache / 'features_manifest.json').is_file():
++        raise FileNotFoundError('Feature cache absent: ' + str(args.cache))
++    if not args.skip_b3 and not (args.b_root / 'round_b.py').is_file():
++        raise FileNotFoundError('Original B source absent; set --b-root: ' + str(args.b_root))
++    args.out.mkdir(parents=True, exist_ok=True)
++    (args.out / 'logs').mkdir(exist_ok=True)
++    with (args.out / '.round_c.lock').open('a') as lock:
++        if os.name == 'posix':
++            import fcntl
++            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
++        c_gpus = args.gpus if args.skip_b3 else args.gpus[:-1]
++        jobs = [(case,seed) for seed in args.seeds for case in args.cases]
++        queues = [jobs[i::len(c_gpus)] for i in range(len(c_gpus))]
++        plan = [dict(case=case,seed=seed,gpu=gpu,source='roundC')
++                for gpu,queue in zip(c_gpus,queues) for case,seed in queue]
++        if not args.skip_b3:
++            plan.append(dict(case='B3',seed=args.b3_seed,gpu=args.gpus[-1],source=str(args.b_root)))
++        shared.dump(args.out / 'round_c_jobs.json', plan)
++        events = []
++        with ThreadPoolExecutor(max_workers=len(args.gpus)) as pool:
++            futures = {pool.submit(worker_c,gpu,queue,args):gpu for gpu,queue in zip(c_gpus,queues) if queue}
++            if not args.skip_b3:
++                futures[pool.submit(worker_b3,args.gpus[-1],args)] = args.gpus[-1]
++            for future in as_completed(futures):
++                try:
++                    events += future.result()
++                except Exception as e:
++                    events.append(dict(gpu=futures[future],status='failed',error=str(e)))
++                shared.dump(args.out / 'round_c_status.json', events)
++        if any(args.out.glob('C*/ut-zap50k/V*/seed*/metrics.json')) or any(args.b_out.glob('B3/ut-zap50k/V*/seed*/metrics.json')):
++            summarize(args.out,args.a_out,args.b_out)
++        if any(r['status']=='failed' for r in events):
++            raise SystemExit('ROUND_C_FAILED: see round_c_status.json and logs')
++        announce('ROUND_C_COMPLETE',args.out,'jobs',len(plan))
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    sub = parser.add_subparsers(dest='command', required=True)
++    for command in ('run','summarize'):
++        p = sub.add_parser(command)
++        p.add_argument('--out',type=Path,default=DEFAULT_OUT)
++        p.add_argument('--a-out',type=Path,default=DEFAULT_A_OUT)
++        p.add_argument('--b-out',type=Path,default=DEFAULT_B_OUT)
++        if command=='run':
++            p.add_argument('--cache',type=Path,default=Path('/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14'))
++            p.add_argument('--b-root',type=Path,default=DEFAULT_B_ROOT)
++            p.add_argument('--gpus',nargs='+',default=['1','2','3'])
++            p.add_argument('--cases',nargs='+',choices=CASES,default=list(CASES))
++            p.add_argument('--seeds',nargs='+',type=int,default=[3351])
++            p.add_argument('--b3-seed',type=int,default=3352)
++            p.add_argument('--skip-b3',action='store_true')
++            p.add_argument('--device',choices=['cuda','cpu'],default='cuda')
++    args = parser.parse_args()
++    if args.command=='run':
++        if any(len(set(getattr(args,key)))!=len(getattr(args,key)) for key in ('gpus','cases','seeds')):
++            parser.error('GPU IDs, cases, and seeds must each be unique')
++        if not args.skip_b3 and len(args.gpus)<2:
++            parser.error('Use at least two GPU IDs with the B3 job, or --skip-b3 for C-only training')
++        launch(args)
++    else:
++        summarize(args.out,args.a_out,args.b_out)
++
++
++if __name__=='__main__':
++    main()
+--- /dev/null
++++ b/scripts/run_round_c.sh
+@@ -0,0 +1,16 @@
++#!/usr/bin/env bash
++set -euo pipefail
++SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
++cd "$SCRIPT_DIR/.."
++export CUBLAS_WORKSPACE_CONFIG=:4096:8
++export PYTHONHASHSEED=0
++export OMP_NUM_THREADS="${OMP_NUM_THREADS:-4}"
++export MKL_NUM_THREADS="${MKL_NUM_THREADS:-4}"
++VG_PYTHON="${VG_PYTHON:-python}"
++VG_CACHE="${VG_CACHE:-/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14}"
++VG_C_OUT="${VG_C_OUT:-/data/xhw/vgcpod_v1_runs/roundC_20261020}"
++VG_A_OUT="${VG_A_OUT:-/data/xhw/vgcpod_v1_runs/roundA_20261019}"
++VG_B_OUT="${VG_B_OUT:-/data/xhw/vgcpod_v1_runs/roundB_20261019}"
++VG_B_ROOT="${VG_B_ROOT:-/data/xhw/vgcpod_project/vgcpod_v1_roundB}"
++exec "$VG_PYTHON" -u round_c.py run --cache "$VG_CACHE" --out "$VG_C_OUT" \
++  --a-out "$VG_A_OUT" --b-out "$VG_B_OUT" --b-root "$VG_B_ROOT" "$@"
+--- /dev/null
++++ b/scripts/start_round_c_tmux.sh
+@@ -0,0 +1,21 @@
++#!/usr/bin/env bash
++set -euo pipefail
++SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
++cd "$SCRIPT_DIR/.."
++PACKAGE_ROOT="$PWD"
++SESSION="${VG_C_SESSION:-vgcpod_C}"
++VG_PYTHON="$(command -v "${VG_PYTHON:-python}")"
++VG_CACHE="${VG_CACHE:-/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14}"
++VG_C_OUT="${VG_C_OUT:-/data/xhw/vgcpod_v1_runs/roundC_20261020}"
++VG_A_OUT="${VG_A_OUT:-/data/xhw/vgcpod_v1_runs/roundA_20261019}"
++VG_B_OUT="${VG_B_OUT:-/data/xhw/vgcpod_v1_runs/roundB_20261019}"
++VG_B_ROOT="${VG_B_ROOT:-/data/xhw/vgcpod_project/vgcpod_v1_roundB}"
++mkdir -p "$VG_C_OUT"
++if tmux has-session -t "$SESSION" 2>/dev/null; then
++  printf 'Session exists. Attach with: tmux attach -t %q\n' "$SESSION"
++  exit 0
++fi
++printf -v LAUNCH '%q ' bash "$PACKAGE_ROOT/scripts/tmux_round_c_entry.sh" \
++  "$VG_PYTHON" "$VG_CACHE" "$VG_C_OUT" "$VG_A_OUT" "$VG_B_OUT" "$VG_B_ROOT" "$@"
++tmux new-session -d -s "$SESSION" -c "$PACKAGE_ROOT" "$LAUNCH"
++printf 'Started. Attach with: tmux attach -t %q\n' "$SESSION"
+--- /dev/null
++++ b/scripts/tmux_round_c_entry.sh
+@@ -0,0 +1,13 @@
++#!/usr/bin/env bash
++set -uo pipefail
++SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
++cd "$SCRIPT_DIR/.."
++export VG_PYTHON="$1" VG_CACHE="$2" VG_C_OUT="$3" VG_A_OUT="$4" VG_B_OUT="$5" VG_B_ROOT="$6"
++shift 6
++mkdir -p "$VG_C_OUT"
++printf 'RUNNING\n' > "$VG_C_OUT/launcher.exitcode"
++bash scripts/run_round_c.sh "$@" 2>&1 | tee -a "$VG_C_OUT/launcher.log"
++RESULT=${PIPESTATUS[0]}
++printf '%s\n' "$RESULT" > "$VG_C_OUT/launcher.exitcode"
++printf '\nROUND_C_EXIT_CODE=%s\nResults: %s\n' "$RESULT" "$VG_C_OUT"
++exec bash -i
+--- /dev/null
++++ b/tests/test_round_c.py
+@@ -0,0 +1,139 @@
++"""Static gain equivalence, centered-gate geometry and gradients, training and exports."""
++import argparse
++import tempfile
++import unittest
++from pathlib import Path
++from unittest import mock
++
++import numpy as np
++import torch
++
++import round_c
++from tests.test_math import fixture, synthetic_cache
++from vgcpod import engine
++from vgcpod.common import ROOT, load_torch, read_json
++from vgcpod.model import VGCPOD
++
++torch.set_num_threads(1)
++
++
++def cfixture(case):
++    ref, small, x, y, mask = fixture('V1')
++    cfg = read_json(ROOT / 'configs/round_c' / (case+'.json'))
++    cfg.update(rank=small['rank'], adapter_rank=small['adapter_rank'], workers=0,
++               batch_size=8, eval_batch_size=8, epochs=2)
++    model = VGCPOD(ref.ea,ref.eo,ref.ec,cfg,3351).double()
++    return model,cfg,tuple(t.double() for t in x),y,mask
++
++
++class RoundCMathTests(unittest.TestCase):
++    def test_static_gain_equivalence_in_forward_and_parameter_gradient(self):
++        model,cfg,x,y,mask = cfixture('C1')
++        baseline = VGCPOD(model.ea,model.eo,model.ec,dict(cfg,rho=.1),3351).double()
++        with torch.no_grad():
++            model.Wc.normal_(0,.05)
++        baseline.load_state_dict(model.state_dict())
++        a,b = model(*x),baseline(*x)
++        self.assertTrue(torch.equal(a['base'],b['base']))
++        self.assertTrue(torch.equal(a['obj'],b['obj']))
++        self.assertTrue(torch.allclose(a['cond']-a['base'],1.25*(b['cond']-b['base']),atol=1e-12))
++        ga = torch.autograd.grad(a['cond'][0,0,0],model.Wc)[0]
++        gb = torch.autograd.grad(b['cond'][0,0,0],baseline.Wc)[0]
++        self.assertTrue(torch.allclose(ga,1.25*gb,atol=1e-12))
++        self.assertFalse(model.Bvis.requires_grad)
++
++    def test_mode_mean_bounds_zero_start_and_common_mode_removal(self):
++        model,cfg,x,y,mask = cfixture('C2')
++        out = model(*x)
++        self.assertTrue(torch.equal(out['cond'],out['base']))
++        self.assertTrue(torch.allclose(out['gamma'].mean(-1),torch.ones_like(out['gamma'][...,0]),atol=1e-14))
++        self.assertTrue(torch.all(out['gamma']>.75) and torch.all(out['gamma']<1.25))
++        gradient = torch.autograd.grad(out['gamma'].sum(),model.Bvis)[0]
++        self.assertLess(float(gradient.abs().max()),1e-14)
++        with torch.no_grad():
++            model.Bvis.copy_(model.Bvis[0:1].expand_as(model.Bvis).clone())
++        same = model(*x)['gamma']
++        self.assertTrue(torch.allclose(same,torch.ones_like(same),atol=1e-14))
++        with torch.no_grad():
++            model.Bvis.normal_(0,1000)
++        extreme = model(*x)['gamma']
++        self.assertTrue(torch.isfinite(extreme).all())
++        self.assertTrue(torch.all(extreme>=.75) and torch.all(extreme<=1.25))
++        self.assertTrue(torch.allclose(extreme.mean(-1),torch.ones_like(extreme[...,0]),atol=1e-14))
++
++    def test_centered_operator_and_visual_gradient_finite_difference(self):
++        model,cfg,(g,fa,fo),y,mask = cfixture('C2')
++        with torch.no_grad():
++            model.Wc.normal_(0,.05)
++        out = model(g,fa,fo)
++        self.assertTrue(torch.equal(out['gamma'],model(g.roll(1,0),fa,fo)['gamma']))
++        self.assertFalse(torch.allclose(out['gamma'],model(g,fa,fo.roll(1,0))['gamma']))
++        b,j,i = 0,1,2
++        operator = model.Wc @ torch.diag((model.Av @ model.eo[j])*out['gamma'][b,j]) @ model.Au
++        direct = cfg['rho']*cfg['kappa']*g[b] @ operator @ model.ea[i]
++        self.assertTrue(torch.allclose(out['cond'][b,j,i]-out['base'][b,j,i],direct,atol=1e-12))
++        self.assertLessEqual(int(torch.linalg.matrix_rank(operator)),cfg['rank'])
++        self.assertTrue(torch.allclose(out['joint'].exp().sum((1,2)),torch.ones(len(g),dtype=g.dtype),atol=1e-12))
++        model.objective(out,*y,mask)['task'].backward()
++        k = int(model.Bvis.grad.abs().argmax())
++        analytic = float(model.Bvis.grad.flatten()[k])
++        self.assertGreater(abs(analytic),1e-12)
++        with torch.no_grad():
++            flat = model.Bvis.view(-1)
++            original = flat[k].item()
++            flat[k] = original+1e-5
++            plus = float(model.objective(model(g,fa,fo),*y,mask)['task'])
++            flat[k] = original-1e-5
++            minus = float(model.objective(model(g,fa,fo),*y,mask)['task'])
++            flat[k] = original
++        self.assertAlmostEqual((plus-minus)/2e-5,analytic,delta=max(1e-10,abs(analytic)*1e-4))
++
++
++class RoundCIntegrationTests(unittest.TestCase):
++    def test_train_resume_and_matched_reference_summary(self):
++        with tempfile.TemporaryDirectory(prefix='vgcpod_roundc_') as temp:
++            root = Path(temp)
++            small = synthetic_cache(root/'cache')
++            for case in ('A5','A6','B3','C1','C2'):
++                sub = 'round_a' if case.startswith('A') else ('round_b' if case.startswith('B') else 'round_c')
++                cfg = read_json(ROOT/'configs'/sub/(case+'.json'))
++                cfg.update(rank=small['rank'],adapter_rank=small['adapter_rank'],workers=0,
++                           batch_size=8,eval_batch_size=8,epochs=2)
++                args = argparse.Namespace(cache=str(root/'cache'),out=str(root/case),seed=3351,device='cpu',resume=False)
++                case_out = root/case
++                engine.train(args,cfg)
++                run = case_out/'ut-zap50k'/cfg['variant']/'seed3351'
++                if case=='C2':
++                    history = read_json(run/'history.json')
++                    self.assertLess(history[-1]['train']['gamma_mode_mean_deviation'],1e-6)
++                    self.assertGreater(history[-1]['train']['gamma_image_variance'],0)
++                    original = load_torch(run/'checkpoints/last.pt')
++                    args.out = str(root/'resume')
++                    real = engine.predict
++                    calls = [0]
++                    def interrupted(*a,**kw):
++                        calls[0] += 1
++                        if calls[0]==2:
++                            raise InterruptedError('interrupt after epoch commit')
++                        return real(*a,**kw)
++                    with mock.patch.object(engine,'predict',side_effect=interrupted):
++                        with self.assertRaises(InterruptedError):
++                            engine.train(args,cfg)
++                    args.resume = True
++                    engine.train(args,cfg)
++                    resumed = load_torch(root/'resume/ut-zap50k/V1/seed3351/checkpoints/last.pt')
++                    for key in original['model']:
++                        self.assertTrue(torch.equal(original['model'][key],resumed['model'][key]),key)
++            rows = round_c.summarize(root,a_out=root,b_out=root)
++            self.assertEqual({r['case'] for r in rows},{'C1','C2','B3'})
++            summary = read_json(root/'round_c_summary.json')
++            comparisons = {r['comparison'] for r in summary['paired_deltas']}
++            self.assertTrue({'C1-A5','C1-B3','C2-A5','C2-B3','C2-C1','B3-A5'} <= comparisons)
++            self.assertGreater(summary['per_pair_rows'],0)
++            self.assertEqual({r['case'] for r in summary['c_val_cw_ranking']},{'C1','C2'})
++            with np.load(root/'C2/ut-zap50k/V1/seed3351/predictions/test_ow.npz') as d:
++                np.testing.assert_allclose(d['probabilities'].sum(-1),1,atol=1e-5)
++
++
++if __name__=='__main__':
++    unittest.main(verbosity=2)
+--- a/vgcpod/engine.py
++++ b/vgcpod/engine.py
+@@ -182,6 +182,7 @@
+                         gamma_variance=float(out['gamma'].var(unbiased=False)))
+             logs['gamma_image_variance'] = float(out['gamma'].var(dim=0, unbiased=False).mean())
+             logs['gamma_abs_deviation'] = float((out['gamma'] - 1).abs().mean())
++            logs['gamma_mode_mean_deviation'] = float((out['gamma'].mean(-1) - 1).abs().mean())
+             delta = (out['cond'] - out['base']).detach()
+             logs['centered_delta_mse'] = float((delta - delta.mean(-1, keepdim=True)).square().mean())
+             logs['support_mass'] = float(out['joint'].detach().exp()[:, mask].sum(-1).mean())
+--- a/vgcpod/model.py
++++ b/vgcpod/model.py
+@@ -53,6 +53,7 @@
+         self.gate_input = cfg.get('gate_input', legacy_gate)
+         self.readout_alpha = cfg.get('readout_alpha', 0.5)  # weight on object-query feature
+         self.gate_eta = cfg.get('gate_eta', 1.0)
++        self.gate_center_modes = cfg.get('gate_center_modes', False)
+         if self.readout_feature not in ('global', 'local', 'mixed'):
+             raise ValueError('readout_feature must be global, local, or mixed')
+         if self.gate_input not in ('none', 'global', 'local'):
+@@ -86,8 +87,12 @@
+             if self.variant == 'V6':
+                 gate_input = gate_input.roll(shifts=1, dims=0)
+             raw_gamma = 2 * torch.sigmoid((gate_input @ self.Bvis.T) / c['tau_gamma'])
+-            # eta=1 retains the original operation order exactly.
+-            gamma = raw_gamma if self.gate_eta == 1 else 1 + self.gate_eta * (raw_gamma - 1)
++            if self.gate_center_modes:
++                q = raw_gamma - 1
++                gamma = 1 + (self.gate_eta / 2) * (q - q.mean(dim=-1, keepdim=True))
++            else:
++                # eta=1 retains the original operation order exactly.
++                gamma = raw_gamma if self.gate_eta == 1 else 1 + self.gate_eta * (raw_gamma - 1)
+         cond = base
+         if self.correction:
+             modes = (readout @ self.Wc) * gamma * v[None, :, :]

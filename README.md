@@ -1,6 +1,6 @@
 # CZSL 研究：实验记录与复现
 
-最新归档（2026-10-20）：[VG-CPOD 03 · 读出解耦与局部弱门控](VG-CPOD方案/03/README.md)，B1/B2/B3 共 3 次训练、12 份评价与预测、6 份权重；包含公式与代码修订、超参数策略和[同 seed 数据分析](VG-CPOD方案/03/analysis/README.md)。前序 [02 A 组基座](VG-CPOD方案/02/README.md)与[01 原正式结果](VG-CPOD方案/v1/results/ut-zap50k-3seeds-20261018/README.md)继续保留。
+最新归档（2026-10-20）：[VG-CPOD 04 · 静态幅度对照与模式中心化门控](VG-CPOD方案/04/README.md)，包含 C1/C2 与原 B3 补 seed 共 3 次训练结果、12 份评价与预测、6 份权重，以及公式与代码修订、超参数策略和[数据分析](VG-CPOD方案/04/analysis/README.md)。前序 [03 B 组](VG-CPOD方案/03/README.md)、[02 A 组基座](VG-CPOD方案/02/README.md)与[01 原正式结果](VG-CPOD方案/v1/results/ut-zap50k-3seeds-20261018/README.md)继续保留。
 
 ## 目录
 
@@ -21,7 +21,7 @@ provenance/    文件来源、路径映射与 SHA256
 |---|---|---|
 | 前期实验 | 01–15 | [实验索引](前期实验/README.md) |
 | 0601方案 | 01–04 | [方案索引](0601方案/README.md) |
-| VG-CPOD | 01–03 | [方案索引](VG-CPOD方案/README.md) |
+| VG-CPOD | 01–04 | [方案索引](VG-CPOD方案/README.md) |
 
 ## 使用流程
 
@@ -38,7 +38,7 @@ python tools/reproduce.py verify
 3. 各阶段 README 提供实验设置、关键流程、入口和结果链接。
 4. `inputs.json` 索引知识、配置和结果；`runbook.json` 保存该阶段的执行命令。
 
-`materialize` 将分区存储的文件恢复为独立运行目录中的原包布局。VG-CPOD 的 01 使用 `--line VG-CPOD方案 --stage v1`，02/03 分别使用 `--line VG-CPOD方案 --stage 02`、`--line VG-CPOD方案 --stage 03`。各实验的外部输入见对应索引；02/03 可直接复用服务器已有的冻结 CLIP 特征缓存。
+`materialize` 将分区存储的文件恢复为独立运行目录中的原包布局。VG-CPOD 的 01 使用 `--line VG-CPOD方案 --stage v1`，02–04 分别使用 `--stage 02`、`--stage 03`、`--stage 04`，并指定 `--line VG-CPOD方案`。04 同时恢复 C 包和 B3 补 seed 使用的原 B 包。各实验的外部输入见对应索引；02–04 可直接复用服务器已有的冻结 CLIP 特征缓存。
 
 评价中的 CW/OW 分别表示 closed-world/open-world。训练组按对应 VAL 规则选模，选中权重用于结果评价。
 

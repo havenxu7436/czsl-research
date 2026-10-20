@@ -1,0 +1,307 @@
+# VG-CPOD 方案 v1：C 组实验实施方案
+
+日期：2026-10-20。框架：冻结 CLIP ViT-L/14；数据：UT-Zappos。
+
+本轮同时运行 C1、C2 和原 B3 的一次补 seed。C1 测量静态修正幅度的收益；C2 研究模式均值为 1 的局部视觉调制；B3 的 seed3352 检查上一轮小幅组合增益的重复性。
+
+## 1. 三张 GPU 的具体任务
+
+| 物理 GPU | 实验 | seed | 设置 |
+|---|---|---|---|
+| GPU1 | C1 | 3351 | A5 静态 CP，全局读出，ρ=0.125 |
+| GPU2 | C2 | 3351 | 全局读出，局部门控，η=0.25，模式系数均值为 1，ρ=0.1 |
+| GPU3 | B3 | 3352 | 沿用原 B 组源代码和 B3 配置 |
+
+三项各训练 10 epochs，每张卡一个独立进程。沿用当前 `vgcpod_v1` conda 环境和 `/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14` 特征缓存。
+
+| 项目 | 固定设置 |
+|---|---|
+| CLIP | 冻结 ViT-L/14，复用图像、物体查询与文本特征 |
+| 适配器学习率 | 1e-3，余弦降至 1e-5 |
+| CP 学习率 | 3e-4，余弦降至 3e-6；动态组包含 Bvis |
+| β / rank / adapter rank | 0.1 / 32 / 8 |
+| epochs / batch size | 10 / 64 |
+| κ / τγ / weight decay | 20 / 0.1 / 1e-4 |
+| 动态组正交项 | λorth=0.001 |
+| 初始化 | 同 seed 的原初始化，Wc 为零 |
+| 权重选择 | VAL CW AUC_native 首次最大值 |
+
+C1/C2 在新 C 组目录运行；调度器调用原 B 组目录运行 B3，补跑结果继续保存在原 B 组目录。
+
+## 2. 已实现的公式与推导
+
+### 2.1 CP 修正与概率分解
+
+设全局图像特征为 $g_b\in\mathbb{R}^{d}$，物体查询特征为 $f^o_{bj}\in\mathbb{R}^{d}$。属性、物体模式分别为：
+
+$$
+u_i=A_u e_i^a\in\mathbb{R}^{r},\qquad
+v_j=A_v e_j^o\in\mathbb{R}^{r},\qquad
+W_c\in\mathbb{R}^{d\times r}.
+$$
+
+本轮均使用全局特征读取 CP 修正：
+
+$$
+\begin{aligned}
+\Delta U_{bji}
+&=\rho\kappa\,g_b^{\top}W_c
+\left(u_i\odot v_j\odot\gamma_{bj}\right),\\
+U_{bji}&=U^{\mathrm{base}}_{bji}+\Delta U_{bji},\\
+\log p(a_i,o_j\mid x_b)
+&=\log\operatorname{softmax}(S_b)_j
++\log\operatorname{softmax}(U_{bj:})_i.
+\end{aligned}
+$$
+
+$S_b$ 为物体 logits。基础条件 logits 和物体 logits 沿用 A5。张量轴为 `[batch, object, attribute]`。
+
+### 2.2 C1：静态 1.25 倍幅度对照
+
+C1 设置 $\gamma_{bj}=\mathbf{1}_{r}$，并将 ρ 从 0.1 改为 0.125。在相同参数下：
+
+$$
+\Delta U^{\mathrm{C1}}_{bji}
+=0.125\kappa\,g_b^{\top}W_c(u_i\odot v_j)
+=1.25\,\Delta U^{\mathrm{A5}}_{bji}.
+$$
+
+它等价于在 ρ=0.1 的静态修正上使用恒定 1.25 的模式系数。C1 从头训练，Bvis 冻结。
+
+### 2.3 C2：模式均值为 1 的局部弱门控
+
+先从局部特征计算模式响应，再沿最后一个模式轴中心化：
+
+$$
+\begin{aligned}
+z_{bj}&=\frac{B_{\mathrm{vis}}f^o_{bj}}{\tau_{\gamma}},
+\qquad q_{bj}=2\sigma(z_{bj})-\mathbf{1}_{r},\\
+\bar q_{bj}&=\frac{1}{r}\sum_{k=1}^{r}q_{bjk},\\
+\gamma^{\mathrm{C2}}_{bjk}
+&=1+\frac{\eta}{2}\left(q_{bjk}-\bar q_{bj}\right),
+\qquad \eta=0.25.
+\end{aligned}
+$$
+
+模式均值满足：
+
+$$
+\frac{1}{r}\sum_{k=1}^{r}\gamma^{\mathrm{C2}}_{bjk}
+=1+\frac{\eta}{2r}\left(\sum_{k=1}^{r}q_{bjk}-r\bar q_{bj}\right)=1.
+$$
+
+由于 $q_{bjk}\in(-1,1)$、$q_{bjk}-\bar q_{bj}\in(-2,2)$，因此：
+
+$$
+\gamma^{\mathrm{C2}}_{bjk}\in(1-\eta,1+\eta)=(0.75,1.25).
+$$
+
+中心化在每张图像、每个物体内部进行。约束固定模式系数的算术均值，各模式对 logit 的贡献仍由 u、v、Wc 决定。
+
+令 $P=I_r-\mathbf{1}_{r}\mathbf{1}_{r}^{\top}/r$，则梯度形式为：
+
+$$
+\gamma^{\mathrm{C2}}=\mathbf{1}_{r}+\frac{\eta}{2}Pq,
+\qquad
+\frac{\partial\gamma^{\mathrm{C2}}}{\partial z}
+=\eta P\operatorname{diag}\!\left(\sigma(z)\odot[\mathbf{1}_{r}-\sigma(z)]\right).
+$$
+
+代码使用 PyTorch 自动求导，已用有限差分检查任务损失对 Bvis 的梯度。
+
+### 2.4 保留 A5 的训练目标
+
+$$
+\begin{aligned}
+\mathcal{L}_{\mathrm{task}}(\beta)
+&=\frac{1.5}{1+\beta}\left[
+\mathcal{L}_{\mathrm{pair}}+
+\beta(\mathcal{L}_{\mathrm{cond}}+\mathcal{L}_{\mathrm{obj}})\right]\\
+&=1.5\,\mathcal{L}_{\mathrm{pair}}
++\frac{1.5\beta}{1+\beta}\,\mathcal{L}_{\mathrm{support}},
+\qquad\beta=0.1.
+\end{aligned}
+$$
+
+支持集合项为 $\mathcal{L}_{\mathrm{support}}=-\log\sum_{(i,j)\in\mathcal{C}_{\mathrm{train}}}p(a_i,o_j\mid x)$，系数为 0.13636。C2 加入原正交项：
+
+$$
+\mathcal{L}_{\mathrm{C2}}
+=\mathcal{L}_{\mathrm{task}}
++\frac{0.001}{r^2}
+\left\lVert B_{\mathrm{vis}}B_{\mathrm{vis}}^{\top}-I_r\right\rVert_F^2.
+$$
+
+C1 使用静态分支，正交项为零；属性辅助与伙伴分支保持关闭。
+
+## 3. 代码改动与输出
+
+| 文件 | 改动 |
+|---|---|
+| `vgcpod/model.py` | 新增 `gate_center_modes`，实现模式中心化；默认 false，保留原计算 |
+| `vgcpod/engine.py` | 增加 `gamma_mode_mean_deviation`，记录逐图像、逐物体的模式均值偏离 1 的程度 |
+| `configs/round_c/C1.json` | 全局读出、静态门控、ρ=0.125 |
+| `configs/round_c/C2.json` | 全局读出、局部门控、η=0.25、`gate_center_modes=true` |
+| `round_c.py` | C1/C2 队列与原 B3 调用，自动续训、跳过完成项、跨组同 seed 汇总 |
+| `scripts/start_round_c_tmux.sh` | 将当前 conda 环境的绝对 Python 路径传入 tmux |
+| `references/` | 已有 A1/A5/A6 三 seed 和 B 组 seed3351 的指标快照 |
+
+C1/C2 的内部 variant 均为 V1，由配置区分结构。首轮输出位置：
+
+```text
+/data/xhw/vgcpod_v1_runs/roundC_20261020/
+  C1/ut-zap50k/V1/seed3351/
+  C2/ut-zap50k/V1/seed3351/
+  logs/C1_seed3351.log
+  logs/C2_seed3351.log
+  logs/B3_seed3352.log
+  launcher.log
+  launcher.exitcode
+  round_c_jobs.json
+  round_c_status.json
+  round_c_summary.csv
+  round_c_mean_sd.csv
+  round_c_paired_deltas.csv
+  round_c_paired_mean_sd.csv
+  round_c_summary.json
+  per_pair_gains.csv
+
+/data/xhw/vgcpod_v1_runs/roundB_20261019/
+  B3/ut-zap50k/V1/seed3352/
+  logs/B3_seed3352.log
+```
+
+每个模型目录包含最佳/最后 checkpoint、完整训练历史、protocol、四个设置的预测和曲线、最终 metrics。C 组 `logs/B3_seed3352.log` 记录调用原 B 调度器的输出；逐 epoch 的 B3 日志位于上面的 B 组日志路径。
+
+汇总包括 C1/C2 和 B3 各已完成 seed，配对表只比较相同 seed。重点查看 C1−A5、C1−B3、C2−A5、C2−B3、C2−C1，以及 B3−A5/A6。配置聚合表记录 `n_seeds`；单 seed 标准差留空，补 seed 后计算样本标准差。
+
+## 4. 本机上传：Windows PowerShell
+
+服务器地址和端口填为日常 SSH 登录使用的值：
+
+```powershell
+$VgServer = 'xhw@你的服务器IP'
+$VgPort = 22
+scp -P $VgPort 'C:\Users\llenovo\Documents\ChatGPT\VG-CPOD\vgcpod_v1_roundC_20261020.zip' "${VgServer}:/data/xhw/vgcpod_project/"
+ssh -p $VgPort $VgServer
+```
+
+## 5. 服务器上解压并启动三卡 tmux
+
+```bash
+cd /data/xhw/vgcpod_project
+unzip -n vgcpod_v1_roundC_20261020.zip
+conda activate vgcpod_v1
+cd /data/xhw/vgcpod_project/vgcpod_v1_roundC
+
+export VG_CACHE=/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14
+export VG_A_OUT=/data/xhw/vgcpod_v1_runs/roundA_20261019
+export VG_B_OUT=/data/xhw/vgcpod_v1_runs/roundB_20261019
+export VG_B_ROOT=/data/xhw/vgcpod_project/vgcpod_v1_roundB
+export VG_C_OUT=/data/xhw/vgcpod_v1_runs/roundC_20261020
+export VG_C_SESSION=vgcpod_C
+
+bash scripts/start_round_c_tmux.sh \
+  --gpus 1 2 3 --cases C1 C2 --seeds 3351 --b3-seed 3352
+
+tmux attach -t vgcpod_C
+```
+
+GPU1=C1/3351，GPU2=C2/3351，GPU3=B3/3352。若 B3/3352 已按原代码完成，调度器会跳过该项并汇总已有结果。
+
+按 **Ctrl+b，松开，再按 d** 脱离 tmux，训练继续。
+
+## 6. 查看进度与判断完成
+
+另一个 SSH 终端查看总日志：
+
+```bash
+tail -f /data/xhw/vgcpod_v1_runs/roundC_20261020/launcher.log
+```
+
+查看三个模型的逐 epoch 日志：
+
+```bash
+tail -f \
+  /data/xhw/vgcpod_v1_runs/roundC_20261020/logs/C1_seed3351.log \
+  /data/xhw/vgcpod_v1_runs/roundC_20261020/logs/C2_seed3351.log \
+  /data/xhw/vgcpod_v1_runs/roundB_20261019/logs/B3_seed3352.log
+```
+
+按 Ctrl+c 结束日志查看。总日志出现 `ROUND_C_COMPLETE ... jobs 3`，并且下列命令输出 `0`，表示本轮队列成功结束：
+
+```bash
+cat /data/xhw/vgcpod_v1_runs/roundC_20261020/launcher.exitcode
+```
+
+重新生成联合汇总：
+
+```bash
+conda activate vgcpod_v1
+cd /data/xhw/vgcpod_project/vgcpod_v1_roundC
+python round_c.py summarize \
+  --out /data/xhw/vgcpod_v1_runs/roundC_20261020 \
+  --a-out /data/xhw/vgcpod_v1_runs/roundA_20261019 \
+  --b-out /data/xhw/vgcpod_v1_runs/roundB_20261019
+```
+
+## 7. 单独运行、续训与补 seed
+
+单独运行 C2：
+
+```bash
+conda activate vgcpod_v1
+cd /data/xhw/vgcpod_project/vgcpod_v1_roundC
+CUDA_VISIBLE_DEVICES=2 python -u run.py train \
+  --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14 \
+  --out /data/xhw/vgcpod_v1_runs/roundC_20261020/C2 \
+  --config configs/round_c/C2.json --seed 3351 --device cuda
+```
+
+手动续训在命令末尾加 `--resume`。联合队列自动为中断项添加续训参数，已完成项直接跳过。原队列退出后重新启动，可使用新的 tmux 会话名：
+
+```bash
+cd /data/xhw/vgcpod_project/vgcpod_v1_roundC
+VG_C_SESSION=vgcpod_C_resume bash scripts/start_round_c_tmux.sh \
+  --gpus 1 2 3 --cases C1 C2 --seeds 3351 --b3-seed 3352
+tmux attach -t vgcpod_C_resume
+```
+
+后续给选定配置补两个 seed，以下以 C2 为例：
+
+```bash
+conda activate vgcpod_v1
+cd /data/xhw/vgcpod_project/vgcpod_v1_roundC
+VG_C_SESSION=vgcpod_C_moreseed bash scripts/start_round_c_tmux.sh \
+  --skip-b3 --gpus 1 2 --cases C2 --seeds 3352 3353
+tmux attach -t vgcpod_C_moreseed
+```
+
+## 8. 打包并保存结果到本地
+
+服务器上执行，归档包含 C 组、更新后的 B 组结果和两套源代码：
+
+```bash
+tar -czf /data/xhw/vgcpod_project/vgcpod_roundC_results_20261020.tar.gz \
+  -C /data/xhw/vgcpod_v1_runs roundC_20261020 roundB_20261019 \
+  -C /data/xhw/vgcpod_project vgcpod_v1_roundC vgcpod_v1_roundB
+```
+
+本机 PowerShell 执行：
+
+```powershell
+$VgServer = 'xhw@你的服务器IP'
+$VgPort = 22
+$VgLocal = 'C:\Users\llenovo\Documents\ChatGPT\VG-CPOD'
+scp -P $VgPort "${VgServer}:/data/xhw/vgcpod_project/vgcpod_roundC_results_20261020.tar.gz" "$VgLocal\"
+New-Item -ItemType Directory -Force -Path "$VgLocal\server_results_roundC_20261020" | Out-Null
+tar -xzf "$VgLocal\vgcpod_roundC_results_20261020.tar.gz" -C "$VgLocal\server_results_roundC_20261020"
+```
+
+## 9. 本地验证
+
+26 项测试已通过，覆盖 C1 的幅度等价性与梯度、C2 的模式均值/范围、算子收缩、概率归一化、有限差分、训练导出与中断续训。
+
+另以合成缓存在 CPU 上运行真实三任务命令行，检查 C1/C2 与原 B3 的调度、重复运行跳过、联合汇总及同 seed 配对。原九个变体和 B1/B2/B3 的四次优化更新与原 B 代码逐位一致。
+
+记录见 `validation/test_output.txt`、`validation/cli_output.txt`、`validation/legacy_compatibility.json`、`validation/result.json`。服务器训练使用本方案的完整配置。

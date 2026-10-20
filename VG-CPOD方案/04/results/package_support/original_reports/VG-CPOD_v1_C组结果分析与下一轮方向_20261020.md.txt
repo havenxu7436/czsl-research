@@ -1,0 +1,210 @@
+# VG-CPOD v1：C 组结果分析与下一轮方向
+
+日期：2026-10-20。框架：冻结 CLIP ViT-L/14，UT-Zappos。
+
+**本轮的主要结论：C1 几乎复现 B3，原门控的主要作用可以由静态放大解释；C2 实现了单位模式均值，并出现小幅未见属性收益。下一轮以 C2 为研究主线，补两个 seed，同时测试 D1：C2 与 ρ=0.125 的组合。**
+
+A5 继续作为已有三 seed 基座，C1 保留为静态幅度对照。新增训练集中在 C2/D1，B3 留作历史参照。
+
+## 1. 同 seed 主结果
+
+下表均为 seed3351。AUC 使用保存的 `AUC_native`，面积乘 100；增量单位为百分点。每个模型仍由 VAL CW AUC 选择 checkpoint，本轮 C1/C2 均选中第 8 轮。
+
+| 组 | VAL CW AUC | VAL OW AUC | TEST CW AUC | TEST OW AUC | TEST 未见属性 |
+| --- | --- | --- | --- | --- | --- |
+| A5 | 43.228 | 30.291 | 34.022 | 26.169 | 24.379% |
+| A6 | 34.456 | 21.722 | 30.107 | 24.826 | 24.432% |
+| B3 | 43.562 | 30.707 | 34.330 | 26.316 | 24.114% |
+| C1 | 43.611 | 30.688 | 34.270 | 26.329 | 24.167% |
+| C2 | 43.392 | 30.314 | 34.036 | 26.249 | 24.643% |
+
+![静态幅度与中心化门控的主结果](analysis_roundC_results_20261020/figures/01_results.png)
+
+| 比较 | TEST CW AUC 增量 | TEST OW AUC 增量 | 未见属性增量 | 未见正确图像数变化 |
+| --- | --- | --- | --- | --- |
+| C1-A5 | +0.248 | +0.160 | -0.212 | -4 |
+| C1-B3 | -0.060 | +0.012 | +0.053 | +1 |
+| C2-A5 | +0.014 | +0.081 | +0.264 | +5 |
+| C2-A6 | +3.929 | +1.423 | +0.212 | +4 |
+| C2-C1 | -0.234 | -0.079 | +0.476 | +9 |
+
+C1 的 VAL CW/OW AUC 高于 C2，TEST 组合 AUC 也略高；C2 的未见条件属性更好。两组回答了不同问题：C1 衡量幅度调整，C2 衡量中心化后局部模式调制的作用。
+
+## 2. C1 回答了上一轮最重要的问题
+
+C1 相对 B3 的 TEST CW AUC 差为 **−0.060**，OW AUC 差为 **+0.012**，未见属性仅多识别对 **1 张**。
+
+进一步逐图像比较，C1/B3 的 TEST 条件属性 top-1 一致率为 **99.863%**，2,914 张图中仅 **4 张**预测不同；无偏组合 top-1 一致率为 **99.828%**，仅 **5 张**不同。
+
+这比单纯观察 AUC 更直接：**将门控替换为静态幅度调整，几乎得到了相同的预测行为。**
+
+数学上，如果门控近似为共同常数 $c$，则在相同参数下：
+
+$$
+\gamma_{bj}\approx c\mathbf{1}_{r}
+\quad\Longrightarrow\quad
+\Delta U_{bji}
+\approx(c\rho)\kappa\,g_b^{\top}W_c(u_i\odot v_j).
+$$
+
+B3 的训练门控均值约为 1.241，对应 ρ≈0.1241；C1 直接采用 ρ=0.125。实际预测的一致性支持“共同放大是 B3 主效应”的解释。
+
+### 2.1 B3 的第二个 seed 改变了增益判断
+
+| seed | B3−A5 CW AUC | B3−A5 OW AUC | 未见属性增量 | 未见正确图像数变化 |
+| --- | --- | --- | --- | --- |
+| 3351 | +0.308 | +0.148 | -0.264 | -5 |
+| 3352 | -0.259 | -0.350 | -0.264 | -5 |
+
+两个 seed 的 TEST CW 配对增量均值为 **+0.024**，OW 为 **−0.101**；未见属性在两个 seed 均少识别对 5 张。B3 没有形成稳定的组合增量，后续资源转向中心化调制。
+
+![B3 两个 seed 的配对增量](analysis_roundC_results_20261020/figures/03_b3_repetition.png)
+
+## 3. C2 的中心化实现了什么
+
+C2 使用原定公式：
+
+$$
+q_{bj}=2\sigma\!\left(B_{\mathrm{vis}}f^o_{bj}/\tau_{\gamma}\right)-\mathbf{1}_{r},
+\qquad
+\gamma_{bjk}
+=1+\frac{\eta}{2}\left(q_{bjk}-\frac{1}{r}\sum_{\ell=1}^{r}q_{bj\ell}\right),
+\quad\eta=0.25.
+$$
+
+它使每张图像、每个物体的模式系数均值为 1，系数位于 `(0.75,1.25)`。选中 epoch 的训练批次统计如下：
+
+| 组 | γ 均值 | 跨图像方差 | 跨图像变化尺度 | 总方差中的图像变化比例 | 模式均值误差 |
+| --- | --- | --- | --- | --- | --- |
+| B3 | 1.240767 | 0.00000818 | 0.002861 | 7.27% | — |
+| C1 | 1.000000 | 0.00000000 | 0.000000 | — | 0.00e+00 |
+| C2 | 1.000000 | 0.00017685 | 0.013298 | 2.68% | 4.76e-09 |
+
+C2 的模式均值误差约为 **4.76×10⁻⁹**，中心化按设计生效。跨图像门控方差为 **0.00017685**，是 B3/3351 的 **21.6 倍**；对应变化尺度从 **0.002861 升至 0.013298**，约为 4.65 倍。
+
+因此，C2 已将门控从整体偏移转向模式差异，并扩大了图像之间的变化。
+
+![训练门控的变化](analysis_roundC_results_20261020/figures/02_gate_behavior.png)
+
+### 3.1 未见属性出现了小幅正增量
+
+以下条件属性指标均给定真实物体；HM 使用对应 VAL 选择的 bias。
+
+| 组 | TEST 已见属性 | TEST 未见属性 | 未见正确图像数 | 未见图像的已见概率质量 | TEST OW HM |
+| --- | --- | --- | --- | --- | --- |
+| A5 | 72.825% | 24.379% | 461 | 72.863% | 43.187 |
+| A6 | 67.937% | 24.432% | 462 | 71.115% | 41.257 |
+| B3 | 72.825% | 24.114% | 456 | 72.879% | 43.120 |
+| C1 | 72.825% | 24.167% | 457 | 72.900% | 43.148 |
+| C2 | 72.825% | 24.643% | 466 | 72.807% | 43.029 |
+
+C2 相对 A5，已见条件属性正确图像数相同，未见组合从 **461 张提高到 466 张**。其中修正 7 张错误、引入 2 张新错误，净增 5 张。相对同 β 的无 CP 对照 A6，未见属性多识别对 **4 张**。
+
+具体组合的非零净变化为：
+
+| 未见组合 | 图像数 | A5 属性准确率 | C2 属性准确率 | 正确图像数变化 |
+| --- | --- | --- | --- | --- |
+| Suede–Slippers | 149 | 71.14 | 70.47 | -1 |
+| Suede–Boots.Mid-Calf | 342 | 57.02 | 57.31 | +1 |
+| Synthetic–Boots.Mid-Calf | 329 | 8.81 | 9.42 | +2 |
+| Canvas–Shoes.Loafers | 92 | 47.83 | 48.91 | +1 |
+| Canvas–Shoes.Flats | 93 | 10.75 | 11.83 | +1 |
+| Satin–Sandals | 113 | 12.39 | 13.27 | +1 |
+
+Suede–Slippers 仍下降 1 张，Suede–Boots.Mid-Calf 只提高 1 张；相对 A6，这两个组合仍分别少识别对 38 张、24 张。当前改善主要是小范围的决策修正，材质在不同物体间的迁移仍是下一阶段的目标。
+
+### 3.2 组合指标的变化接近原水平
+
+C2 相对 A5 的 TEST CW native AUC 为 **+0.014**，exact AUC 为 **−0.028**，可视为 CW 基本持平；OW native/exact AUC 分别为 **+0.081 / +0.042**。固定 VAL bias 的 CW/OW HM 分别变化 **−0.244 / −0.158**。
+
+VAL 上，C2 的 CW/OW AUC 提高 **0.164 / 0.023**，未见条件属性少识别对 3 张；TEST 未见属性多识别对 5 张。下一轮两个新 seed 会给出这些小变化在相同训练设置下的重复结果。
+
+### 3.3 动态变化还可以进一步量化
+
+在选中 epoch 的训练 batch 中，C2 的跨图像方差约占门控总方差的 **2.68%**；其余来自物体/模式位置的平均差异。这个比例由“对固定物体与模式沿图像轴求方差，再与全 batch 总方差比较”得到。
+
+因此，本轮已看到图像变化增加；进一步解释收益时，还应把图像变化与较固定的模式权重分开。下一轮随结果附带一次训练均值门控替换评估：
+
+$$
+\bar\gamma_{jk}
+=\frac{1}{N_{\mathrm{train}}}
+\sum_{b=1}^{N_{\mathrm{train}}}\gamma_{bjk},
+\qquad
+\gamma^{\mathrm{static}}_{bjk}=\bar\gamma_{jk}.
+$$
+
+用全部 TRAIN 图像统计各物体查询、各模式的均值，再在同一 checkpoint 上导出动态门控和均值替换后的 VAL/TEST 结果；两者各用自身 VAL 选择 bias。它复用现有缓存与权重，直接测量图像相关调制对预测的影响，随新增训练一起分析。
+
+## 4. 下一轮直接投入的三项实验
+
+| 物理 GPU | 任务 | seed | 改动与用途 |
+|---|---|---|---|
+| GPU1 | C2 补跑 | 3352 | 保持当前中心化公式，得到同 seed A5/A6 对照 |
+| GPU2 | C2 补跑 | 3353 | 补齐 C2 三 seed 结果 |
+| GPU3 | D1：中心化＋静态幅度 | 3351 | C2 仅将 ρ 从 0.1 改为 0.125，检验两项调整合用的效果 |
+
+**优先方向是 C2/D1 的中心化视觉修正。** C2 的两个新 seed 与 D1 并行开展，既推进结构研究，也补齐现有结果。
+
+### 4.1 D1 的公式与对照
+
+D1 沿用 C2 的 γ：
+
+$$
+\Delta U^{\mathrm{D1}}_{bji}
+=0.125\kappa\,g_b^{\top}W_c
+\left(u_i\odot v_j\odot\gamma^{\mathrm{C2}}_{bj}\right).
+$$
+
+在相同参数下，它是 C2 修正的 1.25 倍。D1 从同 seed3351 初始化重新训练，只有 ρ 改变。对照关系为：
+
+- D1−C2：在相同中心化门控下，观察 ρ 调整的作用。
+- D1−C1：在相同 ρ=0.125 下，观察中心化门控的增量。
+- C2/D1−A5、A6：观察组合排序与未见属性迁移。
+
+模型公式和自动求导实现可直接复用当前 C 代码，D1 只需新增配置并加入调度。
+
+### 4.2 超参决定
+
+| 项目 | 下一轮设置 |
+|---|---|
+| CLIP / 缓存 | 冻结 ViT-L/14，复用现有缓存 |
+| 适配器 LR / CP LR | 1e-3 / 3e-4，余弦终点 1e-5 / 3e-6 |
+| β / rank / adapter rank | 0.1 / 32 / 8 |
+| epochs / batch | 10 / 64 |
+| η / τγ | 0.25 / 0.1 |
+| ρ | C2=0.1；D1=0.125 |
+| λorth / weight decay | 0.001 / 1e-4 |
+| 读出与门控输入 | 全局 g 读出，物体查询特征进入中心化门控 |
+
+保留 β 归一化损失、分组学习率和现有中心化公式。本轮公式实现正确，新增变量集中到 ρ；训练尺度保持 10 轮。
+
+## 5. C2 两个新 seed 可直接启动
+
+在服务器执行，使用当前 C 组包：
+
+```bash
+conda activate vgcpod_v1
+cd /data/xhw/vgcpod_project/vgcpod_v1_roundC
+
+export VG_CACHE=/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14
+export VG_A_OUT=/data/xhw/vgcpod_v1_runs/roundA_20261019
+export VG_B_OUT=/data/xhw/vgcpod_v1_runs/roundB_20261019
+export VG_C_OUT=/data/xhw/vgcpod_v1_runs/roundC_20261020
+
+VG_C_SESSION=vgcpod_C2_moreseed bash scripts/start_round_c_tmux.sh \
+  --skip-b3 --gpus 1 2 --cases C2 --seeds 3352 3353
+
+tmux attach -t vgcpod_C2_moreseed
+```
+
+按 Ctrl+b，松开，再按 d，训练继续。D1 的新增配置与第三张卡调度按第 4 节准备，结果建议写入新的 D 组目录。
+
+## 6. 数据与复算文件
+
+本地归档包含 C1/C2 的完整结果和已完成的 B3/3352。C 组队列退出码为 0，源代码与交付包一致。本次复算八个模型的 32 份预测文件：exact AUC 与保存值一致，native AUC 最大复算差为 0.00864 点，固定 VAL bias 的 HM 一致；表格采用原保存指标。
+
+- [全部指标](analysis_roundC_results_20261020/tables/all_metrics.csv)、[同 seed 配对增量](analysis_roundC_results_20261020/tables/comparisons.csv)、[B3 两 seed 配对汇总](analysis_roundC_results_20261020/tables/b3_two_seed_deltas.csv)。
+- [条件属性与概率质量](analysis_roundC_results_20261020/tables/diagnostics.csv)、[逐图像预测一致率与修正/退化计数](analysis_roundC_results_20261020/tables/similarity.csv)。
+- [逐组合表现](analysis_roundC_results_20261020/tables/per_pair.csv)、[逐组合增量](analysis_roundC_results_20261020/tables/per_pair_deltas.csv)。
+- [训练历史](analysis_roundC_results_20261020/tables/history.csv)、[门控统计](analysis_roundC_results_20261020/tables/gates.csv)、[Bvis 几何统计](analysis_roundC_results_20261020/tables/geometry.csv)。
+- [结构化分析](analysis_roundC_results_20261020/analysis.json)、[复算记录](analysis_roundC_results_20261020/audit.json)、[分析脚本](analysis_roundC_results_20261020/analyze_c.py)、[报告生成脚本](analysis_roundC_results_20261020/build_report.py)。

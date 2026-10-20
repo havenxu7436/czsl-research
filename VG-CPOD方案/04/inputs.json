@@ -1,0 +1,109 @@
+{
+  "line": "VG-CPOD方案",
+  "stage": "04",
+  "version": "v1",
+  "title": "静态幅度对照与模式中心化门控",
+  "knowledge": [],
+  "completed_runs": 3,
+  "new_C_runs": 2,
+  "companion_B3_runs": 1,
+  "C_launcher_training_runs": 2,
+  "C_launcher_reused_runs": 1,
+  "model_epochs": 30,
+  "evaluations": 12,
+  "predictions": 12,
+  "checkpoints": 6,
+  "completed_cases": [
+    "C1",
+    "C2",
+    "B3"
+  ],
+  "completed_seeds": [
+    3351,
+    3352
+  ],
+  "run_matrix": [
+    {
+      "case": "C1",
+      "seed": 3351
+    },
+    {
+      "case": "C2",
+      "seed": 3351
+    },
+    {
+      "case": "B3",
+      "seed": 3352
+    }
+  ],
+  "package_member_map": "package_members.json",
+  "experiment_inventory": "configs/experiment_inventory.json",
+  "code_files": [
+    "code/original_analysis/analysis_roundC_20261020/package_release.py",
+    "code/original_analysis/analysis_roundC_20261020/validate_release.py",
+    "code/original_analysis/analysis_roundC_20261020/verify_document.cjs",
+    "code/original_analysis/analysis_roundC_results_20261020/analyze_c.py",
+    "code/original_analysis/analysis_roundC_results_20261020/build_report.py",
+    "code/original_analysis/analysis_roundC_results_20261020/verify_report.cjs",
+    "code/README.md",
+    "code/source_changes.patch",
+    "code/vgcpod_v1_roundC/requirements.txt",
+    "code/vgcpod_v1_roundC/round_a.py",
+    "code/vgcpod_v1_roundC/round_b.py",
+    "code/vgcpod_v1_roundC/round_c.py",
+    "code/vgcpod_v1_roundC/run.py",
+    "code/vgcpod_v1_roundC/scripts/run_round_c.sh",
+    "code/vgcpod_v1_roundC/scripts/start_round_c_tmux.sh",
+    "code/vgcpod_v1_roundC/scripts/tmux_round_c_entry.sh",
+    "code/vgcpod_v1_roundC/tests/__init__.py",
+    "code/vgcpod_v1_roundC/tests/test_math.py",
+    "code/vgcpod_v1_roundC/tests/test_round_a.py",
+    "code/vgcpod_v1_roundC/tests/test_round_b.py",
+    "code/vgcpod_v1_roundC/tests/test_round_c.py",
+    "code/vgcpod_v1_roundC/vendor/clip/__init__.py",
+    "code/vgcpod_v1_roundC/vendor/clip/bpe_simple_vocab_16e6.txt.gz",
+    "code/vgcpod_v1_roundC/vendor/clip/clip.py",
+    "code/vgcpod_v1_roundC/vendor/clip/model.py",
+    "code/vgcpod_v1_roundC/vendor/clip/simple_tokenizer.py",
+    "code/vgcpod_v1_roundC/vendor/CLIP_LICENSE",
+    "code/vgcpod_v1_roundC/vendor/native_evaluator.py",
+    "code/vgcpod_v1_roundC/vgcpod/__init__.py",
+    "code/vgcpod_v1_roundC/vgcpod/__pycache__/metrics.cpython-312.pyc",
+    "code/vgcpod_v1_roundC/vgcpod/common.py",
+    "code/vgcpod_v1_roundC/vgcpod/data.py",
+    "code/vgcpod_v1_roundC/vgcpod/diagnostics.py",
+    "code/vgcpod_v1_roundC/vgcpod/engine.py",
+    "code/vgcpod_v1_roundC/vgcpod/features.py",
+    "code/vgcpod_v1_roundC/vgcpod/metrics.py",
+    "code/vgcpod_v1_roundC/vgcpod/model.py"
+  ],
+  "configs": [
+    "configs/assets/historical_inputs.json",
+    "configs/assets/labels.json",
+    "configs/assets/names.json",
+    "configs/assets/path_aliases.json",
+    "configs/default.json",
+    "configs/experiment_inventory.json",
+    "configs/references/original_v1.json",
+    "configs/references/round_a_confirm.json",
+    "configs/references/round_b_pilot.json",
+    "configs/round_a/A1.json",
+    "configs/round_a/A2.json",
+    "configs/round_a/A3.json",
+    "configs/round_a/A4.json",
+    "configs/round_a/A5.json",
+    "configs/round_a/A6.json",
+    "configs/round_b/B1.json",
+    "configs/round_b/B2.json",
+    "configs/round_b/B3.json",
+    "configs/round_c/C1.json",
+    "configs/round_c/C2.json"
+  ],
+  "documents": [
+    "analysis/README.md",
+    "code/README.md",
+    "configs/README.md",
+    "README.md",
+    "results/README.md"
+  ]
+}

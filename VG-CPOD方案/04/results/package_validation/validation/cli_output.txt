@@ -1,0 +1,32 @@
+B3 seed3351 reference
+START B3 3351 GPU 3 log C:\Users\llenovo\AppData\Local\Temp\vgcpod_c_cli_1z45vb2_\B_out\logs\B3_seed3351.log
+COMPLETE B3 3351 GPU 3
+SUMMARY C:\Users\llenovo\AppData\Local\Temp\vgcpod_c_cli_1z45vb2_\B_out\round_b_summary.csv
+B3 seed 3351 VAL_CW 23.4375 VAL_OW 23.4375 TEST_CW 0.0 TEST_OW 0.0 TEST_unseen_attr 37.5
+ROUND_B_COMPLETE C:\Users\llenovo\AppData\Local\Temp\vgcpod_c_cli_1z45vb2_\B_out jobs 1
+
+first
+START B3 3352 GPU 3 original_source C:\Users\llenovo\AppData\Local\Temp\vgcpod_c_cli_1z45vb2_\B_source
+START C1 3351 GPU 1 log C:\Users\llenovo\AppData\Local\Temp\vgcpod_c_cli_1z45vb2_\C_out\logs\C1_seed3351.log
+START C2 3351 GPU 2 log C:\Users\llenovo\AppData\Local\Temp\vgcpod_c_cli_1z45vb2_\C_out\logs\C2_seed3351.log
+COMPLETE C1 3351 GPU 1
+COMPLETE C2 3351 GPU 2
+COMPLETE B3 3352 GPU 3
+SUMMARY C:\Users\llenovo\AppData\Local\Temp\vgcpod_c_cli_1z45vb2_\C_out\round_c_summary.csv
+C1 seed 3351 VAL_CW 23.4375 VAL_OW 23.4375 TEST_CW 0.0 TEST_OW 0.0 TEST_unseen_attr 37.5
+C2 seed 3351 VAL_CW 23.4375 VAL_OW 23.4375 TEST_CW 0.0 TEST_OW 0.0 TEST_unseen_attr 37.5
+B3 seed 3351 VAL_CW 23.4375 VAL_OW 23.4375 TEST_CW 0.0 TEST_OW 0.0 TEST_unseen_attr 37.5
+B3 seed 3352 VAL_CW 23.4375 VAL_OW 23.4375 TEST_CW 0.0 TEST_OW 0.0 TEST_unseen_attr 37.5
+ROUND_C_COMPLETE C:\Users\llenovo\AppData\Local\Temp\vgcpod_c_cli_1z45vb2_\C_out jobs 3
+
+repeat
+START B3 3352 GPU 3 original_source C:\Users\llenovo\AppData\Local\Temp\vgcpod_c_cli_1z45vb2_\B_source
+ALREADY_COMPLETE C2 3351 GPU 2
+ALREADY_COMPLETE C1 3351 GPU 1
+ALREADY_COMPLETE B3 3352 GPU 3
+SUMMARY C:\Users\llenovo\AppData\Local\Temp\vgcpod_c_cli_1z45vb2_\C_out\round_c_summary.csv
+C1 seed 3351 VAL_CW 23.4375 VAL_OW 23.4375 TEST_CW 0.0 TEST_OW 0.0 TEST_unseen_attr 37.5
+C2 seed 3351 VAL_CW 23.4375 VAL_OW 23.4375 TEST_CW 0.0 TEST_OW 0.0 TEST_unseen_attr 37.5
+B3 seed 3351 VAL_CW 23.4375 VAL_OW 23.4375 TEST_CW 0.0 TEST_OW 0.0 TEST_unseen_attr 37.5
+B3 seed 3352 VAL_CW 23.4375 VAL_OW 23.4375 TEST_CW 0.0 TEST_OW 0.0 TEST_unseen_attr 37.5
+ROUND_C_COMPLETE C:\Users\llenovo\AppData\Local\Temp\vgcpod_c_cli_1z45vb2_\C_out jobs 3

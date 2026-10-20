@@ -71,9 +71,13 @@ def verify():
     if (ROOT/'VG-CPOD方案/03/inputs.json').is_file():
         from register_vgcpod_round_b import check as check_vgcpod_b
         b_check=check_vgcpod_b()
+    c_check=None
+    if (ROOT/'VG-CPOD方案/04/inputs.json').is_file():
+        from register_vgcpod_round_c import check as check_vgcpod_c
+        c_check=check_vgcpod_c()
     result={'passed':not(failures or links or formatting or syntax),'original_canonical_files':len(expected),
       'changed_or_missing':failures,'broken_links':links,'formatting_errors':formatting,
-      'python_syntax_errors':syntax,'vgcpod':route_check,'vgcpod_round_b':b_check,'training_started':False}
+      'python_syntax_errors':syntax,'vgcpod':route_check,'vgcpod_round_b':b_check,'vgcpod_round_c':c_check,'training_started':False}
     print(json.dumps(result,ensure_ascii=False))
     if not result['passed']: raise SystemExit(1)
 
@@ -88,6 +92,10 @@ def archive_stage(line,number):
     return matches[0]
 
 def materialize(stage,destination,line=None,number=None):
+    if stage=='23':
+        from register_vgcpod_round_c import materialize as materialize_vgcpod_c
+        print(json.dumps(materialize_vgcpod_c(destination),ensure_ascii=False))
+        return
     if stage=='22':
         from register_vgcpod_round_b import materialize as materialize_vgcpod_b
         print(json.dumps(materialize_vgcpod_b(destination),ensure_ascii=False))
