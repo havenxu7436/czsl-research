@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>06 code</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+  <link href="data:text/css;charset=utf-8,html%20%7B%20color%3A%20%23203043%3B%20background%3A%20%23f3f6fa%3B%20%7D%0Abody%20%7B%20max%2Dwidth%3A%201240px%3B%20margin%3A%2036px%20auto%3B%20padding%3A%2042px%2052px%3B%20background%3A%20%23fff%3B%20border%3A%201px%20solid%20%23e0e6ef%3B%20border%2Dradius%3A%2012px%3B%20font%3A%2016px%2F1%2E85%20%27Microsoft%20YaHei%27%2C%20%27Noto%20Sans%20CJK%20SC%27%2C%20sans%2Dserif%3B%20%7D%0Ah1%20%7B%20font%2Dsize%3A%202em%3B%20line%2Dheight%3A%201%2E35%3B%20color%3A%20%23173b58%3B%20%7D%0Ah2%20%7B%20margin%2Dtop%3A%202%2E3em%3B%20border%2Dbottom%3A%202px%20solid%20%23e5edf4%3B%20padding%2Dbottom%3A%20%2E3em%3B%20color%3A%20%23173b58%3B%20%7D%0Ah3%20%7B%20margin%2Dtop%3A%201%2E7em%3B%20color%3A%20%23245c78%3B%20%7D%0Ap%2C%20ul%2C%20ol%20%7B%20margin%3A%201em%200%3B%20%7D%0Atable%20%7B%20display%3A%20table%3B%20border%2Dcollapse%3A%20collapse%3B%20font%2Dsize%3A%2013px%3B%20line%2Dheight%3A%201%2E65%3B%20width%3A%20100%25%20%21important%3B%20margin%3A%201%2E4em%200%3B%20%7D%0Ath%2C%20td%20%7B%20border%3A%201px%20solid%20%23dce4ed%3B%20padding%3A%208px%2010px%3B%20text%2Dalign%3A%20left%3B%20vertical%2Dalign%3A%20top%3B%20%7D%0Ath%20%7B%20background%3A%20%23eaf1f7%3B%20font%2Dweight%3A%20600%3B%20white%2Dspace%3A%20nowrap%3B%20%7D%0Atbody%20tr%3Anth%2Dchild%28even%29%20%7B%20background%3A%20%23f7f9fc%3B%20%7D%0Aimg%20%7B%20max%2Dwidth%3A%20100%25%3B%20height%3A%20auto%3B%20%7D%0Afigure%20%7B%20margin%3A%201%2E5em%200%3B%20%7D%0Afigcaption%20%7B%20color%3A%20%23657185%3B%20font%2Dsize%3A%2013px%3B%20%7D%0Acode%20%7B%20background%3A%20%23edf2f7%3B%20border%2Dradius%3A%203px%3B%20padding%3A%201px%204px%3B%20overflow%2Dwrap%3A%20anywhere%3B%20%7D%0Apre%20%7B%20padding%3A%2015px%3B%20background%3A%20%23edf2f7%3B%20overflow%2Dx%3A%20auto%3B%20%7D%0Aa%20%7B%20color%3A%20%2317658a%3B%20text%2Dunderline%2Doffset%3A%203px%3B%20%7D%0Amath%5Bdisplay%3D%27block%27%5D%20%7B%20margin%3A%201%2E4em%200%3B%20overflow%2Dx%3A%20auto%3B%20%7D%0A%40media%20%28max%2Dwidth%3A%20800px%29%20%7B%20body%20%7B%20padding%3A%2020px%3B%20margin%3A%200%3B%20border%3A%200%3B%20border%2Dradius%3A%200%3B%20%7D%20table%20%7B%20display%3A%20block%3B%20overflow%2Dx%3A%20auto%3B%20font%2Dsize%3A%2012px%3B%20%7D%20%7D%0A" rel="stylesheet">
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="代码与修订">06 · 代码与修订</h1>
+<p>原 E 训练包源码位于 <a href="vgcpod_v1_roundE/">vgcpod_v1_roundE</a>。配置、资产、原说明和验证记录分区保存，通过仓库 materialize 恢复原布局。训练模型与损失沿用 <a href="../../05/code/README.md">05 D组</a>，相对 D 的完整差异见<a href="source_changes.patch">源码补丁</a>。</p>
+<table>
+<thead>
+<tr class="header">
+<th>入口</th>
+<th>具体内容</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a href="vgcpod_v1_roundE/vgcpod/model.py">模型与损失</a></td>
+<td>与 D 组逐字节一致；中心化局部模式、全局读出与 β 归一化目标</td>
+</tr>
+<tr class="even">
+<td><a href="vgcpod_v1_roundE/vgcpod/engine.py">训练与评价</a></td>
+<td>独立 native／exact 最优状态、四份 checkpoint、指定权重和输出目录评价</td>
+</tr>
+<tr class="odd">
+<td><a href="../configs/round_e/E1.json">E1配置</a></td>
+<td>相对 D1 只改变 rho=0.15 与 experiment_id=E1</td>
+</tr>
+<tr class="even">
+<td><a href="vgcpod_v1_roundE/mean_gate_eval.py">均值替换</a></td>
+<td><code>--selection native/exact</code>；两套权重分别统计 TRAIN 均值并评估</td>
+</tr>
+<tr class="odd">
+<td><a href="vgcpod_v1_roundE/round_e.py">E组调度</a></td>
+<td>三卡三 seed、训练后六项均值评估、完成状态复用和续训、同 seed 汇总</td>
+</tr>
+<tr class="even">
+<td><a href="vgcpod_v1_roundE/scripts/start_round_e_tmux.sh">tmux启动</a></td>
+<td>捕获当前 Python 路径，保留日志与退出码，支持脱离会话</td>
+</tr>
+<tr class="odd">
+<td><a href="vgcpod_v1_roundE/tests/test_round_e.py">E组测试</a></td>
+<td>三项新增测试，累计 33 项</td>
+</tr>
+</tbody>
+</table>
+<h2 id="已实施的代码改动">已实施的代码改动</h2>
+<h3 id="独立保存两种最优权重">1. 独立保存两种最优权重</h3>
+<p><code>engine.py</code> 原 <code>best</code> 继续跟踪 VAL CW native AUC，新增 <code>best_exact</code> 跟踪 exact AUC。更新条件均为严格 <code>&gt;</code>，并列时保留第一次达到峰值的 epoch。</p>
+<div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python">selected <span class="op">=</span> metrics[<span class="st">'AUC_native'</span>] <span class="op">&gt;</span> best
+selected_exact <span class="op">=</span> metrics[<span class="st">'AUC_exact'</span>] <span class="op">&gt;</span> best_exact
+<span class="cf">if</span> selected:
+    best <span class="op">=</span> metrics[<span class="st">'AUC_native'</span>]
+<span class="cf">if</span> selected_exact:
+    best_exact <span class="op">=</span> metrics[<span class="st">'AUC_exact'</span>]</code></pre></div>
+<p>checkpoint 状态新增 <code>best_exact_auc</code>，history 新增 <code>selected_exact</code>。<code>best_native.pt</code> 保存主权重，原子复制为兼容入口 <code>best.pt</code>；<code>best_exact.pt</code> 保存 exact 权重，<code>last.pt</code> 保留优化器、随机状态、训练历史和两套峰值。续训同时恢复两套最大值。</p>
+<p>训练结束分别调用 <code>evaluate_run(..., checkpoint_name='best.pt')</code> 和 <code>evaluate_run(..., checkpoint_name='best_exact.pt', out=run/'exact_selection')</code>。权重选择与 bias 校准分别记录，主导出的路径继续沿用原布局。</p>
+<h3 id="均值替换评估增加选择入口">2. 均值替换评估增加选择入口</h3>
+<p><code>mean_gate_eval.py --selection native</code> 读取 <code>best.pt</code> 与原运行指标；<code>--selection exact</code> 读取 <code>best_exact.pt</code> 与 <code>exact_selection/metrics.json</code>。输出分别写入 <code>mean_gate/</code>、<code>mean_gate_exact/</code>。</p>
+<p>TRAIN 均值统计、固定权重重算和方差公式沿用 D 组。身份记录增加选择类型、源代码指纹、checkpoint／评价器／缓存 SHA256。每个条件独立选择 VAL CW／OW native bias，固定用于对应 TEST；两项评估均不执行优化步骤。</p>
+<h3 id="三-gpu-编排与结果汇总">3. 三 GPU 编排与结果汇总</h3>
+<ul>
+<li><code>round_e.py</code> 将 seed3351／3352／3353 分别分配给物理 GPU1／2／3；每个进程通过 <code>CUDA_VISIBLE_DEVICES</code> 将本卡映射为内部 <code>cuda:0</code>。</li>
+<li>每卡先执行本 seed 的 E1 训练，再顺序运行 native／exact 两项均值替换评估。</li>
+<li>已完成的同源运行直接复用，未完成的从 last 续训；完成判断同时检查两个权重导出。Linux 运行目录有队列锁。</li>
+<li>新增 <code>rho_native_*</code> 仅汇总 C2／D1／E1 的 native 选择；<code>exact_selection_*</code> 独立记录 E1 的第二套选择；<code>mean_gate_effects.csv</code> 记录动态−均值差。</li>
+<li>读取 A／C／D 已有结果，缺少外部参考运行时使用 <a href="../configs/references/pre_e_complete.json">14份原指标快照</a>。跨组配对使用相同 seed 和特征缓存。</li>
+</ul>
+<h2 id="源码验证与复算">源码、验证与复算</h2>
+<ul>
+<li><a href="source_changes.patch">相对05完整补丁</a>、<a href="../results/server_source_identity.json">服务器源码身份核对</a>、<a href="../package_members.json">66个原包成员映射</a>。</li>
+<li><a href="../results/package_validation/E/validation/unit_tests.txt">33项原发布测试</a>、<a href="../results/package_validation/E/validation/result.json">CPU完整流程与旧引擎比较</a>、<a href="../results/package_validation/E/validation/cli_output.txt">流程输出</a>。</li>
+<li>原 CPU 流程完成 3 项训练、6 项均值评估，重复启动分别跳过 3／6 项；相同 ρ=0.15 配置下，新旧引擎的 native best／last 参数与 Torch RNG 逐位一致。</li>
+<li><a href="../results/package_validation/E/validation/reference_portability.json">参考快照可移植性</a>、<a href="../results/package_validation/E/validation/document_layout.json">原文档排版核查</a>。</li>
+<li><a href="original_analysis/">原分析代码</a>、<a href="../analysis/recompute.py">仓库复算</a>、<a href="../analysis/repository_validation.json">仓库归档核查</a>。本轮归档复算调整输入路径，保留数值计算。</li>
+</ul>
+<p>CLIP 许可保留于 <a href="vgcpod_v1_roundE/vendor/CLIP_LICENSE">CLIP_LICENSE</a>。服务器环境为 Python 3.8.18、PyTorch 1.13.1+cu117、RTX 3090。本地原数学和调度验证使用 CPU 合成特征缓存；本次归档核对使用服务器下载的真实运行文件。</p>
+</body>
+</html>

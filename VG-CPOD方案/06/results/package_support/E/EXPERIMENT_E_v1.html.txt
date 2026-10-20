@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>VG-CPOD v1 E组实验实施方案</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+  <link href="data:text/css;charset=utf-8,html%20%7B%20color%3A%20%23203043%3B%20background%3A%20%23f3f6fa%3B%20%7D%0Abody%20%7B%20max%2Dwidth%3A%201240px%3B%20margin%3A%2036px%20auto%3B%20padding%3A%2042px%2052px%3B%20background%3A%20%23fff%3B%20border%3A%201px%20solid%20%23e0e6ef%3B%20border%2Dradius%3A%2012px%3B%20font%3A%2016px%2F1%2E85%20%27Microsoft%20YaHei%27%2C%20%27Noto%20Sans%20CJK%20SC%27%2C%20sans%2Dserif%3B%20%7D%0Ah1%20%7B%20font%2Dsize%3A%202em%3B%20line%2Dheight%3A%201%2E35%3B%20color%3A%20%23173b58%3B%20%7D%0Ah2%20%7B%20margin%2Dtop%3A%202%2E3em%3B%20border%2Dbottom%3A%202px%20solid%20%23e5edf4%3B%20padding%2Dbottom%3A%20%2E3em%3B%20color%3A%20%23173b58%3B%20%7D%0Ah3%20%7B%20margin%2Dtop%3A%201%2E7em%3B%20color%3A%20%23245c78%3B%20%7D%0Ap%2C%20ul%2C%20ol%20%7B%20margin%3A%201em%200%3B%20%7D%0Atable%20%7B%20display%3A%20table%3B%20border%2Dcollapse%3A%20collapse%3B%20font%2Dsize%3A%2013px%3B%20line%2Dheight%3A%201%2E65%3B%20width%3A%20100%25%20%21important%3B%20margin%3A%201%2E4em%200%3B%20%7D%0Ath%2C%20td%20%7B%20border%3A%201px%20solid%20%23dce4ed%3B%20padding%3A%208px%2010px%3B%20text%2Dalign%3A%20left%3B%20vertical%2Dalign%3A%20top%3B%20%7D%0Ath%20%7B%20background%3A%20%23eaf1f7%3B%20font%2Dweight%3A%20600%3B%20white%2Dspace%3A%20nowrap%3B%20%7D%0Atbody%20tr%3Anth%2Dchild%28even%29%20%7B%20background%3A%20%23f7f9fc%3B%20%7D%0Aimg%20%7B%20max%2Dwidth%3A%20100%25%3B%20height%3A%20auto%3B%20%7D%0Afigure%20%7B%20margin%3A%201%2E5em%200%3B%20%7D%0Afigcaption%20%7B%20color%3A%20%23657185%3B%20font%2Dsize%3A%2013px%3B%20%7D%0Acode%20%7B%20background%3A%20%23edf2f7%3B%20border%2Dradius%3A%203px%3B%20padding%3A%201px%204px%3B%20overflow%2Dwrap%3A%20anywhere%3B%20%7D%0Apre%20%7B%20padding%3A%2015px%3B%20background%3A%20%23edf2f7%3B%20overflow%2Dx%3A%20auto%3B%20%7D%0Aa%20%7B%20color%3A%20%2317658a%3B%20text%2Dunderline%2Doffset%3A%203px%3B%20%7D%0Amath%5Bdisplay%3D%27block%27%5D%20%7B%20margin%3A%201%2E4em%200%3B%20overflow%2Dx%3A%20auto%3B%20%7D%0A%40media%20%28max%2Dwidth%3A%20800px%29%20%7B%20body%20%7B%20padding%3A%2020px%3B%20margin%3A%200%3B%20border%3A%200%3B%20border%2Dradius%3A%200%3B%20%7D%20table%20%7B%20display%3A%20block%3B%20overflow%2Dx%3A%20auto%3B%20font%2Dsize%3A%2012px%3B%20%7D%20%7D%0A" rel="stylesheet">
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="vg-cpod-方案-v1e-组三卡实验与实践命令">VG-CPOD 方案 v1：E 组三卡实验与实践命令</h1>
+<p>日期：2026-10-20。框架：冻结 OpenAI CLIP ViT-L/14；数据：UT-Zappos；版本保持 v1。</p>
+<p>本轮 E1 沿用 D1 的中心化视觉门控，仅将修正强度 ρ 从 0.125 调整为 0.15。三个 seed 并行训练，主结果继续按 VAL CW native AUC 选择权重，同时保存 exact AUC 最优权重。</p>
+<h2 id="三张-gpu-与固定设置">1. 三张 GPU 与固定设置</h2>
+<table>
+<thead>
+<tr class="header">
+<th>物理 GPU</th>
+<th>实验</th>
+<th>seed</th>
+<th>epochs</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GPU1</td>
+<td>E1，ρ=0.15</td>
+<td>3351</td>
+<td>10</td>
+</tr>
+<tr class="even">
+<td>GPU2</td>
+<td>E1，ρ=0.15</td>
+<td>3352</td>
+<td>10</td>
+</tr>
+<tr class="odd">
+<td>GPU3</td>
+<td>E1，ρ=0.15</td>
+<td>3353</td>
+<td>10</td>
+</tr>
+</tbody>
+</table>
+<p>三张卡各运行一个独立进程，共 30 个模型 epoch。已有 C2、D1 分别提供 ρ=0.1、0.125 的三 seed 对照。</p>
+<table>
+<thead>
+<tr class="header">
+<th>参数</th>
+<th>设置</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>CLIP</td>
+<td>冻结 ViT-L/14，复用已有缓存</td>
+</tr>
+<tr class="even">
+<td>CP 修正强度 ρ</td>
+<td><strong>0.15</strong></td>
+</tr>
+<tr class="odd">
+<td>读出／门控输入</td>
+<td>全局图像特征 g／物体查询视觉特征</td>
+</tr>
+<tr class="even">
+<td>η / τγ / κ</td>
+<td>0.25 / 0.1 / 20</td>
+</tr>
+<tr class="odd">
+<td>β / rank / adapter rank</td>
+<td>0.1 / 32 / 8</td>
+</tr>
+<tr class="even">
+<td>epochs / batch size</td>
+<td>10 / 64</td>
+</tr>
+<tr class="odd">
+<td>适配器学习率</td>
+<td>1e-3，余弦降至 1e-5</td>
+</tr>
+<tr class="even">
+<td>CP 学习率</td>
+<td>3e-4，余弦降至 3e-6</td>
+</tr>
+<tr class="odd">
+<td>λorth / weight decay / clip</td>
+<td>0.001 / 1e-4 / 1</td>
+</tr>
+</tbody>
+</table>
+<p><code>configs/round_e/E1.json</code> 相对原 D1 只修改 <code>rho</code> 与 <code>experiment_id</code>。<code>vgcpod/model.py</code> 与 D 组逐字一致，损失、优化器、初始化、数据顺序和 CLIP 特征使用方式沿用原实现。</p>
+<h2 id="公式与权重选择">2. 公式与权重选择</h2>
+<h3 id="中心化视觉-cp-修正">2.1 中心化视觉 CP 修正</h3>
+<p>属性与物体模式分别为 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mi>i</mi></msub><mo>=</mo><msub><mi>A</mi><mi>u</mi></msub><msubsup><mi>e</mi><mi>i</mi><mi>a</mi></msubsup></mrow><annotation encoding="application/x-tex">u_i=A_u e_i^a</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>v</mi><mi>j</mi></msub><mo>=</mo><msub><mi>A</mi><mi>v</mi></msub><msubsup><mi>e</mi><mi>j</mi><mi>o</mi></msubsup></mrow><annotation encoding="application/x-tex">v_j=A_v e_j^o</annotation></semantics></math>。门控公式继续使用：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right"><msub><mi>q</mi><mrow><mi>b</mi><mi>j</mi><mi>k</mi></mrow></msub></mtd><mtd columnalign="left"><mo>=</mo><mn>2</mn><mi>σ</mi><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mrow><mo stretchy="false" form="prefix">(</mo><msubsup><mi>f</mi><mrow><mi>b</mi><mi>j</mi></mrow><mi>o</mi></msubsup><msup><mo stretchy="false" form="postfix">)</mo><mi>⊤</mi></msup><mo stretchy="false" form="prefix">(</mo><msub><mi>B</mi><mstyle mathvariant="normal"><mi>v</mi><mi>i</mi><mi>s</mi></mstyle></msub><msubsup><mo stretchy="false" form="postfix">)</mo><mrow><mi>k</mi><mo>:</mo></mrow><mi>⊤</mi></msubsup></mrow><msub><mi>τ</mi><mi>γ</mi></msub></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mn>1</mn><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><msub><mi>γ</mi><mrow><mi>b</mi><mi>j</mi><mi>k</mi></mrow></msub></mtd><mtd columnalign="left"><mo>=</mo><mn>1</mn><mo>+</mo><mfrac><mi>η</mi><mn>2</mn></mfrac><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>q</mi><mrow><mi>b</mi><mi>j</mi><mi>k</mi></mrow></msub><mo>−</mo><mfrac><mn>1</mn><mi>r</mi></mfrac><munderover><mo>∑</mo><mrow><mi>ℓ</mi><mo>=</mo><mn>1</mn></mrow><mi>r</mi></munderover><msub><mi>q</mi><mrow><mi>b</mi><mi>j</mi><mi>ℓ</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">
+\begin{aligned}
+q_{bjk}
+&amp;=2\sigma\!\left(\frac{(f^o_{bj})^{\top}(B_{\mathrm{vis}})_{k:}^{\top}}{\tau_\gamma}\right)-1,\\
+\gamma_{bjk}
+&amp;=1+\frac{\eta}{2}\left(q_{bjk}-\frac{1}{r}\sum_{\ell=1}^{r}q_{bj\ell}\right).
+\end{aligned}
+</annotation></semantics></math></p>
+<p>每个图像／物体查询的模式均值为 1。E1 的条件 logits 修正为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right"><mi>Δ</mi><msubsup><mi>U</mi><mrow><mi>b</mi><mi>j</mi><mi>i</mi></mrow><mstyle mathvariant="normal"><mi>E</mi><mn>1</mn></mstyle></msubsup></mtd><mtd columnalign="left"><mo>=</mo><mn>0.15</mn><mi>κ</mi><mspace width="0.167em"></mspace><msubsup><mi>g</mi><mi>b</mi><mi>⊤</mi></msubsup><msub><mi>W</mi><mi>c</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>u</mi><mi>i</mi></msub><mo>⊙</mo><msub><mi>v</mi><mi>j</mi></msub><mo>⊙</mo><msub><mi>γ</mi><mrow><mi>b</mi><mi>j</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><msub><mi>U</mi><mrow><mi>b</mi><mi>j</mi><mi>i</mi></mrow></msub></mtd><mtd columnalign="left"><mo>=</mo><msubsup><mi>U</mi><mrow><mi>b</mi><mi>j</mi><mi>i</mi></mrow><mstyle mathvariant="normal"><mi>b</mi><mi>a</mi><mi>s</mi><mi>e</mi></mstyle></msubsup><mo>+</mo><mi>Δ</mi><msubsup><mi>U</mi><mrow><mi>b</mi><mi>j</mi><mi>i</mi></mrow><mstyle mathvariant="normal"><mi>E</mi><mn>1</mn></mstyle></msubsup><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><mo>log</mo><mi>p</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>a</mi><mi>i</mi></msub><mo>,</mo><msub><mi>o</mi><mi>j</mi></msub><mo>∣</mo><msub><mi>x</mi><mi>b</mi></msub><mo stretchy="false" form="postfix">)</mo></mtd><mtd columnalign="left"><mo>=</mo><mo>log</mo><mo>softmax</mo><mo stretchy="false" form="prefix">(</mo><msub><mi>S</mi><mi>b</mi></msub><msub><mo stretchy="false" form="postfix">)</mo><mi>j</mi></msub><mo>+</mo><mo>log</mo><mo>softmax</mo><mo stretchy="false" form="prefix">(</mo><msub><mi>U</mi><mrow><mi>b</mi><mi>j</mi><mo>:</mo></mrow></msub><msub><mo stretchy="false" form="postfix">)</mo><mi>i</mi></msub><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">
+\begin{aligned}
+\Delta U^{\mathrm{E1}}_{bji}
+&amp;=0.15\kappa\,g_b^{\top}W_c
+\left(u_i\odot v_j\odot\gamma_{bj}\right),\\
+U_{bji}&amp;=U^{\mathrm{base}}_{bji}+\Delta U^{\mathrm{E1}}_{bji},\\
+\log p(a_i,o_j\mid x_b)
+&amp;=\log\operatorname{softmax}(S_b)_j
++\log\operatorname{softmax}(U_{bj:})_i.
+\end{aligned}
+</annotation></semantics></math></p>
+<p>在相同输入和参数下，E1 修正是 D1 的 1.2 倍。E1 从对应 seed 的初始化重新训练，参数轨迹由各自训练过程决定。</p>
+<h3 id="nativeexact-独立保存">2.2 native／exact 独立保存</h3>
+<p>令 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>A</mi><mi>t</mi><mstyle mathvariant="normal"><mi>n</mi><mi>a</mi><mi>t</mi><mi>i</mi><mi>v</mi><mi>e</mi></mstyle></msubsup><annotation encoding="application/x-tex">A^{\mathrm{native}}_t</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>A</mi><mi>t</mi><mstyle mathvariant="normal"><mi>e</mi><mi>x</mi><mi>a</mi><mi>c</mi><mi>t</mi></mstyle></msubsup><annotation encoding="application/x-tex">A^{\mathrm{exact}}_t</annotation></semantics></math> 为第 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math> 轮 VAL CW 的两种 AUC。分别选择首次严格最大值：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right"><msubsup><mi>t</mi><mstyle mathvariant="normal"><mi>n</mi><mi>a</mi><mi>t</mi><mi>i</mi><mi>v</mi><mi>e</mi></mstyle><mo>*</mo></msubsup></mtd><mtd columnalign="left"><mo>=</mo><mo>min</mo><mrow><mo stretchy="true" form="prefix">{</mo><mi>t</mi><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>T</mi><mo stretchy="false" form="postfix">}</mo><mo>:</mo><msubsup><mi>A</mi><mi>t</mi><mstyle mathvariant="normal"><mi>n</mi><mi>a</mi><mi>t</mi><mi>i</mi><mi>v</mi><mi>e</mi></mstyle></msubsup><mo>=</mo><munder><mo>max</mo><mrow><mn>1</mn><mo>≤</mo><mi>s</mi><mo>≤</mo><mi>T</mi></mrow></munder><msubsup><mi>A</mi><mi>s</mi><mstyle mathvariant="normal"><mi>n</mi><mi>a</mi><mi>t</mi><mi>i</mi><mi>v</mi><mi>e</mi></mstyle></msubsup><mo stretchy="true" form="postfix">}</mo></mrow><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><msubsup><mi>t</mi><mstyle mathvariant="normal"><mi>e</mi><mi>x</mi><mi>a</mi><mi>c</mi><mi>t</mi></mstyle><mo>*</mo></msubsup></mtd><mtd columnalign="left"><mo>=</mo><mo>min</mo><mrow><mo stretchy="true" form="prefix">{</mo><mi>t</mi><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>T</mi><mo stretchy="false" form="postfix">}</mo><mo>:</mo><msubsup><mi>A</mi><mi>t</mi><mstyle mathvariant="normal"><mi>e</mi><mi>x</mi><mi>a</mi><mi>c</mi><mi>t</mi></mstyle></msubsup><mo>=</mo><munder><mo>max</mo><mrow><mn>1</mn><mo>≤</mo><mi>s</mi><mo>≤</mo><mi>T</mi></mrow></munder><msubsup><mi>A</mi><mi>s</mi><mstyle mathvariant="normal"><mi>e</mi><mi>x</mi><mi>a</mi><mi>c</mi><mi>t</mi></mstyle></msubsup><mo stretchy="true" form="postfix">}</mo></mrow><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">
+\begin{aligned}
+t^*_{\mathrm{native}}
+&amp;=\min\left\{t\in\{1,\ldots,T\}:A^{\mathrm{native}}_t
+=\max_{1\le s\le T}A^{\mathrm{native}}_s\right\},\\
+t^*_{\mathrm{exact}}
+&amp;=\min\left\{t\in\{1,\ldots,T\}:A^{\mathrm{exact}}_t
+=\max_{1\le s\le T}A^{\mathrm{exact}}_s\right\}.
+\end{aligned}
+</annotation></semantics></math></p>
+<p>实现中，两个最优值分别维护，只有新值严格大于已有最优值才更新。相同 AUC 保留较早的 epoch。</p>
+<table>
+<thead>
+<tr class="header">
+<th>checkpoint</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>best_native.pt</code></td>
+<td>VAL CW native AUC 最优权重</td>
+</tr>
+<tr class="even">
+<td><code>best.pt</code></td>
+<td><code>best_native.pt</code> 的逐字副本，沿用主流程接口</td>
+</tr>
+<tr class="odd">
+<td><code>best_exact.pt</code></td>
+<td>VAL CW exact AUC 最优权重</td>
+</tr>
+<tr class="even">
+<td><code>last.pt</code></td>
+<td>最新完整 epoch，包含两条最优值、优化器与随机状态</td>
+</tr>
+</tbody>
+</table>
+<p>根目录 <code>metrics.json</code>、<code>predictions/</code>、<code>curves/</code> 保存 native 选择的主结果；<code>exact_selection/</code> 保存 exact 选择的附加结果。两种权重都导出 VAL/TEST、CW/OW 预测与曲线。</p>
+<p><strong>权重选择与 bias 校准分开处理。</strong> 两种选中权重都沿用当前流程：在各自 VAL 上选取 CW/OW native bias，再固定应用到 TEST。exact 权重的命名指 checkpoint 选择依据；其评价同时报告 native/exact AUC 和固定 VAL bias 的 HM。</p>
+<h3 id="两种选中权重的均值门控评估">2.3 两种选中权重的均值门控评估</h3>
+<p>每个选中权重用全部 TRAIN 图像统计各物体查询、各模式的均值：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>γ</mi><mo accent="true">‾</mo></mover><mrow><mi>j</mi><mi>k</mi></mrow></msub><mo>=</mo><mfrac><mn>1</mn><msub><mi>N</mi><mstyle mathvariant="normal"><mi>t</mi><mi>r</mi><mi>a</mi><mi>i</mi><mi>n</mi></mstyle></msub></mfrac><munderover><mo>∑</mo><mrow><mi>b</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>N</mi><mstyle mathvariant="normal"><mi>t</mi><mi>r</mi><mi>a</mi><mi>i</mi><mi>n</mi></mstyle></msub></munderover><msub><mi>γ</mi><mrow><mi>b</mi><mi>j</mi><mi>k</mi></mrow></msub><mo>,</mo><mspace width="2.0em"></mspace><msubsup><mi>γ</mi><mrow><mi>b</mi><mi>j</mi><mi>k</mi></mrow><mstyle mathvariant="normal"><mi>m</mi><mi>e</mi><mi>a</mi><mi>n</mi></mstyle></msubsup><mo>=</mo><msub><mover><mi>γ</mi><mo accent="true">‾</mo></mover><mrow><mi>j</mi><mi>k</mi></mrow></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\bar\gamma_{jk}
+=\frac{1}{N_{\mathrm{train}}}\sum_{b=1}^{N_{\mathrm{train}}}\gamma_{bjk},
+\qquad \gamma^{\mathrm{mean}}_{bjk}=\bar\gamma_{jk}.
+</annotation></semantics></math></p>
+<p>统计不使用图像标签，均值张量为 <code>[object, rank]</code>。固定同一 checkpoint，分别导出动态门控和均值替换后的 VAL/TEST 结果，各条件使用自己的 VAL bias。</p>
+<p>每个 seed 完成 native、exact 两项均值评估，共 <strong>6 项</strong>；全部复用权重和特征缓存，优化步数为零。每张卡在训练完成后顺序处理自己的两项评估。</p>
+<h2 id="已修改的代码">3. 已修改的代码</h2>
+<table>
+<thead>
+<tr class="header">
+<th>文件</th>
+<th>改动</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>configs/round_e/E1.json</code></td>
+<td>E1 配置：ρ=0.15</td>
+</tr>
+<tr class="even">
+<td><code>vgcpod/engine.py</code></td>
+<td>独立跟踪两种最优值，保存四份 checkpoint；分别导出两种权重结果</td>
+</tr>
+<tr class="odd">
+<td><code>mean_gate_eval.py</code></td>
+<td>新增 <code>--selection native/exact</code>，加载对应权重与参考评估</td>
+</tr>
+<tr class="even">
+<td><code>round_e.py</code></td>
+<td>三卡调度、自动续训、六项均值评估、三档 ρ 与同 seed 汇总</td>
+</tr>
+<tr class="odd">
+<td><code>scripts/start_round_e_tmux.sh</code></td>
+<td>tmux 中启动整轮实验并记录退出码</td>
+</tr>
+<tr class="even">
+<td><code>references/pre_e_complete.json</code></td>
+<td>保存 14 个已有 A5/A6/C1/C2/D1 运行的指标快照</td>
+</tr>
+<tr class="odd">
+<td><code>tests/test_round_e.py</code></td>
+<td>两种首次最大值、独立导出、别名一致性与断点续训测试</td>
+</tr>
+</tbody>
+</table>
+<p>旧 C/D 结果用于读取对照。E 组模型和结果写入新的 E 组目录。三档 ρ 主表均采用 native 权重，exact 选择的结果单列；配对增量只使用相同 seed 和相同特征缓存。</p>
+<h2 id="本机上传">4. 本机上传</h2>
+<p>在 Windows PowerShell 执行，将 <code>你的服务器IP</code> 替换为实际地址。以下使用 SSH 默认端口 22。</p>
+<pre class="powershell"><code>$vgServer = &quot;xhw@你的服务器IP&quot;
+scp &quot;C:\Users\llenovo\Documents\ChatGPT\VG-CPOD\vgcpod_v1_roundE_20261020.zip&quot; &quot;${vgServer}:/data/xhw/vgcpod_project/&quot;</code></pre>
+<h2 id="服务器启动与查看进度">5. 服务器启动与查看进度</h2>
+<h3 id="激活环境并启动">5.1 激活环境并启动</h3>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">conda</span> activate vgcpod_v1
+<span class="bu">cd</span> /data/xhw/vgcpod_project
+<span class="fu">unzip</span> -o vgcpod_v1_roundE_20261020.zip
+<span class="bu">cd</span> /data/xhw/vgcpod_project/vgcpod_v1_roundE
+
+<span class="fu">bash</span> scripts/start_round_e_tmux.sh --gpus 1 2 3
+<span class="ex">tmux</span> attach -t vgcpod_E</code></pre></div>
+<p>按 <strong>Ctrl+b</strong>，松开，再按 <strong>d</strong>，离开 tmux 后继续运行。GPU1/2/3 为物理卡号，各子进程内部使用 <code>cuda:0</code>。启动器保存激活环境的 Python 绝对路径。</p>
+<p>默认数据与对照目录：</p>
+<pre class="text"><code>/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14
+/data/xhw/vgcpod_v1_runs/roundA_20261019
+/data/xhw/vgcpod_v1_runs/roundC_20261020
+/data/xhw/vgcpod_v1_runs/roundD_20261020</code></pre>
+<p>本轮输出目录为 <code>/data/xhw/vgcpod_v1_runs/roundE_20261020</code>。</p>
+<h3 id="查看进度与结束状态">5.2 查看进度与结束状态</h3>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="fu">tail</span> -f /data/xhw/vgcpod_v1_runs/roundE_20261020/launcher.log</code></pre></div>
+<p>查看三个 seed 的 epoch 日志和整轮退出码：</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="fu">tail</span> -n 10 /data/xhw/vgcpod_v1_runs/roundE_20261020/logs/E1_seed3351.log
+<span class="fu">tail</span> -n 10 /data/xhw/vgcpod_v1_runs/roundE_20261020/logs/E1_seed3352.log
+<span class="fu">tail</span> -n 10 /data/xhw/vgcpod_v1_runs/roundE_20261020/logs/E1_seed3353.log
+<span class="fu">cat</span> /data/xhw/vgcpod_v1_runs/roundE_20261020/launcher.exitcode</code></pre></div>
+<p><code>RUNNING</code> 表示本轮还在运行；<strong>0</strong> 表示三项训练、六项门控评估和汇总全部完成。主日志同时出现 <code>ROUND_E_COMPLETE ... training_jobs 3 mean_gate_jobs 6</code>。</p>
+<p><code>tail -f</code> 持续等待新内容，按 Ctrl+C 退出查看即可。完成后 tmux 保留终端。非零退出码时，主日志与 <code>round_e_status.json</code> 保存具体错误和任务日志路径。</p>
+<h3 id="中断后继续">5.3 中断后继续</h3>
+<p>上一轮进程退出后执行：</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">conda</span> activate vgcpod_v1
+<span class="bu">cd</span> /data/xhw/vgcpod_project/vgcpod_v1_roundE
+<span class="va">VG_E_SESSION=</span>vgcpod_E_resume <span class="fu">bash</span> scripts/start_round_e_tmux.sh --gpus 1 2 3
+<span class="ex">tmux</span> attach -t vgcpod_E_resume</code></pre></div>
+<p>完成的训练与均值评估直接复用，未完成训练从已提交 epoch 继续，学习率仍按原 10 轮计划运行。</p>
+<h2 id="结果文件与分析顺序">6. 结果文件与分析顺序</h2>
+<p>每个 seed 的主要结构：</p>
+<pre class="text"><code>roundE_20261020/
+  E1/ut-zap50k/V1/seed3351/
+    checkpoints/best.pt
+    checkpoints/best_native.pt
+    checkpoints/best_exact.pt
+    checkpoints/last.pt
+    metrics.json
+    predictions/
+    curves/
+    exact_selection/metrics.json
+    exact_selection/predictions/
+    exact_selection/curves/
+    history.json
+    protocol.json
+  mean_gate/E1/seed3351/
+  mean_gate_exact/E1/seed3351/
+  logs/
+  launcher.log
+  launcher.exitcode
+  round_e_status.json
+  round_e_summary.json</code></pre>
+<p>seed3352、3353 使用相同结构。每个均值评估目录含 TRAIN 均值统计，以及 <code>dynamic/</code>、<code>train_mean/</code> 的四种设置预测。</p>
+<table style="width:11%;">
+<colgroup>
+<col style="width: 5%"></col>
+<col style="width: 5%"></col>
+</colgroup>
+<thead>
+<tr class="header">
+<th>汇总文件</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>rho_native_summary.csv</code>、<code>rho_native_mean_sd.csv</code></td>
+<td>C2/D1/E1 三档 ρ 的 native 主结果</td>
+</tr>
+<tr class="even">
+<td><code>round_e_paired_deltas.csv</code>、<code>round_e_paired_mean_sd.csv</code></td>
+<td>E1 相对 A5/A6/C1/C2/D1 的同 seed 增量</td>
+</tr>
+<tr class="odd">
+<td><code>exact_selection_summary.csv</code></td>
+<td>E1 exact 权重的结果</td>
+</tr>
+<tr class="even">
+<td><code>exact_selection_effects.csv</code>、<code>exact_selection_effect_mean_sd.csv</code></td>
+<td>E1 exact−native 的同 seed 差异</td>
+</tr>
+<tr class="odd">
+<td><code>mean_gate_effects.csv</code></td>
+<td>native／exact 两种权重的 dynamic−mean</td>
+</tr>
+<tr class="even">
+<td><code>per_pair_gains.csv</code></td>
+<td>E1 主结果相对对照的逐组合增量</td>
+</tr>
+</tbody>
+</table>
+<p>优先读取 E1−D1 与 E1−C2 的 CW/OW AUC、固定 VAL bias 的已见／未见准确率与 HM、未见条件属性正确数；随后比较两种权重选择和动态／均值推理。单 seed 标准差记为 null，三 seed 差值按配对样本标准差汇总。</p>
+<h2 id="完成后保存到本机">7. 完成后保存到本机</h2>
+<p>服务器打包 E/C/D 结果与 E 源代码。E 包中的既有指标快照也随源代码保留：</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="fu">tar</span> -czf /data/xhw/vgcpod_project/vgcpod_roundE_results_20261020.tar.gz \
+  -C /data/xhw/vgcpod_v1_runs roundE_20261020 roundD_20261020 roundC_20261020 \
+  -C /data/xhw/vgcpod_project vgcpod_v1_roundE vgcpod_v1_roundD vgcpod_v1_roundC</code></pre></div>
+<p>在本机 Windows PowerShell 下载并解压：</p>
+<pre class="powershell"><code>$vgServer = &quot;xhw@你的服务器IP&quot;
+$vgLocal = &quot;C:\Users\llenovo\Documents\ChatGPT\VG-CPOD&quot;
+scp &quot;${vgServer}:/data/xhw/vgcpod_project/vgcpod_roundE_results_20261020.tar.gz&quot; &quot;$vgLocal\&quot;
+$vgExtract = Join-Path $vgLocal &quot;server_results_roundE_20261020&quot;
+New-Item -ItemType Directory -Force -Path $vgExtract | Out-Null
+tar -xzf &quot;$vgLocal\vgcpod_roundE_results_20261020.tar.gz&quot; -C &quot;$vgExtract&quot;</code></pre>
+<h2 id="交付验证">8. 交付验证</h2>
+<ul>
+<li>33 项测试通过，包括独立首次最大值、native 别名一致性和双轨断点续训。</li>
+<li>CPU 合成缓存完整运行三项训练与六项门控评估；重复启动分别跳过三项训练和六项评估。</li>
+<li>在相同 ρ=0.15、初始化、配置和缓存下，与原 D 组训练器比较：选中 native／最后 epoch 的模型参数及 Torch 随机状态逐元素一致。</li>
+<li><code>model.py</code> 与原 D 组逐字一致；本地检查 Python 3.8 语法、Bash 脚本、文档命令和公式排版。</li>
+</ul>
+<p>验证明细位于 <code>validation/</code>。</p>
+</body>
+</html>

@@ -1,0 +1,255 @@
+# VG-CPOD 方案 v1：E 组三卡实验与实践命令
+
+日期：2026-10-20。框架：冻结 OpenAI CLIP ViT-L/14；数据：UT-Zappos；版本保持 v1。
+
+本轮 E1 沿用 D1 的中心化视觉门控，仅将修正强度 ρ 从 0.125 调整为 0.15。三个 seed 并行训练，主结果继续按 VAL CW native AUC 选择权重，同时保存 exact AUC 最优权重。
+
+## 1. 三张 GPU 与固定设置
+
+| 物理 GPU | 实验 | seed | epochs |
+|---|---|---|---|
+| GPU1 | E1，ρ=0.15 | 3351 | 10 |
+| GPU2 | E1，ρ=0.15 | 3352 | 10 |
+| GPU3 | E1，ρ=0.15 | 3353 | 10 |
+
+三张卡各运行一个独立进程，共 30 个模型 epoch。已有 C2、D1 分别提供 ρ=0.1、0.125 的三 seed 对照。
+
+| 参数 | 设置 |
+|---|---|
+| CLIP | 冻结 ViT-L/14，复用已有缓存 |
+| CP 修正强度 ρ | **0.15** |
+| 读出／门控输入 | 全局图像特征 g／物体查询视觉特征 |
+| η / τγ / κ | 0.25 / 0.1 / 20 |
+| β / rank / adapter rank | 0.1 / 32 / 8 |
+| epochs / batch size | 10 / 64 |
+| 适配器学习率 | 1e-3，余弦降至 1e-5 |
+| CP 学习率 | 3e-4，余弦降至 3e-6 |
+| λorth / weight decay / clip | 0.001 / 1e-4 / 1 |
+
+`configs/round_e/E1.json` 相对原 D1 只修改 `rho` 与 `experiment_id`。`vgcpod/model.py` 与 D 组逐字一致，损失、优化器、初始化、数据顺序和 CLIP 特征使用方式沿用原实现。
+
+## 2. 公式与权重选择
+
+### 2.1 中心化视觉 CP 修正
+
+属性与物体模式分别为 $u_i=A_u e_i^a$、$v_j=A_v e_j^o$。门控公式继续使用：
+
+$$
+\begin{aligned}
+q_{bjk}
+&=2\sigma\!\left(\frac{(f^o_{bj})^{\top}(B_{\mathrm{vis}})_{k:}^{\top}}{\tau_\gamma}\right)-1,\\
+\gamma_{bjk}
+&=1+\frac{\eta}{2}\left(q_{bjk}-\frac{1}{r}\sum_{\ell=1}^{r}q_{bj\ell}\right).
+\end{aligned}
+$$
+
+每个图像／物体查询的模式均值为 1。E1 的条件 logits 修正为：
+
+$$
+\begin{aligned}
+\Delta U^{\mathrm{E1}}_{bji}
+&=0.15\kappa\,g_b^{\top}W_c
+\left(u_i\odot v_j\odot\gamma_{bj}\right),\\
+U_{bji}&=U^{\mathrm{base}}_{bji}+\Delta U^{\mathrm{E1}}_{bji},\\
+\log p(a_i,o_j\mid x_b)
+&=\log\operatorname{softmax}(S_b)_j
++\log\operatorname{softmax}(U_{bj:})_i.
+\end{aligned}
+$$
+
+在相同输入和参数下，E1 修正是 D1 的 1.2 倍。E1 从对应 seed 的初始化重新训练，参数轨迹由各自训练过程决定。
+
+### 2.2 native／exact 独立保存
+
+令 $A^{\mathrm{native}}_t$、$A^{\mathrm{exact}}_t$ 为第 $t$ 轮 VAL CW 的两种 AUC。分别选择首次严格最大值：
+
+$$
+\begin{aligned}
+t^*_{\mathrm{native}}
+&=\min\left\{t\in\{1,\ldots,T\}:A^{\mathrm{native}}_t
+=\max_{1\le s\le T}A^{\mathrm{native}}_s\right\},\\
+t^*_{\mathrm{exact}}
+&=\min\left\{t\in\{1,\ldots,T\}:A^{\mathrm{exact}}_t
+=\max_{1\le s\le T}A^{\mathrm{exact}}_s\right\}.
+\end{aligned}
+$$
+
+实现中，两个最优值分别维护，只有新值严格大于已有最优值才更新。相同 AUC 保留较早的 epoch。
+
+| checkpoint | 含义 |
+|---|---|
+| `best_native.pt` | VAL CW native AUC 最优权重 |
+| `best.pt` | `best_native.pt` 的逐字副本，沿用主流程接口 |
+| `best_exact.pt` | VAL CW exact AUC 最优权重 |
+| `last.pt` | 最新完整 epoch，包含两条最优值、优化器与随机状态 |
+
+根目录 `metrics.json`、`predictions/`、`curves/` 保存 native 选择的主结果；`exact_selection/` 保存 exact 选择的附加结果。两种权重都导出 VAL/TEST、CW/OW 预测与曲线。
+
+**权重选择与 bias 校准分开处理。** 两种选中权重都沿用当前流程：在各自 VAL 上选取 CW/OW native bias，再固定应用到 TEST。exact 权重的命名指 checkpoint 选择依据；其评价同时报告 native/exact AUC 和固定 VAL bias 的 HM。
+
+### 2.3 两种选中权重的均值门控评估
+
+每个选中权重用全部 TRAIN 图像统计各物体查询、各模式的均值：
+
+$$
+\bar\gamma_{jk}
+=\frac{1}{N_{\mathrm{train}}}\sum_{b=1}^{N_{\mathrm{train}}}\gamma_{bjk},
+\qquad \gamma^{\mathrm{mean}}_{bjk}=\bar\gamma_{jk}.
+$$
+
+统计不使用图像标签，均值张量为 `[object, rank]`。固定同一 checkpoint，分别导出动态门控和均值替换后的 VAL/TEST 结果，各条件使用自己的 VAL bias。
+
+每个 seed 完成 native、exact 两项均值评估，共 **6 项**；全部复用权重和特征缓存，优化步数为零。每张卡在训练完成后顺序处理自己的两项评估。
+
+## 3. 已修改的代码
+
+| 文件 | 改动 |
+|---|---|
+| `configs/round_e/E1.json` | E1 配置：ρ=0.15 |
+| `vgcpod/engine.py` | 独立跟踪两种最优值，保存四份 checkpoint；分别导出两种权重结果 |
+| `mean_gate_eval.py` | 新增 `--selection native/exact`，加载对应权重与参考评估 |
+| `round_e.py` | 三卡调度、自动续训、六项均值评估、三档 ρ 与同 seed 汇总 |
+| `scripts/start_round_e_tmux.sh` | tmux 中启动整轮实验并记录退出码 |
+| `references/pre_e_complete.json` | 保存 14 个已有 A5/A6/C1/C2/D1 运行的指标快照 |
+| `tests/test_round_e.py` | 两种首次最大值、独立导出、别名一致性与断点续训测试 |
+
+旧 C/D 结果用于读取对照。E 组模型和结果写入新的 E 组目录。三档 ρ 主表均采用 native 权重，exact 选择的结果单列；配对增量只使用相同 seed 和相同特征缓存。
+
+## 4. 本机上传
+
+在 Windows PowerShell 执行，将 `你的服务器IP` 替换为实际地址。以下使用 SSH 默认端口 22。
+
+```powershell
+$vgServer = "xhw@你的服务器IP"
+scp "C:\Users\llenovo\Documents\ChatGPT\VG-CPOD\vgcpod_v1_roundE_20261020.zip" "${vgServer}:/data/xhw/vgcpod_project/"
+```
+
+## 5. 服务器启动与查看进度
+
+### 5.1 激活环境并启动
+
+```bash
+conda activate vgcpod_v1
+cd /data/xhw/vgcpod_project
+unzip -o vgcpod_v1_roundE_20261020.zip
+cd /data/xhw/vgcpod_project/vgcpod_v1_roundE
+
+bash scripts/start_round_e_tmux.sh --gpus 1 2 3
+tmux attach -t vgcpod_E
+```
+
+按 **Ctrl+b**，松开，再按 **d**，离开 tmux 后继续运行。GPU1/2/3 为物理卡号，各子进程内部使用 `cuda:0`。启动器保存激活环境的 Python 绝对路径。
+
+默认数据与对照目录：
+
+```text
+/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14
+/data/xhw/vgcpod_v1_runs/roundA_20261019
+/data/xhw/vgcpod_v1_runs/roundC_20261020
+/data/xhw/vgcpod_v1_runs/roundD_20261020
+```
+
+本轮输出目录为 `/data/xhw/vgcpod_v1_runs/roundE_20261020`。
+
+### 5.2 查看进度与结束状态
+
+```bash
+tail -f /data/xhw/vgcpod_v1_runs/roundE_20261020/launcher.log
+```
+
+查看三个 seed 的 epoch 日志和整轮退出码：
+
+```bash
+tail -n 10 /data/xhw/vgcpod_v1_runs/roundE_20261020/logs/E1_seed3351.log
+tail -n 10 /data/xhw/vgcpod_v1_runs/roundE_20261020/logs/E1_seed3352.log
+tail -n 10 /data/xhw/vgcpod_v1_runs/roundE_20261020/logs/E1_seed3353.log
+cat /data/xhw/vgcpod_v1_runs/roundE_20261020/launcher.exitcode
+```
+
+`RUNNING` 表示本轮还在运行；**0** 表示三项训练、六项门控评估和汇总全部完成。主日志同时出现 `ROUND_E_COMPLETE ... training_jobs 3 mean_gate_jobs 6`。
+
+`tail -f` 持续等待新内容，按 Ctrl+C 退出查看即可。完成后 tmux 保留终端。非零退出码时，主日志与 `round_e_status.json` 保存具体错误和任务日志路径。
+
+### 5.3 中断后继续
+
+上一轮进程退出后执行：
+
+```bash
+conda activate vgcpod_v1
+cd /data/xhw/vgcpod_project/vgcpod_v1_roundE
+VG_E_SESSION=vgcpod_E_resume bash scripts/start_round_e_tmux.sh --gpus 1 2 3
+tmux attach -t vgcpod_E_resume
+```
+
+完成的训练与均值评估直接复用，未完成训练从已提交 epoch 继续，学习率仍按原 10 轮计划运行。
+
+## 6. 结果文件与分析顺序
+
+每个 seed 的主要结构：
+
+```text
+roundE_20261020/
+  E1/ut-zap50k/V1/seed3351/
+    checkpoints/best.pt
+    checkpoints/best_native.pt
+    checkpoints/best_exact.pt
+    checkpoints/last.pt
+    metrics.json
+    predictions/
+    curves/
+    exact_selection/metrics.json
+    exact_selection/predictions/
+    exact_selection/curves/
+    history.json
+    protocol.json
+  mean_gate/E1/seed3351/
+  mean_gate_exact/E1/seed3351/
+  logs/
+  launcher.log
+  launcher.exitcode
+  round_e_status.json
+  round_e_summary.json
+```
+
+seed3352、3353 使用相同结构。每个均值评估目录含 TRAIN 均值统计，以及 `dynamic/`、`train_mean/` 的四种设置预测。
+
+| 汇总文件 | 内容 |
+|---|---|
+| `rho_native_summary.csv`、`rho_native_mean_sd.csv` | C2/D1/E1 三档 ρ 的 native 主结果 |
+| `round_e_paired_deltas.csv`、`round_e_paired_mean_sd.csv` | E1 相对 A5/A6/C1/C2/D1 的同 seed 增量 |
+| `exact_selection_summary.csv` | E1 exact 权重的结果 |
+| `exact_selection_effects.csv`、`exact_selection_effect_mean_sd.csv` | E1 exact−native 的同 seed 差异 |
+| `mean_gate_effects.csv` | native／exact 两种权重的 dynamic−mean |
+| `per_pair_gains.csv` | E1 主结果相对对照的逐组合增量 |
+
+优先读取 E1−D1 与 E1−C2 的 CW/OW AUC、固定 VAL bias 的已见／未见准确率与 HM、未见条件属性正确数；随后比较两种权重选择和动态／均值推理。单 seed 标准差记为 null，三 seed 差值按配对样本标准差汇总。
+
+## 7. 完成后保存到本机
+
+服务器打包 E/C/D 结果与 E 源代码。E 包中的既有指标快照也随源代码保留：
+
+```bash
+tar -czf /data/xhw/vgcpod_project/vgcpod_roundE_results_20261020.tar.gz \
+  -C /data/xhw/vgcpod_v1_runs roundE_20261020 roundD_20261020 roundC_20261020 \
+  -C /data/xhw/vgcpod_project vgcpod_v1_roundE vgcpod_v1_roundD vgcpod_v1_roundC
+```
+
+在本机 Windows PowerShell 下载并解压：
+
+```powershell
+$vgServer = "xhw@你的服务器IP"
+$vgLocal = "C:\Users\llenovo\Documents\ChatGPT\VG-CPOD"
+scp "${vgServer}:/data/xhw/vgcpod_project/vgcpod_roundE_results_20261020.tar.gz" "$vgLocal\"
+$vgExtract = Join-Path $vgLocal "server_results_roundE_20261020"
+New-Item -ItemType Directory -Force -Path $vgExtract | Out-Null
+tar -xzf "$vgLocal\vgcpod_roundE_results_20261020.tar.gz" -C "$vgExtract"
+```
+
+## 8. 交付验证
+
+- 33 项测试通过，包括独立首次最大值、native 别名一致性和双轨断点续训。
+- CPU 合成缓存完整运行三项训练与六项门控评估；重复启动分别跳过三项训练和六项评估。
+- 在相同 ρ=0.15、初始化、配置和缓存下，与原 D 组训练器比较：选中 native／最后 epoch 的模型参数及 Torch 随机状态逐元素一致。
+- `model.py` 与原 D 组逐字一致；本地检查 Python 3.8 语法、Bash 脚本、文档命令和公式排版。
+
+验证明细位于 `validation/`。

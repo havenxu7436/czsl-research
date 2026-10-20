@@ -1,0 +1,14 @@
+START_E1 3353 GPU 3START_E1START_E1 3352 3351 GPU  1 log logGPU /data/xhw/vgcpod_v1_runs/roundE_20261020/logs/E1_seed3351.log
+ 2  /data/xhw/vgcpod_v1_runs/roundE_20261020/logs/E1_seed3353.log
+log /data/xhw/vgcpod_v1_runs/roundE_20261020/logs/E1_seed3352.log
+START_MEAN_GATE native 3353 GPU 3
+START_MEAN_GATE native 3352 GPU 2
+START_MEAN_GATE native 3351 GPU 1
+START_MEAN_GATE exact 3353 GPU 3
+START_MEAN_GATE exact 3352 GPU 2
+START_MEAN_GATE exact 3351 GPU 1
+JOB_RESULT E1 3353 complete
+JOB_RESULT E1 3352 complete
+JOB_RESULT E1 3351 complete
+ROUND_E_SUMMARY /data/xhw/vgcpod_v1_runs/roundE_20261020/round_e_summary.json
+ROUND_E_COMPLETE /data/xhw/vgcpod_v1_runs/roundE_20261020 training_jobs 3 mean_gate_jobs 6
