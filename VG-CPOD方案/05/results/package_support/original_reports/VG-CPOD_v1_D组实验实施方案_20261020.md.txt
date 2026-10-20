@@ -1,0 +1,320 @@
+# VG-CPOD 方案 v1：D 组实验实施方案
+
+日期：2026-10-20。框架：冻结 OpenAI CLIP ViT-L/14；数据：UT-Zappos。版本保持 v1。
+
+本轮补齐 C2 的三个 seed，并训练 D1：在 C2 的中心化视觉门控上，将修正强度 ρ 从 0.1 调整为 0.125。训练后自动完成四个 checkpoint 的 TRAIN 均值门控替换评估。全部使用已有 CLIP 特征缓存。
+
+## 1. 本轮任务与参数
+
+| 物理 GPU | 训练任务 | seed | 源代码与输出 |
+|---|---|---|---|
+| GPU1 | C2 | 3352 | 调用原 C 组代码，保存到原 C 组目录 |
+| GPU2 | C2 | 3353 | 调用原 C 组代码，保存到原 C 组目录 |
+| GPU3 | D1 | 3351 | 使用本 D 组包，保存到新 D 组目录 |
+
+每项从对应 seed 初始化训练 10 epochs，三个独立进程并行，共新增 30 个模型 epoch。D1 从初始化开始训练。已有完成任务自动跳过；中断任务自动添加 `--resume`。
+
+| 项目 | C2 | D1 |
+|---|---|---|
+| CLIP / 图像读出 | 冻结 ViT-L/14 / 全局特征 g | 同 C2 |
+| 门控输入 / 中心化 | 物体查询特征 / 沿 rank 维中心化 | 同 C2 |
+| ρ | 0.1 | **0.125** |
+| η / τγ / κ | 0.25 / 0.1 / 20 | 同 C2 |
+| rank / adapter rank | 32 / 8 | 同 C2 |
+| β / batch size / epochs | 0.1 / 64 / 10 | 同 C2 |
+| 适配器学习率 | 1e-3，余弦降至 1e-5 | 同 C2 |
+| CP 学习率 | 3e-4，余弦降至 3e-6 | 同 C2 |
+| 正交项 / weight decay | 0.001 / 1e-4 | 同 C2 |
+| 梯度裁剪 | 全部可训练参数联合范数，最大值 1 | 同 C2 |
+| checkpoint 选择 | VAL CW AUC_native 首次严格最大值 | 同 C2 |
+
+`configs/round_d/D1.json` 相对 `configs/round_c/C2.json` 只改变 `rho` 和实验名 `experiment_id`。模型内部 `variant` 仍为 `V1`，由显式配置开启中心化动态门控。训练核心 `vgcpod/*.py` 和 `run.py` 与 C 组逐字一致。
+
+## 2. 公式与实现对应
+
+### 2.1 CLIP 特征与基础分数
+
+缓存中包含归一化全局图像特征 $g_b$、物体查询图像特征 $f^o_{bj}$、属性文本特征 $e_i^a$、物体文本特征 $e_j^o$、组合文本特征 $e_{ji}^c$。在当前 CLIP ViT-L/14 中，嵌入维度 $d=768$。令适配器秩为 $q=8$、CP 秩为 $r=32$：
+
+$$
+\begin{aligned}
+S_{bj}
+&=\kappa g_b^{\top}e_j^o
++(g_b^{\top}B_o)(C_o^{\top}e_j^o),\\
+U^{\mathrm{base}}_{bji}
+&=\kappa g_b^{\top}e_{ji}^c
++(g_b^{\top}B_c)(C_c^{\top}e_{ji}^c),\\
+u_i&=A_u e_i^a,\qquad v_j=A_v e_j^o.
+\end{aligned}
+$$
+
+这里 $B_o,C_o,B_c,C_c\in\mathbb{R}^{d\times q}$，$A_u,A_v,B_{\mathrm{vis}}\in\mathbb{R}^{r\times d}$，$W_c\in\mathbb{R}^{d\times r}$。CLIP 图像和文本编码器冻结，训练适配器及 CP 参数。
+
+### 2.2 中心化门控与 D1 修正
+
+$$
+\begin{aligned}
+z_{bjk}&=\frac{(f^o_{bj})^{\top}(B_{\mathrm{vis}})_{k:}^{\top}}{\tau_\gamma},\\
+q_{bjk}&=2\sigma(z_{bjk})-1,\\
+\gamma_{bjk}
+&=1+\frac{\eta}{2}\left(q_{bjk}-\frac{1}{r}\sum_{\ell=1}^{r}q_{bj\ell}\right).
+\end{aligned}
+$$
+
+因此，每张图像的每个物体查询均满足模式均值为 1，且中心化项移除了共同缩放分量：
+
+$$
+\frac{1}{r}\sum_{k=1}^{r}\gamma_{bjk}=1,
+\qquad 1-\eta<\gamma_{bjk}<1+\eta.
+$$
+
+本轮 $\eta=0.25$。门控只调制 CP 的模式系数；CP 读出使用全局特征：
+
+$$
+\begin{aligned}
+\Delta U_{bji}
+&=\rho\kappa\sum_{k=1}^{r}
+(g_b^{\top}W_c)_k\,u_{ik}v_{jk}\gamma_{bjk},\\
+U_{bji}&=U^{\mathrm{base}}_{bji}+\Delta U_{bji},\\
+M_{bj}&=W_c\operatorname{diag}(v_j\odot\gamma_{bj})A_u,
+\qquad \operatorname{rank}(M_{bj})\le r.
+\end{aligned}
+$$
+
+实现位于 `vgcpod/model.py:VGCPOD.forward`。C2 使用 $\rho=0.1$，D1 使用 $\rho=0.125$。在同一组参数和输入下：
+
+$$
+\Delta U^{\mathrm{D1}}=1.25\Delta U^{\mathrm{C2}}.
+$$
+
+该等式也适用于修正 logits 对 CP 参数的导数。D1 和 C2 分别训练后，参数轨迹由各自损失梯度决定。中心化门控对输入 logits 的导数为：
+
+$$
+\frac{\partial\gamma_{bjk}}{\partial z_{bj\ell}}
+=\eta\left(\delta_{k\ell}-\frac{1}{r}\right)
+\sigma(z_{bj\ell})\bigl(1-\sigma(z_{bj\ell})\bigr).
+$$
+
+代码沿用自动求导；测试核对显式低秩算子、导数、中心化约束和 1.25 倍修正比例。$W_c=0$ 初始化使首个前向的 CP 修正为零；后续更新按原 C 组流程进行。
+
+### 2.3 概率与训练目标
+
+$$
+\begin{aligned}
+\ell^o_{bj}&=\log\operatorname{softmax}(S_b)_j,\\
+\ell^a_{bji}&=\log\operatorname{softmax}(U_{bj:})_i,\\
+s_{bji}&=\ell^o_{bj}+\ell^a_{bji}.
+\end{aligned}
+$$
+
+沿属性轴归一化得到条件概率，沿物体轴归一化得到物体概率，故完整联合空间满足 $\sum_{j,i}\exp(s_{bji})=1$。
+
+对 batch 大小 $B$、训练组合集合 $\mathcal{S}$、标签 $(i_b,j_b)$：
+
+$$
+\begin{aligned}
+\mathcal{L}_{\mathrm{pair}}
+&=\frac{1}{B}\sum_b\left[-s_{bj_bi_b}
++\log\sum_{(j,i)\in\mathcal{S}}\exp(s_{bji})\right],\\
+\mathcal{L}_{a}&=-\frac{1}{B}\sum_b\ell^a_{bj_bi_b},
+\qquad\mathcal{L}_{o}=-\frac{1}{B}\sum_b\ell^o_{bj_b},\\
+\mathcal{L}_{\mathrm{task}}
+&=\frac{1.5}{1+\beta}\left[\mathcal{L}_{\mathrm{pair}}
++\beta(\mathcal{L}_{a}+\mathcal{L}_{o})\right],\\
+\mathcal{L}
+&=\mathcal{L}_{\mathrm{task}}
++\frac{\lambda_{\mathrm{orth}}}{r^2}
+\left\|B_{\mathrm{vis}}B_{\mathrm{vis}}^{\top}-I_r\right\|_F^2.
+\end{aligned}
+$$
+
+本轮 $\beta=0.1$、$\lambda_{\mathrm{orth}}=0.001$。实现位于 `VGCPOD.objective`；原始属性分支与伙伴聚合分支在当前配置下关闭。
+
+## 3. 同 checkpoint 的 TRAIN 均值门控替换
+
+对 C2 的 seed3351、3352、3353 和 D1 的 seed3351，共四个已选权重自动评估。统计使用全部 TRAIN 图像，遍历每一个物体查询：
+
+$$
+\bar\gamma_{jk}=\frac{1}{N_{\mathrm{train}}}
+\sum_{b=1}^{N_{\mathrm{train}}}\gamma_{bjk},
+\qquad
+\gamma^{\mathrm{mean}}_{bjk}=\bar\gamma_{jk}.
+$$
+
+统计时忽略图像标签，均值张量为 `[object, rank]`，当前为 `[12,32]`。每个物体都有独立的模式均值，且 $r^{-1}\sum_k\bar\gamma_{jk}=1$。评估阶段分别使用：
+
+$$
+\begin{aligned}
+\Delta U^{\mathrm{dynamic}}_{bji}
+&=\rho\kappa\sum_k(g_b^{\top}W_c)_ku_{ik}v_{jk}\gamma_{bjk},\\
+\Delta U^{\mathrm{mean}}_{bji}
+&=\rho\kappa\sum_k(g_b^{\top}W_c)_ku_{ik}v_{jk}\bar\gamma_{jk},\\
+\Delta U^{\mathrm{dynamic}}_{bji}-\Delta U^{\mathrm{mean}}_{bji}
+&=\rho\kappa\sum_k(g_b^{\top}W_c)_ku_{ik}v_{jk}
+(\gamma_{bjk}-\bar\gamma_{jk}).
+\end{aligned}
+$$
+
+该差异测量同一组权重下图像相关门控的预测作用；跨训练方案的效果由 C1、C2、D1 与 A5/A6 的配对结果比较。
+
+`mean_gate_eval.py` 实现如下步骤：
+
+1. 从对应的原训练源目录加载选中权重。
+2. 对 TRAIN 全集按图像加权统计门控均值和图像方差；最后一个 batch 按实际图像数计入。
+3. 保留全部模型参数，分别导出动态与均值替换后的 VAL CW/OW、TEST CW/OW 预测和曲线。
+4. 两个条件各自在自身 VAL 上选取 CW/OW bias，TEST 使用对应的固定 VAL bias。
+5. 记录 checkpoint、原训练源、特征缓存和评估脚本的 SHA256，以及动态复算与原保存 AUC 的差值。
+
+结果保存在 D 组的 `mean_gate/`，训练运行目录中的原 `metrics.json` 和预测文件继续保留。此阶段优化步数为零。训练三项完成后，四项评估分配到三张 GPU；每张卡顺序处理自己的任务。
+
+## 4. 代码文件与结果位置
+
+| 文件 | 作用 |
+|---|---|
+| `configs/round_d/D1.json` | D1 参数配置 |
+| `round_d.py` | 两卡补跑原 C2、一卡训练 D1，随后评估和汇总 |
+| `mean_gate_eval.py` | TRAIN 均值替换、完整预测与指标导出 |
+| `scripts/start_round_d_tmux.sh` | 在 tmux 中启动整轮实验 |
+| `scripts/run_round_d.sh` | 前台启动相同调度流程 |
+| `tests/test_round_d.py` | D1 比例、梯度、均值统计和替换公式测试 |
+| `validation/` | 本地 CPU 测试与调度验证记录 |
+
+服务器 D 组主目录为 `/data/xhw/vgcpod_v1_runs/roundD_20261020`：
+
+```text
+roundD_20261020/
+  D1/ut-zap50k/V1/seed3351/
+  mean_gate/C2/seed3351/
+  mean_gate/C2/seed3352/
+  mean_gate/C2/seed3353/
+  mean_gate/D1/seed3351/
+  logs/
+  launcher.log
+  launcher.exitcode
+  round_d_jobs.json
+  round_d_status.json
+  mean_gate_status.json
+  round_d_summary.json
+  round_d_summary.csv
+  round_d_mean_sd.csv
+  round_d_paired_deltas.csv
+  round_d_paired_mean_sd.csv
+  mean_gate_effects.csv
+  per_pair_gains.csv
+```
+
+每个 `mean_gate/.../seed.../` 包含 `train_mean_gamma.npz`、总 `metrics.json`，以及 `dynamic/`、`train_mean/` 各自的指标、预测和曲线。C2 新 seed 的训练权重、历史与原始评估继续保存在 `roundC_20261020/C2/ut-zap50k/V1/seed3352` 和 `seed3353`。
+
+## 5. 上传与服务器启动
+
+### 5.1 本机 Windows PowerShell 上传
+
+将 `你的服务器IP` 替换为连接当前服务器时使用的 IP 或主机名。以下使用 SSH 默认端口 22；自定义端口在 `scp` 中使用大写 `-P`。
+
+```powershell
+$vgServer = "xhw@你的服务器IP"
+scp "C:\Users\llenovo\Documents\ChatGPT\VG-CPOD\vgcpod_v1_roundD_20261020.zip" "${vgServer}:/data/xhw/vgcpod_project/"
+```
+
+### 5.2 服务器终端解压和启动
+
+继续使用服务器已有 `vgcpod_v1` 环境，以及原 C 组代码和 CLIP 缓存。
+
+```bash
+conda activate vgcpod_v1
+cd /data/xhw/vgcpod_project
+unzip -o vgcpod_v1_roundD_20261020.zip
+cd /data/xhw/vgcpod_project/vgcpod_v1_roundD
+
+export VG_CACHE=/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14
+export VG_A_OUT=/data/xhw/vgcpod_v1_runs/roundA_20261019
+export VG_B_OUT=/data/xhw/vgcpod_v1_runs/roundB_20261019
+export VG_C_ROOT=/data/xhw/vgcpod_project/vgcpod_v1_roundC
+export VG_C_OUT=/data/xhw/vgcpod_v1_runs/roundC_20261020
+export VG_D_OUT=/data/xhw/vgcpod_v1_runs/roundD_20261020
+
+bash scripts/start_round_d_tmux.sh --gpus 1 2 3
+tmux attach -t vgcpod_D
+```
+
+按 **Ctrl+b**，松开，再按 **d** 离开 tmux，训练继续。这里的 GPU1、2、3 为物理卡号。每个子进程只看到自己的卡，PyTorch 内部使用 `cuda:0`。CLIP 特征已缓存，此轮直接训练 CP 和适配器。
+
+### 5.3 查看进度与结束状态
+
+主日志持续显示调度阶段；三份训练日志显示 epoch：
+
+```bash
+tail -f /data/xhw/vgcpod_v1_runs/roundD_20261020/launcher.log
+```
+
+```bash
+tail -n 8 /data/xhw/vgcpod_v1_runs/roundC_20261020/logs/C2_seed3352.log
+tail -n 8 /data/xhw/vgcpod_v1_runs/roundC_20261020/logs/C2_seed3353.log
+tail -n 8 /data/xhw/vgcpod_v1_runs/roundD_20261020/logs/D1_seed3351.log
+cat /data/xhw/vgcpod_v1_runs/roundD_20261020/launcher.exitcode
+```
+
+`launcher.exitcode` 为 `RUNNING` 表示整轮仍在运行；为 **0** 表示训练、四项均值替换评估与汇总全部完成，同时主日志出现 `ROUND_D_COMPLETE ... training_jobs 3 mean_gate_jobs 4`。非零值时查看主日志、`round_d_status.json` 和 `mean_gate_status.json`。`tail -f` 持续等待新内容，按 Ctrl+C 结束日志查看即可。tmux 会话完成后保留终端。
+
+### 5.4 中断后继续
+
+在 D 组源目录和已激活环境中执行：
+
+```bash
+cd /data/xhw/vgcpod_project/vgcpod_v1_roundD
+VG_D_SESSION=vgcpod_D_resume bash scripts/start_round_d_tmux.sh --gpus 1 2 3
+tmux attach -t vgcpod_D_resume
+```
+
+该命令用于上一轮进程已经退出后的续跑。已完成训练直接复用，中断训练按原 10 轮计划续训，已完成均值评估自动跳过。
+
+### 5.5 直接运行单个 D1
+
+调度器自动执行全部默认任务。需要单独训练 D1 时，可在 D 组目录执行：
+
+```bash
+CUDA_VISIBLE_DEVICES=3 python -u run.py train \
+  --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14 \
+  --out /data/xhw/vgcpod_v1_runs/roundD_20261020/D1 \
+  --config configs/round_d/D1.json --seed 3351 --device cuda
+```
+
+已有该运行目录时续训添加 `--resume`。调度器已在处理该任务时，沿用调度器即可。
+
+## 6. 实验结束后保存到本机
+
+服务器打包 D/C 两组结果与对应源代码。旧 A/B 对照指标快照已随 D 包保存，完整 A/B 结果仍位于先前本地归档。
+
+```bash
+tar -czf /data/xhw/vgcpod_project/vgcpod_roundD_results_20261020.tar.gz \
+  -C /data/xhw/vgcpod_v1_runs roundD_20261020 roundC_20261020 \
+  -C /data/xhw/vgcpod_project vgcpod_v1_roundD vgcpod_v1_roundC
+```
+
+在本机 Windows PowerShell 执行：
+
+```powershell
+$vgServer = "xhw@你的服务器IP"
+$vgLocal = "C:\Users\llenovo\Documents\ChatGPT\VG-CPOD"
+scp "${vgServer}:/data/xhw/vgcpod_project/vgcpod_roundD_results_20261020.tar.gz" "$vgLocal\"
+$vgExtract = Join-Path $vgLocal "server_results_roundD_20261020"
+New-Item -ItemType Directory -Force -Path $vgExtract | Out-Null
+tar -xzf "$vgLocal\vgcpod_roundD_results_20261020.tar.gz" -C "$vgExtract"
+```
+
+## 7. 结果分析顺序
+
+1. **C2 三 seed 对 A5/A6 的同 seed 增量。** 从 `round_d_paired_mean_sd.csv` 读取 CW/OW AUC、固定 VAL bias 的 HM、未见组合图像的 GT-object 条件属性准确率。均值与样本标准差由相同 seed 的差值计算。
+2. **D1−C2、D1−C1 的 seed3351 配对。** 前者比较中心化公式下的 ρ 调整，后者比较 ρ=0.125 时中心化视觉模块相对静态 CP 的增量。
+3. **四个 checkpoint 的 dynamic−train_mean。** 从 `mean_gate_effects.csv` 读取动态门控的预测贡献，并结合逐组合预测观察增量来自哪些属性和物体。
+4. **修正尺度与训练过程。** 联合检查选中 epoch、`centered_delta_rms`、梯度裁剪比例和门控图像方差。单 seed 结果的标准差记为 null。
+
+本轮三项训练与四项评估按固定任务清单直接完成，随后一起分析。下一次优先选择哪组补 seed 或调整参数，由本轮的配对结果决定。
+
+## 8. 本地验证记录
+
+- 30 项测试通过，覆盖已有训练流程、D1 修正与梯度比例、中心化约束、TRAIN 统计和均值替换公式。
+- CPU 合成缓存完整运行三项训练和四项均值评估；再次启动时分别跳过三项训练和四项评估。
+- 验证 C2 使用原 C 源目录；原 C1/C2 seed3351 的 checkpoint、历史和预测文件保持一致。
+- 汇总验证包含五个模型运行、13 项同 seed 配对、16 行均值替换指标，并逐项核对 TEST 使用自身条件的 VAL bias。
+- Python 3.8 语法、Bash 脚本、文档命令和公式显示另附 `validation/` 记录。服务器训练使用当前已有环境。

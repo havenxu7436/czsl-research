@@ -1,0 +1,137 @@
+{
+  "line": "VG-CPOD方案",
+  "stage": "05",
+  "version": "v1",
+  "title": "中心化 CP 幅度联动与均值门控评估",
+  "knowledge": [],
+  "completed_runs": 6,
+  "new_D1_runs": 3,
+  "companion_C_runs": 3,
+  "model_epochs": 60,
+  "training_evaluations": 24,
+  "intervention_checkpoints": 6,
+  "intervention_conditions": 12,
+  "intervention_evaluations": 48,
+  "predictions": 72,
+  "checkpoints": 12,
+  "completed_cases": [
+    "C1",
+    "C2",
+    "D1"
+  ],
+  "completed_seeds": [
+    3351,
+    3352,
+    3353
+  ],
+  "run_matrix": [
+    {
+      "case": "C1",
+      "seed": 3352
+    },
+    {
+      "case": "C2",
+      "seed": 3352
+    },
+    {
+      "case": "C2",
+      "seed": 3353
+    },
+    {
+      "case": "D1",
+      "seed": 3351
+    },
+    {
+      "case": "D1",
+      "seed": 3352
+    },
+    {
+      "case": "D1",
+      "seed": 3353
+    }
+  ],
+  "package_member_map": "package_members.json",
+  "next_package_member_map": "next_package_members.json",
+  "experiment_inventory": "configs/experiment_inventory.json",
+  "code_files": [
+    "code/original_analysis/analysis_next_20261020/validate_launcher.py",
+    "code/original_analysis/analysis_next_results_20261020/analyze_bias.py",
+    "code/original_analysis/analysis_next_results_20261020/analyze_next.py",
+    "code/original_analysis/analysis_next_results_20261020/build_report.py",
+    "code/original_analysis/analysis_next_results_20261020/verify_report.cjs",
+    "code/original_analysis/analysis_roundD_20261020/build_document.py",
+    "code/original_analysis/analysis_roundD_20261020/package_release.py",
+    "code/original_analysis/analysis_roundD_20261020/validate_release.py",
+    "code/original_analysis/analysis_roundD_20261020/verify_document.cjs",
+    "code/original_analysis/analysis_roundD_results_20261020/analyze_d.py",
+    "code/original_analysis/analysis_roundD_results_20261020/build_report.py",
+    "code/original_analysis/analysis_roundD_results_20261020/verify_report.cjs",
+    "code/README.md",
+    "code/source_changes.patch",
+    "code/vgcpod_next_v1_20261020/next_round.py",
+    "code/vgcpod_next_v1_20261020/start_tmux.sh",
+    "code/vgcpod_v1_roundD/mean_gate_eval.py",
+    "code/vgcpod_v1_roundD/requirements.txt",
+    "code/vgcpod_v1_roundD/round_a.py",
+    "code/vgcpod_v1_roundD/round_b.py",
+    "code/vgcpod_v1_roundD/round_c.py",
+    "code/vgcpod_v1_roundD/round_d.py",
+    "code/vgcpod_v1_roundD/run.py",
+    "code/vgcpod_v1_roundD/scripts/run_round_d.sh",
+    "code/vgcpod_v1_roundD/scripts/start_round_d_tmux.sh",
+    "code/vgcpod_v1_roundD/scripts/tmux_round_d_entry.sh",
+    "code/vgcpod_v1_roundD/tests/__init__.py",
+    "code/vgcpod_v1_roundD/tests/test_math.py",
+    "code/vgcpod_v1_roundD/tests/test_round_a.py",
+    "code/vgcpod_v1_roundD/tests/test_round_b.py",
+    "code/vgcpod_v1_roundD/tests/test_round_c.py",
+    "code/vgcpod_v1_roundD/tests/test_round_d.py",
+    "code/vgcpod_v1_roundD/vendor/clip/__init__.py",
+    "code/vgcpod_v1_roundD/vendor/clip/bpe_simple_vocab_16e6.txt.gz",
+    "code/vgcpod_v1_roundD/vendor/clip/clip.py",
+    "code/vgcpod_v1_roundD/vendor/clip/model.py",
+    "code/vgcpod_v1_roundD/vendor/clip/simple_tokenizer.py",
+    "code/vgcpod_v1_roundD/vendor/CLIP_LICENSE",
+    "code/vgcpod_v1_roundD/vendor/native_evaluator.py",
+    "code/vgcpod_v1_roundD/vgcpod/__init__.py",
+    "code/vgcpod_v1_roundD/vgcpod/common.py",
+    "code/vgcpod_v1_roundD/vgcpod/data.py",
+    "code/vgcpod_v1_roundD/vgcpod/diagnostics.py",
+    "code/vgcpod_v1_roundD/vgcpod/engine.py",
+    "code/vgcpod_v1_roundD/vgcpod/features.py",
+    "code/vgcpod_v1_roundD/vgcpod/metrics.py",
+    "code/vgcpod_v1_roundD/vgcpod/model.py"
+  ],
+  "configs": [
+    "configs/assets/historical_inputs.json",
+    "configs/assets/labels.json",
+    "configs/assets/names.json",
+    "configs/assets/path_aliases.json",
+    "configs/default.json",
+    "configs/experiment_inventory.json",
+    "configs/intervention_inventory.json",
+    "configs/references/original_v1.json",
+    "configs/references/round_a_confirm.json",
+    "configs/references/round_b_pilot.json",
+    "configs/references/round_c_pilot.json",
+    "configs/round_a/A1.json",
+    "configs/round_a/A2.json",
+    "configs/round_a/A3.json",
+    "configs/round_a/A4.json",
+    "configs/round_a/A5.json",
+    "configs/round_a/A6.json",
+    "configs/round_b/B1.json",
+    "configs/round_b/B2.json",
+    "configs/round_b/B3.json",
+    "configs/round_c/C1.json",
+    "configs/round_c/C2.json",
+    "configs/round_d/D1.json"
+  ],
+  "documents": [
+    "analysis/README.md",
+    "code/README.md",
+    "configs/README.md",
+    "README.md",
+    "results/README.md"
+  ]
+}

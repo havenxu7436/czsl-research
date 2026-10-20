@@ -1,0 +1,24 @@
+{
+  "line": "VG-CPOD方案",
+  "stage": "05",
+  "primary_package": "vgcpod_v1_roundD",
+  "companion_source_stage": "04",
+  "next_package": "vgcpod_next_v1_20261020",
+  "commands": [
+    {
+      "source": "README.md",
+      "language": "bash",
+      "text": "git lfs pull\npython tools/reproduce.py materialize --line VG-CPOD方案 --stage 05 \\\n  --dest /data/xhw/vgcpod_project/replay_05\nconda activate vgcpod_v1\ncd /data/xhw/vgcpod_project/replay_05/vgcpod_v1_roundD\n\nexport VG_CACHE=/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14\nexport VG_A_OUT=/data/xhw/vgcpod_v1_runs/roundA_20261019\nexport VG_B_OUT=/data/xhw/vgcpod_v1_runs/roundB_20261019\nexport VG_C_ROOT=/data/xhw/vgcpod_project/replay_05/vgcpod_v1_roundC\nexport VG_C_OUT=/data/xhw/vgcpod_v1_runs/roundC_20261020\nexport VG_D_OUT=/data/xhw/vgcpod_v1_runs/replay_05_D\nexport VG_D_SESSION=vgcpod_05_pilot\n\nbash scripts/start_round_d_tmux.sh --gpus 1 2 3\ntmux attach -t vgcpod_05_pilot\n"
+    },
+    {
+      "source": "README.md",
+      "language": "bash",
+      "text": "cd /data/xhw/vgcpod_project/replay_05/vgcpod_next_v1_20261020\nexport VG_NEXT_SESSION=vgcpod_05_confirm\nexport VG_NEXT_OUT=/data/xhw/vgcpod_v1_runs/replay_05_next\n\nbash start_tmux.sh --gpus 1 2 3 \\\n  --d-root /data/xhw/vgcpod_project/replay_05/vgcpod_v1_roundD \\\n  --c-root /data/xhw/vgcpod_project/replay_05/vgcpod_v1_roundC \\\n  --d-out /data/xhw/vgcpod_v1_runs/replay_05_D \\\n  --c-out /data/xhw/vgcpod_v1_runs/roundC_20261020 \\\n  --a-out /data/xhw/vgcpod_v1_runs/roundA_20261019 \\\n  --b-out /data/xhw/vgcpod_v1_runs/roundB_20261019\ntmux attach -t vgcpod_05_confirm\n"
+    },
+    {
+      "source": "README.md",
+      "language": "bash",
+      "text": "python VG-CPOD方案/05/analysis/recompute.py\npython VG-CPOD方案/05/analysis/recompute_bias.py\npython tools/reproduce.py verify\n"
+    }
+  ]
+}

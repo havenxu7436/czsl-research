@@ -1,0 +1,28 @@
+C1/C2 baseline
+START C1 3351 GPU 1 log C:\Users\llenovo\AppData\Local\Temp\vgcpod_d_cli_4bciamdy\C_out\logs\C1_seed3351.log
+START C2 3351 GPU 2 log C:\Users\llenovo\AppData\Local\Temp\vgcpod_d_cli_4bciamdy\C_out\logs\C2_seed3351.log
+COMPLETE C1 3351 GPU 1
+COMPLETE C2 3351 GPU 2
+SUMMARY C:\Users\llenovo\AppData\Local\Temp\vgcpod_d_cli_4bciamdy\C_out\round_c_summary.csv
+C1 seed 3351 VAL_CW 23.4375 VAL_OW 23.4375 TEST_CW 0.0 TEST_OW 0.0 TEST_unseen_attr 37.5
+C2 seed 3351 VAL_CW 23.4375 VAL_OW 23.4375 TEST_CW 0.0 TEST_OW 0.0 TEST_unseen_attr 37.5
+ROUND_C_COMPLETE C:\Users\llenovo\AppData\Local\Temp\vgcpod_d_cli_4bciamdy\C_out jobs 2
+
+first
+START_C2_ORIGINAL_SOURCE C:\Users\llenovo\AppData\Local\Temp\vgcpod_d_cli_4bciamdy\C_source seeds [3352, 3353] gpus ['1', '2']
+START_D1 3351 GPU 3 log C:\Users\llenovo\AppData\Local\Temp\vgcpod_d_cli_4bciamdy\D_out\logs\D1_seed3351.log
+START_MEAN_GATE C2 3351 GPU 1
+START_MEAN_GATE C2 3352 GPU 2
+START_MEAN_GATE C2 3353 GPU 3
+START_MEAN_GATE D1 3351 GPU 1
+ROUND_D_SUMMARY C:\Users\llenovo\AppData\Local\Temp\vgcpod_d_cli_4bciamdy\D_out\round_d_summary.json
+ROUND_D_COMPLETE C:\Users\llenovo\AppData\Local\Temp\vgcpod_d_cli_4bciamdy\D_out training_jobs 3 mean_gate_jobs 4
+
+repeat
+START_C2_ORIGINAL_SOURCE C:\Users\llenovo\AppData\Local\Temp\vgcpod_d_cli_4bciamdy\C_source seeds [3352, 3353] gpus ['1', '2']
+START_MEAN_GATE C2 3351 GPU 1
+START_MEAN_GATE C2 3352 GPU 2
+START_MEAN_GATE C2 3353 GPU 3
+START_MEAN_GATE D1 3351 GPU 1
+ROUND_D_SUMMARY C:\Users\llenovo\AppData\Local\Temp\vgcpod_d_cli_4bciamdy\D_out\round_d_summary.json
+ROUND_D_COMPLETE C:\Users\llenovo\AppData\Local\Temp\vgcpod_d_cli_4bciamdy\D_out training_jobs 3 mean_gate_jobs 4

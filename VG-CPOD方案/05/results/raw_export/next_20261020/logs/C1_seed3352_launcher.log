@@ -1,0 +1,13 @@
+
+ROUND_D_COMMAND /data/xhw/miniconda3/envs/vgcpod_v1/bin/python -u /data/xhw/vgcpod_project/vgcpod_v1_roundC/round_c.py run --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14 --out /data/xhw/vgcpod_v1_runs/roundC_20261020 --a-out /data/xhw/vgcpod_v1_runs/roundA_20261019 --b-out /data/xhw/vgcpod_v1_runs/roundB_20261019 --skip-b3 --gpus 3 --cases C1 --seeds 3352 --device cuda
+START C1 3352 GPU 3 log /data/xhw/vgcpod_v1_runs/roundC_20261020/logs/C1_seed3352.log
+COMPLETE C1 3352 GPU 3
+SUMMARY /data/xhw/vgcpod_v1_runs/roundC_20261020/round_c_summary.csv
+C1 seed 3351 VAL_CW 43.6114 VAL_OW 30.6882 TEST_CW 34.2699 TEST_OW 26.3286 TEST_unseen_attr 24.1671
+C1 seed 3352 VAL_CW 41.9346 VAL_OW 29.7615 TEST_CW 35.4659 TEST_OW 24.6193 TEST_unseen_attr 23.4796
+C2 seed 3351 VAL_CW 43.3917 VAL_OW 30.3144 TEST_CW 34.0359 TEST_OW 26.2493 TEST_unseen_attr 24.643
+C2 seed 3352 VAL_CW 41.836 VAL_OW 29.7651 TEST_CW 35.3923 TEST_OW 24.7416 TEST_unseen_attr 23.7969
+C2 seed 3353 VAL_CW 44.5015 VAL_OW 34.034 TEST_CW 33.5573 TEST_OW 24.3978 TEST_unseen_attr 22.4749
+B3 seed 3351 VAL_CW 43.5622 VAL_OW 30.7067 TEST_CW 34.3301 TEST_OW 26.3164 TEST_unseen_attr 24.1142
+B3 seed 3352 VAL_CW 41.911 VAL_OW 29.745 TEST_CW 35.3642 TEST_OW 24.4934 TEST_unseen_attr 23.5325
+ROUND_C_COMPLETE /data/xhw/vgcpod_v1_runs/roundC_20261020 jobs 1

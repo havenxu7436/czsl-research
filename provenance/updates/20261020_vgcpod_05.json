@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-20",
+  "line": "VG-CPOD方案",
+  "number": "05",
+  "version": "v1",
+  "title": "中心化 CP 幅度联动与均值门控评估",
+  "imported_from": "VG-CPOD workspace D and completion-round server exports",
+  "new_runs": [
+    {
+      "case": "C1",
+      "seed": 3352
+    },
+    {
+      "case": "C2",
+      "seed": 3352
+    },
+    {
+      "case": "C2",
+      "seed": 3353
+    },
+    {
+      "case": "D1",
+      "seed": 3351
+    },
+    {
+      "case": "D1",
+      "seed": 3352
+    },
+    {
+      "case": "D1",
+      "seed": 3353
+    }
+  ],
+  "reused_stage": "04",
+  "core_source": "D vgcpod/*.py and run.py byte-identical to C",
+  "planned_only": [
+    "E1 rho=0.15",
+    "best_native.pt and best_exact.pt dual checkpoint saving"
+  ]
+}

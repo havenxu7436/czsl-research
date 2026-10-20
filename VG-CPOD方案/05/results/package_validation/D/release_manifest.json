@@ -1,0 +1,98 @@
+{
+  "version": "v1",
+  "stage": "roundD",
+  "date": "2026-10-20",
+  "experiments": [
+    "D1"
+  ],
+  "c2_repeats": {
+    "seeds": [
+      3352,
+      3353
+    ],
+    "source": "/data/xhw/vgcpod_project/vgcpod_v1_roundC"
+  },
+  "mean_gate_checkpoints": {
+    "C2": [
+      3351,
+      3352,
+      3353
+    ],
+    "D1": [
+      3351
+    ]
+  },
+  "clip": "frozen OpenAI CLIP ViT-L/14; existing UT-Zappos cache",
+  "validation": {
+    "tests": 30,
+    "cli_cpu_training_jobs": 3,
+    "mean_gate_evaluations": 4,
+    "repeat_training_skipped": 3,
+    "repeat_evaluation_skipped": 4,
+    "original_c_results_unchanged": true
+  },
+  "files_sha256": {
+    "assets/historical_inputs.json": "51d793ea973d084cb60d69527ab1279ea514e36d08e3d39d70ceef4d83b64173",
+    "assets/labels.json": "0b229443c6de0970d87d0c77cca9bcb7f0c176d4827d0f8150c01361dff8b001",
+    "assets/names.json": "c1e88b28febfe96891f1ee79e81c816b94460cc1e0a5a46f0528e91d85e8be58",
+    "assets/path_aliases.json": "8278971ea4dae928bcaa260541da35d0b3b2100ce5fdbec0bbace1c66c610629",
+    "configs/default.json": "991b81c16ee5dafc205673576ec5e87b21cdd657ba66b4689c55be93d42e02a0",
+    "configs/round_a/A1.json": "47afc66e5893bd8b982e2a3816c1cd886294731e5779864caad4e796daf30df7",
+    "configs/round_a/A2.json": "620733801754a8b6e991d65ccb61f8edf09fc949496f6a32cc62808d566302ac",
+    "configs/round_a/A3.json": "d8f92d5aeb91148cccbb26ef66772c243882b7aab852d0d3cbc6bbd22f75848a",
+    "configs/round_a/A4.json": "2cebb591c57efe8b8d7f06a0a70fa89c971a95dbbaae4d0d382d95faff7c81fd",
+    "configs/round_a/A5.json": "f43d7edeedc434eb500c31774780b2d05443de82f8d0789ae0698997ef5f7168",
+    "configs/round_a/A6.json": "5609560e635d0ac721ad6cbb2bbb3c8f5bb3fa40dc1133875ac0708f2fcae1e8",
+    "configs/round_b/B1.json": "f1a937688686ff0e68f75a33e587304c6933cc2dbba52b8ab4404096f9d5462c",
+    "configs/round_b/B2.json": "c9a84f51961b5629b61bf1c5b5e955768a38fa87d120b4b8d5c53d058aa9b93b",
+    "configs/round_b/B3.json": "cfbad185bb93f71628fe5a47b73e5171af9ff8cb4148d8d7856c42799ff754c6",
+    "configs/round_c/C1.json": "49deeeb4b1a3144a1e93e8432aa60c957537991fa3b268cabb83fcab33d9bc09",
+    "configs/round_c/C2.json": "7f1ae693c58b686a46095d7c41a0a3309e22ab8705a1a6544a52ffad52ab765b",
+    "configs/round_d/D1.json": "aae28b2120bd35f63274beb0022c36ad7692b5be9be20d4fe871a046e13f5475",
+    "EXPERIMENT_D_v1.html": "d44d391e08b072354ff8edc626e723c7e07c9ec5a37ba45beabcc9dddb04ee80",
+    "EXPERIMENT_D_v1.md": "a8e40b747dbdb1243382df749968d821638911d86fbada000a0e43a7480f5d3b",
+    "mean_gate_eval.py": "008ea0e1bc8c40075ff480d6f89f814ebb09048dcde5482fb46b53d4386273b8",
+    "NOTICE.md": "2e56a18ef58cf6be025ee8feb318f39668b2697b16c5ac76a623275c89cdd9eb",
+    "README.md": "ad45e4c433cc33653e2ec0067f08f02e625d30c5dab3444e36d0c5b8cd537013",
+    "references/original_v1.json": "b9ba7ac4ad3e62587d87f5d3a201b8c7593c2fdadcd946ab176d4116031d773c",
+    "references/round_a_confirm.json": "2d3eb190adbb6897787ecaf97e7b514b3532c0910b64039ec9153d5466072311",
+    "references/round_b_pilot.json": "31a4c380d66131be6261821ca833ea0abfe4d993def5cc01c78725c7df06870a",
+    "references/round_c_pilot.json": "fdbb587ba426b56e8250e981812456b8b5b033e3b9f18e1c1d9761b29e16622f",
+    "requirements.txt": "f5b8a16477d8827869d5ee2a485c031f0bcc706caca05508b969b201d0eca23f",
+    "round_a.py": "0471d3abb2285ec0a3ac10030737909fd0a6ef21249f119e67ee56b8f7748c76",
+    "round_b.py": "efff31f232b67bf64e5a85bf8f41a1c14ff07e3ac37c3d2344c97aa58e337d04",
+    "round_c.py": "dfddf1fb8c34acc0cee5235241065c9b2f6a9f35265eebcdf888cd7494160eee",
+    "round_d.py": "147b30836daf8794bc0c7e7cd4c07a94c220a31382153bb3b3b2f9a503b95341",
+    "run.py": "723626c886db60470e62bac7fc2c47d172b2235a2c077e24d3942c753a58891a",
+    "scripts/run_round_d.sh": "ad421cab68c78c258974a0de3c7b5ce33f2236d170856db29d969040a490a01f",
+    "scripts/start_round_d_tmux.sh": "c04146e6eb04681db5008dd781a6cdd119ffcef8925711d804046d6939c48ce4",
+    "scripts/tmux_round_d_entry.sh": "313d6c2a5a50b63af7d694064aa034ed1aecbb0b4ee305c3474da6a88eaf9466",
+    "tests/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/test_math.py": "ee672aaf2dfdbaafc64e7cc627489cb24fd7f35a0891c51e11dbd0135045d143",
+    "tests/test_round_a.py": "f7af2de680799ba7f08ae07d128bc4f5766c228ef662f4a7cb90d2bdc798956f",
+    "tests/test_round_b.py": "30fe11d6f957a70f21fa61691c824dd344231acc6819e9a3deeb264dcb15071f",
+    "tests/test_round_c.py": "8a6b762e50c4107855d623078e4a5079de4062b93efc7daeb8454b109d2275bc",
+    "tests/test_round_d.py": "ae6e57d282f0c628f06b098f54886ef145f7d43aa2eed2e4ea74f9a9692b550c",
+    "validation/cli_output.txt": "18595f2125497d9dc9bdcdd2fa43e618c8cc507c3b0f33988abc687a4483d62d",
+    "validation/document_commands.json": "767ec7bf4a20317df085af908b0c6037b37dfaf821c5a1c4fb1eeba274a094bc",
+    "validation/document_layout.json": "0c004724f160a46f5ca6f8e2533f1748601f85cecbadf1a9ec735c6c988f0a05",
+    "validation/powershell_syntax.json": "9746a956923f98697ebf0e448fe063e5ad60e76ffa22af3d20dc5e992e1a4ede",
+    "validation/result.json": "129ff1c90930143748f16724c35a61b113205f24e22dbc447bb6a480557b4363",
+    "validation/unit_tests.txt": "f2d8dbe6a277b592875b72bf7a318bac94a03b8ed2478e3308569b1c00a9d6a3",
+    "vendor/clip/__init__.py": "d7930eb290ebed432116795c91473200d098451a94c0aedd4ae0f934f97955e8",
+    "vendor/clip/bpe_simple_vocab_16e6.txt.gz": "924691ac288e54409236115652ad4aa250f48203de50a9e4722a6ecd48d6804a",
+    "vendor/clip/clip.py": "4ab4d5187823792c14997808854fe219dc485042606d439757a704a20d57aaf4",
+    "vendor/clip/model.py": "9902cbe5ee90a1da2aa3e6f043e8a23dc1f8831193b963785c9af03d5c7bef2c",
+    "vendor/clip/simple_tokenizer.py": "d1b09f10ed3d1e2c343619cb98cbfacb92363dd8607526a43aa7fe2d60d15bad",
+    "vendor/CLIP_LICENSE": "987e63b32f6c89ff5160e429458a872ff048e6860b590a3912e938f9da8f14db",
+    "vendor/native_evaluator.py": "24b48c4d48e3475baec0a656fca194cdbc6d4b4e32e87c0f22cda3daf586d978",
+    "vgcpod/__init__.py": "7cd0969c14bf765c3c650b66887d31ab8b3f7c2ed4cc47dafe751ba8ef5a9673",
+    "vgcpod/common.py": "08879f6f1034a6c09ed25d0b71ef19da113d11787e791e5aa3242f01c7d0b718",
+    "vgcpod/data.py": "85cddb091912f5edcabd2175986f9cc7634b546311e801ec662460dd01f778aa",
+    "vgcpod/diagnostics.py": "ae14a36672d29632a59bb98a3b26ce176c4f56426aedfdc196cd9157809653fb",
+    "vgcpod/engine.py": "630383c301f3dd4c1dbe2bde72004476b7cd003b10432f1959d03a18931a1184",
+    "vgcpod/features.py": "1e506068d63c6e5278320d803a504ca8e1107fa896c50358644e177a30e1c685",
+    "vgcpod/metrics.py": "b356faa5a4732696c0204fd5cca4863b22c66ea5265ed294615dbb7f5dc04750",
+    "vgcpod/model.py": "6f451bdffab20ae60ba1f4903761ad7c6e0be8b5260a4e2cbe5c2ca646f4d8e7"
+  }
+}

@@ -1,0 +1,21 @@
+first
+START_C1 3352 GPU 3 source C:\Users\llenovo\AppData\Local\Temp\vgcpod_next_ada4_1yb\sourceC
+START_D1 3352 GPU 1 log C:\Users\llenovo\AppData\Local\Temp\vgcpod_next_ada4_1yb\D\logs\D1_seed3352.log
+START_D1 3353 GPU 2 log C:\Users\llenovo\AppData\Local\Temp\vgcpod_next_ada4_1yb\D\logs\D1_seed3353.log
+START_MEAN_GATE D1 3352 GPU 1
+START_MEAN_GATE D1 3353 GPU 2
+JOB_RESULT C1 3352 complete
+JOB_RESULT D1 3352 complete
+JOB_RESULT D1 3353 complete
+ROUND_D_SUMMARY C:\Users\llenovo\AppData\Local\Temp\vgcpod_next_ada4_1yb\D\round_d_summary.json
+NEXT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\vgcpod_next_ada4_1yb\next training_jobs 3 mean_gate_jobs 2
+
+repeat
+START_C1 3352 GPU 3 source C:\Users\llenovo\AppData\Local\Temp\vgcpod_next_ada4_1yb\sourceC
+START_MEAN_GATE D1 3352 GPU 1
+START_MEAN_GATE D1 3353 GPU 2
+JOB_RESULT C1 3352 already_complete
+JOB_RESULT D1 3353 complete
+JOB_RESULT D1 3352 complete
+ROUND_D_SUMMARY C:\Users\llenovo\AppData\Local\Temp\vgcpod_next_ada4_1yb\D\round_d_summary.json
+NEXT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\vgcpod_next_ada4_1yb\next training_jobs 3 mean_gate_jobs 2

@@ -1,0 +1,657 @@
+--- /dev/null
++++ b/configs/round_d/D1.json
+@@ -0,0 +1,36 @@
++{
++  "dataset": "ut-zap50k",
++  "variant": "V1",
++  "rank": 32,
++  "adapter_rank": 8,
++  "kappa": 20.0,
++  "rho": 0.125,
++  "rho_a": 0.1,
++  "tau_v": 0.07,
++  "tau_gamma": 0.1,
++  "tau_pi": 0.1,
++  "lambda_prim": 0.2,
++  "lambda_cent": 0.1,
++  "lambda_orth": 0.001,
++  "batch_size": 64,
++  "eval_batch_size": 64,
++  "workers": 4,
++  "epochs": 10,
++  "lr": 0.001,
++  "min_lr": 1e-05,
++  "weight_decay": 0.0001,
++  "gradient_clip": 1.0,
++  "adam_betas": [
++    0.9,
++    0.999
++  ],
++  "adam_eps": 1e-08,
++  "task_aux_beta": 0.1,
++  "cp_lr_scale": 0.3,
++  "experiment_id": "D1",
++  "readout_feature": "global",
++  "readout_alpha": 0.5,
++  "gate_input": "local",
++  "gate_eta": 0.25,
++  "gate_center_modes": true
++}
+--- /dev/null
++++ b/mean_gate_eval.py
+@@ -0,0 +1,133 @@
++"""Evaluate dynamic vs TRAIN-mean gates with one fixed C2/D1 checkpoint.
++
++The source root is selected before importing the archived training runtime.
++This evaluator lives outside that runtime; the original run is read only.
++"""
++import argparse
++import hashlib
++import sys
++from pathlib import Path
++
++
++def file_sha(path):
++    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
++
++
++def train_gate_moments(model, batches, device):
++    """All TRAIN images contribute to every object query, without labels."""
++    import torch
++    count, total, squares = 0, None, None
++    model.eval()
++    with torch.no_grad():
++        for g, fa, fo, _, _ in batches:
++            gamma = model(g.to(device), fa.to(device), fo.to(device))['gamma'].double()
++            batch_sum, batch_square = gamma.sum(0), gamma.square().sum(0)
++            total = batch_sum if total is None else total + batch_sum
++            squares = batch_square if squares is None else squares + batch_square
++            count += len(gamma)
++    if not count:
++        raise ValueError('TRAIN cache has no images')
++    mean = total / count
++    return mean, (squares / count - mean.square()).clamp_min(0), count
++
++
++def mean_gate_model(model, mean):
++    import torch
++    from torch import nn
++
++    if model.readout_feature != 'global' or not model.gate_center_modes or not model.dynamic:
++        raise ValueError('This intervention implements global-readout centered C2/D1 models')
++
++    class FixedTrainMean(nn.Module):
++        def __init__(self):
++            super().__init__()
++            self.dynamic_model = model
++            self.register_buffer('mean_gamma', mean.to(device=model.Wc.device, dtype=model.Wc.dtype))
++
++        def forward(self, g, fa, fo):
++            m = self.dynamic_model
++            out = m(g, fa, fo)
++            u, v = m.ea @ m.Au.T, m.eo @ m.Av.T
++            gamma = self.mean_gamma[None].expand(len(g), -1, -1)
++            modes = (g[:, None, :] @ m.Wc) * gamma * v[None]
++            cond = out['base'] + m.cfg['rho'] * m.cfg['kappa'] * torch.einsum('bor,ir->boi', modes, u)
++            log_a = cond.log_softmax(-1)
++            return dict(out, gamma=gamma, cond=cond, log_a=log_a, joint=out['log_o'][:, :, None]+log_a)
++
++    return FixedTrainMean()
++
++
++def evaluate_condition(model, cache, out, manifest, cfg, device, engine):
++    metrics, biases = {}, {}
++    for phase in ('val', 'test'):
++        joint, cond, attrs, objs = engine.predict(model, cache, phase, cfg, device)
++        for world in ('cw', 'ow'):
++            if phase == 'val':
++                provisional, _, _, _ = engine.evaluate_scores(joint, cond, attrs, objs,
++                    manifest['labels'], manifest['pairs'], phase, world)
++                biases[world] = provisional['bias_native']
++            metrics[phase+'_'+world] = engine.write_evaluation(cache, out, manifest, cfg,
++                phase, joint, cond, attrs, objs, world, biases[world])
++    return metrics
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument('--source-root', type=Path, required=True)
++    parser.add_argument('--cache', type=Path, required=True)
++    parser.add_argument('--run', type=Path, required=True)
++    parser.add_argument('--out', type=Path, required=True)
++    parser.add_argument('--device', choices=['cuda', 'cpu'], default='cuda')
++    args = parser.parse_args()
++    args.run, args.out = args.run.resolve(), args.out.resolve()
++    if args.out == args.run or args.run in args.out.parents:
++        parser.error('--out must be outside the original training run')
++    sys.path.insert(0, str(args.source_root.resolve()))
++    import numpy as np
++    from vgcpod import engine
++    from vgcpod.common import load_torch, read_json, seed_all, sha, source_hashes, write_json
++
++    best = args.run / 'checkpoints/best.pt'
++    checkpoint = load_torch(best)
++    engine.check_run_identity(args.cache, args.run, checkpoint)
++    cfg, seed = checkpoint['config'], checkpoint['seed']
++    identity = dict(checkpoint_sha256=sha(best), source_sha256=source_hashes(),
++        evaluator_sha256=file_sha(__file__), feature_manifest_sha256=sha(args.cache/'features_manifest.json'))
++    target = args.out / 'metrics.json'
++    if target.exists() and read_json(target).get('identity') == identity:
++        print('MEAN_GATE_ALREADY_COMPLETE', cfg.get('experiment_id'), seed, args.out, flush=True)
++        return
++    seed_all(seed)
++    model, manifest = engine.make_model(args.cache, cfg, seed, args.device)
++    model.load_state_dict(checkpoint['model'])
++    mean, variance, count = train_gate_moments(model, engine.loader(args.cache, 'train', cfg), args.device)
++    args.out.mkdir(parents=True, exist_ok=True)
++    np.savez_compressed(args.out/'train_mean_gamma.npz', mean_gamma=mean.cpu().numpy(),
++        image_variance=variance.cpu().numpy(), train_images=np.array(count),
++        object_names=np.asarray(manifest['labels']['objs']))
++    conditions = {}
++    for name, evaluated in [('dynamic', model), ('train_mean', mean_gate_model(model, mean))]:
++        conditions[name] = evaluate_condition(evaluated, args.cache, args.out/name, manifest, cfg, args.device, engine)
++        write_json(args.out/name/'metrics.json', dict(selected_epoch=checkpoint['epoch'],
++            identity=identity, condition=name, optimizer_steps=0, metrics=conditions[name]))
++    keys = ('AUC_native','AUC_exact','HM_at_val_bias','gt_object_attr_acc',
++            'gt_object_attr_acc_unseen','support_mass_unseen')
++    deltas = {setting:{key:conditions['dynamic'][setting][key]-conditions['train_mean'][setting][key]
++        if conditions['dynamic'][setting][key] is not None and conditions['train_mean'][setting][key] is not None
++        else None for key in keys} for setting in conditions['dynamic']}
++    original = read_json(args.run/'metrics.json')['metrics']
++    drift = {setting:conditions['dynamic'][setting]['AUC_native']-original[setting]['AUC_native']
++             for setting in conditions['dynamic']}
++    write_json(target, dict(schema='vgcpod_mean_gate_v1', case=cfg['experiment_id'], seed=seed,
++        selected_epoch=checkpoint['epoch'], identity=identity, source_root=str(args.source_root.resolve()),
++        run_dir=str(args.run), config=cfg, optimizer_steps=0, train_images=count,
++        mean_shape=list(mean.shape), mean_mode_average_max_error=float((mean.mean(-1)-1).abs().max()),
++        mean_image_variance=float(variance.mean()),
++        calibration='Each condition selects CW/OW biases on its own VAL; TEST uses those fixed biases',
++        mean_origin='All TRAIN images, every object query; no labels, VAL, or TEST used in moments',
++        metrics=conditions, dynamic_minus_train_mean=deltas, dynamic_minus_saved_auc=drift))
++    print('MEAN_GATE_COMPLETE', cfg['experiment_id'], seed, args.out, flush=True)
++
++
++if __name__ == '__main__':
++    main()
+--- /dev/null
++++ b/round_d.py
+@@ -0,0 +1,204 @@
++"""D1 + original-source C2 repeats, followed by fixed-checkpoint mean-gate evaluation."""
++import argparse
++import os
++import subprocess
++import sys
++from concurrent.futures import ThreadPoolExecutor, as_completed
++from pathlib import Path
++
++import round_b as shared
++import round_c as previous
++
++ROOT = Path(__file__).resolve().parent
++DEFAULT_OUT = Path('/data/xhw/vgcpod_v1_runs/roundD_20261020')
++DEFAULT_C_OUT = Path('/data/xhw/vgcpod_v1_runs/roundC_20261020')
++DEFAULT_C_ROOT = Path('/data/xhw/vgcpod_project/vgcpod_v1_roundC')
++
++
++def summarize(out, c_out, a_out):
++    out = Path(out)
++    out.mkdir(parents=True, exist_ok=True)
++    rows, records = previous.collect(c_out, ('C1','C2'), 'roundC')
++    d_rows, d_records = previous.collect(out, ('D1',), 'roundD')
++    rows += d_rows
++    refs = previous.reference_records(a_out)
++    for record in shared.read(ROOT/'references/round_c_pilot.json')['runs']:
++        refs[(record['case'],record['seed'])] = dict(case=record['case'],seed=record['seed'],
++            feature_manifest_sha256=record['feature_manifest_sha256'],**shared.metric_columns(record['metrics']))
++    refs.update(records)
++    refs.update(d_records)
++    deltas, pairs = [], []
++    for row in rows:
++        names = ('A5','A6','C1','C2') if row['case']=='D1' else ('A5','A6','C1') if row['case']=='C2' else ('A5','A6')
++        for name in names:
++            other = refs.get((name,row['seed']))
++            if other and other['feature_manifest_sha256']==row['feature_manifest_sha256']:
++                deltas.append(dict(comparison=row['case']+'-'+name,seed=row['seed'],
++                    **{key:row[key]-other[key] for key in shared.COLUMNS}))
++                pairs.append((row,other))
++    by_case = shared.aggregate(rows) if rows else []
++    paired = shared.aggregate(deltas,'comparison') if deltas else []
++    shared.csv_write(out/'round_d_summary.csv',rows)
++    shared.csv_write(out/'round_d_mean_sd.csv',by_case)
++    shared.csv_write(out/'round_d_paired_deltas.csv',deltas)
++    shared.csv_write(out/'round_d_paired_mean_sd.csv',paired)
++    pair_count = previous.export_pair_gains(out,pairs)
++    effects = []
++    for path in sorted((out/'mean_gate').glob('*/seed*/metrics.json')):
++        record = shared.read(path)
++        for setting,values in record['dynamic_minus_train_mean'].items():
++            effects.append(dict(case=record['case'],seed=record['seed'],setting=setting,
++                selected_epoch=record['selected_epoch'],train_images=record['train_images'],
++                **{'dynamic_minus_train_mean_'+key:value for key,value in values.items()}))
++    shared.csv_write(out/'mean_gate_effects.csv',effects)
++    shared.dump(out/'round_d_summary.json',dict(runs=rows,by_case=by_case,paired_deltas=deltas,
++        paired_mean_sd=paired,per_pair_rows=pair_count,mean_gate_effects=effects,
++        selection_rule='epoch: first strict maximum VAL CW AUC_native; deltas: matching seeds and cache; one-seed SD is null'))
++    print('ROUND_D_SUMMARY',out/'round_d_summary.json',flush=True)
++    return rows
++
++
++def run_process(command, source, log, gpu=None):
++    log.parent.mkdir(parents=True,exist_ok=True)
++    with log.open('a',encoding='utf-8') as f:
++        f.write('\nROUND_D_COMMAND '+ ' '.join(map(str,command))+'\n')
++        f.flush()
++        process = subprocess.run(list(map(str,command)),cwd=str(source),env=previous.environment(gpu),
++                                 stdout=f,stderr=subprocess.STDOUT)
++    return process.returncode
++
++
++def c_repeats(args):
++    log = args.out/'logs/C2_launcher.log'
++    command = [sys.executable,'-u',args.c_root/'round_c.py','run','--cache',args.cache,
++        '--out',args.c_out,'--a-out',args.a_out,'--b-out',args.b_out,'--skip-b3',
++        '--gpus',*args.gpus[:2],'--cases','C2','--seeds',*args.c_seeds,'--device',args.device]
++    print('START_C2_ORIGINAL_SOURCE',args.c_root,'seeds',args.c_seeds,'gpus',args.gpus[:2],flush=True)
++    code = run_process(command,args.c_root,log)
++    if code:
++        return [dict(case='C2',status='failed',exit_code=code,log=str(log))]
++    selected = {('C2',seed) for seed in args.c_seeds}
++    return [dict(event,source_root=str(args.c_root),output_root=str(args.c_out))
++            for event in shared.read(args.c_out/'round_c_status.json')
++            if (event.get('case'),event.get('seed')) in selected]
++
++
++def d_train(args):
++    events = []
++    config = ROOT/'configs/round_d/D1.json'
++    cfg = shared.read(config)
++    for seed in args.d_seeds:
++        run = args.out/'D1'/cfg['dataset']/cfg['variant']/('seed%d'%seed)
++        log = args.out/'logs'/('D1_seed%d.log'%seed)
++        if (run/'metrics.json').exists():
++            if not shared.validate_completed(run,cfg,seed,args.cache):
++                raise ValueError('D1 configuration/source differs: '+str(run))
++            events.append(dict(case='D1',seed=seed,gpu=args.gpus[2],status='already_complete'))
++            continue
++        command = [sys.executable,'-u',ROOT/'run.py','train','--cache',args.cache,'--out',args.out/'D1',
++            '--config',config,'--seed',seed,'--device',args.device]
++        if (run/'protocol.json').exists():
++            command.append('--resume')
++        print('START_D1',seed,'GPU',args.gpus[2],'log',log,flush=True)
++        code = run_process(command,ROOT,log,args.gpus[2])
++        events.append(dict(case='D1',seed=seed,gpu=args.gpus[2],status='complete' if code==0 else 'failed',
++                           exit_code=code,log=str(log)))
++    return events
++
++
++def gate_queue(gpu, jobs, args):
++    events = []
++    for case,seed,source,run in jobs:
++        out = args.out/'mean_gate'/case/('seed%d'%seed)
++        log = args.out/'logs'/('mean_gate_%s_seed%d.log'%(case,seed))
++        print('START_MEAN_GATE',case,seed,'GPU',gpu,flush=True)
++        code = run_process([sys.executable,'-u',ROOT/'mean_gate_eval.py','--source-root',source,
++            '--cache',args.cache,'--run',run,'--out',out,'--device',args.device],source,log,gpu)
++        events.append(dict(case=case,seed=seed,gpu=gpu,status='complete' if code==0 else 'failed',
++                           exit_code=code,log=str(log)))
++    return events
++
++
++def launch(args):
++    for key in ('out','cache','a_out','b_out','c_out','c_root'):
++        setattr(args,key,getattr(args,key).resolve())
++    if not (args.cache/'features_manifest.json').is_file():
++        raise FileNotFoundError('Cache absent: '+str(args.cache))
++    if not (args.c_root/'round_c.py').is_file():
++        raise FileNotFoundError('Original C source absent: '+str(args.c_root))
++    args.out.mkdir(parents=True,exist_ok=True)
++    with (args.out/'.round_d.lock').open('a') as lock:
++        if os.name=='posix':
++            import fcntl
++            fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
++        plan = [dict(case='C2',seed=seed,gpu=args.gpus[i%2],source_root=str(args.c_root))
++                for i,seed in enumerate(args.c_seeds)] if not args.skip_c else []
++        plan += [dict(case='D1',seed=seed,gpu=args.gpus[2],source_root=str(ROOT)) for seed in args.d_seeds]
++        shared.dump(args.out/'round_d_jobs.json',plan)
++        events = []
++        with ThreadPoolExecutor(max_workers=2) as pool:
++            futures = {pool.submit(d_train,args):'D1'}
++            if not args.skip_c:
++                futures[pool.submit(c_repeats,args)] = 'C2'
++            for future in as_completed(futures):
++                try:
++                    events += future.result()
++                except Exception as error:
++                    events.append(dict(case=futures[future],status='failed',error=str(error)))
++                shared.dump(args.out/'round_d_status.json',events)
++        if any(event['status']=='failed' for event in events):
++            raise SystemExit('ROUND_D_TRAIN_FAILED: see round_d_status.json and logs')
++        jobs = []
++        for case,source,output,seeds in [('C2',args.c_root,args.c_out,args.gate_c_seeds),
++                                        ('D1',ROOT,args.out,args.d_seeds)]:
++            for seed in seeds:
++                run = output/case/'ut-zap50k/V1'/('seed%d'%seed)
++                if not (run/'metrics.json').is_file():
++                    raise FileNotFoundError('Mean-gate checkpoint missing: '+str(run))
++                jobs.append((case,seed,source,run))
++        gate_events = []
++        with ThreadPoolExecutor(max_workers=3) as pool:
++            futures = {pool.submit(gate_queue,gpu,jobs[i::3],args):gpu for i,gpu in enumerate(args.gpus)}
++            for future in as_completed(futures):
++                try:
++                    gate_events += future.result()
++                except Exception as error:
++                    gate_events.append(dict(gpu=futures[future],status='failed',error=str(error)))
++                shared.dump(args.out/'mean_gate_status.json',gate_events)
++        summarize(args.out,args.c_out,args.a_out)
++        if any(event['status']=='failed' for event in gate_events):
++            raise SystemExit('ROUND_D_MEAN_GATE_FAILED: see mean_gate_status.json and logs')
++        print('ROUND_D_COMPLETE',args.out,'training_jobs',len(plan),'mean_gate_jobs',len(jobs),flush=True)
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    sub = parser.add_subparsers(dest='command',required=True)
++    for name in ('run','summarize'):
++        p = sub.add_parser(name)
++        p.add_argument('--out',type=Path,default=DEFAULT_OUT)
++        p.add_argument('--c-out',type=Path,default=DEFAULT_C_OUT)
++        p.add_argument('--a-out',type=Path,default=previous.DEFAULT_A_OUT)
++        if name=='run':
++            p.add_argument('--cache',type=Path,default=Path('/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14'))
++            p.add_argument('--b-out',type=Path,default=previous.DEFAULT_B_OUT)
++            p.add_argument('--c-root',type=Path,default=DEFAULT_C_ROOT)
++            p.add_argument('--gpus',nargs=3,default=['1','2','3'])
++            p.add_argument('--c-seeds',nargs='+',type=int,default=[3352,3353])
++            p.add_argument('--gate-c-seeds',nargs='+',type=int,default=[3351,3352,3353])
++            p.add_argument('--d-seeds',nargs='+',type=int,default=[3351])
++            p.add_argument('--skip-c',action='store_true')
++            p.add_argument('--device',choices=['cuda','cpu'],default='cuda')
++    args = parser.parse_args()
++    if args.command=='run':
++        for key in ('gpus','c_seeds','gate_c_seeds','d_seeds'):
++            values = getattr(args,key)
++            if len(values)!=len(set(values)):
++                parser.error(key+' must be unique')
++        launch(args)
++    else:
++        summarize(args.out,args.c_out,args.a_out)
++
++
++if __name__=='__main__':
++    main()
+--- /dev/null
++++ b/scripts/run_round_d.sh
+@@ -0,0 +1,14 @@
++#!/usr/bin/env bash
++set -euo pipefail
++cd "$(dirname "${BASH_SOURCE[0]}")/.."
++export CUBLAS_WORKSPACE_CONFIG=:4096:8
++export PYTHONHASHSEED=0
++VG_PYTHON="${VG_PYTHON:-python}"
++VG_CACHE="${VG_CACHE:-/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14}"
++VG_D_OUT="${VG_D_OUT:-/data/xhw/vgcpod_v1_runs/roundD_20261020}"
++VG_C_OUT="${VG_C_OUT:-/data/xhw/vgcpod_v1_runs/roundC_20261020}"
++VG_C_ROOT="${VG_C_ROOT:-/data/xhw/vgcpod_project/vgcpod_v1_roundC}"
++VG_A_OUT="${VG_A_OUT:-/data/xhw/vgcpod_v1_runs/roundA_20261019}"
++VG_B_OUT="${VG_B_OUT:-/data/xhw/vgcpod_v1_runs/roundB_20261019}"
++exec "$VG_PYTHON" -u round_d.py run --cache "$VG_CACHE" --out "$VG_D_OUT" \
++  --c-out "$VG_C_OUT" --c-root "$VG_C_ROOT" --a-out "$VG_A_OUT" --b-out "$VG_B_OUT" "$@"
+--- /dev/null
++++ b/scripts/start_round_d_tmux.sh
+@@ -0,0 +1,21 @@
++#!/usr/bin/env bash
++set -euo pipefail
++cd "$(dirname "${BASH_SOURCE[0]}")/.."
++PACKAGE_ROOT="$PWD"
++SESSION="${VG_D_SESSION:-vgcpod_D}"
++VG_PYTHON="$(command -v "${VG_PYTHON:-python}")"
++VG_CACHE="${VG_CACHE:-/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14}"
++VG_D_OUT="${VG_D_OUT:-/data/xhw/vgcpod_v1_runs/roundD_20261020}"
++VG_C_OUT="${VG_C_OUT:-/data/xhw/vgcpod_v1_runs/roundC_20261020}"
++VG_C_ROOT="${VG_C_ROOT:-/data/xhw/vgcpod_project/vgcpod_v1_roundC}"
++VG_A_OUT="${VG_A_OUT:-/data/xhw/vgcpod_v1_runs/roundA_20261019}"
++VG_B_OUT="${VG_B_OUT:-/data/xhw/vgcpod_v1_runs/roundB_20261019}"
++mkdir -p "$VG_D_OUT"
++if tmux has-session -t "$SESSION" 2>/dev/null; then
++  printf 'Session exists. Attach with: tmux attach -t %q\n' "$SESSION"
++  exit 0
++fi
++printf -v LAUNCH '%q ' bash "$PACKAGE_ROOT/scripts/tmux_round_d_entry.sh" \
++  "$VG_PYTHON" "$VG_CACHE" "$VG_D_OUT" "$VG_C_OUT" "$VG_C_ROOT" "$VG_A_OUT" "$VG_B_OUT" "$@"
++tmux new-session -d -s "$SESSION" -c "$PACKAGE_ROOT" "$LAUNCH"
++printf 'Started. Attach with: tmux attach -t %q\n' "$SESSION"
+--- /dev/null
++++ b/scripts/tmux_round_d_entry.sh
+@@ -0,0 +1,12 @@
++#!/usr/bin/env bash
++set -uo pipefail
++cd "$(dirname "${BASH_SOURCE[0]}")/.."
++export VG_PYTHON="$1" VG_CACHE="$2" VG_D_OUT="$3" VG_C_OUT="$4" VG_C_ROOT="$5" VG_A_OUT="$6" VG_B_OUT="$7"
++shift 7
++mkdir -p "$VG_D_OUT"
++printf 'RUNNING\n' > "$VG_D_OUT/launcher.exitcode"
++bash scripts/run_round_d.sh "$@" 2>&1 | tee -a "$VG_D_OUT/launcher.log"
++RESULT=${PIPESTATUS[0]}
++printf '%s\n' "$RESULT" > "$VG_D_OUT/launcher.exitcode"
++printf '\nROUND_D_EXIT_CODE=%s\nResults: %s\n' "$RESULT" "$VG_D_OUT"
++exec bash -i
+--- /dev/null
++++ b/tests/test_round_d.py
+@@ -0,0 +1,70 @@
++"""D1 gain and fixed-checkpoint TRAIN-mean intervention equations."""
++import unittest
++
++import torch
++
++from mean_gate_eval import mean_gate_model, train_gate_moments
++from tests.test_round_c import cfixture
++from vgcpod.common import ROOT, read_json
++from vgcpod.model import VGCPOD
++
++
++class RoundDTests(unittest.TestCase):
++    def test_d1_changes_only_rho_and_case_name(self):
++        c = read_json(ROOT/'configs/round_c/C2.json')
++        d = read_json(ROOT/'configs/round_d/D1.json')
++        self.assertEqual({key for key in c if c[key]!=d[key]}, {'rho','experiment_id'})
++        self.assertEqual(d['rho'],.125)
++
++    def test_d1_gain_and_gradient_exactly_scale_c2_at_fixed_parameters(self):
++        c,cfg,x,y,mask = cfixture('C2')
++        d = VGCPOD(c.ea,c.eo,c.ec,dict(cfg,rho=.125,experiment_id='D1'),3351).double()
++        with torch.no_grad():
++            c.Wc.normal_(0,.05)
++        d.load_state_dict(c.state_dict())
++        oc,od = c(*x),d(*x)
++        self.assertTrue(torch.equal(oc['gamma'],od['gamma']))
++        self.assertTrue(torch.allclose(od['cond']-od['base'],1.25*(oc['cond']-oc['base']),atol=1e-12))
++        for p1,p2 in [(c.Wc,d.Wc),(c.Bvis,d.Bvis)]:
++            gc = torch.autograd.grad(oc['cond'][0,1,2],p1,retain_graph=True)[0]
++            gd = torch.autograd.grad(od['cond'][0,1,2],p2,retain_graph=True)[0]
++            self.assertTrue(torch.allclose(gd,1.25*gc,atol=1e-12))
++
++    def test_moments_weight_images_and_ignore_labels_for_all_object_queries(self):
++        model,cfg,(g,fa,fo),y,mask = cfixture('C2')
++        batches = [(g[:3],fa[:3],fo[:3],y[0][:3],y[1][:3]),
++                   (g[3:],fa[3:],fo[3:],y[0][3:]*0,y[1][3:]*0)]
++        mean,var,n = train_gate_moments(model,batches,'cpu')
++        gamma = model(g,fa,fo)['gamma'].detach()
++        self.assertEqual(n,8)
++        self.assertEqual(tuple(mean.shape),(2,3))
++        self.assertTrue(torch.allclose(mean,gamma.mean(0),atol=1e-14))
++        self.assertTrue(torch.allclose(var,gamma.var(0,unbiased=False),atol=1e-14))
++        self.assertTrue(torch.allclose(mean.mean(-1),torch.ones(2,dtype=mean.dtype),atol=1e-14))
++        self.assertTrue(torch.all(mean>=.75) and torch.all(mean<=1.25))
++
++    def test_fixed_gate_removes_image_modulation_and_preserves_chain_distribution(self):
++        model,cfg,x,y,mask = cfixture('C2')
++        with torch.no_grad():
++            model.Wc.normal_(0,.05)
++        original = {k:v.clone() for k,v in model.state_dict().items()}
++        dynamic = model(*x)
++        mean = dynamic['gamma'].detach().mean(0)
++        wrapped = mean_gate_model(model,mean)
++        out = wrapped(*x)
++        self.assertTrue(torch.equal(out['obj'],dynamic['obj']))
++        self.assertTrue(torch.equal(out['base'],dynamic['base']))
++        self.assertTrue(torch.equal(out['gamma'][0],out['gamma'][-1]))
++        rotated = wrapped(x[0],x[1],x[2].roll(1,0))
++        self.assertTrue(torch.equal(out['cond'],rotated['cond']))
++        u,v = model.ea@model.Au.T,model.eo@model.Av.T
++        expected = cfg['rho']*cfg['kappa']*torch.einsum('br,bor,or,ir->boi',
++            x[0]@model.Wc,dynamic['gamma']-mean[None],v,u)
++        self.assertTrue(torch.allclose(dynamic['cond']-out['cond'],expected,atol=1e-12))
++        self.assertTrue(torch.allclose(out['joint'].exp().sum((1,2)),torch.ones(8,dtype=mean.dtype),atol=1e-12))
++        for key,value in original.items():
++            self.assertTrue(torch.equal(value,model.state_dict()[key]),key)
++
++
++if __name__=='__main__':
++    unittest.main(verbosity=2)
+--- /dev/null
++++ b/next/next_round.py
+@@ -0,0 +1,113 @@
++"""Run D1/3352, D1/3353, C1/3352 using the existing C/D v1 sources."""
++import argparse
++from concurrent.futures import ThreadPoolExecutor, as_completed
++import os
++from pathlib import Path
++import sys
++
++
++def interaction_summary(d, args):
++    rows = d.shared.read(args.d_out/'round_d_summary.json')['runs']
++    records = {(r['case'],r['seed']):r for r in rows}
++    refs = d.previous.reference_records(args.a_out)
++    contrasts = []
++    for seed in (3351,3352):
++        group = [records.get((name,seed)) for name in ('D1','C2','C1')]+[refs.get(('A5',seed))]
++        if any(r is None for r in group):
++            raise FileNotFoundError('Four-cell result absent for seed%d'%seed)
++        if len({r['feature_manifest_sha256'] for r in group})!=1:
++            raise ValueError('Four-cell feature caches differ')
++        high,low,static,base = group
++        contrasts.append(dict(comparison='centered_gate_x_rho',seed=seed,
++            **{key:high[key]-low[key]-static[key]+base[key] for key in d.shared.COLUMNS}))
++    d.shared.csv_write(args.out/'interaction_by_seed.csv',contrasts)
++    d.shared.csv_write(args.out/'interaction_mean_sd.csv',d.shared.aggregate(contrasts,'comparison'))
++    d.shared.dump(args.out/'interaction.json',dict(formula='(D1-C2)-(C1-A5)',
++        seeds=[3351,3352],rows=contrasts,selection='Each run uses its first strict max VAL CW AUC_native'))
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument('--cache',type=Path,default=Path('/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14'))
++    parser.add_argument('--d-root',type=Path,default=Path('/data/xhw/vgcpod_project/vgcpod_v1_roundD'))
++    parser.add_argument('--c-root',type=Path,default=Path('/data/xhw/vgcpod_project/vgcpod_v1_roundC'))
++    parser.add_argument('--d-out',type=Path,default=Path('/data/xhw/vgcpod_v1_runs/roundD_20261020'))
++    parser.add_argument('--c-out',type=Path,default=Path('/data/xhw/vgcpod_v1_runs/roundC_20261020'))
++    parser.add_argument('--a-out',type=Path,default=Path('/data/xhw/vgcpod_v1_runs/roundA_20261019'))
++    parser.add_argument('--b-out',type=Path,default=Path('/data/xhw/vgcpod_v1_runs/roundB_20261019'))
++    parser.add_argument('--out',type=Path,default=Path('/data/xhw/vgcpod_v1_runs/next_20261020'))
++    parser.add_argument('--gpus',nargs=3,default=['1','2','3'])
++    parser.add_argument('--device',choices=['cuda','cpu'],default='cuda')
++    args = parser.parse_args()
++    if len(set(args.gpus))!=3:
++        parser.error('Use three distinct GPU IDs')
++    for name in ('cache','d_root','c_root','d_out','c_out','a_out','b_out','out'):
++        setattr(args,name,getattr(args,name).resolve())
++    sys.path.insert(0,str(args.d_root))
++    import round_d as d
++    if Path(d.__file__).resolve().parent!=args.d_root:
++        raise ValueError('Selected D source differs from the imported source')
++    args.out.mkdir(parents=True,exist_ok=True)
++    (args.out/'logs').mkdir(exist_ok=True)
++    with (args.out/'.next.lock').open('a') as lock:
++        if os.name=='posix':
++            import fcntl
++            fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
++        plan = [dict(case='D1',seed=3352,gpu=args.gpus[0]),
++                dict(case='D1',seed=3353,gpu=args.gpus[1]),
++                dict(case='C1',seed=3352,gpu=args.gpus[2])]
++        d.shared.dump(args.out/'jobs.json',plan)
++
++        def dynamic_job(gpu,seed):
++            # Original D functions own their original ROOT, configuration and source identity.
++            local = argparse.Namespace(out=args.d_out,cache=args.cache,device=args.device,
++                d_seeds=[seed],gpus=[gpu,gpu,gpu])
++            (args.d_out/'logs').mkdir(parents=True,exist_ok=True)
++            trained = d.d_train(local)[0]
++            if trained['status']=='failed':
++                return dict(trained,phase='training')
++            run = args.d_out/'D1/ut-zap50k/V1'/('seed%d'%seed)
++            evaluated = d.gate_queue(gpu,[('D1',seed,args.d_root,run)],local)[0]
++            return dict(case='D1',seed=seed,gpu=gpu,status=evaluated['status'],
++                        training=trained,mean_gate=evaluated)
++
++        def static_job(gpu):
++            log = args.out/'logs/C1_seed3352_launcher.log'
++            print('START_C1',3352,'GPU',gpu,'source',args.c_root,flush=True)
++            command = [sys.executable,'-u',args.c_root/'round_c.py','run','--cache',args.cache,
++                '--out',args.c_out,'--a-out',args.a_out,'--b-out',args.b_out,'--skip-b3',
++                '--gpus',gpu,'--cases','C1','--seeds',3352,'--device',args.device]
++            code = d.run_process(command,args.c_root,log)
++            if code:
++                return dict(case='C1',seed=3352,gpu=gpu,status='failed',exit_code=code,log=str(log))
++            event = next(r for r in d.shared.read(args.c_out/'round_c_status.json')
++                         if r.get('case')=='C1' and r.get('seed')==3352)
++            return dict(event,source_root=str(args.c_root))
++
++        events = []
++        with ThreadPoolExecutor(max_workers=3) as pool:
++            futures = {pool.submit(dynamic_job,args.gpus[0],3352):plan[0],
++                       pool.submit(dynamic_job,args.gpus[1],3353):plan[1],
++                       pool.submit(static_job,args.gpus[2]):plan[2]}
++            for future in as_completed(futures):
++                try:
++                    event = future.result()
++                except Exception as error:
++                    event = dict(futures[future],status='failed',error=str(error))
++                events.append(event)
++                d.shared.dump(args.out/'status.json',events)
++                print('JOB_RESULT',event['case'],event['seed'],event['status'],flush=True)
++        if any(r['status']=='failed' for r in events):
++            raise SystemExit('NEXT_FAILED: see status.json and job logs')
++        d.summarize(args.d_out,args.c_out,args.a_out)
++        interaction_summary(d,args)
++        d.shared.dump(args.out/'summary_locations.json',dict(
++            combined_summary=str(args.d_out/'round_d_summary.json'),
++            paired_mean_sd=str(args.d_out/'round_d_paired_mean_sd.csv'),
++            mean_gate_effects=str(args.d_out/'mean_gate_effects.csv'),
++            interaction=str(args.out/'interaction.json')))
++        print('NEXT_COMPLETE',args.out,'training_jobs 3 mean_gate_jobs 2',flush=True)
++
++
++if __name__=='__main__':
++    main()
+--- /dev/null
++++ b/next/start_tmux.sh
+@@ -0,0 +1,27 @@
++#!/usr/bin/env bash
++set -euo pipefail
++cd "$(dirname "${BASH_SOURCE[0]}")"
++if [ "${1:-}" = "--inside" ]; then
++  VG_PYTHON="$2"
++  VG_NEXT_OUT="$3"
++  shift 3
++  mkdir -p "$VG_NEXT_OUT"
++  printf 'RUNNING\n' > "$VG_NEXT_OUT/launcher.exitcode"
++  set +e
++  "$VG_PYTHON" -u next_round.py --out "$VG_NEXT_OUT" "$@" 2>&1 | tee -a "$VG_NEXT_OUT/launcher.log"
++  RESULT=${PIPESTATUS[0]}
++  printf '%s\n' "$RESULT" > "$VG_NEXT_OUT/launcher.exitcode"
++  printf '\nNEXT_EXIT_CODE=%s\n' "$RESULT"
++  exec bash -i
++fi
++VG_PYTHON="$(command -v "${VG_PYTHON:-python}")"
++VG_NEXT_OUT="${VG_NEXT_OUT:-/data/xhw/vgcpod_v1_runs/next_20261020}"
++SESSION="${VG_NEXT_SESSION:-vgcpod_next}"
++mkdir -p "$VG_NEXT_OUT"
++if tmux has-session -t "$SESSION" 2>/dev/null; then
++  printf 'Attach with: tmux attach -t %q\n' "$SESSION"
++  exit 0
++fi
++printf -v LAUNCH '%q ' bash "$PWD/start_tmux.sh" --inside "$VG_PYTHON" "$VG_NEXT_OUT" "$@"
++tmux new-session -d -s "$SESSION" -c "$PWD" "$LAUNCH"
++printf 'Started. Attach with: tmux attach -t %q\n' "$SESSION"
