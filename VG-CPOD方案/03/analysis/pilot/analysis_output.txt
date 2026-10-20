@@ -1,0 +1,94 @@
+ANALYZED D0 10
+ANALYZED V1 5
+ANALYZED A1 8
+ANALYZED A5 8
+ANALYZED A6 8
+ANALYZED B1 10
+ANALYZED B2 5
+ANALYZED B3 8
+{
+  "audit": {
+    "archive_sha256": "5f13bb99e59d0e204ad51ec333076c716f9956e2de073616f4296183fcb6811f",
+    "feature_manifest_sha256": "bb8b7a8eb8c4e77a14ef65dd5c626aac559880d7c8d642dcc1e9a2a843831d2a",
+    "new_runs": 3,
+    "seed": 3351,
+    "prediction_files": 32,
+    "errors": [],
+    "source_files_matched": 27,
+    "max_recompute_errors": {
+      "native_auc": 0.0,
+      "exact_auc": 0.0,
+      "hm": 0.0,
+      "probability_normalization": 1.1920928955078125e-06,
+      "support_mass": 1.0993468801956396e-07,
+      "loss_identity": 2.9403313485387716e-08
+    }
+  },
+  "selected_gates": [
+    {
+      "case": "B1",
+      "epoch": 10,
+      "chosen": true,
+      "gamma_mean": 1.0,
+      "gamma_std": 0.0,
+      "gamma_image_std": 0.0,
+      "normalized_gate_shift": 0,
+      "raw_sigmoid_mean": null,
+      "gamma_abs_deviation": 0.0,
+      "effective_scalar_rho": 0.1,
+      "orth_weighted": 0.0,
+      "task": 1.7658091051722207,
+      "clipped_fraction": 0.30277777777777776
+    },
+    {
+      "case": "B2",
+      "epoch": 5,
+      "chosen": true,
+      "gamma_mean": 1.9780138587731881,
+      "gamma_std": 0.016295990742148023,
+      "gamma_image_std": 0.004859410892534459,
+      "normalized_gate_shift": 0.9780138587731881,
+      "raw_sigmoid_mean": 0.9890069293865941,
+      "gamma_abs_deviation": 0.978013831015742,
+      "effective_scalar_rho": 0.19780138587731882,
+      "orth_weighted": 0.00023741054266667884,
+      "task": 1.7841994910460366,
+      "clipped_fraction": 0.5027777777777778
+    },
+    {
+      "case": "B3",
+      "epoch": 8,
+      "chosen": true,
+      "gamma_mean": 1.2407671873419583,
+      "gamma_std": 0.010608554892129769,
+      "gamma_image_std": 0.0028609362373406204,
+      "normalized_gate_shift": 0.9630687493678334,
+      "raw_sigmoid_mean": 0.9815343746839167,
+      "gamma_abs_deviation": 0.24076715650294322,
+      "effective_scalar_rho": 0.12407671873419585,
+      "orth_weighted": 0.00011871604044102143,
+      "task": 1.7376591706858562,
+      "clipped_fraction": 0.29444444444444445
+    }
+  ],
+  "geometry": [
+    {
+      "case": "B2",
+      "epoch": 5,
+      "row_norm_mean": 1.308072025973573,
+      "off_diagonal_cosine_mean": 0.2640928419336122,
+      "mean_row_norm": 0.7015014419831858,
+      "orthogonality_loss": 0.22831018025381833,
+      "first_eigenvalue_fraction": 0.2920148377103001
+    },
+    {
+      "case": "B3",
+      "epoch": 8,
+      "row_norm_mean": 1.2901975864550084,
+      "off_diagonal_cosine_mean": 0.1826085420841273,
+      "mean_row_norm": 0.5867670749948269,
+      "orthogonality_loss": 0.11909145274716527,
+      "first_eigenvalue_fraction": 0.2134266737863693
+    }
+  ]
+}

@@ -1,0 +1,259 @@
+# VG-CPOD 方案 v1：B 组视觉读出与局部调制实验
+
+日期：2026-10-19。框架：冻结 CLIP ViT-L/14；数据：UT-Zappos。
+
+本轮在 A5 的训练设置上实施 B1/B2/B3，分别检验混合读出、局部门控和弱局部门控。三张 GPU 各运行一个独立实验，首轮均使用 seed3351、10 epochs。已有 A5/A6 直接作为同 seed 对照。
+
+## 1. 本轮实验与固定设置
+
+| 实验 | 修正读出 | 门控输入 | 门控幅度 | 首轮物理 GPU |
+|---|---|---|---|---|
+| B1 | 归一化的 0.5 全局 + 0.5 物体查询特征 | 关闭 | 全 1 | GPU1 |
+| B2 | 全局特征 | 物体查询特征 | η=1 | GPU2 |
+| B3 | 全局特征 | 物体查询特征 | η=0.25 | GPU3 |
+
+适配器 LR=1e-3，CP LR=3e-4；余弦终点分别为 1e-5、3e-6。β=0.1，rank32，adapter rank8，batch64，10 epochs，ρ=0.1，κ=20，τγ=0.1，weight decay=1e-4。B2/B3 沿用 λorth=0.001。伙伴与原子属性辅助分支保持关闭。
+
+三个实验复用 `/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14` 中的冻结 CLIP 特征。每个实验从同 seed 的初始化开始训练，Wc 初始为零。checkpoint 按 VAL CW AUC_native 首次最大值选择，最终导出 VAL/TEST 的 CW/OW 结果。
+
+## 2. 已实现的公式
+
+记全局特征为 $g_b\in\mathbb{R}^{d}$，物体查询特征为 $f^o_{bj}\in\mathbb{R}^{d}$。定义归一化与混合读出：
+
+$$
+\operatorname{unit}(z)=\frac{z}{\max(\lVert z\rVert_2,10^{-12})},
+\qquad
+h_{bj}^{\mathrm{mix}}=\operatorname{unit}\!\left((1-\alpha)g_b+\alpha f^o_{bj}\right),
+\quad\alpha=0.5.
+$$
+
+α 是局部特征的权重。B1 用混合特征读取 CP 修正；B2/B3 用 $h_{bj}=g_b$。物体 logits 和基础条件 logits 继续使用原全局特征。
+
+设：
+
+$$
+u_i=A_u e_i^a\in\mathbb{R}^{r},\qquad
+v_j=A_v e_j^o\in\mathbb{R}^{r},\qquad
+W_c\in\mathbb{R}^{d\times r}.
+$$
+
+B2/B3 的局部门控为：
+
+$$
+\gamma_{bj}^{(\eta)}
+=\mathbf{1}_{r}+\eta\left[
+2\sigma\!\left(\frac{B_{\mathrm{vis}}f^o_{bj}}{\tau_{\gamma}}\right)-\mathbf{1}_{r}\right],
+\qquad B_{\mathrm{vis}}\in\mathbb{R}^{r\times d}.
+$$
+
+B1 的 $\gamma_{bj}=\mathbf{1}_{r}$。B2 的模式系数位于 $(0,2)$，B3 位于 $(0.75,1.25)$。修正和联合概率为：
+
+$$
+\begin{aligned}
+\Delta U_{bji}
+&=\rho\kappa\,h_{bj}^{\top}W_c
+\left(u_i\odot v_j\odot\gamma_{bj}\right),\\
+U_{bji}&=U_{bji}^{\mathrm{base}}+\Delta U_{bji},\\
+\log p(a_i,o_j\mid x_b)
+&=\log\operatorname{softmax}(S_b)_j
++\log\operatorname{softmax}(U_{bj:})_i.
+\end{aligned}
+$$
+
+$S_b$ 为原物体 logits，$U^{\mathrm{base}}$ 为原条件属性 logits。实现按 `[batch, object, attribute]` 排列张量。相同参数下，B3 的修正严格满足：
+
+$$
+\Delta U_{\eta=0.25}
+=0.75\,\Delta U_{\eta=0}+0.25\,\Delta U_{\eta=1}.
+$$
+
+继续使用 A5 的目标：
+
+$$
+\begin{aligned}
+\mathcal{L}_{\mathrm{task}}(\beta)
+&=\frac{1.5}{1+\beta}\left[
+\mathcal{L}_{\mathrm{pair}}+
+\beta\left(\mathcal{L}_{\mathrm{cond}}+\mathcal{L}_{\mathrm{obj}}\right)\right]\\
+&=1.5\,\mathcal{L}_{\mathrm{pair}}
++\frac{1.5\beta}{1+\beta}\,\mathcal{L}_{\mathrm{support}},
+\qquad\beta=0.1.
+\end{aligned}
+$$
+
+这里 $Z_{\mathrm{s}}=\sum_{(i,j)\in\mathcal{C}_{\mathrm{train}}}p(a_i,o_j\mid x)$，$\mathcal{L}_{\mathrm{support}}=-\log Z_{\mathrm{s}}$。因此支持集合项系数为 0.13636。B2/B3 再加入现有正交项：
+
+$$
+\mathcal{L}
+=\mathcal{L}_{\mathrm{task}}
++\frac{0.001}{r^2}
+\left\lVert B_{\mathrm{vis}}B_{\mathrm{vis}}^{\top}-I_r\right\rVert_F^2.
+$$
+
+## 3. 代码改动与结果文件
+
+| 文件 | 实现内容 |
+|---|---|
+| `vgcpod/model.py` | 分开 `readout_feature` 与 `gate_input`；加入 `readout_alpha`、`gate_eta`；保留原变体的默认计算 |
+| `vgcpod/engine.py` | 沿用 A 组训练与评测，增加跨图像门控方差、门控偏离 1 的均值日志 |
+| `configs/round_b/B1.json` | `readout_feature=mixed`、`gate_input=none`、α=0.5 |
+| `configs/round_b/B2.json` | `readout_feature=global`、`gate_input=local`、η=1 |
+| `configs/round_b/B3.json` | `readout_feature=global`、`gate_input=local`、η=0.25 |
+| `round_b.py` | 三 GPU 队列、自动续训、跳过已完成训练、同 seed 配对与按配置聚合 |
+| `scripts/start_round_b_tmux.sh` | 使用当前 conda 环境的绝对 Python 路径，在 tmux 中启动队列 |
+| `references/round_a_confirm.json` | A1/A5/A6 三 seed 的已保存指标，支持直接汇总比较 |
+
+三个配置的内部 `variant` 均沿用 V1，通过上述配置区分实际读出与门控。结果位于：
+
+```text
+/data/xhw/vgcpod_v1_runs/roundB_20261019/
+  B1/ut-zap50k/V1/seed3351/
+  B2/ut-zap50k/V1/seed3351/
+  B3/ut-zap50k/V1/seed3351/
+  logs/B1_seed3351.log
+  logs/B2_seed3351.log
+  logs/B3_seed3351.log
+  launcher.log
+  launcher.exitcode
+  round_b_status.json
+  round_b_summary.csv
+  round_b_mean_sd.csv
+  round_b_paired_deltas.csv
+  round_b_paired_mean_sd.csv
+  round_b_summary.json
+  per_pair_gains.csv
+```
+
+各模型目录包含 `checkpoints/best.pt`、`checkpoints/last.pt`、`protocol.json`、`history.json`、`metrics.json`、四份预测 NPZ 和四份曲线 JSON。
+
+`per_pair_gains.csv` 从服务器原 A5/A6 的预测导出逐组合差值。总体指标比较同时支持包内 A 组快照。`round_b_mean_sd.csv` 按配置聚合，单 seed 的 SD 留空，补 seed 后计算样本标准差。
+
+## 4. 本机上传：Windows PowerShell
+
+将第一行填为平时 SSH 使用的地址，端口与日常登录一致：
+
+```powershell
+$VgServer = 'xhw@你的服务器IP'
+$VgPort = 22
+scp -P $VgPort 'C:\Users\llenovo\Documents\ChatGPT\VG-CPOD\vgcpod_v1_roundB_20261019.zip' "${VgServer}:/data/xhw/vgcpod_project/"
+ssh -p $VgPort $VgServer
+```
+
+## 5. 服务器解压并启动三卡 tmux
+
+以下在服务器执行：
+
+```bash
+cd /data/xhw/vgcpod_project
+unzip -n vgcpod_v1_roundB_20261019.zip
+conda activate vgcpod_v1
+cd /data/xhw/vgcpod_project/vgcpod_v1_roundB
+
+export VG_CACHE=/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14
+export VG_A_OUT=/data/xhw/vgcpod_v1_runs/roundA_20261019
+export VG_B_OUT=/data/xhw/vgcpod_v1_runs/roundB_20261019
+export VG_B_SESSION=vgcpod_B
+
+bash scripts/start_round_b_tmux.sh \
+  --gpus 1 2 3 --cases B1 B2 B3 --seeds 3351
+
+tmux attach -t vgcpod_B
+```
+
+沿用当前 `vgcpod_v1` 环境。代码包包含 CLIP 实现，训练直接读取已有特征缓存。物理 GPU1/2/3 分别运行 B1/B2/B3，每组 10 轮。
+
+按 **Ctrl+b，松开，再按 d** 脱离 tmux，训练继续。
+
+## 6. 查看进度与判断完成
+
+另开 SSH 终端，查看总调度日志：
+
+```bash
+tail -f /data/xhw/vgcpod_v1_runs/roundB_20261019/launcher.log
+```
+
+查看三个模型的逐轮日志：
+
+```bash
+tail -f \
+  /data/xhw/vgcpod_v1_runs/roundB_20261019/logs/B1_seed3351.log \
+  /data/xhw/vgcpod_v1_runs/roundB_20261019/logs/B2_seed3351.log \
+  /data/xhw/vgcpod_v1_runs/roundB_20261019/logs/B3_seed3351.log
+```
+
+`Ctrl+c` 退出日志查看。总日志出现 `ROUND_B_COMPLETE ... jobs 3`，并且下列命令输出 `0`，表示本轮队列成功结束：
+
+```bash
+cat /data/xhw/vgcpod_v1_runs/roundB_20261019/launcher.exitcode
+```
+
+训练结束后重新生成汇总：
+
+```bash
+conda activate vgcpod_v1
+cd /data/xhw/vgcpod_project/vgcpod_v1_roundB
+python round_b.py summarize \
+  --out /data/xhw/vgcpod_v1_runs/roundB_20261019 \
+  --reference-out /data/xhw/vgcpod_v1_runs/roundA_20261019
+```
+
+直接查看 `round_b_paired_deltas.csv` 中的 B1/B2/B3−A5、B1/B2/B3−A6 和 B3−B2。主结果为 CW/OW AUC，同时观察未见条件属性准确率和固定 VAL bias 的 HM。
+
+## 7. 单独运行、续训与后续补 seed
+
+单独运行 B3：
+
+```bash
+conda activate vgcpod_v1
+cd /data/xhw/vgcpod_project/vgcpod_v1_roundB
+CUDA_VISIBLE_DEVICES=3 python -u run.py train \
+  --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14 \
+  --out /data/xhw/vgcpod_v1_runs/roundB_20261019/B3 \
+  --config configs/round_b/B3.json --seed 3351 --device cuda
+```
+
+手动续训在上述命令末尾加 `--resume`。队列脚本自动添加续训参数，已完成的实验直接跳过。若原队列已退出，需要重新启动，可用新的 tmux 会话名：
+
+```bash
+cd /data/xhw/vgcpod_project/vgcpod_v1_roundB
+VG_B_SESSION=vgcpod_B_resume bash scripts/start_round_b_tmux.sh \
+  --gpus 1 2 3 --cases B1 B2 B3 --seeds 3351
+tmux attach -t vgcpod_B_resume
+```
+
+首轮按 VAL 结果确定后续投入配置，再补 seed3352、3353。以下以 B3 为例，两张卡并行补两次：
+
+```bash
+conda activate vgcpod_v1
+cd /data/xhw/vgcpod_project/vgcpod_v1_roundB
+VG_B_SESSION=vgcpod_B_moreseed bash scripts/start_round_b_tmux.sh \
+  --gpus 1 2 --cases B3 --seeds 3352 3353
+tmux attach -t vgcpod_B_moreseed
+```
+
+## 8. 打包结果并保存到本地
+
+服务器上执行，结果包同时包含模型结果与本轮源代码：
+
+```bash
+tar -czf /data/xhw/vgcpod_project/vgcpod_roundB_results_20261019.tar.gz \
+  -C /data/xhw/vgcpod_v1_runs roundB_20261019 \
+  -C /data/xhw/vgcpod_project vgcpod_v1_roundB
+```
+
+本机 PowerShell 执行：
+
+```powershell
+$VgServer = 'xhw@你的服务器IP'
+$VgPort = 22
+$VgLocal = 'C:\Users\llenovo\Documents\ChatGPT\VG-CPOD'
+scp -P $VgPort "${VgServer}:/data/xhw/vgcpod_project/vgcpod_roundB_results_20261019.tar.gz" "$VgLocal\"
+New-Item -ItemType Directory -Force -Path "$VgLocal\server_results_roundB_20261019" | Out-Null
+tar -xzf "$VgLocal\vgcpod_roundB_results_20261019.tar.gz" -C "$VgLocal\server_results_roundB_20261019"
+```
+
+## 9. 本地验证记录
+
+22 项测试已通过，覆盖算子矩阵形式、秩上界、概率归一化、η 插值关系、门控梯度有限差分、优化器分组、三组训练导出、配对汇总与中断续训。
+
+另以合成缓存执行了实际命令行的三进程 CPU 调度与重复运行；原九个变体与 A 组实现逐步比较了四次优化更新。记录位于 `validation/test_output.txt`、`validation/cli_output.txt`、`validation/legacy_compatibility.json`、`validation/result.json`。服务器 GPU 实验使用本计划的完整配置。

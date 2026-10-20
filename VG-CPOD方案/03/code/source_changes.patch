@@ -1,0 +1,675 @@
+--- /dev/null
++++ b/configs/round_b/B1.json
+@@ -0,0 +1,35 @@
++{
++  "dataset": "ut-zap50k",
++  "variant": "V1",
++  "rank": 32,
++  "adapter_rank": 8,
++  "kappa": 20.0,
++  "rho": 0.1,
++  "rho_a": 0.1,
++  "tau_v": 0.07,
++  "tau_gamma": 0.1,
++  "tau_pi": 0.1,
++  "lambda_prim": 0.2,
++  "lambda_cent": 0.1,
++  "lambda_orth": 0.001,
++  "batch_size": 64,
++  "eval_batch_size": 64,
++  "workers": 4,
++  "epochs": 10,
++  "lr": 0.001,
++  "min_lr": 1e-05,
++  "weight_decay": 0.0001,
++  "gradient_clip": 1.0,
++  "adam_betas": [
++    0.9,
++    0.999
++  ],
++  "adam_eps": 1e-08,
++  "task_aux_beta": 0.1,
++  "cp_lr_scale": 0.3,
++  "experiment_id": "B1",
++  "readout_feature": "mixed",
++  "readout_alpha": 0.5,
++  "gate_input": "none",
++  "gate_eta": 0.0
++}
+--- /dev/null
++++ b/configs/round_b/B2.json
+@@ -0,0 +1,35 @@
++{
++  "dataset": "ut-zap50k",
++  "variant": "V1",
++  "rank": 32,
++  "adapter_rank": 8,
++  "kappa": 20.0,
++  "rho": 0.1,
++  "rho_a": 0.1,
++  "tau_v": 0.07,
++  "tau_gamma": 0.1,
++  "tau_pi": 0.1,
++  "lambda_prim": 0.2,
++  "lambda_cent": 0.1,
++  "lambda_orth": 0.001,
++  "batch_size": 64,
++  "eval_batch_size": 64,
++  "workers": 4,
++  "epochs": 10,
++  "lr": 0.001,
++  "min_lr": 1e-05,
++  "weight_decay": 0.0001,
++  "gradient_clip": 1.0,
++  "adam_betas": [
++    0.9,
++    0.999
++  ],
++  "adam_eps": 1e-08,
++  "task_aux_beta": 0.1,
++  "cp_lr_scale": 0.3,
++  "experiment_id": "B2",
++  "readout_feature": "global",
++  "readout_alpha": 0.5,
++  "gate_input": "local",
++  "gate_eta": 1.0
++}
+--- /dev/null
++++ b/configs/round_b/B3.json
+@@ -0,0 +1,35 @@
++{
++  "dataset": "ut-zap50k",
++  "variant": "V1",
++  "rank": 32,
++  "adapter_rank": 8,
++  "kappa": 20.0,
++  "rho": 0.1,
++  "rho_a": 0.1,
++  "tau_v": 0.07,
++  "tau_gamma": 0.1,
++  "tau_pi": 0.1,
++  "lambda_prim": 0.2,
++  "lambda_cent": 0.1,
++  "lambda_orth": 0.001,
++  "batch_size": 64,
++  "eval_batch_size": 64,
++  "workers": 4,
++  "epochs": 10,
++  "lr": 0.001,
++  "min_lr": 1e-05,
++  "weight_decay": 0.0001,
++  "gradient_clip": 1.0,
++  "adam_betas": [
++    0.9,
++    0.999
++  ],
++  "adam_eps": 1e-08,
++  "task_aux_beta": 0.1,
++  "cp_lr_scale": 0.3,
++  "experiment_id": "B3",
++  "readout_feature": "global",
++  "readout_alpha": 0.5,
++  "gate_input": "local",
++  "gate_eta": 0.25
++}
+--- /dev/null
++++ b/round_b.py
+@@ -0,0 +1,268 @@
++"""B1/B2/B3: frozen CLIP cache, three independent GPU jobs, A5/A6 paired summaries."""
++import argparse
++import csv
++import json
++import os
++import statistics
++import subprocess
++import sys
++from concurrent.futures import ThreadPoolExecutor, as_completed
++from pathlib import Path
++
++ROOT = Path(__file__).resolve().parent
++CASES = ('B1', 'B2', 'B3')
++SETTINGS = ('val_cw', 'val_ow', 'test_cw', 'test_ow')
++METRICS = ('AUC_native', 'AUC_exact', 'HM_at_val_bias', 'gt_object_attr_acc',
++           'gt_object_attr_acc_unseen', 'support_mass_unseen')
++COLUMNS = tuple(setting + '_' + key for setting in SETTINGS for key in METRICS)
++DEFAULT_OUT = Path('/data/xhw/vgcpod_v1_runs/roundB_20261019')
++DEFAULT_REFERENCE = Path('/data/xhw/vgcpod_v1_runs/roundA_20261019')
++
++
++def read(path):
++    return json.loads(Path(path).read_text(encoding='utf-8-sig'))
++
++
++def dump(path, data):
++    path = Path(path)
++    path.parent.mkdir(parents=True, exist_ok=True)
++    temp = path.with_name(path.name + '.writing')
++    temp.write_text(json.dumps(data, ensure_ascii=False, indent=2, allow_nan=False) + '\n', encoding='utf-8')
++    os.replace(str(temp), str(path))
++
++
++def csv_write(path, rows):
++    if not rows:
++        return
++    with Path(path).open('w', encoding='utf-8-sig', newline='') as f:
++        writer = csv.DictWriter(f, list(rows[0]))
++        writer.writeheader()
++        writer.writerows(rows)
++
++
++def metric_columns(metrics):
++    return {setting + '_' + key: metrics[setting][key] for setting in SETTINGS for key in METRICS}
++
++
++def aggregate(rows, label='case'):
++    result = []
++    for name in sorted({r[label] for r in rows}):
++        group = sorted([r for r in rows if r[label] == name], key=lambda x: x['seed'])
++        row = {label: name, 'n_seeds': len(group), 'seeds': [r['seed'] for r in group]}
++        for key in COLUMNS:
++            values = [r[key] for r in group]
++            row[key + '_mean'] = statistics.mean(values)
++            row[key + '_sd'] = statistics.stdev(values) if len(values) > 1 else None
++        result.append(row)
++    return result
++
++
++def references(reference_out):
++    """Scalar comparisons work from the packaged A-group snapshot as well."""
++    result = {(r['case'], r['seed']): r for r in read(ROOT / 'references/round_a_confirm.json')['runs']}
++    for case in ('A1', 'A5', 'A6'):
++        for path in sorted((Path(reference_out) / case).glob('ut-zap50k/V*/seed*/metrics.json')):
++            protocol = read(path.parent / 'protocol.json')
++            saved = read(path)
++            result[(case, protocol['seed'])] = dict(case=case, seed=protocol['seed'],
++                config=protocol['config'], feature_manifest_sha256=protocol['feature_manifest_sha256'],
++                selected_epoch=saved['selected_epoch'], metrics=saved['metrics'])
++    return result
++
++
++def export_pair_gains(out, runs, reference_out):
++    """Compare saved predictions to the corresponding A5/A6 files; no model inference."""
++    import numpy as np
++    rows = []
++    for (case, seed), run in sorted(runs.items()):
++        protocol = read(run / 'protocol.json')
++        cached_manifest = Path(protocol['cache_path_at_run']) / 'features_manifest.json'
++        labels = read(cached_manifest)['labels'] if cached_manifest.is_file() else read(ROOT / 'assets/labels.json')
++        for ref_case, variant in [('A5', 'V1'), ('A6', 'V0')]:
++            ref = Path(reference_out) / ref_case / 'ut-zap50k' / variant / ('seed%d' % seed)
++            if not (ref / 'protocol.json').exists():
++                continue
++            if read(ref / 'protocol.json')['feature_manifest_sha256'] != protocol['feature_manifest_sha256']:
++                continue
++            for setting in SETTINGS:
++                left, right = run / 'predictions' / (setting + '.npz'), ref / 'predictions' / (setting + '.npz')
++                if not left.exists() or not right.exists():
++                    continue
++                with np.load(left, allow_pickle=False) as l, np.load(right, allow_pickle=False) as r:
++                    for key in ('image_ids', 'candidate_pairs', 'attribute_truth', 'object_truth'):
++                        if not np.array_equal(l[key], r[key]):
++                            raise ValueError('Prediction axes differ: ' + str(left) + ' vs ' + str(right))
++                    a, o = l['attribute_truth'], l['object_truth']
++                    lc = l['conditional_logits_gt_object'].argmax(1) == a
++                    rc = r['conditional_logits_gt_object'].argmax(1) == a
++                    lp, rp = l['log_probabilities'].argmax(1), r['log_probabilities'].argmax(1)
++                    candidate_pairs = l['candidate_pairs']
++                    # Candidate pairs are strings; truths index the cache's primitive axes.
++                    for obj, attr in sorted(set(zip(o.tolist(), a.tolist()))):
++                        mask = (o == obj) & (a == attr)
++                        true_pair = np.array([labels['attrs'][attr], labels['objs'][obj]])
++                        lok = np.all(candidate_pairs[lp[mask]] == true_pair, axis=1)
++                        rok = np.all(candidate_pairs[rp[mask]] == true_pair, axis=1)
++                        rows.append(dict(comparison=case + '-' + ref_case, seed=seed, setting=setting,
++                            attribute=labels['attrs'][attr], object=labels['objs'][obj], images=int(mask.sum()),
++                            pair_gain_unbiased_pct=float((lok.mean() - rok.mean()) * 100),
++                            gt_object_attr_gain_pct=float((lc[mask].mean() - rc[mask].mean()) * 100),
++                            conditional_correct_delta=int(lc[mask].sum()) - int(rc[mask].sum())))
++    csv_write(Path(out) / 'per_pair_gains.csv', rows)
++    return len(rows)
++
++
++def summarize(out, reference_out=DEFAULT_REFERENCE, pair_gains=True):
++    out = Path(out)
++    rows, runs = [], {}
++    for case in CASES:
++        for path in sorted((out / case).glob('ut-zap50k/V*/seed*/metrics.json')):
++            saved = read(path)
++            protocol = read(path.parent / 'protocol.json')
++            cfg = protocol['config']
++            history = read(path.parent / 'history.json')
++            chosen = history[saved['selected_epoch'] - 1]
++            row = dict(case=case, seed=protocol['seed'], variant=cfg['variant'],
++                readout_feature=cfg['readout_feature'], readout_alpha=cfg['readout_alpha'],
++                gate_input=cfg['gate_input'], gate_eta=cfg['gate_eta'], beta=cfg['task_aux_beta'],
++                cp_lr=cfg['lr'] * cfg['cp_lr_scale'], selected_epoch=saved['selected_epoch'],
++                completed_epochs=len(history), feature_manifest_sha256=protocol['feature_manifest_sha256'])
++            row.update(metric_columns(saved['metrics']))
++            row.update(train_delta_rms=chosen['train']['centered_delta_rms'],
++                       train_clip_fraction=chosen['train']['clipped_step_fraction'],
++                       train_gamma_image_variance=chosen['train']['gamma_image_variance'],
++                       train_gamma_abs_deviation=chosen['train']['gamma_abs_deviation'])
++            rows.append(row)
++            runs[(case, row['seed'])] = path.parent
++    if not rows:
++        raise FileNotFoundError('No completed B-group runs under ' + str(out))
++    ref = references(reference_out)
++    deltas = []
++    for row in rows:
++        for ref_case in ('A5', 'A6'):
++            old = ref.get((ref_case, row['seed']))
++            if old and old['feature_manifest_sha256'] == row['feature_manifest_sha256']:
++                values = metric_columns(old['metrics'])
++                deltas.append(dict(comparison=row['case'] + '-' + ref_case, seed=row['seed'],
++                                   **{key: row[key] - values[key] for key in COLUMNS}))
++    for high, low in [('B3', 'B2'), ('B1', 'B2')]:
++        for row in [r for r in rows if r['case'] == high]:
++            other = next((r for r in rows if r['case'] == low and r['seed'] == row['seed'] and
++                          r['feature_manifest_sha256'] == row['feature_manifest_sha256']), None)
++            if other:
++                deltas.append(dict(comparison=high + '-' + low, seed=row['seed'],
++                                   **{key: row[key] - other[key] for key in COLUMNS}))
++    by_case = aggregate(rows)
++    by_comparison = aggregate(deltas, 'comparison') if deltas else []
++    pair_count = export_pair_gains(out, runs, reference_out) if pair_gains else 0
++    csv_write(out / 'round_b_summary.csv', rows)
++    csv_write(out / 'round_b_mean_sd.csv', by_case)
++    csv_write(out / 'round_b_paired_deltas.csv', deltas)
++    csv_write(out / 'round_b_paired_mean_sd.csv', by_comparison)
++    ranking = sorted(by_case, key=lambda r: (-r['val_cw_AUC_native_mean'], r['case']))
++    dump(out / 'round_b_summary.json', dict(runs=rows, by_case=by_case, paired_deltas=deltas,
++        paired_mean_sd=by_comparison, val_cw_ranking=ranking, per_pair_rows=pair_count,
++        selection_rule='epoch: first strict maximum VAL CW AUC_native; case ranking: mean VAL CW across available seeds'))
++    print('SUMMARY', out / 'round_b_summary.csv', flush=True)
++    for row in rows:
++        print(row['case'], 'seed', row['seed'], 'VAL_CW', round(row['val_cw_AUC_native'], 4),
++              'VAL_OW', round(row['val_ow_AUC_native'], 4), 'TEST_CW', round(row['test_cw_AUC_native'], 4),
++              'TEST_OW', round(row['test_ow_AUC_native'], 4),
++              'TEST_unseen_attr', round(row['test_ow_gt_object_attr_acc_unseen'], 4), flush=True)
++    return rows
++
++
++def validate_completed(run, cfg, seed, cache):
++    from vgcpod.common import sha, source_hashes
++    protocol, result = read(run / 'protocol.json'), read(run / 'metrics.json')
++    return (protocol['config'] == cfg and protocol['seed'] == seed and
++            protocol['source_sha256'] == source_hashes() and
++            protocol['feature_manifest_sha256'] == sha(cache / 'features_manifest.json') and
++            read(run / 'history.json')[-1]['epoch'] == cfg['epochs'] and
++            result['checkpoint_sha256'] == sha(run / 'checkpoints/best.pt'))
++
++
++def worker(gpu, jobs, args):
++    events = []
++    for case, seed in jobs:
++        config = ROOT / 'configs/round_b' / (case + '.json')
++        cfg = read(config)
++        run = args.out / case / cfg['dataset'] / cfg['variant'] / ('seed%d' % seed)
++        log = args.out / 'logs' / ('%s_seed%d.log' % (case, seed))
++        if (run / 'metrics.json').exists():
++            if validate_completed(run, cfg, seed, args.cache):
++                print('ALREADY_COMPLETE', case, seed, flush=True)
++                events.append(dict(case=case, seed=seed, gpu=gpu, status='already_complete'))
++                continue
++            raise ValueError('Existing run has different configuration/source: ' + str(run))
++        command = [sys.executable, '-u', str(ROOT / 'run.py'), 'train', '--cache', str(args.cache),
++                   '--out', str(args.out / case), '--config', str(config), '--seed', str(seed), '--device', args.device]
++        if (run / 'protocol.json').exists():
++            command.append('--resume')
++        env = dict(os.environ, CUDA_VISIBLE_DEVICES=str(gpu), PYTHONHASHSEED='0',
++                   CUBLAS_WORKSPACE_CONFIG=':4096:8', OMP_NUM_THREADS='4', MKL_NUM_THREADS='4')
++        print('START', case, seed, 'GPU', gpu, 'log', log, flush=True)
++        with log.open('a', encoding='utf-8') as f:
++            f.write('\nROUND_B_START ' + json.dumps(command) + '\n')
++            f.flush()
++            completed = subprocess.run(command, cwd=str(ROOT), env=env, stdout=f, stderr=subprocess.STDOUT)
++        status = 'complete' if completed.returncode == 0 else 'failed'
++        events.append(dict(case=case, seed=seed, gpu=gpu, status=status,
++                           exit_code=completed.returncode, log=str(log)))
++        print(status.upper(), case, seed, 'GPU', gpu, flush=True)
++    return events
++
++
++def launch(args):
++    args.cache, args.out = args.cache.resolve(), args.out.resolve()
++    if not (args.cache / 'features_manifest.json').is_file():
++        raise FileNotFoundError('Feature cache absent: ' + str(args.cache))
++    args.out.mkdir(parents=True, exist_ok=True)
++    (args.out / 'logs').mkdir(exist_ok=True)
++    with (args.out / '.round_b.lock').open('a') as lock:
++        if os.name == 'posix':
++            import fcntl
++            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
++        jobs = [(case, seed) for seed in args.seeds for case in args.cases]
++        queues = [jobs[i::len(args.gpus)] for i in range(len(args.gpus))]
++        events = []
++        with ThreadPoolExecutor(max_workers=len(args.gpus)) as pool:
++            futures = {pool.submit(worker, gpu, queue, args): gpu
++                       for gpu, queue in zip(args.gpus, queues) if queue}
++            for future in as_completed(futures):
++                try:
++                    events += future.result()
++                except Exception as e:
++                    events.append(dict(gpu=futures[future], status='failed', error=str(e)))
++                dump(args.out / 'round_b_status.json', events)
++        if any(args.out.glob('B*/ut-zap50k/V*/seed*/metrics.json')):
++            summarize(args.out, args.reference_out)
++        if any(e['status'] == 'failed' for e in events):
++            raise SystemExit('ROUND_B_FAILED: see round_b_status.json and logs')
++        print('ROUND_B_COMPLETE', args.out, 'jobs', len(jobs), flush=True)
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    sub = parser.add_subparsers(dest='command', required=True)
++    for command in ('run', 'summarize'):
++        p = sub.add_parser(command)
++        p.add_argument('--out', type=Path, default=DEFAULT_OUT)
++        p.add_argument('--reference-out', type=Path, default=DEFAULT_REFERENCE)
++        if command == 'run':
++            p.add_argument('--cache', type=Path, default=Path('/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14'))
++            p.add_argument('--gpus', nargs='+', default=['1', '2', '3'])
++            p.add_argument('--cases', nargs='+', choices=CASES, default=list(CASES))
++            p.add_argument('--seeds', nargs='+', type=int, default=[3351])
++            p.add_argument('--device', choices=['cuda', 'cpu'], default='cuda')
++    args = parser.parse_args()
++    if args.command == 'run':
++        if any(len(set(getattr(args, key))) != len(getattr(args, key)) for key in ('gpus', 'cases', 'seeds')):
++            parser.error('GPU IDs, cases, and seeds must each be unique')
++        launch(args)
++    else:
++        summarize(args.out, args.reference_out)
++
++
++if __name__ == '__main__':
++    main()
+--- /dev/null
++++ b/scripts/run_round_b.sh
+@@ -0,0 +1,13 @@
++#!/usr/bin/env bash
++set -euo pipefail
++SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
++cd "$SCRIPT_DIR/.."
++export CUBLAS_WORKSPACE_CONFIG=:4096:8
++export PYTHONHASHSEED=0
++export OMP_NUM_THREADS="${OMP_NUM_THREADS:-4}"
++export MKL_NUM_THREADS="${MKL_NUM_THREADS:-4}"
++VG_PYTHON="${VG_PYTHON:-python}"
++VG_CACHE="${VG_CACHE:-/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14}"
++VG_B_OUT="${VG_B_OUT:-/data/xhw/vgcpod_v1_runs/roundB_20261019}"
++VG_A_OUT="${VG_A_OUT:-/data/xhw/vgcpod_v1_runs/roundA_20261019}"
++exec "$VG_PYTHON" -u round_b.py run --cache "$VG_CACHE" --out "$VG_B_OUT" --reference-out "$VG_A_OUT" "$@"
+--- /dev/null
++++ b/scripts/start_round_b_tmux.sh
+@@ -0,0 +1,18 @@
++#!/usr/bin/env bash
++set -euo pipefail
++SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
++cd "$SCRIPT_DIR/.."
++PACKAGE_ROOT="$PWD"
++SESSION="${VG_B_SESSION:-vgcpod_B}"
++VG_PYTHON="$(command -v "${VG_PYTHON:-python}")"
++VG_CACHE="${VG_CACHE:-/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14}"
++VG_B_OUT="${VG_B_OUT:-/data/xhw/vgcpod_v1_runs/roundB_20261019}"
++VG_A_OUT="${VG_A_OUT:-/data/xhw/vgcpod_v1_runs/roundA_20261019}"
++mkdir -p "$VG_B_OUT"
++if tmux has-session -t "$SESSION" 2>/dev/null; then
++  printf 'Session exists. Attach with: tmux attach -t %q\n' "$SESSION"
++  exit 0
++fi
++printf -v LAUNCH '%q ' bash "$PACKAGE_ROOT/scripts/tmux_round_b_entry.sh" "$VG_PYTHON" "$VG_CACHE" "$VG_B_OUT" "$VG_A_OUT" "$@"
++tmux new-session -d -s "$SESSION" -c "$PACKAGE_ROOT" "$LAUNCH"
++printf 'Started. Attach with: tmux attach -t %q\n' "$SESSION"
+--- /dev/null
++++ b/scripts/tmux_round_b_entry.sh
+@@ -0,0 +1,13 @@
++#!/usr/bin/env bash
++set -uo pipefail
++SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
++cd "$SCRIPT_DIR/.."
++export VG_PYTHON="$1" VG_CACHE="$2" VG_B_OUT="$3" VG_A_OUT="$4"
++shift 4
++mkdir -p "$VG_B_OUT"
++printf 'RUNNING\n' > "$VG_B_OUT/launcher.exitcode"
++bash scripts/run_round_b.sh "$@" 2>&1 | tee -a "$VG_B_OUT/launcher.log"
++RESULT=${PIPESTATUS[0]}
++printf '%s\n' "$RESULT" > "$VG_B_OUT/launcher.exitcode"
++printf '\nROUND_B_EXIT_CODE=%s\nResults: %s\n' "$RESULT" "$VG_B_OUT"
++exec bash -i
+--- /dev/null
++++ b/tests/test_round_b.py
+@@ -0,0 +1,167 @@
++"""Readout/gate interventions, affine gate effect, gradients, training and paired exports."""
++import argparse
++import importlib.util
++import tempfile
++import unittest
++from pathlib import Path
++from unittest import mock
++
++import numpy as np
++import torch
++
++from vgcpod import engine
++from vgcpod.common import ROOT, load_torch, read_json
++from vgcpod.model import VGCPOD
++from tests.test_math import fixture, synthetic_cache
++
++torch.set_num_threads(1)
++
++
++def bfixture(case):
++    reference, small, x, y, mask = fixture('V1')
++    cfg = read_json(ROOT / 'configs/round_b' / (case + '.json'))
++    cfg.update(rank=small['rank'], adapter_rank=small['adapter_rank'], workers=0,
++               batch_size=8, eval_batch_size=8, epochs=2)
++    model = VGCPOD(reference.ea, reference.eo, reference.ec, cfg, 3351).double()
++    return model, cfg, tuple(t.double() for t in x), y, mask
++
++
++class RoundBMathTests(unittest.TestCase):
++    def test_zero_start_and_separate_feature_interventions(self):
++        for case in ('B1', 'B2', 'B3'):
++            model, cfg, (g, fa, fo), y, mask = bfixture(case)
++            initial = model(g, fa, fo)
++            self.assertTrue(torch.equal(initial['cond'], initial['base']))
++            with torch.no_grad():
++                model.Wc.normal_(0, .05)
++            out = model(g, fa, fo)
++            changed = model(g, fa, fo.roll(1, 0))
++            self.assertTrue(torch.equal(out['obj'], changed['obj']))
++            self.assertTrue(torch.equal(out['base'], changed['base']))
++            self.assertFalse(torch.allclose(out['cond'], changed['cond']))
++            if case == 'B1':
++                self.assertTrue(torch.equal(out['gamma'], torch.ones_like(out['gamma'])))
++                self.assertFalse(model.Bvis.requires_grad)
++            else:
++                # Local gates depend on fo, but not on the global feature used for readout.
++                self.assertTrue(torch.equal(out['gamma'], model(g.roll(1, 0), fa, fo)['gamma']))
++                self.assertFalse(torch.allclose(out['gamma'], changed['gamma']))
++                self.assertTrue(model.Bvis.requires_grad)
++
++    def test_eta_interpolation_and_static_limit(self):
++        full, _, x, y, mask = bfixture('B2')
++        weak, _, _, _, _ = bfixture('B3')
++        static, _, _, _, _ = bfixture('B2')
++        with torch.no_grad():
++            full.Wc.normal_(0, .1)
++        weak.load_state_dict(full.state_dict())
++        static.load_state_dict(full.state_dict())
++        static.gate_eta = 0
++        f, w, s = [m(*x) for m in (full, weak, static)]
++        self.assertTrue(torch.allclose(w['cond'], .75 * s['cond'] + .25 * f['cond'], atol=1e-12, rtol=1e-12))
++        self.assertTrue(torch.equal(s['gamma'], torch.ones_like(s['gamma'])))
++        self.assertTrue(torch.all(w['gamma'] >= .75) and torch.all(w['gamma'] <= 1.25))
++        a = torch.autograd.grad(w['cond'][0, 0, 0], weak.Bvis)[0]
++        b = torch.autograd.grad(f['cond'][0, 0, 0], full.Bvis)[0]
++        self.assertTrue(torch.allclose(a, .25 * b, atol=1e-12, rtol=1e-12))
++
++    def test_operator_rank_and_full_matrix_readout(self):
++        for case in ('B1', 'B2', 'B3'):
++            model, cfg, (g, fa, fo), y, mask = bfixture(case)
++            with torch.no_grad():
++                model.Wc.normal_(0, .05)
++            out = model(g, fa, fo)
++            for b, j, i in [(0, 0, 0), (2, 1, 2), (6, 0, 1)]:
++                v = model.Av @ model.eo[j]
++                operator = model.Wc @ torch.diag(v * out['gamma'][b, j]) @ model.Au
++                h = g[b]
++                if case == 'B1':
++                    h = .5 * g[b] + .5 * fo[b, j]
++                    h = h / h.norm().clamp_min(1e-12)
++                direct = cfg['rho'] * cfg['kappa'] * h @ operator @ model.ea[i]
++                self.assertTrue(torch.allclose(out['cond'][b, j, i] - out['base'][b, j, i], direct, atol=1e-12))
++                self.assertLessEqual(int(torch.linalg.matrix_rank(operator)), cfg['rank'])
++            self.assertTrue(torch.allclose(out['joint'].exp().sum((1, 2)), torch.ones(len(g), dtype=g.dtype), atol=1e-12))
++
++    def test_b3_task_gradient_finite_difference_and_optimizer(self):
++        model, cfg, x, y, mask = bfixture('B3')
++        opt = engine.make_optimizer(model, cfg)
++        model.objective(model(*x), *y, mask)['task'].backward()
++        self.assertGreater(float(model.Wc.grad.norm()), 0)
++        self.assertEqual(float(model.Bvis.grad.norm()), 0)
++        opt.step()
++        opt.zero_grad(set_to_none=True)
++        model.objective(model(*x), *y, mask)['task'].backward()
++        for name in ('Au', 'Av', 'Bvis', 'Wc'):
++            self.assertGreater(float(getattr(model, name).grad.norm()), 0, name)
++        flat = model.Bvis.view(-1)
++        k = int(model.Bvis.grad.abs().argmax())
++        analytic = float(model.Bvis.grad.view(-1)[k])
++        with torch.no_grad():
++            original = flat[k].item()
++            flat[k] = original + 1e-5
++            plus = float(model.objective(model(*x), *y, mask)['task'])
++            flat[k] = original - 1e-5
++            minus = float(model.objective(model(*x), *y, mask)['task'])
++            flat[k] = original
++        self.assertAlmostEqual((plus - minus) / 2e-5, analytic, delta=max(1e-10, abs(analytic) * 1e-4))
++        cp = next(group for group in opt.param_groups if group['name'] == 'cp')
++        self.assertIn(id(model.Bvis), [id(p) for p in cp['params']])
++        engine.set_learning_rates(opt, cfg, 0, 10)
++        self.assertAlmostEqual(cp['lr'], 3e-4)
++        engine.set_learning_rates(opt, cfg, 9, 10)
++        self.assertAlmostEqual(cp['lr'], 3e-6)
++
++
++class RoundBIntegrationTests(unittest.TestCase):
++    def test_three_cases_resume_and_reference_pair_exports(self):
++        spec = importlib.util.spec_from_file_location('round_b_launcher', ROOT / 'round_b.py')
++        launch = importlib.util.module_from_spec(spec)
++        spec.loader.exec_module(launch)
++        with tempfile.TemporaryDirectory(prefix='vgcpod_roundb_') as temp:
++            root = Path(temp)
++            small = synthetic_cache(root / 'cache')
++            for case in ('A5', 'A6', 'B1', 'B2', 'B3'):
++                config = ROOT / ('configs/round_a/' if case.startswith('A') else 'configs/round_b/') / (case + '.json')
++                cfg = read_json(config)
++                cfg.update(rank=small['rank'], adapter_rank=small['adapter_rank'], workers=0,
++                           batch_size=8, eval_batch_size=8, epochs=2)
++                args = argparse.Namespace(cache=str(root / 'cache'), out=str(root / case), seed=3351,
++                                          device='cpu', resume=False)
++                engine.train(args, cfg)
++                run = root / case / 'ut-zap50k' / cfg['variant'] / 'seed3351'
++                if case.startswith('B'):
++                    self.assertTrue(launch.validate_completed(run, cfg, 3351, root / 'cache'))
++                    h = read_json(run / 'history.json')
++                    variance = h[-1]['train']['gamma_image_variance']
++                    self.assertEqual(variance, 0) if case == 'B1' else self.assertGreater(variance, 0)
++                if case == 'B3':
++                    state = load_torch(run / 'checkpoints/last.pt')
++                    args.out = str(root / 'interrupted')
++                    real_predict = engine.predict
++                    calls = [0]
++                    def interrupted(*a, **kw):
++                        calls[0] += 1
++                        if calls[0] == 2:
++                            raise InterruptedError('Interrupt after a committed epoch')
++                        return real_predict(*a, **kw)
++                    with mock.patch.object(engine, 'predict', side_effect=interrupted):
++                        with self.assertRaises(InterruptedError):
++                            engine.train(args, cfg)
++                    args.resume = True
++                    engine.train(args, cfg)
++                    resumed = load_torch(root / 'interrupted/ut-zap50k/V1/seed3351/checkpoints/last.pt')
++                    for name in state['model']:
++                        self.assertTrue(torch.equal(state['model'][name], resumed['model'][name]), name)
++            rows = launch.summarize(root, reference_out=root)
++            self.assertEqual(len(rows), 3)
++            summary = read_json(root / 'round_b_summary.json')
++            self.assertEqual(len(summary['paired_deltas']), 8)
++            self.assertGreater(summary['per_pair_rows'], 0)
++            self.assertTrue((root / 'per_pair_gains.csv').is_file())
++            with np.load(root / 'B3/ut-zap50k/V1/seed3351/predictions/test_ow.npz') as data:
++                np.testing.assert_allclose(data['probabilities'].sum(1), 1, atol=1e-5)
++
++
++if __name__ == '__main__':
++    unittest.main(verbosity=2)
+--- a/vgcpod/engine.py
++++ b/vgcpod/engine.py
+@@ -180,6 +180,8 @@
+             logs = {key: float(value.detach()) for key, value in losses.items()}
+             logs.update(gradient_norm=float(norm), gamma_mean=float(out['gamma'].mean()),
+                         gamma_variance=float(out['gamma'].var(unbiased=False)))
++            logs['gamma_image_variance'] = float(out['gamma'].var(dim=0, unbiased=False).mean())
++            logs['gamma_abs_deviation'] = float((out['gamma'] - 1).abs().mean())
+             delta = (out['cond'] - out['base']).detach()
+             logs['centered_delta_mse'] = float((delta - delta.mean(-1, keepdim=True)).square().mean())
+             logs['support_mass'] = float(out['joint'].detach().exp()[:, mask].sum(-1).mean())
+--- a/vgcpod/model.py
++++ b/vgcpod/model.py
+@@ -44,9 +44,22 @@
+                 signs[signs == 0] = 1
+                 x = (basis * signs).T.contiguous()
+             self.register_parameter(name, nn.Parameter(x))
+-        self.dynamic = self.variant in ('V2', 'V3', 'V4', 'V5', 'V6', 'V7')
+         self.primitive = self.variant in ('V4', 'V5', 'V7')
+         self.correction = self.variant != 'V0'
++        legacy_dynamic = self.variant in ('V2', 'V3', 'V4', 'V5', 'V6', 'V7')
++        legacy_readout = 'global' if self.variant in ('V1', 'V3') else 'local'
++        legacy_gate = ('global' if self.variant == 'V3' else 'local') if legacy_dynamic else 'none'
++        self.readout_feature = cfg.get('readout_feature', legacy_readout)
++        self.gate_input = cfg.get('gate_input', legacy_gate)
++        self.readout_alpha = cfg.get('readout_alpha', 0.5)  # weight on object-query feature
++        self.gate_eta = cfg.get('gate_eta', 1.0)
++        if self.readout_feature not in ('global', 'local', 'mixed'):
++            raise ValueError('readout_feature must be global, local, or mixed')
++        if self.gate_input not in ('none', 'global', 'local'):
++            raise ValueError('gate_input must be none, global, or local')
++        if not 0 <= self.readout_alpha <= 1 or not 0 <= self.gate_eta <= 1:
++            raise ValueError('readout_alpha and gate_eta must be in [0,1]')
++        self.dynamic = self.correction and self.gate_input != 'none'
+         for name in ('Au', 'Av', 'Wc'):
+             getattr(self, name).requires_grad_(self.correction)
+         self.Bvis.requires_grad_(self.dynamic)
+@@ -59,14 +72,25 @@
+         base = kappa * torch.einsum('bd,oid->boi', g, self.ec)
+         base = base + torch.einsum('bq,oiq->boi', g @ self.Bc, self.ec @ self.Cc)
+         u, v = self.ea @ self.Au.T, self.eo @ self.Av.T
+-        local = fo if self.variant not in ('V1', 'V3') else g[:, None, :].expand(-1, len(v), -1)
++        global_readout = g[:, None, :].expand(-1, len(v), -1)
++        if self.readout_feature == 'global':
++            readout = global_readout
++        elif self.readout_feature == 'local':
++            readout = fo
++        else:
++            readout = F.normalize((1 - self.readout_alpha) * global_readout + self.readout_alpha * fo,
++                                  dim=-1, eps=1e-12)
+         gamma = torch.ones(g.shape[0], len(v), c['rank'], device=g.device, dtype=g.dtype)
+         if self.dynamic:
+-            gate_input = local.roll(shifts=1, dims=0) if self.variant == 'V6' else local
+-            gamma = 2 * torch.sigmoid((gate_input @ self.Bvis.T) / c['tau_gamma'])
++            gate_input = global_readout if self.gate_input == 'global' else fo
++            if self.variant == 'V6':
++                gate_input = gate_input.roll(shifts=1, dims=0)
++            raw_gamma = 2 * torch.sigmoid((gate_input @ self.Bvis.T) / c['tau_gamma'])
++            # eta=1 retains the original operation order exactly.
++            gamma = raw_gamma if self.gate_eta == 1 else 1 + self.gate_eta * (raw_gamma - 1)
+         cond = base
+         if self.correction:
+-            modes = (local @ self.Wc) * gamma * v[None, :, :]
++            modes = (readout @ self.Wc) * gamma * v[None, :, :]
+             cond = base + rho * kappa * torch.einsum('bor,ir->boi', modes, u)
+         log_o = obj.log_softmax(-1)
+         log_a = cond.log_softmax(-1)

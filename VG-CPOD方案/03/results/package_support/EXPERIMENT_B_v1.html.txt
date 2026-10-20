@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>VG-CPOD 方案 v1 B组实验实施</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+  <link href="data:text/css;charset=utf-8,html%20%7B%20color%3A%20%23203043%3B%20background%3A%20%23f3f6fa%3B%20%7D%0Abody%20%7B%20max%2Dwidth%3A%201240px%3B%20margin%3A%2036px%20auto%3B%20padding%3A%2042px%2052px%3B%20background%3A%20%23fff%3B%20border%3A%201px%20solid%20%23e0e6ef%3B%20border%2Dradius%3A%2012px%3B%20font%3A%2016px%2F1%2E85%20%27Microsoft%20YaHei%27%2C%20%27Noto%20Sans%20CJK%20SC%27%2C%20sans%2Dserif%3B%20%7D%0Ah1%20%7B%20font%2Dsize%3A%202em%3B%20line%2Dheight%3A%201%2E35%3B%20color%3A%20%23173b58%3B%20%7D%0Ah2%20%7B%20margin%2Dtop%3A%202%2E3em%3B%20border%2Dbottom%3A%202px%20solid%20%23e5edf4%3B%20padding%2Dbottom%3A%20%2E3em%3B%20color%3A%20%23173b58%3B%20%7D%0Ah3%20%7B%20margin%2Dtop%3A%201%2E7em%3B%20color%3A%20%23245c78%3B%20%7D%0Ap%2C%20ul%2C%20ol%20%7B%20margin%3A%201em%200%3B%20%7D%0Atable%20%7B%20display%3A%20table%3B%20border%2Dcollapse%3A%20collapse%3B%20font%2Dsize%3A%2013px%3B%20line%2Dheight%3A%201%2E65%3B%20width%3A%20100%25%20%21important%3B%20margin%3A%201%2E4em%200%3B%20%7D%0Ath%2C%20td%20%7B%20border%3A%201px%20solid%20%23dce4ed%3B%20padding%3A%208px%2010px%3B%20text%2Dalign%3A%20left%3B%20vertical%2Dalign%3A%20top%3B%20%7D%0Ath%20%7B%20background%3A%20%23eaf1f7%3B%20font%2Dweight%3A%20600%3B%20white%2Dspace%3A%20nowrap%3B%20%7D%0Atbody%20tr%3Anth%2Dchild%28even%29%20%7B%20background%3A%20%23f7f9fc%3B%20%7D%0Aimg%20%7B%20max%2Dwidth%3A%20100%25%3B%20height%3A%20auto%3B%20%7D%0Afigure%20%7B%20margin%3A%201%2E5em%200%3B%20%7D%0Afigcaption%20%7B%20color%3A%20%23657185%3B%20font%2Dsize%3A%2013px%3B%20%7D%0Acode%20%7B%20background%3A%20%23edf2f7%3B%20border%2Dradius%3A%203px%3B%20padding%3A%201px%204px%3B%20overflow%2Dwrap%3A%20anywhere%3B%20%7D%0Apre%20%7B%20padding%3A%2015px%3B%20background%3A%20%23edf2f7%3B%20overflow%2Dx%3A%20auto%3B%20%7D%0Aa%20%7B%20color%3A%20%2317658a%3B%20text%2Dunderline%2Doffset%3A%203px%3B%20%7D%0Amath%5Bdisplay%3D%27block%27%5D%20%7B%20margin%3A%201%2E4em%200%3B%20overflow%2Dx%3A%20auto%3B%20%7D%0A%40media%20%28max%2Dwidth%3A%20800px%29%20%7B%20body%20%7B%20padding%3A%2020px%3B%20margin%3A%200%3B%20border%3A%200%3B%20border%2Dradius%3A%200%3B%20%7D%20table%20%7B%20display%3A%20block%3B%20overflow%2Dx%3A%20auto%3B%20font%2Dsize%3A%2012px%3B%20%7D%20%7D%0A" rel="stylesheet">
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="vg-cpod-方案-v1b-组视觉读出与局部调制实验">VG-CPOD 方案 v1：B 组视觉读出与局部调制实验</h1>
+<p>日期：2026-10-19。框架：冻结 CLIP ViT-L/14；数据：UT-Zappos。</p>
+<p>本轮在 A5 的训练设置上实施 B1/B2/B3，分别检验混合读出、局部门控和弱局部门控。三张 GPU 各运行一个独立实验，首轮均使用 seed3351、10 epochs。已有 A5/A6 直接作为同 seed 对照。</p>
+<h2 id="本轮实验与固定设置">1. 本轮实验与固定设置</h2>
+<table>
+<thead>
+<tr class="header">
+<th>实验</th>
+<th>修正读出</th>
+<th>门控输入</th>
+<th>门控幅度</th>
+<th>首轮物理 GPU</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>B1</td>
+<td>归一化的 0.5 全局 + 0.5 物体查询特征</td>
+<td>关闭</td>
+<td>全 1</td>
+<td>GPU1</td>
+</tr>
+<tr class="even">
+<td>B2</td>
+<td>全局特征</td>
+<td>物体查询特征</td>
+<td>η=1</td>
+<td>GPU2</td>
+</tr>
+<tr class="odd">
+<td>B3</td>
+<td>全局特征</td>
+<td>物体查询特征</td>
+<td>η=0.25</td>
+<td>GPU3</td>
+</tr>
+</tbody>
+</table>
+<p>适配器 LR=1e-3，CP LR=3e-4；余弦终点分别为 1e-5、3e-6。β=0.1，rank32，adapter rank8，batch64，10 epochs，ρ=0.1，κ=20，τγ=0.1，weight decay=1e-4。B2/B3 沿用 λorth=0.001。伙伴与原子属性辅助分支保持关闭。</p>
+<p>三个实验复用 <code>/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14</code> 中的冻结 CLIP 特征。每个实验从同 seed 的初始化开始训练，Wc 初始为零。checkpoint 按 VAL CW AUC_native 首次最大值选择，最终导出 VAL/TEST 的 CW/OW 结果。</p>
+<h2 id="已实现的公式">2. 已实现的公式</h2>
+<p>记全局特征为 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>g</mi><mi>b</mi></msub><mo>∈</mo><msup><mstyle mathvariant="double-struck"><mi>ℝ</mi></mstyle><mi>d</mi></msup></mrow><annotation encoding="application/x-tex">g_b\in\mathbb{R}^{d}</annotation></semantics></math>，物体查询特征为 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>f</mi><mrow><mi>b</mi><mi>j</mi></mrow><mi>o</mi></msubsup><mo>∈</mo><msup><mstyle mathvariant="double-struck"><mi>ℝ</mi></mstyle><mi>d</mi></msup></mrow><annotation encoding="application/x-tex">f^o_{bj}\in\mathbb{R}^{d}</annotation></semantics></math>。定义归一化与混合读出：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>unit</mo><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mfrac><mi>z</mi><mrow><mo>max</mo><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="prefix">∥</mo><mi>z</mi><msub><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msub><mo>,</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>12</mn></mrow></msup><mo stretchy="false" form="postfix">)</mo></mrow></mfrac><mo>,</mo><mspace width="2.0em"></mspace><msubsup><mi>h</mi><mrow><mi>b</mi><mi>j</mi></mrow><mstyle mathvariant="normal"><mi>m</mi><mi>i</mi><mi>x</mi></mstyle></msubsup><mo>=</mo><mo>unit</mo><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>α</mi><mo stretchy="false" form="postfix">)</mo><msub><mi>g</mi><mi>b</mi></msub><mo>+</mo><mi>α</mi><msubsup><mi>f</mi><mrow><mi>b</mi><mi>j</mi></mrow><mi>o</mi></msubsup><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mspace width="1.0em"></mspace><mi>α</mi><mo>=</mo><mn>0.5</mn><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\operatorname{unit}(z)=\frac{z}{\max(\lVert z\rVert_2,10^{-12})},
+\qquad
+h_{bj}^{\mathrm{mix}}=\operatorname{unit}\!\left((1-\alpha)g_b+\alpha f^o_{bj}\right),
+\quad\alpha=0.5.
+</annotation></semantics></math></p>
+<p>α 是局部特征的权重。B1 用混合特征读取 CP 修正；B2/B3 用 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mrow><mi>b</mi><mi>j</mi></mrow></msub><mo>=</mo><msub><mi>g</mi><mi>b</mi></msub></mrow><annotation encoding="application/x-tex">h_{bj}=g_b</annotation></semantics></math>。物体 logits 和基础条件 logits 继续使用原全局特征。</p>
+<p>设：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mi>i</mi></msub><mo>=</mo><msub><mi>A</mi><mi>u</mi></msub><msubsup><mi>e</mi><mi>i</mi><mi>a</mi></msubsup><mo>∈</mo><msup><mstyle mathvariant="double-struck"><mi>ℝ</mi></mstyle><mi>r</mi></msup><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>v</mi><mi>j</mi></msub><mo>=</mo><msub><mi>A</mi><mi>v</mi></msub><msubsup><mi>e</mi><mi>j</mi><mi>o</mi></msubsup><mo>∈</mo><msup><mstyle mathvariant="double-struck"><mi>ℝ</mi></mstyle><mi>r</mi></msup><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>W</mi><mi>c</mi></msub><mo>∈</mo><msup><mstyle mathvariant="double-struck"><mi>ℝ</mi></mstyle><mrow><mi>d</mi><mo>×</mo><mi>r</mi></mrow></msup><mi>.</mi></mrow><annotation encoding="application/x-tex">
+u_i=A_u e_i^a\in\mathbb{R}^{r},\qquad
+v_j=A_v e_j^o\in\mathbb{R}^{r},\qquad
+W_c\in\mathbb{R}^{d\times r}.
+</annotation></semantics></math></p>
+<p>B2/B3 的局部门控为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>γ</mi><mrow><mi>b</mi><mi>j</mi></mrow><mrow><mo stretchy="false" form="prefix">(</mo><mi>η</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>=</mo><msub><mstyle mathvariant="bold"><mn>1</mn></mstyle><mi>r</mi></msub><mo>+</mo><mi>η</mi><mrow><mo stretchy="true" form="prefix">[</mo><mn>2</mn><mi>σ</mi><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mrow><msub><mi>B</mi><mstyle mathvariant="normal"><mi>v</mi><mi>i</mi><mi>s</mi></mstyle></msub><msubsup><mi>f</mi><mrow><mi>b</mi><mi>j</mi></mrow><mi>o</mi></msubsup></mrow><msub><mi>τ</mi><mi>γ</mi></msub></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><msub><mstyle mathvariant="bold"><mn>1</mn></mstyle><mi>r</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>B</mi><mstyle mathvariant="normal"><mi>v</mi><mi>i</mi><mi>s</mi></mstyle></msub><mo>∈</mo><msup><mstyle mathvariant="double-struck"><mi>ℝ</mi></mstyle><mrow><mi>r</mi><mo>×</mo><mi>d</mi></mrow></msup><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\gamma_{bj}^{(\eta)}
+=\mathbf{1}_{r}+\eta\left[
+2\sigma\!\left(\frac{B_{\mathrm{vis}}f^o_{bj}}{\tau_{\gamma}}\right)-\mathbf{1}_{r}\right],
+\qquad B_{\mathrm{vis}}\in\mathbb{R}^{r\times d}.
+</annotation></semantics></math></p>
+<p>B1 的 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>γ</mi><mrow><mi>b</mi><mi>j</mi></mrow></msub><mo>=</mo><msub><mstyle mathvariant="bold"><mn>1</mn></mstyle><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">\gamma_{bj}=\mathbf{1}_{r}</annotation></semantics></math>。B2 的模式系数位于 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(0,2)</annotation></semantics></math>，B3 位于 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mn>0.75</mn><mo>,</mo><mn>1.25</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(0.75,1.25)</annotation></semantics></math>。修正和联合概率为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right"><mi>Δ</mi><msub><mi>U</mi><mrow><mi>b</mi><mi>j</mi><mi>i</mi></mrow></msub></mtd><mtd columnalign="left"><mo>=</mo><mi>ρ</mi><mi>κ</mi><mspace width="0.167em"></mspace><msubsup><mi>h</mi><mrow><mi>b</mi><mi>j</mi></mrow><mi>⊤</mi></msubsup><msub><mi>W</mi><mi>c</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>u</mi><mi>i</mi></msub><mo>⊙</mo><msub><mi>v</mi><mi>j</mi></msub><mo>⊙</mo><msub><mi>γ</mi><mrow><mi>b</mi><mi>j</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><msub><mi>U</mi><mrow><mi>b</mi><mi>j</mi><mi>i</mi></mrow></msub></mtd><mtd columnalign="left"><mo>=</mo><msubsup><mi>U</mi><mrow><mi>b</mi><mi>j</mi><mi>i</mi></mrow><mstyle mathvariant="normal"><mi>b</mi><mi>a</mi><mi>s</mi><mi>e</mi></mstyle></msubsup><mo>+</mo><mi>Δ</mi><msub><mi>U</mi><mrow><mi>b</mi><mi>j</mi><mi>i</mi></mrow></msub><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><mo>log</mo><mi>p</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>a</mi><mi>i</mi></msub><mo>,</mo><msub><mi>o</mi><mi>j</mi></msub><mo>∣</mo><msub><mi>x</mi><mi>b</mi></msub><mo stretchy="false" form="postfix">)</mo></mtd><mtd columnalign="left"><mo>=</mo><mo>log</mo><mo>softmax</mo><mo stretchy="false" form="prefix">(</mo><msub><mi>S</mi><mi>b</mi></msub><msub><mo stretchy="false" form="postfix">)</mo><mi>j</mi></msub><mo>+</mo><mo>log</mo><mo>softmax</mo><mo stretchy="false" form="prefix">(</mo><msub><mi>U</mi><mrow><mi>b</mi><mi>j</mi><mo>:</mo></mrow></msub><msub><mo stretchy="false" form="postfix">)</mo><mi>i</mi></msub><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">
+\begin{aligned}
+\Delta U_{bji}
+&amp;=\rho\kappa\,h_{bj}^{\top}W_c
+\left(u_i\odot v_j\odot\gamma_{bj}\right),\\
+U_{bji}&amp;=U_{bji}^{\mathrm{base}}+\Delta U_{bji},\\
+\log p(a_i,o_j\mid x_b)
+&amp;=\log\operatorname{softmax}(S_b)_j
++\log\operatorname{softmax}(U_{bj:})_i.
+\end{aligned}
+</annotation></semantics></math></p>
+<p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>S</mi><mi>b</mi></msub><annotation encoding="application/x-tex">S_b</annotation></semantics></math> 为原物体 logits，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>U</mi><mstyle mathvariant="normal"><mi>b</mi><mi>a</mi><mi>s</mi><mi>e</mi></mstyle></msup><annotation encoding="application/x-tex">U^{\mathrm{base}}</annotation></semantics></math> 为原条件属性 logits。实现按 <code>[batch, object, attribute]</code> 排列张量。相同参数下，B3 的修正严格满足：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Δ</mi><msub><mi>U</mi><mrow><mi>η</mi><mo>=</mo><mn>0.25</mn></mrow></msub><mo>=</mo><mn>0.75</mn><mspace width="0.167em"></mspace><mi>Δ</mi><msub><mi>U</mi><mrow><mi>η</mi><mo>=</mo><mn>0</mn></mrow></msub><mo>+</mo><mn>0.25</mn><mspace width="0.167em"></mspace><mi>Δ</mi><msub><mi>U</mi><mrow><mi>η</mi><mo>=</mo><mn>1</mn></mrow></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\Delta U_{\eta=0.25}
+=0.75\,\Delta U_{\eta=0}+0.25\,\Delta U_{\eta=1}.
+</annotation></semantics></math></p>
+<p>继续使用 A5 的目标：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right"><msub><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mstyle mathvariant="normal"><mi>t</mi><mi>a</mi><mi>s</mi><mi>k</mi></mstyle></msub><mo stretchy="false" form="prefix">(</mo><mi>β</mi><mo stretchy="false" form="postfix">)</mo></mtd><mtd columnalign="left"><mo>=</mo><mfrac><mn>1.5</mn><mrow><mn>1</mn><mo>+</mo><mi>β</mi></mrow></mfrac><mrow><mo stretchy="true" form="prefix">[</mo><msub><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mstyle mathvariant="normal"><mi>p</mi><mi>a</mi><mi>i</mi><mi>r</mi></mstyle></msub><mo>+</mo><mi>β</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mstyle mathvariant="normal"><mi>c</mi><mi>o</mi><mi>n</mi><mi>d</mi></mstyle></msub><mo>+</mo><msub><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mstyle mathvariant="normal"><mi>o</mi><mi>b</mi><mi>j</mi></mstyle></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">]</mo></mrow></mtd></mtr><mtr><mtd columnalign="right"></mtd><mtd columnalign="left"><mo>=</mo><mn>1.5</mn><mspace width="0.167em"></mspace><msub><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mstyle mathvariant="normal"><mi>p</mi><mi>a</mi><mi>i</mi><mi>r</mi></mstyle></msub><mo>+</mo><mfrac><mrow><mn>1.5</mn><mi>β</mi></mrow><mrow><mn>1</mn><mo>+</mo><mi>β</mi></mrow></mfrac><mspace width="0.167em"></mspace><msub><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mstyle mathvariant="normal"><mi>s</mi><mi>u</mi><mi>p</mi><mi>p</mi><mi>o</mi><mi>r</mi><mi>t</mi></mstyle></msub><mo>,</mo><mspace width="2.0em"></mspace><mi>β</mi><mo>=</mo><mn>0.1</mn><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">
+\begin{aligned}
+\mathcal{L}_{\mathrm{task}}(\beta)
+&amp;=\frac{1.5}{1+\beta}\left[
+\mathcal{L}_{\mathrm{pair}}+
+\beta\left(\mathcal{L}_{\mathrm{cond}}+\mathcal{L}_{\mathrm{obj}}\right)\right]\\
+&amp;=1.5\,\mathcal{L}_{\mathrm{pair}}
++\frac{1.5\beta}{1+\beta}\,\mathcal{L}_{\mathrm{support}},
+\qquad\beta=0.1.
+\end{aligned}
+</annotation></semantics></math></p>
+<p>这里 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Z</mi><mstyle mathvariant="normal"><mi>s</mi></mstyle></msub><mo>=</mo><msub><mo>∑</mo><mrow><mo stretchy="false" form="prefix">(</mo><mi>i</mi><mo>,</mo><mi>j</mi><mo stretchy="false" form="postfix">)</mo><mo>∈</mo><msub><mstyle mathvariant="script"><mi>𝒞</mi></mstyle><mstyle mathvariant="normal"><mi>t</mi><mi>r</mi><mi>a</mi><mi>i</mi><mi>n</mi></mstyle></msub></mrow></msub><mi>p</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>a</mi><mi>i</mi></msub><mo>,</mo><msub><mi>o</mi><mi>j</mi></msub><mo>∣</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Z_{\mathrm{s}}=\sum_{(i,j)\in\mathcal{C}_{\mathrm{train}}}p(a_i,o_j\mid x)</annotation></semantics></math>，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mstyle mathvariant="normal"><mi>s</mi><mi>u</mi><mi>p</mi><mi>p</mi><mi>o</mi><mi>r</mi><mi>t</mi></mstyle></msub><mo>=</mo><mo>−</mo><mo>log</mo><msub><mi>Z</mi><mstyle mathvariant="normal"><mi>s</mi></mstyle></msub></mrow><annotation encoding="application/x-tex">\mathcal{L}_{\mathrm{support}}=-\log Z_{\mathrm{s}}</annotation></semantics></math>。因此支持集合项系数为 0.13636。B2/B3 再加入现有正交项：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mo>=</mo><msub><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mstyle mathvariant="normal"><mi>t</mi><mi>a</mi><mi>s</mi><mi>k</mi></mstyle></msub><mo>+</mo><mfrac><mn>0.001</mn><msup><mi>r</mi><mn>2</mn></msup></mfrac><msubsup><mrow><mo stretchy="true" form="prefix">∥</mo><msub><mi>B</mi><mstyle mathvariant="normal"><mi>v</mi><mi>i</mi><mi>s</mi></mstyle></msub><msubsup><mi>B</mi><mstyle mathvariant="normal"><mi>v</mi><mi>i</mi><mi>s</mi></mstyle><mi>⊤</mi></msubsup><mo>−</mo><msub><mi>I</mi><mi>r</mi></msub><mo stretchy="true" form="postfix">∥</mo></mrow><mi>F</mi><mn>2</mn></msubsup><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\mathcal{L}
+=\mathcal{L}_{\mathrm{task}}
++\frac{0.001}{r^2}
+\left\lVert B_{\mathrm{vis}}B_{\mathrm{vis}}^{\top}-I_r\right\rVert_F^2.
+</annotation></semantics></math></p>
+<h2 id="代码改动与结果文件">3. 代码改动与结果文件</h2>
+<table style="width:11%;">
+<colgroup>
+<col style="width: 5%"></col>
+<col style="width: 5%"></col>
+</colgroup>
+<thead>
+<tr class="header">
+<th>文件</th>
+<th>实现内容</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>vgcpod/model.py</code></td>
+<td>分开 <code>readout_feature</code> 与 <code>gate_input</code>；加入 <code>readout_alpha</code>、<code>gate_eta</code>；保留原变体的默认计算</td>
+</tr>
+<tr class="even">
+<td><code>vgcpod/engine.py</code></td>
+<td>沿用 A 组训练与评测，增加跨图像门控方差、门控偏离 1 的均值日志</td>
+</tr>
+<tr class="odd">
+<td><code>configs/round_b/B1.json</code></td>
+<td><code>readout_feature=mixed</code>、<code>gate_input=none</code>、α=0.5</td>
+</tr>
+<tr class="even">
+<td><code>configs/round_b/B2.json</code></td>
+<td><code>readout_feature=global</code>、<code>gate_input=local</code>、η=1</td>
+</tr>
+<tr class="odd">
+<td><code>configs/round_b/B3.json</code></td>
+<td><code>readout_feature=global</code>、<code>gate_input=local</code>、η=0.25</td>
+</tr>
+<tr class="even">
+<td><code>round_b.py</code></td>
+<td>三 GPU 队列、自动续训、跳过已完成训练、同 seed 配对与按配置聚合</td>
+</tr>
+<tr class="odd">
+<td><code>scripts/start_round_b_tmux.sh</code></td>
+<td>使用当前 conda 环境的绝对 Python 路径，在 tmux 中启动队列</td>
+</tr>
+<tr class="even">
+<td><code>references/round_a_confirm.json</code></td>
+<td>A1/A5/A6 三 seed 的已保存指标，支持直接汇总比较</td>
+</tr>
+</tbody>
+</table>
+<p>三个配置的内部 <code>variant</code> 均沿用 V1，通过上述配置区分实际读出与门控。结果位于：</p>
+<pre class="text"><code>/data/xhw/vgcpod_v1_runs/roundB_20261019/
+  B1/ut-zap50k/V1/seed3351/
+  B2/ut-zap50k/V1/seed3351/
+  B3/ut-zap50k/V1/seed3351/
+  logs/B1_seed3351.log
+  logs/B2_seed3351.log
+  logs/B3_seed3351.log
+  launcher.log
+  launcher.exitcode
+  round_b_status.json
+  round_b_summary.csv
+  round_b_mean_sd.csv
+  round_b_paired_deltas.csv
+  round_b_paired_mean_sd.csv
+  round_b_summary.json
+  per_pair_gains.csv</code></pre>
+<p>各模型目录包含 <code>checkpoints/best.pt</code>、<code>checkpoints/last.pt</code>、<code>protocol.json</code>、<code>history.json</code>、<code>metrics.json</code>、四份预测 NPZ 和四份曲线 JSON。</p>
+<p><code>per_pair_gains.csv</code> 从服务器原 A5/A6 的预测导出逐组合差值。总体指标比较同时支持包内 A 组快照。<code>round_b_mean_sd.csv</code> 按配置聚合，单 seed 的 SD 留空，补 seed 后计算样本标准差。</p>
+<h2 id="本机上传windows-powershell">4. 本机上传：Windows PowerShell</h2>
+<p>将第一行填为平时 SSH 使用的地址，端口与日常登录一致：</p>
+<pre class="powershell"><code>$VgServer = 'xhw@你的服务器IP'
+$VgPort = 22
+scp -P $VgPort 'C:\Users\llenovo\Documents\ChatGPT\VG-CPOD\vgcpod_v1_roundB_20261019.zip' &quot;${VgServer}:/data/xhw/vgcpod_project/&quot;
+ssh -p $VgPort $VgServer</code></pre>
+<h2 id="服务器解压并启动三卡-tmux">5. 服务器解压并启动三卡 tmux</h2>
+<p>以下在服务器执行：</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="bu">cd</span> /data/xhw/vgcpod_project
+<span class="fu">unzip</span> -n vgcpod_v1_roundB_20261019.zip
+<span class="ex">conda</span> activate vgcpod_v1
+<span class="bu">cd</span> /data/xhw/vgcpod_project/vgcpod_v1_roundB
+
+<span class="bu">export</span> <span class="va">VG_CACHE=</span>/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14
+<span class="bu">export</span> <span class="va">VG_A_OUT=</span>/data/xhw/vgcpod_v1_runs/roundA_20261019
+<span class="bu">export</span> <span class="va">VG_B_OUT=</span>/data/xhw/vgcpod_v1_runs/roundB_20261019
+<span class="bu">export</span> <span class="va">VG_B_SESSION=</span>vgcpod_B
+
+<span class="fu">bash</span> scripts/start_round_b_tmux.sh \
+  --gpus 1 2 3 --cases B1 B2 B3 --seeds 3351
+
+<span class="ex">tmux</span> attach -t vgcpod_B</code></pre></div>
+<p>沿用当前 <code>vgcpod_v1</code> 环境。代码包包含 CLIP 实现，训练直接读取已有特征缓存。物理 GPU1/2/3 分别运行 B1/B2/B3，每组 10 轮。</p>
+<p>按 <strong>Ctrl+b，松开，再按 d</strong> 脱离 tmux，训练继续。</p>
+<h2 id="查看进度与判断完成">6. 查看进度与判断完成</h2>
+<p>另开 SSH 终端，查看总调度日志：</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="fu">tail</span> -f /data/xhw/vgcpod_v1_runs/roundB_20261019/launcher.log</code></pre></div>
+<p>查看三个模型的逐轮日志：</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="fu">tail</span> -f \
+  /data/xhw/vgcpod_v1_runs/roundB_20261019/logs/B1_seed3351.log \
+  /data/xhw/vgcpod_v1_runs/roundB_20261019/logs/B2_seed3351.log \
+  /data/xhw/vgcpod_v1_runs/roundB_20261019/logs/B3_seed3351.log</code></pre></div>
+<p><code>Ctrl+c</code> 退出日志查看。总日志出现 <code>ROUND_B_COMPLETE ... jobs 3</code>，并且下列命令输出 <code>0</code>，表示本轮队列成功结束：</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="fu">cat</span> /data/xhw/vgcpod_v1_runs/roundB_20261019/launcher.exitcode</code></pre></div>
+<p>训练结束后重新生成汇总：</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">conda</span> activate vgcpod_v1
+<span class="bu">cd</span> /data/xhw/vgcpod_project/vgcpod_v1_roundB
+<span class="ex">python</span> round_b.py summarize \
+  --out /data/xhw/vgcpod_v1_runs/roundB_20261019 \
+  --reference-out /data/xhw/vgcpod_v1_runs/roundA_20261019</code></pre></div>
+<p>直接查看 <code>round_b_paired_deltas.csv</code> 中的 B1/B2/B3−A5、B1/B2/B3−A6 和 B3−B2。主结果为 CW/OW AUC，同时观察未见条件属性准确率和固定 VAL bias 的 HM。</p>
+<h2 id="单独运行续训与后续补-seed">7. 单独运行、续训与后续补 seed</h2>
+<p>单独运行 B3：</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">conda</span> activate vgcpod_v1
+<span class="bu">cd</span> /data/xhw/vgcpod_project/vgcpod_v1_roundB
+<span class="va">CUDA_VISIBLE_DEVICES=</span>3 <span class="ex">python</span> -u run.py train \
+  --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14 \
+  --out /data/xhw/vgcpod_v1_runs/roundB_20261019/B3 \
+  --config configs/round_b/B3.json --seed 3351 --device cuda</code></pre></div>
+<p>手动续训在上述命令末尾加 <code>--resume</code>。队列脚本自动添加续训参数，已完成的实验直接跳过。若原队列已退出，需要重新启动，可用新的 tmux 会话名：</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="bu">cd</span> /data/xhw/vgcpod_project/vgcpod_v1_roundB
+<span class="va">VG_B_SESSION=</span>vgcpod_B_resume <span class="fu">bash</span> scripts/start_round_b_tmux.sh \
+  --gpus 1 2 3 --cases B1 B2 B3 --seeds 3351
+<span class="ex">tmux</span> attach -t vgcpod_B_resume</code></pre></div>
+<p>首轮按 VAL 结果确定后续投入配置，再补 seed3352、3353。以下以 B3 为例，两张卡并行补两次：</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">conda</span> activate vgcpod_v1
+<span class="bu">cd</span> /data/xhw/vgcpod_project/vgcpod_v1_roundB
+<span class="va">VG_B_SESSION=</span>vgcpod_B_moreseed <span class="fu">bash</span> scripts/start_round_b_tmux.sh \
+  --gpus 1 2 --cases B3 --seeds 3352 3353
+<span class="ex">tmux</span> attach -t vgcpod_B_moreseed</code></pre></div>
+<h2 id="打包结果并保存到本地">8. 打包结果并保存到本地</h2>
+<p>服务器上执行，结果包同时包含模型结果与本轮源代码：</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="fu">tar</span> -czf /data/xhw/vgcpod_project/vgcpod_roundB_results_20261019.tar.gz \
+  -C /data/xhw/vgcpod_v1_runs roundB_20261019 \
+  -C /data/xhw/vgcpod_project vgcpod_v1_roundB</code></pre></div>
+<p>本机 PowerShell 执行：</p>
+<pre class="powershell"><code>$VgServer = 'xhw@你的服务器IP'
+$VgPort = 22
+$VgLocal = 'C:\Users\llenovo\Documents\ChatGPT\VG-CPOD'
+scp -P $VgPort &quot;${VgServer}:/data/xhw/vgcpod_project/vgcpod_roundB_results_20261019.tar.gz&quot; &quot;$VgLocal\&quot;
+New-Item -ItemType Directory -Force -Path &quot;$VgLocal\server_results_roundB_20261019&quot; | Out-Null
+tar -xzf &quot;$VgLocal\vgcpod_roundB_results_20261019.tar.gz&quot; -C &quot;$VgLocal\server_results_roundB_20261019&quot;</code></pre>
+<h2 id="本地验证记录">9. 本地验证记录</h2>
+<p>22 项测试已通过，覆盖算子矩阵形式、秩上界、概率归一化、η 插值关系、门控梯度有限差分、优化器分组、三组训练导出、配对汇总与中断续训。</p>
+<p>另以合成缓存执行了实际命令行的三进程 CPU 调度与重复运行；原九个变体与 A 组实现逐步比较了四次优化更新。记录位于 <code>validation/test_output.txt</code>、<code>validation/cli_output.txt</code>、<code>validation/legacy_compatibility.json</code>、<code>validation/result.json</code>。服务器 GPU 实验使用本计划的完整配置。</p>
+</body>
+</html>
