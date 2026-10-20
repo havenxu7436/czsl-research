@@ -8,3 +8,4 @@
 |---|---|---|
 | 01 | CLIP ViT-L/14；UT-Zappos natural split | [版本索引](v1/README.md) · [结果](v1/results/ut-zap50k-3seeds-20261018/README.md) |
 | 02 | 支持损失重加权与 CP 分组学习率（A 组）；12 次训练，A1/A5/A6 三 seed | [修订说明](02/README.md) · [代码](02/code/README.md) · [配置](02/configs/README.md) · [结果](02/results/README.md) · [数据分析](02/analysis/README.md) |
+| 03 | 读出解耦与局部弱门控（B 组）；B1/B2/B3 各 seed3351，3 次训练 | [修订说明](03/README.md) · [代码](03/code/README.md) · [配置](03/configs/README.md) · [结果](03/results/README.md) · [数据分析](03/analysis/README.md) |
