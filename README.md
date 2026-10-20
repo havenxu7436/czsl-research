@@ -1,6 +1,6 @@
 # CZSL 研究：实验记录与复现
 
-最新归档（2026-10-20）：[VG-CPOD 06 · 中心化 CP 强度扩展与双准则选权重](VG-CPOD方案/06/README.md)，包含 E1（ρ=0.15）三 seed、native／exact 双准则选权重、六项动态／TRAIN 均值替换评估，共 72 份预测、12 份 checkpoint 文件；附公式、代码修订、超参数策略和[数据分析](VG-CPOD方案/06/analysis/README.md)。前序 [05 D组及三seed补充](VG-CPOD方案/05/README.md)、[04 C组](VG-CPOD方案/04/README.md)、[03 B组](VG-CPOD方案/03/README.md)、[02 A组](VG-CPOD方案/02/README.md)与[01 原正式结果](VG-CPOD方案/v1/results/ut-zap50k-3seeds-20261018/README.md)继续保留。
+最新归档（2026-10-20）：[VG-CPOD 07 · 支持集权重下调与跨组合排序诊断](VG-CPOD方案/07/README.md)，包含 F1（ρ=0.15、β=0.05）三 seed、加权支持集损失日志、native／exact 选权重和六项均值评估，共72份预测、12份checkpoint文件；附公式与代码修订、超参数策略及[数据分析](VG-CPOD方案/07/analysis/README.md)。前序 [06 E组](VG-CPOD方案/06/README.md)、[05 D组](VG-CPOD方案/05/README.md)、[04 C组](VG-CPOD方案/04/README.md)、[03 B组](VG-CPOD方案/03/README.md)、[02 A组](VG-CPOD方案/02/README.md)与[01 原正式结果](VG-CPOD方案/v1/results/ut-zap50k-3seeds-20261018/README.md)继续保留。
 
 ## 目录
 
@@ -21,7 +21,7 @@ provenance/    文件来源、路径映射与 SHA256
 |---|---|---|
 | 前期实验 | 01–15 | [实验索引](前期实验/README.md) |
 | 0601方案 | 01–04 | [方案索引](0601方案/README.md) |
-| VG-CPOD | 01–06 | [方案索引](VG-CPOD方案/README.md) |
+| VG-CPOD | 01–07 | [方案索引](VG-CPOD方案/README.md) |
 
 ## 使用流程
 
@@ -38,7 +38,7 @@ python tools/reproduce.py verify
 3. 各阶段 README 提供实验设置、关键流程、入口和结果链接。
 4. `inputs.json` 索引知识、配置和结果；`runbook.json` 保存该阶段的执行命令。
 
-`materialize` 将分区存储的文件恢复为独立运行目录中的原包布局。VG-CPOD 的 01 使用 `--line VG-CPOD方案 --stage v1`，02–06 使用对应编号并指定 `--line VG-CPOD方案`。04 同时恢复 C 包和 B3 补 seed 使用的原 B 包；05 恢复原 D 包、C 源码和三 seed 补充轮启动器；06 恢复原 E 包，包含双准则选权重和均值评估入口。各实验的外部输入见对应索引；02–06 可直接复用服务器已有的冻结 CLIP 特征缓存。
+`materialize` 将分区存储的文件恢复为独立运行目录中的原包布局。VG-CPOD 的 01 使用 `--line VG-CPOD方案 --stage v1`，02–07 使用对应编号并指定 `--line VG-CPOD方案`。04 同时恢复 C 包和 B3 补 seed 使用的原 B 包；05 恢复原 D 包、C 源码和三 seed 补充轮启动器；06 恢复原 E 包，包含双准则选权重和均值评估入口；07 恢复原 F 包，包含支持损失日志与 β 配对汇总。各实验的外部输入见对应索引；02–07 可直接复用服务器已有的冻结 CLIP 特征缓存。
 
 评价中的 CW/OW 分别表示 closed-world/open-world。训练组按对应 VAL 规则选模，选中权重用于结果评价。
 

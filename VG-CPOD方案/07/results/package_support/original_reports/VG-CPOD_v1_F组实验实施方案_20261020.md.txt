@@ -1,0 +1,255 @@
+# VG-CPOD 方案 v1：F 组实验与三卡实践命令
+
+日期：2026-10-20。框架：冻结 OpenAI CLIP ViT-L/14；数据：UT-Zappos；版本：v1。
+
+**F1 = E1，固定 ρ=0.15，将 β 从 0.1 降到 0.05。** 三个 seed 从各自原始初始化训练，直接与已有 E1 的相同 seed 比较。每项训练 10 epochs，随后自动完成 native／exact 两种选中权重的 TRAIN 均值门控评估。
+
+## 1. 实验变量与三卡分工
+
+E1 的三 seed 平均 VAL CW native AUC 为 43.5538，TEST CW／OW AUC 为 34.4271／25.1804。E1 相对 D1 的 TEST 未见组合支持集质量从 73.4657% 升至 73.6985%，未见条件属性准确率从 24.3434% 降至 23.3739%。F1 测量降低支持集损失权重后，这些量及组合排序的变化。
+
+| 物理 GPU | 实验 | seed | epochs |
+|---|---|---|---|
+| 1 | F1，ρ=0.15、β=0.05 | 3351 | 10 |
+| 2 | F1，ρ=0.15、β=0.05 | 3352 | 10 |
+| 3 | F1，ρ=0.15、β=0.05 | 3353 | 10 |
+
+三张卡各运行一个独立进程，共 30 个模型 epoch；每张卡训练后顺序进行两项均值门控评估。已有 E1 提供 β=0.1 的三 seed 对照。
+
+| 参数 | F1 设置 |
+|---|---|
+| CLIP | 冻结 OpenAI ViT-L/14，复用现有缓存 |
+| CP 修正强度 ρ／辅助权重 β | **0.15／0.05** |
+| 读出／门控输入 | 全局图像特征 g／物体查询视觉特征 |
+| 门控中心化／η／τγ | 开启／0.25／0.1 |
+| rank／adapter rank／κ | 32／8／20 |
+| epochs／batch size | 10／64 |
+| 适配器学习率 | 1e-3，余弦降至 1e-5 |
+| CP 学习率 | 3e-4，余弦降至 3e-6 |
+| λorth／weight decay／gradient clip | 0.001／1e-4／1 |
+| τv／workers | 0.07／4 |
+
+`configs/round_f/F1.json` 相对 `configs/round_e/E1.json` 仅改变 `task_aux_beta` 和 `experiment_id`。CLIP 特征、初始化、数据顺序、优化器和学习率日程沿用 E1。
+
+## 2. 公式与代码对应
+
+### 2.1 当前模型与中心化门控
+
+令 $g_b\in\mathbb{R}^d$ 为全局视觉特征，$f^o_{bj}\in\mathbb{R}^d$ 为物体查询特征，$e_i^a,e_j^o\in\mathbb{R}^d$ 为冻结 CLIP 文本特征。使用 $A_u,A_v\in\mathbb{R}^{r\times d}$、$W_c\in\mathbb{R}^{d\times r}$ 和 $B_{\mathrm{vis}}\in\mathbb{R}^{r\times d}$：
+
+$$
+\begin{aligned}
+u_i&=A_u e_i^a,\qquad v_j=A_v e_j^o,\\
+q_{bjk}&=2\sigma\!\left(\frac{(f^o_{bj})^\top(B_{\mathrm{vis}})_{k:}^\top}{\tau_\gamma}\right)-1,\\
+\gamma_{bjk}&=1+\frac{\eta}{2}\left(q_{bjk}-\frac{1}{r}\sum_{\ell=1}^{r}q_{bj\ell}\right),\\
+U_{bji}&=U^{\mathrm{base}}_{bji}+0.15\kappa\,g_b^\top W_c(u_i\odot v_j\odot\gamma_{bj}).
+\end{aligned}
+$$
+
+每个图像／物体查询的模式均值为 1。$S_{bj}$ 表示现有物体分支 logits，$U^{\mathrm{base}}$ 表示现有组合文本及适配器分支 logits。联合分布按链式分解归一化：
+
+$$
+\begin{aligned}
+p_{bji}&=p(o_j\mid x_b)\,p(a_i\mid o_j,x_b),\\
+s_{bji}:=\log p_{bji}
+&=\log\operatorname{softmax}(S_b)_j
++\log\operatorname{softmax}(U_{bj:})_i.
+\end{aligned}
+$$
+
+对应 `vgcpod/model.py` 的 `forward()`；该文件与 E 组逐字一致。
+
+### 2.2 β 对训练目标的精确作用
+
+令 $\mathcal{C}_{\mathrm{seen}}$ 为 TRAIN 组合集合，真实组合为 $(a_b,o_b)\in\mathcal{C}_{\mathrm{seen}}$。定义完整联合分布落在 TRAIN 组合上的总质量：
+
+$$
+Z_b=\sum_{(a_i,o_j)\in\mathcal{C}_{\mathrm{seen}}}\exp(s_{bji}),
+\qquad \mathcal{L}_{\mathrm{support}}=-\frac{1}{B}\sum_{b=1}^{B}\log Z_b.
+$$
+
+它是组合集合的概率质量。组合分类损失在 TRAIN 组合内归一化：
+
+$$
+\begin{aligned}
+\mathcal{L}_{\mathrm{pair}}&=\frac{1}{B}\sum_{b=1}^{B}
+\left[-s_{b,o_b,a_b}+\log Z_b\right],\\
+\mathcal{L}_a&=-\frac{1}{B}\sum_{b=1}^{B}\log p(a_b\mid o_b,x_b),\\
+\mathcal{L}_o&=-\frac{1}{B}\sum_{b=1}^{B}\log p(o_b\mid x_b).
+\end{aligned}
+$$
+
+由 $s_{b,o_b,a_b}=\log p(o_b\mid x_b)+\log p(a_b\mid o_b,x_b)$，逐样本相加并取平均可得：
+
+$$
+\begin{aligned}
+\mathcal{L}_a+\mathcal{L}_o
+&=-\frac{1}{B}\sum_b s_{b,o_b,a_b}\\
+&=\mathcal{L}_{\mathrm{pair}}+\mathcal{L}_{\mathrm{support}},\\
+\mathcal{L}_{\mathrm{task}}(\beta)
+&=\frac{1.5}{1+\beta}\left[\mathcal{L}_{\mathrm{pair}}+\beta(\mathcal{L}_a+\mathcal{L}_o)\right]\\
+&=1.5\mathcal{L}_{\mathrm{pair}}+\frac{1.5\beta}{1+\beta}\mathcal{L}_{\mathrm{support}}.
+\end{aligned}
+$$
+
+因此，当前两组的精确系数为：
+
+$$
+\begin{aligned}
+\mathcal{L}^{\mathrm{E1}}_{\mathrm{task}}
+&=\frac{3}{2}\mathcal{L}_{\mathrm{pair}}+\frac{3}{22}\mathcal{L}_{\mathrm{support}},\\
+\mathcal{L}^{\mathrm{F1}}_{\mathrm{task}}
+&=\frac{3}{2}\mathcal{L}_{\mathrm{pair}}+\frac{1}{14}\mathcal{L}_{\mathrm{support}},\\
+\mathcal{L}^{\mathrm{F1}}
+&=\mathcal{L}^{\mathrm{F1}}_{\mathrm{task}}+10^{-3}\mathcal{L}_{\mathrm{orth}}.
+\end{aligned}
+$$
+
+支持集项系数从 0.136363636 降至 0.071428571，为原来的 52.38%；pair 项系数保持 1.5。F1 使用的 V1 分支中 `prim`、`cent` 两项为零。正交项沿用 $\lVert B_{\mathrm{vis}}B_{\mathrm{vis}}^\top-I_r\rVert_F^2/r^2$，AdamW 的 weight decay 独立执行。
+
+`objective()` 已支持任意 β，继续使用原表达式计算反向传播。`engine.py` 在 `optimizer.step()` 后，从已取出的标量记录以下量：
+
+| `history.json` 的 `train` 字段 | 含义 |
+|---|---|
+| `support_weight` | $1.5\beta/(1+\beta)$ |
+| `pair_weighted` | $1.5\mathcal{L}_{\mathrm{pair}}$ |
+| `support_weighted` | $[1.5\beta/(1+\beta)]\mathcal{L}_{\mathrm{support}}$ |
+| `task_reconstruction_error` | 每 batch 的 task 与上述加权和之绝对差，按图像数加权平均 |
+
+这些字段只用于记录。每个 epoch 的原始损失和加权损失均按实际 batch 图像数汇总，末尾不足一批的样本按其实际数量计入。
+
+### 2.3 权重选择与六项均值门控评估
+
+对第 $t$ 轮的 VAL CW native／exact AUC，分别选择首次最大值：
+
+$$
+t^*_m=\min\left\{t\in\{1,\ldots,T\}:A^{m}_t=\max_{1\le s\le T}A^{m}_s\right\},
+\qquad m\in\{\mathrm{native},\mathrm{exact}\}.
+$$
+
+两种最优值分别维护，只有严格增大才更新。保存 `best_native.pt`、其逐字别名 `best.pt`、`best_exact.pt` 和包含优化器／随机状态的 `last.pt`。主结果在运行根目录；exact 选中结果在 `exact_selection/`。
+
+每个选中 checkpoint 用全部 TRAIN 图像统计物体／模式均值，并固定该权重替换推理时的门控：
+
+$$
+\bar\gamma_{jk}=\frac{1}{N_{\mathrm{train}}}\sum_{b=1}^{N_{\mathrm{train}}}\gamma_{bjk},
+\qquad \gamma^{\mathrm{mean}}_{bjk}=\bar\gamma_{jk}.
+$$
+
+统计不使用标签。native／exact 各三项，共六项评估，优化步数为零。每种权重、每种门控条件分别使用自己的 VAL CW／OW native bias，再固定到 TEST；同时报告 native 与 exact AUC。
+
+## 3. 代码改动与结果分析
+
+| 文件 | 本轮改动 |
+|---|---|
+| `configs/round_f/F1.json` | β=0.05、experiment_id=F1 |
+| `vgcpod/engine.py` | 新增四个标量损失日志字段 |
+| `round_f.py` | 三 seed 调度、自动续训、六项门控评估、F1−E1 及历史配对汇总 |
+| `scripts/start_round_f_tmux.sh` | 在 tmux 启动整轮，保存日志与退出码 |
+| `references/pre_f_complete.json` | 17 个 A5/A6/C1/C2/D1/E1 原生选择运行的指标和选中 epoch TRAIN 快照 |
+| `tests/test_round_f.py` | 配置差异、损失恒等式／梯度／有限差分、加权日志测试 |
+
+`model.py` 和 `mean_gate_eval.py` 沿用 E 组实现。F 组在新的代码和输出目录运行。
+
+汇总先读取服务器已有结果；对应目录未提供时，指标对比使用包内同 seed、同缓存的快照。逐组合对比从预测文件读取。
+
+| 结果文件 | 分析内容 |
+|---|---|
+| `round_f_summary.json`、`round_f_mean_sd.csv` | 三 seed 主指标、均值与样本标准差 |
+| `round_f_paired_deltas.csv`、`round_f_paired_mean_sd.csv` | 首先看 **F1−E1**，再看 F1−D1/A5/A6/C2/C1 |
+| `beta_native_summary.csv`、`beta_native_mean_sd.csv` | 相同 ρ=0.15 下 E1 与 F1 的 β 对比 |
+| `support_training_summary.csv` | E1/F1 的选中与最后 epoch TRAIN 原始／加权损失、支持集质量、裁剪比例 |
+| `exact_selection_summary.csv`、`exact_selection_effects.csv` | exact 选中结果与同 seed native 结果的差 |
+| `mean_gate_effects.csv` | 两种选中权重各自的 dynamic−mean |
+| `per_pair_gains.csv` | 逐组合条件属性正确数及无 bias 组合准确率增量 |
+
+配对差值按相同 seed 与特征缓存计算；三 seed 的 SD 对三个差值计算。C1 当前两个 seed 单列。支持集训练表的 `task_epoch_reconstruction_error` 根据 epoch 均值重构；`task_batch_reconstruction_error_mean` 对应日志中的平均 batch 误差。E1 包内快照只含选中 epoch，服务器原始历史可提供最后 epoch。
+
+结果分析顺序：先比较 F1−E1 的 CW／OW AUC、固定 VAL bias 的 HM、未见条件属性准确率和未见图像上的 TRAIN 组合总质量；再与 D1、A5 比较整体水平；最后比较 dynamic−mean。逐组合继续查看 Suede／Boots.Mid-Calf、Canvas／Shoes.Loafers、Suede／Slippers、Synthetic／Boots.Mid-Calf。
+
+## 4. 本机上传
+
+在 Windows PowerShell 执行，将 `你的服务器IP` 换成实际地址：
+
+```powershell
+$vgServer = "xhw@你的服务器IP"
+scp "C:\Users\llenovo\Documents\ChatGPT\VG-CPOD\vgcpod_v1_roundF_20261020.zip" "${vgServer}:/data/xhw/vgcpod_project/"
+```
+
+## 5. 服务器实践命令
+
+### 5.1 激活环境并在 tmux 启动
+
+```bash
+conda activate vgcpod_v1
+cd /data/xhw/vgcpod_project
+unzip -o vgcpod_v1_roundF_20261020.zip
+cd /data/xhw/vgcpod_project/vgcpod_v1_roundF
+
+bash scripts/start_round_f_tmux.sh --gpus 1 2 3
+tmux attach -t vgcpod_F
+```
+
+启动脚本会建立 tmux 会话 `vgcpod_F`，保存当前 conda 环境的 Python 绝对路径。按 **Ctrl+b**，松开后按 **d** 可离开，会话继续运行。物理 GPU1/2/3 各自映射为对应进程内的 `cuda:0`。
+
+使用现有缓存 `/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14`。历史对照默认读取 `/data/xhw/vgcpod_v1_runs/roundA_20261019`、`roundC_20261020`、`roundD_20261020`、`roundE_20261020`。本轮输出为 `/data/xhw/vgcpod_v1_runs/roundF_20261020`。
+
+### 5.2 查看进度与结束状态
+
+查看整轮日志：
+
+```bash
+tail -f /data/xhw/vgcpod_v1_runs/roundF_20261020/launcher.log
+```
+
+查看训练日志与退出码：
+
+```bash
+tail -n 12 /data/xhw/vgcpod_v1_runs/roundF_20261020/logs/F1_seed3351.log
+tail -n 12 /data/xhw/vgcpod_v1_runs/roundF_20261020/logs/F1_seed3352.log
+tail -n 12 /data/xhw/vgcpod_v1_runs/roundF_20261020/logs/F1_seed3353.log
+cat /data/xhw/vgcpod_v1_runs/roundF_20261020/launcher.exitcode
+```
+
+退出码为 **0**，并且主日志出现 `ROUND_F_COMPLETE ... training_jobs 3 mean_gate_jobs 6`，表示三项训练、六项均值评估和汇总全部完成。`RUNNING` 表示正在运行。非零时从 `launcher.log` 和 `round_f_status.json` 查看对应任务错误。`tail -f` 按 Ctrl+C 退出查看；实验结束后 tmux 保留终端。
+
+### 5.3 中断后继续
+
+原训练进程退出后执行：
+
+```bash
+conda activate vgcpod_v1
+cd /data/xhw/vgcpod_project/vgcpod_v1_roundF
+VG_F_SESSION=vgcpod_F_resume bash scripts/start_round_f_tmux.sh --gpus 1 2 3
+tmux attach -t vgcpod_F_resume
+```
+
+已完成的训练与评估直接复用；未完成训练从最后完整 epoch 的权重、优化器和随机状态继续，余弦日程仍为原 10 epochs。
+
+## 6. 完成后下载到本机
+
+在服务器打包 F/E/D/C 结果和对应源代码：
+
+```bash
+tar -czf /data/xhw/vgcpod_project/vgcpod_roundF_results_20261020.tar.gz \
+  -C /data/xhw/vgcpod_v1_runs roundF_20261020 roundE_20261020 roundD_20261020 roundC_20261020 \
+  -C /data/xhw/vgcpod_project vgcpod_v1_roundF vgcpod_v1_roundE vgcpod_v1_roundD vgcpod_v1_roundC
+```
+
+在 Windows PowerShell 下载、解压：
+
+```powershell
+$vgServer = "xhw@你的服务器IP"
+$vgLocal = "C:\Users\llenovo\Documents\ChatGPT\VG-CPOD"
+scp "${vgServer}:/data/xhw/vgcpod_project/vgcpod_roundF_results_20261020.tar.gz" "$vgLocal\"
+$vgExtract = Join-Path $vgLocal "server_results_roundF_20261020"
+New-Item -ItemType Directory -Force -Path $vgExtract | Out-Null
+tar -xzf "$vgLocal\vgcpod_roundF_results_20261020.tar.gz" -C "$vgExtract"
+```
+
+## 7. 交付验证
+
+- 36 项测试通过，覆盖公式、梯度、双轨首次最大值、断点续训和新增日志。
+- CPU 合成缓存完整运行三项 F1 训练与六项门控评估；重复启动跳过三项训练与六项评估。
+- 将原 E 组训练器设置为相同 β=0.05 后比较：native 选中与最后 epoch 的模型参数、AdamW 状态及 Torch 随机状态逐元素一致。
+- 检查 Python 3.8 语法、Bash 脚本、PowerShell 命令和 Markdown／HTML 公式排版。明细位于 `validation/`。

@@ -1,0 +1,7 @@
+# 来源
+
+- `vendor/clip/` 与 `vendor/CLIP_LICENSE` 复制自本机第14阶段冻结探针的官方 OpenAI CLIP 源码，固定提交 `a1d071733d7111c9c014f024669f959182114e33`。保留其 MIT License。
+- `vendor/native_evaluator.py` 是本机 `src/CPF_fixed/evaluator_ge.py` 的逐字快照，作为评价回归测试参考；源码保留原有 Attributes-as-Operators / ExplainableML CZSL 来源说明。
+- `assets/labels.json`、`names.json`、`historical_inputs.json` 来自第14阶段 r2 protocol。`path_aliases.json` 来自该阶段原始资产。
+- E 组公式、实现与服务器操作见 `EXPERIMENT_E_v1.md`。E1 沿用 D1 的模型与损失，rho 改为 0.15；训练器增加 native/exact 独立选权重和导出；`round_e.py` 完成三卡调度与汇总。
+- 新增模型、缓存、训练、评价与实验编排位于 `vgcpod/`、`run.py`、`scripts/`、`tests/`。

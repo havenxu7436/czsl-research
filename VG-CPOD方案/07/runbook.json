@@ -1,0 +1,17 @@
+{
+  "line": "VG-CPOD方案",
+  "stage": "07",
+  "primary_package": "vgcpod_v1_roundF",
+  "commands": [
+    {
+      "source": "README.md",
+      "language": "bash",
+      "text": "git lfs pull\npython tools/reproduce.py materialize --line VG-CPOD方案 --stage 07 \\\n  --dest /data/xhw/vgcpod_project/replay_07\nconda activate vgcpod_v1\ncd /data/xhw/vgcpod_project/replay_07/vgcpod_v1_roundF\n\nexport VG_F_OUT=/data/xhw/vgcpod_v1_runs/replay_07_F\nexport VG_F_SESSION=vgcpod_07_F\nbash scripts/start_round_f_tmux.sh \\\n  --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14 --gpus 1 2 3 \\\n  --a-out /data/xhw/vgcpod_v1_runs/roundA_20261019 \\\n  --c-out /data/xhw/vgcpod_v1_runs/roundC_20261020 \\\n  --d-out /data/xhw/vgcpod_v1_runs/roundD_20261020 \\\n  --e-out /data/xhw/vgcpod_v1_runs/roundE_20261020\ntmux attach -t vgcpod_07_F\n"
+    },
+    {
+      "source": "README.md",
+      "language": "bash",
+      "text": "python VG-CPOD方案/07/analysis/recompute.py\npython tools/reproduce.py verify\n"
+    }
+  ]
+}

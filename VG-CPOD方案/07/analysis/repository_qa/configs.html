@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>07 configs</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link href="data:text/css;charset=utf-8,html%20%7B%20color%3A%20%23203043%3B%20background%3A%20%23f3f6fa%3B%20%7D%0Abody%20%7B%20max%2Dwidth%3A%201240px%3B%20margin%3A%2036px%20auto%3B%20padding%3A%2042px%2052px%3B%20background%3A%20%23fff%3B%20border%3A%201px%20solid%20%23e0e6ef%3B%20border%2Dradius%3A%2012px%3B%20font%3A%2016px%2F1%2E85%20%27Microsoft%20YaHei%27%2C%20%27Noto%20Sans%20CJK%20SC%27%2C%20sans%2Dserif%3B%20%7D%0Ah1%20%7B%20font%2Dsize%3A%202em%3B%20line%2Dheight%3A%201%2E35%3B%20color%3A%20%23173b58%3B%20%7D%0Ah2%20%7B%20margin%2Dtop%3A%202%2E3em%3B%20border%2Dbottom%3A%202px%20solid%20%23e5edf4%3B%20padding%2Dbottom%3A%20%2E3em%3B%20color%3A%20%23173b58%3B%20%7D%0Ah3%20%7B%20margin%2Dtop%3A%201%2E7em%3B%20color%3A%20%23245c78%3B%20%7D%0Ap%2C%20ul%2C%20ol%20%7B%20margin%3A%201em%200%3B%20%7D%0Atable%20%7B%20display%3A%20table%3B%20border%2Dcollapse%3A%20collapse%3B%20font%2Dsize%3A%2013px%3B%20line%2Dheight%3A%201%2E65%3B%20width%3A%20100%25%20%21important%3B%20margin%3A%201%2E4em%200%3B%20%7D%0Ath%2C%20td%20%7B%20border%3A%201px%20solid%20%23dce4ed%3B%20padding%3A%208px%2010px%3B%20text%2Dalign%3A%20left%3B%20vertical%2Dalign%3A%20top%3B%20%7D%0Ath%20%7B%20background%3A%20%23eaf1f7%3B%20font%2Dweight%3A%20600%3B%20white%2Dspace%3A%20nowrap%3B%20%7D%0Atbody%20tr%3Anth%2Dchild%28even%29%20%7B%20background%3A%20%23f7f9fc%3B%20%7D%0Aimg%20%7B%20max%2Dwidth%3A%20100%25%3B%20height%3A%20auto%3B%20%7D%0Afigure%20%7B%20margin%3A%201%2E5em%200%3B%20%7D%0Afigcaption%20%7B%20color%3A%20%23657185%3B%20font%2Dsize%3A%2013px%3B%20%7D%0Acode%20%7B%20background%3A%20%23edf2f7%3B%20border%2Dradius%3A%203px%3B%20padding%3A%201px%204px%3B%20overflow%2Dwrap%3A%20anywhere%3B%20%7D%0Apre%20%7B%20padding%3A%2015px%3B%20background%3A%20%23edf2f7%3B%20overflow%2Dx%3A%20auto%3B%20%7D%0Aa%20%7B%20color%3A%20%2317658a%3B%20text%2Dunderline%2Doffset%3A%203px%3B%20%7D%0Amath%5Bdisplay%3D%27block%27%5D%20%7B%20margin%3A%201%2E4em%200%3B%20overflow%2Dx%3A%20auto%3B%20%7D%0A%40media%20%28max%2Dwidth%3A%20800px%29%20%7B%20body%20%7B%20padding%3A%2020px%3B%20margin%3A%200%3B%20border%3A%200%3B%20border%2Dradius%3A%200%3B%20%7D%20table%20%7B%20display%3A%20block%3B%20overflow%2Dx%3A%20auto%3B%20font%2Dsize%3A%2012px%3B%20%7D%20%7D%0A" rel="stylesheet">
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="配置与超参数策略">07 · 配置与超参数策略</h1>
+<table>
+<thead>
+<tr class="header">
+<th>方案</th>
+<th>读出</th>
+<th>门控</th>
+<th>ρ</th>
+<th>β</th>
+<th>η</th>
+<th>新增seed／native最佳epoch</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a href="round_f/F1.json">F1</a></td>
+<td>全局 g</td>
+<td>物体查询输入、模式中心化</td>
+<td>0.15</td>
+<td><strong>0.05</strong></td>
+<td>0.25</td>
+<td>3351/8、3352/8、3353/6</td>
+</tr>
+</tbody>
+</table>
+<p>F1 与 <a href="round_e/E1.json">E1</a> 的完整配置仅 <code>task_aux_beta</code> 与 <code>experiment_id</code> 不同。三次训练各 10 epochs、3600 次更新；native／exact 均选中 8／8／6 轮。实际全字段与两套指标见<a href="experiment_inventory.json" class="uri">experiment_inventory.json</a>。</p>
+<h2 id="选取策略">选取策略</h2>
+<ol type="1">
+<li>E1 按既定 VAL CW 三 seed 均值规则作为基座，固定 ρ=0.15；以 β=0.05 测量支持集权重下调的效果。</li>
+<li>精确保持 pair 项系数 1.5；support 系数从 3/22 降到 1/14，为原来的 52.38%。</li>
+<li>固定模型结构、η=0.25、τγ=0.1、rank32、CP分组学习率与10轮日程，直接与 E1 同 seed 配对。</li>
+<li>seed3351／3352／3353 分配到物理 GPU1／2／3，每个 seed 从对应原始初始化训练。</li>
+<li>主结果按首次严格最大 VAL CW native AUC 选权重；exact 权重单独保存。每种选择完成一次 TRAIN 全集均值替换，条件分别用各自 VAL bias。</li>
+<li>对 F1−E1 的 AUC、HM、条件属性、支持集质量联合分析，后续建议 β=0.075 的 G1 与同配置静态 G0；本阶段实际配置为 F1、β=0.05。</li>
+</ol>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mstyle mathvariant="normal"><mi>t</mi><mi>a</mi><mi>s</mi><mi>k</mi></mstyle><mstyle mathvariant="normal"><mi>F</mi><mn>1</mn></mstyle></msubsup><mo>=</mo><mfrac><mn>3</mn><mn>2</mn></mfrac><msub><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mstyle mathvariant="normal"><mi>p</mi><mi>a</mi><mi>i</mi><mi>r</mi></mstyle></msub><mo>+</mo><mfrac><mn>1</mn><mn>14</mn></mfrac><msub><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mstyle mathvariant="normal"><mi>s</mi><mi>u</mi><mi>p</mi><mi>p</mi><mi>o</mi><mi>r</mi><mi>t</mi></mstyle></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\mathcal{L}_{\mathrm{task}}^{\mathrm{F1}}
+=\frac32\mathcal{L}_{\mathrm{pair}}+\frac1{14}\mathcal{L}_{\mathrm{support}}.
+</annotation></semantics></math></p>
+<table>
+<thead>
+<tr class="header">
+<th>固定项目</th>
+<th>设置</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>CLIP／输入</td>
+<td>冻结 OpenAI ViT-L/14，224px，768维</td>
+</tr>
+<tr class="even">
+<td>ρ／η／τγ／β</td>
+<td>0.15 / 0.25 / 0.1 / 0.05</td>
+</tr>
+<tr class="odd">
+<td>rank／adapter rank／κ／τv</td>
+<td>32 / 8 / 20 / 0.07</td>
+</tr>
+<tr class="even">
+<td>epochs／batch／每轮更新</td>
+<td>10 / 64 / 360</td>
+</tr>
+<tr class="odd">
+<td>适配器LR／CP LR</td>
+<td>1e-3→1e-5 / 3e-4→3e-6，余弦</td>
+</tr>
+<tr class="even">
+<td>AdamW β₁、β₂／ε／weight decay</td>
+<td>0.9、0.999 / 1e-8 / 1e-4</td>
+</tr>
+<tr class="odd">
+<td>梯度裁剪／正交项／workers</td>
+<td>1 / 0.001 / 4</td>
+</tr>
+</tbody>
+</table>
+<p>CP 参数组为 Bvis、Au、Av、Wc，<code>cp_lr_scale=0.3</code>，Wc 从零初始化。内部 <code>variant=V1</code>；通过 <code>gate_input=local</code>、<code>gate_center_modes=true</code> 启用视觉模式。prim 与 cent 分支关闭，兼容字段保留于原配置。</p>
+<h2 id="配置资产与对照索引">配置、资产与对照索引</h2>
+<ul>
+<li><a href="round_f/F1.json">F1实际配置</a>、<a href="round_e/E1.json">E1直接对照</a>、<a href="round_d/D1.json">D1配置</a>、<a href="round_c/">C配置</a>、<a href="round_a/">A配置</a>、<a href="round_b/">B配置</a>、<a href="default.json">默认配置</a>。</li>
+<li><a href="experiment_inventory.json">三项训练清单</a>、<a href="intervention_inventory.json">六项均值评估清单</a>。</li>
+<li><a href="references/pre_f_complete.json">F前17份参考指标</a>、<a href="references/pre_e_complete.json">E前参考</a>、<a href="references/round_a_confirm.json">A组三seed参考</a>、<a href="assets/">标签资产</a>。</li>
+<li><a href="../external_inputs.json">外部输入与已有阶段</a>。缓存 manifest SHA256 为 <code>bb8b7a8eb8c4e77a14ef65dd5c626aac559880d7c8d642dcc1e9a2a843831d2a</code>。</li>
+</ul>
+<p>后续 β=0.075 的系数与对照策略见<a href="../analysis/README.md">数据分析</a>。</p>
+</body>
+</html>

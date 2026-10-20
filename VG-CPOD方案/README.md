@@ -12,3 +12,4 @@
 | 04 | 静态幅度对照与模式中心化门控（C 组）；C1/C2 各 seed3351，另纳入 B3/3352 | [修订说明](04/README.md) · [代码](04/code/README.md) · [配置](04/configs/README.md) · [结果](04/results/README.md) · [数据分析](04/analysis/README.md) |
 | 05 | 中心化 CP 幅度联动与均值门控评估（D 组）；D1 三 seed，C2 两个补 seed、C1/3352，六 checkpoint 干预 | [修订说明](05/README.md) · [代码](05/code/README.md) · [配置](05/configs/README.md) · [结果](05/results/README.md) · [数据分析](05/analysis/README.md) |
 | 06 | 中心化 CP 强度扩展与双准则选权重（E 组）；E1 三 seed、两套最优权重及六项均值评估 | [修订说明](06/README.md) · [代码](06/code/README.md) · [配置](06/configs/README.md) · [结果](06/results/README.md) · [数据分析](06/analysis/README.md) |
+| 07 | 支持集权重下调与跨组合排序诊断（F 组）；F1 三 seed、加权损失日志、双准则选权重及六项均值评估 | [修订说明](07/README.md) · [代码](07/code/README.md) · [配置](07/configs/README.md) · [结果](07/results/README.md) · [数据分析](07/analysis/README.md) |

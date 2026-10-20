@@ -1,0 +1,25 @@
+{
+  "fixture": "CPU synthetic CLIP cache",
+  "training_jobs": 3,
+  "mean_gate_jobs": 6,
+  "repeat_training_skipped": 3,
+  "repeat_mean_gate_skipped": 6,
+  "selections": [
+    "native",
+    "exact"
+  ],
+  "model_py_unchanged": true,
+  "legacy_beta005_bitwise_parameters": true,
+  "legacy_rng_equal": true,
+  "legacy_optimizer_equal": true,
+  "support_logs_valid": true,
+  "beta_comparison_cases": [
+    "E1",
+    "F1"
+  ],
+  "independent_val_biases": true,
+  "python38_syntax_files": 16,
+  "bash_scripts": [
+    "start_round_f_tmux.sh"
+  ]
+}
