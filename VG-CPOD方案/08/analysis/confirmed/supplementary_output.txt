@@ -1,0 +1,72 @@
+{
+  "server_main_summary_matches": true,
+  "ranking_rows_verified": 228,
+  "ranking_max_errors": {
+    "object_accuracy": 0.0,
+    "object_nll": 2.220446049250313e-16,
+    "conditional_accuracy": 0.0,
+    "conditional_nll": 6.661338147750939e-16,
+    "seen_support_pct": 2.842170943040401e-14,
+    "extra_support_pct": 1.7763568394002505e-15,
+    "unseen_rank_ceiling": 0.0,
+    "extra_dominates_valid": 0.0
+  },
+  "release_files_verified": 75,
+  "train_log_errors": {
+    "support_coefficient": 2.7755575615628914e-17,
+    "weighted_pair": 4.440892098500626e-16,
+    "weighted_support": 3.469446951953614e-17,
+    "batch_residual": 1.348360150626347e-07
+  },
+  "object_text_shape": [
+    12,
+    768
+  ],
+  "object_text_rank": 12,
+  "object_text_condition_number": 9.489826694952322,
+  "static_gate_folding": [
+    {
+      "seed": 3351,
+      "selection": "native",
+      "epoch": 8,
+      "factor_max_error": 1.1546319456101628e-14,
+      "random_visual_delta_max_error": 8.215650382226158e-15
+    },
+    {
+      "seed": 3352,
+      "selection": "native",
+      "epoch": 8,
+      "factor_max_error": 7.66053886991358e-15,
+      "random_visual_delta_max_error": 8.881784197001252e-15
+    },
+    {
+      "seed": 3353,
+      "selection": "native",
+      "epoch": 9,
+      "factor_max_error": 9.325873406851315e-15,
+      "random_visual_delta_max_error": 6.217248937900877e-15
+    },
+    {
+      "seed": 3351,
+      "selection": "exact",
+      "epoch": 8,
+      "factor_max_error": 1.1546319456101628e-14,
+      "random_visual_delta_max_error": 8.215650382226158e-15
+    },
+    {
+      "seed": 3352,
+      "selection": "exact",
+      "epoch": 8,
+      "factor_max_error": 7.66053886991358e-15,
+      "random_visual_delta_max_error": 8.881784197001252e-15
+    },
+    {
+      "seed": 3353,
+      "selection": "exact",
+      "epoch": 6,
+      "factor_max_error": 9.769962616701378e-15,
+      "random_visual_delta_max_error": 5.329070518200751e-15
+    }
+  ],
+  "folding_rule": "Full row-rank fixed object vocabulary: Av_eff.T = pinv(Eo) @ ((Eo @ Av.T) * mean_gamma)"
+}

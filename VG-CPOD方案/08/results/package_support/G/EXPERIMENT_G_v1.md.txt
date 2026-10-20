@@ -1,0 +1,270 @@
+# VG-CPOD 方案 v1：G 组实验与三卡实践命令
+
+日期：2026-10-20。框架：冻结 OpenAI CLIP ViT-L/14；数据：UT-Zappos；版本：v1。
+
+**本轮训练 G0／G1，各三个 seed。两组固定 ρ=0.15、β=0.075，G0 使用静态 CP，G1 使用 η=0.25 的中心化视觉门控。** 三张 GPU 各运行一个 seed 的 G0→G1 队列，随后完成 G1 的两项均值门控评估。
+
+## 1. 实验变量与三卡分工
+
+F1 将 β 从 0.1 降到 0.05 后，相对 E1，TEST 未见条件属性准确率提高 1.816 个百分点，CW／OW AUC 下降 0.397／0.829 点。当前 G1 检验 β 中间值；G0 提供同配置静态训练对照，量化视觉门控模块的训练收益。
+
+| 实验 | ρ | β | gate_input | η | 比较目标 |
+|---|---|---|---|---|---|
+| G0：静态 | 0.15 | 0.075 | none | 沿用 0.25，静态分支不使用 | G1−G0：模块训练收益 |
+| G1：动态 | 0.15 | 0.075 | local | 0.25 | G1−E1/F1：β 中间值 |
+
+| 物理 GPU | seed | 顺序执行 |
+|---|---|---|
+| GPU1 | 3351 | G0 训练 → G1 训练 → G1 native 均值评估 → G1 exact 均值评估 |
+| GPU2 | 3352 | G0 训练 → G1 训练 → G1 native 均值评估 → G1 exact 均值评估 |
+| GPU3 | 3353 | G0 训练 → G1 训练 → G1 native 均值评估 → G1 exact 均值评估 |
+
+每项训练 10 epochs，共 **6 个模型、60 个模型 epoch**；G1 均值评估共 **6 项**，优化步数为零。各模型从对应 seed 的原始初始化开始。
+
+| 参数 | 设置 |
+|---|---|
+| CLIP | 冻结 OpenAI ViT-L/14，复用现有缓存 |
+| CP rank／adapter rank／κ | 32／8／20 |
+| 读出特征／动态门控输入 | 全局图像特征 g／物体查询视觉特征 |
+| 门控中心化／τγ／τv | 开启／0.1／0.07 |
+| epochs／batch size／workers | 10／64／4 |
+| 适配器学习率 | 1e-3，余弦降至 1e-5 |
+| CP 学习率 | 3e-4，余弦降至 3e-6 |
+| weight decay／gradient clip | 1e-4／1 |
+| 动态分支 λorth | 0.001 |
+
+## 2. 公式与代码对应
+
+### 2.1 当前模型与静态对照
+
+令 $g_b\in\mathbb{R}^d$ 为全局视觉特征，$f^o_{bj}\in\mathbb{R}^d$ 为物体查询视觉特征，$e_i^a,e_j^o\in\mathbb{R}^d$ 为冻结 CLIP 文本特征。使用 $A_u,A_v\in\mathbb{R}^{r\times d}$、$W_c\in\mathbb{R}^{d\times r}$ 和 $B_{\mathrm{vis}}\in\mathbb{R}^{r\times d}$。G1 沿用当前中心化门控：
+
+$$
+\begin{aligned}
+u_i&=A_u e_i^a,\qquad v_j=A_v e_j^o,\\
+q_{bjk}&=2\sigma\!\left(\frac{(f^o_{bj})^\top(B_{\mathrm{vis}})_{k:}^\top}{\tau_\gamma}\right)-1,\\
+\gamma_{bjk}&=1+\frac{0.25}{2}\left(q_{bjk}-\frac{1}{r}\sum_{\ell=1}^{r}q_{bj\ell}\right),\\
+U^{\mathrm{G1}}_{bji}&=U^{\mathrm{base}}_{bji}+0.15\kappa\,g_b^\top W_c(u_i\odot v_j\odot\gamma_{bj}).
+\end{aligned}
+$$
+
+每个图像／物体查询的模式均值为 1。G0 将 `gate_input` 设置为 `none`，直接使用：
+
+$$
+\gamma^{\mathrm{G0}}_{bjk}=1,
+\qquad U^{\mathrm{G0}}_{bji}=U^{\mathrm{base}}_{bji}+0.15\kappa\,g_b^\top W_c(u_i\odot v_j).
+$$
+
+G0 继续训练全局读出 CP 和适配器，Bvis 冻结，orth 项为零。两组使用相同的适配器／CP 初始化规则与数据顺序。物体分支 logits 记为 $S_{bj}$，联合分布沿用链式分解：
+
+$$
+s_{bji}:=\log p(a_i,o_j\mid x_b)
+=\log\operatorname{softmax}(S_b)_j
++\log\operatorname{softmax}(U_{bj:})_i.
+$$
+
+实现对应 `vgcpod/model.py` 的 `forward()`。该文件、CLIP 特征提取和训练器与 F 组逐字一致。
+
+### 2.2 β=0.075 的训练目标
+
+令 $\mathcal{S}$ 为 TRAIN 组合集合，真实标签为 $(i_b,j_b)$，且训练标签均在 $\mathcal{S}$ 内。现有损失满足：
+
+$$
+\begin{aligned}
+Z_b&=\sum_{(i,j)\in\mathcal{S}}\exp(s_{bji}),\\
+\mathcal{L}_{\mathrm{support}}&=-\frac{1}{B}\sum_b\log Z_b,\\
+\mathcal{L}_{\mathrm{pair}}&=\frac{1}{B}\sum_b[-s_{bj_bi_b}+\log Z_b],\\
+\mathcal{L}_a+\mathcal{L}_o&=\mathcal{L}_{\mathrm{pair}}+\mathcal{L}_{\mathrm{support}},\\
+\mathcal{L}_{\mathrm{task}}(\beta)
+&=\frac{1.5}{1+\beta}[\mathcal{L}_{\mathrm{pair}}+\beta(\mathcal{L}_a+\mathcal{L}_o)]\\
+&=1.5\mathcal{L}_{\mathrm{pair}}+\frac{1.5\beta}{1+\beta}\mathcal{L}_{\mathrm{support}}.
+\end{aligned}
+$$
+
+代入 β=0.075，得到两组共同的 task 损失：
+
+$$
+\mathcal{L}_{\mathrm{task}}(0.075)
+=\frac{3}{2}\mathcal{L}_{\mathrm{pair}}+\frac{9}{86}\mathcal{L}_{\mathrm{support}}
+\approx1.5\mathcal{L}_{\mathrm{pair}}+0.104651163\mathcal{L}_{\mathrm{support}}.
+$$
+
+支持集项系数位于 E1 的 0.136363636 与 F1 的 0.071428571 之间；pair 项系数保持 1.5。G0／G1 均使用 V1 分支，prim、cent 为零，总损失为：
+
+$$
+\begin{aligned}
+\mathcal{L}^{\mathrm{G0}}&=\mathcal{L}_{\mathrm{task}}(0.075),\\
+\mathcal{L}^{\mathrm{G1}}&=\mathcal{L}_{\mathrm{task}}(0.075)+10^{-3}\mathcal{L}_{\mathrm{orth}},\\
+\mathcal{L}_{\mathrm{orth}}&=\frac{1}{r^2}\left\lVert B_{\mathrm{vis}}B_{\mathrm{vis}}^\top-I_r\right\rVert_F^2.
+\end{aligned}
+$$
+
+AdamW 的 weight decay 独立执行。`objective()` 继续使用现有表达式进行反向传播；`engine.py` 沿用 F 组的标量日志 `support_weight`、`pair_weighted`、`support_weighted` 和 `task_reconstruction_error`。epoch 损失按实际图像数加权平均。
+
+### 2.3 两种权重选择与 G1 均值评估
+
+G0、G1 各自维护 native／exact 两条选权重路径，选择 VAL CW AUC 的首次最大值：
+
+$$
+t^*_m=\min\left\{t\in\{1,\ldots,T\}:A_t^m=\max_{1\le s\le T}A_s^m\right\},
+\qquad m\in\{\mathrm{native},\mathrm{exact}\}.
+$$
+
+每个模型保存 `best_native.pt`、其逐字别名 `best.pt`、`best_exact.pt`、`last.pt`。native 主结果位于运行根目录，exact 选中结果位于 `exact_selection/`。每种权重分别在自己的 VAL CW／OW 上选取 native bias，再固定用于 TEST，同时报告 native/exact AUC。
+
+G1 每种选中权重用全部 TRAIN 图像统计物体／模式均值：
+
+$$
+\bar\gamma_{jk}=\frac{1}{N_{\mathrm{train}}}\sum_{b=1}^{N_{\mathrm{train}}}\gamma_{bjk},
+\qquad \gamma^{\mathrm{mean}}_{bjk}=\bar\gamma_{jk}.
+$$
+
+统计不使用标签。动态与均值条件各自校准 VAL bias，再评价 TEST。G0 的门控已恒为 1，其输出直接作为静态训练对照。
+
+### 2.4 新增排序诊断
+
+`ranking_diagnostics.py` 在训练和 G1 均值评估完成后读取保存的 OW 预测，输出以下量；这些统计不改变模型分数。
+
+令 $\mathcal{P}=\mathcal{A}\times\mathcal{O}$，$\mathcal{C}_h=\mathcal{S}\cup\mathcal{Y}_h$ 为 split $h$ 的 CW 候选集，$\mathcal{E}_h=\mathcal{P}\setminus\mathcal{C}_h$。定义：
+
+$$
+\begin{aligned}
+M_b^{\mathrm{seen}}&=\sum_{(i,j)\in\mathcal{S}}\exp(s_{bji}),\\
+M_b^{\mathrm{extra}}&=\sum_{(i,j)\in\mathcal{E}_h}\exp(s_{bji}),\\
+D_b^{\mathrm{extra}}&=\mathbf{1}\!\left[
+\max_{(i,j)\in\mathcal{E}_h}s_{bji}
+>\max_{(i,j)\in\mathcal{C}_h\setminus\mathcal{S}}s_{bji}
+\right].
+\end{aligned}
+$$
+
+“CW 集合外”描述该 split 的候选集合关系。`seen_support_pct`、`extra_support_pct` 和 `extra_dominates_valid` 分别为上述量的图像均值乘 100。`unseen_rank_ceiling` 为真实组合在全部未见候选 $\mathcal{P}\setminus\mathcal{S}$ 内排名第一的比例；固定候选排序与 exact 分区内排序一致。
+
+同时输出物体准确率／NLL、GT-object 条件属性准确率／NLL，分别统计 VAL／TEST 的 all、seen、unseen 图像，并记录逐组合正确数和概率质量。主分析读取 unseen 图像行。G1−G0、G1−E1/F1/D1/A5 与 G1 dynamic−mean 均保存同 seed 差值及配对均值、样本标准差。
+
+## 3. 已修改的文件
+
+| 文件 | 内容 |
+|---|---|
+| `configs/round_g/G1.json` | 从 F1 改为 β=0.075、experiment_id=G1 |
+| `configs/round_g/G0.json` | G1 配置关闭门控输入，experiment_id=G0 |
+| `round_g.py` | 三卡 G0→G1 队列、自动续训、六项 G1 门控评估、指标与配对汇总 |
+| `ranking_diagnostics.py` | 从保存预测计算物体／属性／跨组合排序诊断 |
+| `scripts/start_round_g_tmux.sh` | 在 tmux 启动，保存整轮日志和退出码 |
+| `references/pre_g_complete.json` | 20 个 A5/A6/C1/C2/D1/E1/F1 运行的指标快照 |
+| `tests/test_round_g.py` | 配置差异、静态极限、β=0.075 梯度、排序诊断测试 |
+
+历史对照优先读取服务器已有输出。包内快照提供同 seed、同缓存的标量指标；逐组合与排序诊断从对应预测文件读取。F 组训练核心、模型和均值评估器保留当前实现。
+
+## 4. 本机上传
+
+在 Windows PowerShell 执行，将 `你的服务器IP` 替换为实际地址：
+
+```powershell
+$vgServer = "xhw@你的服务器IP"
+scp "C:\Users\llenovo\Documents\ChatGPT\VG-CPOD\vgcpod_v1_roundG_20261020.zip" "${vgServer}:/data/xhw/vgcpod_project/"
+```
+
+## 5. 服务器实践命令
+
+### 5.1 激活环境并启动 tmux
+
+```bash
+conda activate vgcpod_v1
+cd /data/xhw/vgcpod_project
+unzip -o vgcpod_v1_roundG_20261020.zip
+cd /data/xhw/vgcpod_project/vgcpod_v1_roundG
+
+bash scripts/start_round_g_tmux.sh --gpus 1 2 3
+tmux attach -t vgcpod_G
+```
+
+脚本自动建立 tmux 会话 `vgcpod_G`，并保存当前 conda 环境的 Python 绝对路径。按 **Ctrl+b**，松开后按 **d**，离开会话后训练继续。GPU1/2/3 为物理卡号，各子进程内映射为 `cuda:0`。
+
+默认使用现有缓存 `/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14`。历史对照读取同目录下的 `roundA_20261019`、`roundC_20261020`、`roundD_20261020`、`roundE_20261020`、`roundF_20261020`。本轮输出为 `/data/xhw/vgcpod_v1_runs/roundG_20261020`。
+
+### 5.2 查看进度与结束状态
+
+查看整轮调度日志：
+
+```bash
+tail -f /data/xhw/vgcpod_v1_runs/roundG_20261020/launcher.log
+```
+
+查看六个训练任务的最新 epoch：
+
+```bash
+tail -n 5 /data/xhw/vgcpod_v1_runs/roundG_20261020/logs/G0_seed3351.log
+tail -n 5 /data/xhw/vgcpod_v1_runs/roundG_20261020/logs/G1_seed3351.log
+tail -n 5 /data/xhw/vgcpod_v1_runs/roundG_20261020/logs/G0_seed3352.log
+tail -n 5 /data/xhw/vgcpod_v1_runs/roundG_20261020/logs/G1_seed3352.log
+tail -n 5 /data/xhw/vgcpod_v1_runs/roundG_20261020/logs/G0_seed3353.log
+tail -n 5 /data/xhw/vgcpod_v1_runs/roundG_20261020/logs/G1_seed3353.log
+cat /data/xhw/vgcpod_v1_runs/roundG_20261020/launcher.exitcode
+```
+
+每张卡先完成 G0，再创建对应 G1 日志。退出码 **0** 且主日志出现 `ROUND_G_COMPLETE ... training_jobs 6 mean_gate_jobs 6`，表示六项训练、六项评估和全部汇总完成。`RUNNING` 表示正在运行；非零时从 `launcher.log` 和 `round_g_status.json` 读取具体任务错误。`tail -f` 按 Ctrl+C 退出查看；完成后 tmux 保留终端。
+
+### 5.3 中断后继续
+
+原训练进程退出后执行：
+
+```bash
+conda activate vgcpod_v1
+cd /data/xhw/vgcpod_project/vgcpod_v1_roundG
+VG_G_SESSION=vgcpod_G_resume bash scripts/start_round_g_tmux.sh --gpus 1 2 3
+tmux attach -t vgcpod_G_resume
+```
+
+已完成模型与均值评估直接复用，未完成模型从最后完整 epoch 的权重、优化器和随机状态继续，余弦日程仍使用原定 10 epochs。例如 G0 已完成、G1 中断时，对应队列会跳过 G0 并继续 G1。
+
+## 6. 输出文件与分析顺序
+
+每个模型保存于 `G0/ut-zap50k/V1/seed3351/` 或 `G1/ut-zap50k/V1/seed3351/`，包含 checkpoint、history、protocol、native 主结果及 `exact_selection/`。另外两个 seed 使用相同结构。G1 均值评估在 `mean_gate/G1/seed3351/` 和 `mean_gate_exact/G1/seed3351/`。
+
+| 汇总文件 | 内容 |
+|---|---|
+| `round_g_summary.json`、`round_g_mean_sd.csv` | G0/G1 三 seed 主指标与均值／样本标准差 |
+| `round_g_paired_deltas.csv`、`round_g_paired_mean_sd.csv` | G1−G0、G1−E1/F1/D1/A5 等配对比较 |
+| `beta_native_summary.csv`、`beta_native_mean_sd.csv` | ρ=0.15 下 F1/G1/E1 的 β=0.05/0.075/0.1 对比 |
+| `support_training_summary.csv` | G0/G1/E1/F1 选中与最后 epoch 的原始／加权损失 |
+| `exact_selection_summary.csv`、`exact_selection_effects.csv` | 两组 exact 选中结果及其相对 native 的差值 |
+| `mean_gate_effects.csv` | G1 两种选中权重的 dynamic−mean |
+| `ranking_diagnostics.json`、`ranking_diagnostics.csv` | all/seen/unseen 图像的物体、属性与排序诊断 |
+| `ranking_diagnostics_mean_sd.csv` | 上述诊断的三 seed 均值／样本标准差 |
+| `ranking_diagnostic_deltas.csv`、`ranking_diagnostic_paired_mean_sd.csv` | 排序诊断的同 seed 差值与配对汇总 |
+| `pair_probability_diagnostics.csv` | 逐组合条件属性／未见候选正确数、NLL 与概率质量 |
+| `per_pair_gains.csv` | 主结果相对对照的逐组合正确数和无 bias 准确率增量 |
+
+先读 **G1−E1/F1**，检验 β 中间值；再读 **G1−G0**，量化门控模块的训练收益；随后读 G1 dynamic−mean，定位图像变化的推理贡献。候选排序继续依据 VAL CW native AUC 的三 seed 均值；其他 VAL 和 TEST 指标并列报告。
+
+按同 seed、同缓存比较。诊断差值表同时标注 selection、phase 和 group；原始差值按各指标单位记录，准确率和概率质量以百分点计。不同条件各自使用其选中权重和 VAL bias。
+
+## 7. 完成后下载到本机
+
+在服务器打包本轮和 F/E/D/C 结果、对应源代码：
+
+```bash
+tar -czf /data/xhw/vgcpod_project/vgcpod_roundG_results_20261020.tar.gz \
+  -C /data/xhw/vgcpod_v1_runs roundG_20261020 roundF_20261020 roundE_20261020 roundD_20261020 roundC_20261020 \
+  -C /data/xhw/vgcpod_project vgcpod_v1_roundG vgcpod_v1_roundF vgcpod_v1_roundE vgcpod_v1_roundD vgcpod_v1_roundC
+```
+
+在 Windows PowerShell 下载并解压：
+
+```powershell
+$vgServer = "xhw@你的服务器IP"
+$vgLocal = "C:\Users\llenovo\Documents\ChatGPT\VG-CPOD"
+scp "${vgServer}:/data/xhw/vgcpod_project/vgcpod_roundG_results_20261020.tar.gz" "$vgLocal\"
+$vgExtract = Join-Path $vgLocal "server_results_roundG_20261020"
+New-Item -ItemType Directory -Force -Path $vgExtract | Out-Null
+tar -xzf "$vgLocal\vgcpod_roundG_results_20261020.tar.gz" -C "$vgExtract"
+```
+
+## 8. 交付验证
+
+- 39 项测试通过，包括静态极限、β=0.075 损失梯度、排序诊断与断点续训。
+- CPU 合成缓存完整运行六项训练与六项门控评估；重复启动跳过六项训练和六项评估，checkpoint 内容保持一致。
+- 与原 F 组训练器使用相同 G0/G1 配置比较，两组 native／exact／最后 epoch 的模型参数、AdamW 状态及 Torch 随机状态逐元素一致。
+- 新诊断在 E1/F1 已下载真实预测上复算 36 行指标，与独立 F 组分析最大差异小于 1e-8。
+- 检查 Python 3.8 语法、Bash 脚本、PowerShell 命令及 Markdown／HTML 公式排版。验证明细位于 `validation/`。

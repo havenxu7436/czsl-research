@@ -1,0 +1,155 @@
+BASE A5 3351
+BASE A5 3352
+BASE A5 3353
+BASE A6 3351
+BASE A6 3352
+BASE A6 3353
+BASE C2 3351
+BASE C2 3352
+BASE C2 3353
+BASE D1 3351
+BASE D1 3352
+BASE D1 3353
+BASE E1 3351
+BASE E1 3352
+BASE E1 3353
+BASE F1 3351
+BASE F1 3352
+BASE F1 3353
+BASE G0 3351
+BASE G0 3352
+BASE G0 3353
+BASE G1 3351
+BASE G1 3352
+BASE G1 3353
+BASE C1 3351
+BASE C1 3352
+MEAN_GATE C2 3351
+MEAN_GATE C2 3352
+MEAN_GATE C2 3353
+MEAN_GATE D1 3351
+MEAN_GATE D1 3352
+MEAN_GATE D1 3353
+MEAN_GATE E1 3351
+MEAN_GATE E1 3352
+MEAN_GATE E1 3353
+MEAN_GATE E1_exact 3351
+MEAN_GATE E1_exact 3352
+MEAN_GATE E1_exact 3353
+MEAN_GATE F1 3351
+MEAN_GATE F1 3352
+MEAN_GATE F1 3353
+MEAN_GATE F1_exact 3351
+MEAN_GATE F1_exact 3352
+MEAN_GATE F1_exact 3353
+MEAN_GATE G1 3351
+MEAN_GATE G1 3352
+MEAN_GATE G1 3353
+MEAN_GATE G1_exact 3351
+MEAN_GATE G1_exact 3352
+MEAN_GATE G1_exact 3353
+{
+  "archive_sha256": "2b8718b76112b5be1784011995b2175bf22aca34f40f95aa602b3ced32495076",
+  "feature_manifest_sha256": "bb8b7a8eb8c4e77a14ef65dd5c626aac559880d7c8d642dcc1e9a2a843831d2a",
+  "base_runs": 26,
+  "interventions": 24,
+  "prediction_files": 344,
+  "source_files_verified": 180,
+  "dynamic_duplicate_files_identical": 96,
+  "exact_selection_duplicate_files": 40,
+  "selection_epochs": [
+    {
+      "case": "E1",
+      "seed": 3351,
+      "native": 8,
+      "exact": 8,
+      "same_parameters": true
+    },
+    {
+      "case": "E1",
+      "seed": 3352,
+      "native": 8,
+      "exact": 8,
+      "same_parameters": true
+    },
+    {
+      "case": "E1",
+      "seed": 3353,
+      "native": 6,
+      "exact": 6,
+      "same_parameters": true
+    },
+    {
+      "case": "F1",
+      "seed": 3351,
+      "native": 8,
+      "exact": 8,
+      "same_parameters": true
+    },
+    {
+      "case": "F1",
+      "seed": 3352,
+      "native": 8,
+      "exact": 8,
+      "same_parameters": true
+    },
+    {
+      "case": "F1",
+      "seed": 3353,
+      "native": 6,
+      "exact": 6,
+      "same_parameters": true
+    },
+    {
+      "case": "G0",
+      "seed": 3351,
+      "native": 8,
+      "exact": 8,
+      "same_parameters": true
+    },
+    {
+      "case": "G0",
+      "seed": 3352,
+      "native": 8,
+      "exact": 8,
+      "same_parameters": true
+    },
+    {
+      "case": "G0",
+      "seed": 3353,
+      "native": 9,
+      "exact": 6,
+      "same_parameters": false
+    },
+    {
+      "case": "G1",
+      "seed": 3351,
+      "native": 8,
+      "exact": 8,
+      "same_parameters": true
+    },
+    {
+      "case": "G1",
+      "seed": 3352,
+      "native": 8,
+      "exact": 8,
+      "same_parameters": true
+    },
+    {
+      "case": "G1",
+      "seed": 3353,
+      "native": 9,
+      "exact": 6,
+      "same_parameters": false
+    }
+  ],
+  "max_recompute_errors": {
+    "native_auc": 0.02801775721179922,
+    "exact_auc": 4.879122187162466e-05,
+    "fixed_bias_hm": 0.0,
+    "probability_sum": 1.430511474609375e-06,
+    "support_mass": 8.84112785204394e-08,
+    "conditional_acc": 0.0,
+    "loss_identity": 1.1078570932160359e-07
+  }
+}

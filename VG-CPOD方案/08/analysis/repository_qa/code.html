@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>08 code</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link href="data:text/css;charset=utf-8,html%20%7B%20color%3A%20%23203043%3B%20background%3A%20%23f3f6fa%3B%20%7D%0Abody%20%7B%20max%2Dwidth%3A%201240px%3B%20margin%3A%2036px%20auto%3B%20padding%3A%2042px%2052px%3B%20background%3A%20%23fff%3B%20border%3A%201px%20solid%20%23e0e6ef%3B%20border%2Dradius%3A%2012px%3B%20font%3A%2016px%2F1%2E85%20%27Microsoft%20YaHei%27%2C%20%27Noto%20Sans%20CJK%20SC%27%2C%20sans%2Dserif%3B%20%7D%0Ah1%20%7B%20font%2Dsize%3A%202em%3B%20line%2Dheight%3A%201%2E35%3B%20color%3A%20%23173b58%3B%20%7D%0Ah2%20%7B%20margin%2Dtop%3A%202%2E3em%3B%20border%2Dbottom%3A%202px%20solid%20%23e5edf4%3B%20padding%2Dbottom%3A%20%2E3em%3B%20color%3A%20%23173b58%3B%20%7D%0Ah3%20%7B%20margin%2Dtop%3A%201%2E7em%3B%20color%3A%20%23245c78%3B%20%7D%0Ap%2C%20ul%2C%20ol%20%7B%20margin%3A%201em%200%3B%20%7D%0Atable%20%7B%20display%3A%20table%3B%20border%2Dcollapse%3A%20collapse%3B%20font%2Dsize%3A%2013px%3B%20line%2Dheight%3A%201%2E65%3B%20width%3A%20100%25%20%21important%3B%20margin%3A%201%2E4em%200%3B%20%7D%0Ath%2C%20td%20%7B%20border%3A%201px%20solid%20%23dce4ed%3B%20padding%3A%208px%2010px%3B%20text%2Dalign%3A%20left%3B%20vertical%2Dalign%3A%20top%3B%20%7D%0Ath%20%7B%20background%3A%20%23eaf1f7%3B%20font%2Dweight%3A%20600%3B%20white%2Dspace%3A%20nowrap%3B%20%7D%0Atbody%20tr%3Anth%2Dchild%28even%29%20%7B%20background%3A%20%23f7f9fc%3B%20%7D%0Aimg%20%7B%20max%2Dwidth%3A%20100%25%3B%20height%3A%20auto%3B%20%7D%0Afigure%20%7B%20margin%3A%201%2E5em%200%3B%20%7D%0Afigcaption%20%7B%20color%3A%20%23657185%3B%20font%2Dsize%3A%2013px%3B%20%7D%0Acode%20%7B%20background%3A%20%23edf2f7%3B%20border%2Dradius%3A%203px%3B%20padding%3A%201px%204px%3B%20overflow%2Dwrap%3A%20anywhere%3B%20%7D%0Apre%20%7B%20padding%3A%2015px%3B%20background%3A%20%23edf2f7%3B%20overflow%2Dx%3A%20auto%3B%20%7D%0Aa%20%7B%20color%3A%20%2317658a%3B%20text%2Dunderline%2Doffset%3A%203px%3B%20%7D%0Amath%5Bdisplay%3D%27block%27%5D%20%7B%20margin%3A%201%2E4em%200%3B%20overflow%2Dx%3A%20auto%3B%20%7D%0A%40media%20%28max%2Dwidth%3A%20800px%29%20%7B%20body%20%7B%20padding%3A%2020px%3B%20margin%3A%200%3B%20border%3A%200%3B%20border%2Dradius%3A%200%3B%20%7D%20table%20%7B%20display%3A%20block%3B%20overflow%2Dx%3A%20auto%3B%20font%2Dsize%3A%2012px%3B%20%7D%20%7D%0A" rel="stylesheet">
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="代码与修订">08 · 代码与修订</h1>
+<p>原 G 包源码位于 <a href="vgcpod_v1_roundG/">vgcpod_v1_roundG</a>。配置、资产、原说明和验证记录按平行结构分区保存，materialize 恢复原始布局。本轮相对 <a href="../../07/code/README.md">07 F组</a>的实际改动见<a href="source_changes.patch">源码补丁</a>。</p>
+<table style="width:11%;">
+<colgroup>
+<col style="width: 5%"></col>
+<col style="width: 5%"></col>
+</colgroup>
+<thead>
+<tr class="header">
+<th>入口</th>
+<th>改动与用途</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a href="../configs/round_g/">G0/G1配置</a></td>
+<td>β=0.075；gate_input=none/local</td>
+</tr>
+<tr class="even">
+<td><a href="vgcpod_v1_roundG/round_g.py">round_g.py</a></td>
+<td><code>worker()</code> 每卡顺序 G0→G1；<code>launch()</code> 三个队列并行；<code>summarize()</code> 输出主指标、双选择、β与静态配对及诊断</td>
+</tr>
+<tr class="odd">
+<td><a href="vgcpod_v1_roundG/ranking_diagnostics.py">ranking_diagnostics.py</a></td>
+<td><code>diagnose()</code> 从完整OW预测计算排序量；<code>summarize_entries()</code> 输出分组、逐组合及同seed比较</td>
+</tr>
+<tr class="even">
+<td><a href="vgcpod_v1_roundG/scripts/start_round_g_tmux.sh">tmux启动</a></td>
+<td>记录激活环境 Python、G会话和退出码</td>
+</tr>
+<tr class="odd">
+<td><a href="vgcpod_v1_roundG/tests/test_round_g.py">G组测试</a></td>
+<td>配置范围、静态极限、β=0.075目标梯度、已知概率样例；累计39项</td>
+</tr>
+<tr class="even">
+<td><a href="vgcpod_v1_roundG/vgcpod/model.py">模型</a>／<a href="vgcpod_v1_roundG/vgcpod/engine.py">训练器</a></td>
+<td>与 F 包逐字节一致，通过已有配置分支实现本轮目标</td>
+</tr>
+<tr class="odd">
+<td><a href="vgcpod_v1_roundG/mean_gate_eval.py">均值评估器</a></td>
+<td>沿用 F 包；本轮只对 G1 的两种权重执行均值替换</td>
+</tr>
+</tbody>
+</table>
+<h2 id="静态和动态训练分支">1. 静态和动态训练分支</h2>
+<p>G0/G1 都训练适配器和全局读出 CP。<code>gate_input=none</code> 时 Bvis 冻结、gamma 全为1、orth为0；local 时使用中心化视觉门控并训练 Bvis。两组 task 相同：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mstyle mathvariant="normal"><mi>t</mi><mi>a</mi><mi>s</mi><mi>k</mi></mstyle></msub><mo stretchy="false" form="prefix">(</mo><mn>0.075</mn><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mfrac><mn>3</mn><mn>2</mn></mfrac><msub><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mstyle mathvariant="normal"><mi>p</mi><mi>a</mi><mi>i</mi><mi>r</mi></mstyle></msub><mo>+</mo><mfrac><mn>9</mn><mn>86</mn></mfrac><msub><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mstyle mathvariant="normal"><mi>s</mi><mi>u</mi><mi>p</mi><mi>p</mi><mi>o</mi><mi>r</mi><mi>t</mi></mstyle></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\mathcal{L}_{\mathrm{task}}(0.075)=\frac32\mathcal{L}_{\mathrm{pair}}+\frac9{86}\mathcal{L}_{\mathrm{support}}.
+</annotation></semantics></math></p>
+<p>G1 保留 λorth=0.001。原模型和训练运算顺序保持源包字节身份，实际配置与训练参数数目见各运行的 protocol。</p>
+<h2 id="三-gpu-双任务队列">2. 三 GPU 双任务队列</h2>
+<ul>
+<li>seed3351/3352/3353 使用物理GPU1/2/3。每个队列顺序训练G0→G1，然后做G1 native/exact均值评估；共六次训练、六项评估。</li>
+<li>已完成任务直接复用，未完成任务从完整epoch继续。<code>round_g_status.json</code> 按三条seed队列记录两次训练及两项评估。</li>
+<li>每个模型独立保存 <code>best_native.pt</code>、兼容别名 <code>best.pt</code>、<code>best_exact.pt</code> 和 <code>last.pt</code>，两条选择分别导出。</li>
+<li><code>round_g_paired_*</code> 首先比较G1−G0、G1−E1/F1；<code>beta_native_*</code> 比较同ρ下β=0.05/0.075/0.1。</li>
+</ul>
+<h2 id="保存预测上的排序诊断">3. 保存预测上的排序诊断</h2>
+<p><code>diagnose()</code> 使用全部OW组合的 log 概率恢复物体边际，使用导出的GT-object条件logits计算属性准确率和NLL。按split区分TRAIN、CW与CW集合外候选，统计概率质量、最高分超越关系和未见候选内top-1；另按组合记录正确数与NLL。</p>
+<p><code>summarize_entries()</code> 核对图像与标签顺序，按selection、condition、phase、group汇总。G1−G0、G1−E1/F1/D1/A5和dynamic−mean保存同seed差值、均值及样本SD。诊断不改变训练或预测。</p>
+<h2 id="原发布验证与仓库复算">4. 原发布验证与仓库复算</h2>
+<ul>
+<li><a href="../results/package_validation/G/validation/unittest.txt">39项测试</a>、<a href="../results/package_validation/G/validation/result.json">六训练六评估流程</a>、<a href="../results/package_validation/G/validation/cli_output.txt">流程日志</a>。</li>
+<li>原F训练器设置为相同G0/G1配置时，native/exact/last参数、AdamW状态和Torch RNG逐元素一致；重复启动跳过全部已完成任务。</li>
+<li><a href="../results/package_validation/G/validation/real_prediction_diagnostics.json">真实E1/F1诊断复核</a>、<a href="../results/package_validation/G/validation/source_scope.json">代码范围</a>、<a href="../results/server_source_identity.json">服务器身份</a>。</li>
+<li><a href="../package_members.json">原包76成员映射</a>、<a href="original_analysis/">原分析源码</a>、<a href="../analysis/recompute.py">仓库复算入口</a>、<a href="../analysis/repository_validation.json">归档验证</a>。</li>
+</ul>
+<p>服务器使用Python3.8.18、PyTorch1.13.1+cu117、RTX3090；发布数学及调度测试使用CPU合成特征，正式训练结果来自服务器。CLIP许可见<a href="vgcpod_v1_roundG/vendor/CLIP_LICENSE">CLIP_LICENSE</a>。</p>
+</body>
+</html>

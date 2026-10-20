@@ -1,0 +1,46 @@
+{
+  "date": "2026-10-20",
+  "line": "VG-CPOD方案",
+  "number": "08",
+  "version": "v1",
+  "title": "支持集权重折中与门控训练对照",
+  "imported_from": "G release ZIP and downloaded G server export",
+  "new_runs": [
+    {
+      "case": "G0",
+      "seed": 3351
+    },
+    {
+      "case": "G0",
+      "seed": 3352
+    },
+    {
+      "case": "G0",
+      "seed": 3353
+    },
+    {
+      "case": "G1",
+      "seed": 3351
+    },
+    {
+      "case": "G1",
+      "seed": 3352
+    },
+    {
+      "case": "G1",
+      "seed": 3353
+    }
+  ],
+  "reference_stages": [
+    "02",
+    "04",
+    "05",
+    "06",
+    "07"
+  ],
+  "formula_revision": "beta=.075 gives pair=3/2 and support=9/86; G0 gamma=1, G1 mode-centered eta=.25; separate native/exact selection",
+  "runtime_unchanged_from_F": true,
+  "planned_only": [
+    "H1: TRAIN-mean-centered local visual residual gate; three seeds"
+  ]
+}

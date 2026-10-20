@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>08 configs</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link href="data:text/css;charset=utf-8,html%20%7B%20color%3A%20%23203043%3B%20background%3A%20%23f3f6fa%3B%20%7D%0Abody%20%7B%20max%2Dwidth%3A%201240px%3B%20margin%3A%2036px%20auto%3B%20padding%3A%2042px%2052px%3B%20background%3A%20%23fff%3B%20border%3A%201px%20solid%20%23e0e6ef%3B%20border%2Dradius%3A%2012px%3B%20font%3A%2016px%2F1%2E85%20%27Microsoft%20YaHei%27%2C%20%27Noto%20Sans%20CJK%20SC%27%2C%20sans%2Dserif%3B%20%7D%0Ah1%20%7B%20font%2Dsize%3A%202em%3B%20line%2Dheight%3A%201%2E35%3B%20color%3A%20%23173b58%3B%20%7D%0Ah2%20%7B%20margin%2Dtop%3A%202%2E3em%3B%20border%2Dbottom%3A%202px%20solid%20%23e5edf4%3B%20padding%2Dbottom%3A%20%2E3em%3B%20color%3A%20%23173b58%3B%20%7D%0Ah3%20%7B%20margin%2Dtop%3A%201%2E7em%3B%20color%3A%20%23245c78%3B%20%7D%0Ap%2C%20ul%2C%20ol%20%7B%20margin%3A%201em%200%3B%20%7D%0Atable%20%7B%20display%3A%20table%3B%20border%2Dcollapse%3A%20collapse%3B%20font%2Dsize%3A%2013px%3B%20line%2Dheight%3A%201%2E65%3B%20width%3A%20100%25%20%21important%3B%20margin%3A%201%2E4em%200%3B%20%7D%0Ath%2C%20td%20%7B%20border%3A%201px%20solid%20%23dce4ed%3B%20padding%3A%208px%2010px%3B%20text%2Dalign%3A%20left%3B%20vertical%2Dalign%3A%20top%3B%20%7D%0Ath%20%7B%20background%3A%20%23eaf1f7%3B%20font%2Dweight%3A%20600%3B%20white%2Dspace%3A%20nowrap%3B%20%7D%0Atbody%20tr%3Anth%2Dchild%28even%29%20%7B%20background%3A%20%23f7f9fc%3B%20%7D%0Aimg%20%7B%20max%2Dwidth%3A%20100%25%3B%20height%3A%20auto%3B%20%7D%0Afigure%20%7B%20margin%3A%201%2E5em%200%3B%20%7D%0Afigcaption%20%7B%20color%3A%20%23657185%3B%20font%2Dsize%3A%2013px%3B%20%7D%0Acode%20%7B%20background%3A%20%23edf2f7%3B%20border%2Dradius%3A%203px%3B%20padding%3A%201px%204px%3B%20overflow%2Dwrap%3A%20anywhere%3B%20%7D%0Apre%20%7B%20padding%3A%2015px%3B%20background%3A%20%23edf2f7%3B%20overflow%2Dx%3A%20auto%3B%20%7D%0Aa%20%7B%20color%3A%20%2317658a%3B%20text%2Dunderline%2Doffset%3A%203px%3B%20%7D%0Amath%5Bdisplay%3D%27block%27%5D%20%7B%20margin%3A%201%2E4em%200%3B%20overflow%2Dx%3A%20auto%3B%20%7D%0A%40media%20%28max%2Dwidth%3A%20800px%29%20%7B%20body%20%7B%20padding%3A%2020px%3B%20margin%3A%200%3B%20border%3A%200%3B%20border%2Dradius%3A%200%3B%20%7D%20table%20%7B%20display%3A%20block%3B%20overflow%2Dx%3A%20auto%3B%20font%2Dsize%3A%2012px%3B%20%7D%20%7D%0A" rel="stylesheet">
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="配置与超参数策略">08 · 配置与超参数策略</h1>
+<table>
+<thead>
+<tr class="header">
+<th>方案</th>
+<th>gate_input</th>
+<th>ρ</th>
+<th>β</th>
+<th>η</th>
+<th>native／exact最佳epoch</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a href="round_g/G0.json">G0静态</a></td>
+<td>none</td>
+<td>0.15</td>
+<td>0.075</td>
+<td>配置0.25，静态分支不使用</td>
+<td>8/8/9；8/8/6</td>
+</tr>
+<tr class="even">
+<td><a href="round_g/G1.json">G1动态</a></td>
+<td>local</td>
+<td>0.15</td>
+<td>0.075</td>
+<td>0.25</td>
+<td>8/8/9；8/8/6</td>
+</tr>
+</tbody>
+</table>
+<p>每列轮次按seed3351/3352/3353顺序。六次训练各十轮、3600次更新；两组逐seed轮次对齐。完整配置与两套指标见<a href="experiment_inventory.json" class="uri">experiment_inventory.json</a>。</p>
+<h2 id="选取策略">选取策略</h2>
+<ol type="1">
+<li><strong>β取中间值。</strong> 在已有E1 β=0.1与F1 β=0.05、相同ρ=0.15下取β=0.075，测量属性泛化与组合排序折中。</li>
+<li><strong>精确解释系数。</strong> pair系数1.5不变，support系数为9/86≈0.104651163。</li>
+<li><strong>加入同配置静态训练。</strong> G0/G1同β、ρ、rank、读出、初始化规则与优化日程；G0冻结Bvis且orth为0，G1使用视觉门控与对应正交项。</li>
+<li><strong>固定剩余超参数。</strong> η=0.25、τγ=0.1、CP分组LR、batch64和十轮日程沿用F；三GPU各负责一个seed的两组队列。</li>
+<li><strong>沿用选权重规则。</strong> native主结果取首次严格最大VAL CW native AUC；exact路径独立保存。各条件使用各自VAL native bias并固定到TEST。</li>
+<li><strong>同seed配对。</strong> 先读G1−E1/F1，再读G1−G0，随后读G1 dynamic−mean及分组排序诊断。</li>
+</ol>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mstyle mathvariant="normal"><mi>t</mi><mi>a</mi><mi>s</mi><mi>k</mi></mstyle></msub><mo stretchy="false" form="prefix">(</mo><mn>0.075</mn><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mfrac><mn>3</mn><mn>2</mn></mfrac><msub><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mstyle mathvariant="normal"><mi>p</mi><mi>a</mi><mi>i</mi><mi>r</mi></mstyle></msub><mo>+</mo><mfrac><mn>9</mn><mn>86</mn></mfrac><msub><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mstyle mathvariant="normal"><mi>s</mi><mi>u</mi><mi>p</mi><mi>p</mi><mi>o</mi><mi>r</mi><mi>t</mi></mstyle></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\mathcal{L}_{\mathrm{task}}(0.075)=\frac32\mathcal{L}_{\mathrm{pair}}+\frac9{86}\mathcal{L}_{\mathrm{support}}.
+</annotation></semantics></math></p>
+<table>
+<thead>
+<tr class="header">
+<th>固定项目</th>
+<th>设置</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>CLIP／输入</td>
+<td>冻结OpenAI ViT-L/14，224px、768维</td>
+</tr>
+<tr class="even">
+<td>ρ／β／η／τγ</td>
+<td>0.15 / 0.075 / 0.25 / 0.1</td>
+</tr>
+<tr class="odd">
+<td>rank／adapter rank／κ／τv</td>
+<td>32 / 8 / 20 / 0.07</td>
+</tr>
+<tr class="even">
+<td>epochs／batch／每轮更新</td>
+<td>10 / 64 / 360</td>
+</tr>
+<tr class="odd">
+<td>适配器LR／CP LR</td>
+<td>1e-3→1e-5 / 3e-4→3e-6，余弦</td>
+</tr>
+<tr class="even">
+<td>AdamW β₁、β₂／ε／weight decay</td>
+<td>0.9、0.999 / 1e-8 / 1e-4</td>
+</tr>
+<tr class="odd">
+<td>梯度裁剪／动态正交项／workers</td>
+<td>1 / 0.001 / 4</td>
+</tr>
+</tbody>
+</table>
+<p>内部variant=V1；由gate_input决定是否启用视觉门控，中心化模式保留。CP组G0为Au/Av/Wc，G1增加Bvis；cp_lr_scale=0.3，Wc零初始化，prim/cent分支关闭。</p>
+<h2 id="配置资产与对照索引">配置、资产与对照索引</h2>
+<ul>
+<li><a href="round_g/">G0/G1实际配置</a>、<a href="round_f/F1.json">F1</a>、<a href="round_e/E1.json">E1</a>、<a href="round_d/D1.json">D1</a>、<a href="default.json">默认配置</a>。</li>
+<li><a href="experiment_inventory.json">六项训练清单</a>、<a href="intervention_inventory.json">六项均值评估清单</a>。</li>
+<li><a href="references/pre_g_complete.json">G前20份参考指标</a>、<a href="assets/">标签资产</a>、<a href="../external_inputs.json">已有阶段与外部输入</a>。</li>
+<li>缓存manifest SHA256为 <code>bb8b7a8eb8c4e77a14ef65dd5c626aac559880d7c8d642dcc1e9a2a843831d2a</code>。</li>
+</ul>
+<p>后续H1门控输入表示设计见<a href="../analysis/README.md">数据分析</a>，本阶段实际配置为G0/G1。</p>
+</body>
+</html>
