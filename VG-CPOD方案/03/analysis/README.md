@@ -69,11 +69,12 @@ B2/B3的归一化平均偏移分别达到0.9780 / 0.9631，接近最大偏移1�
 
 ```math
 \begin{aligned}
-q_{bjk}&=2\sigma\!\left(\frac{(B_{\mathrm{vis}}f^o_{bj})_k}{\tau_{\gamma}}\right)-1,\qquad
-\bar q_{bj}=\frac{1}{r}\sum_k q_{bjk},\\
-\gamma_{bjk}^{\mathrm{C2}}&=1+\frac{\eta}{2}(q_{bjk}-\bar q_{bj}),\qquad\eta=0.25,\\
-\frac{1}{r}\sum_k\gamma_{bjk}^{\mathrm{C2}}&=1,\qquad
-\gamma_{bjk}^{\mathrm{C2}}\in(0.75,1.25).
+q_{bjk}&=2\sigma\!\left(\frac{(B_{\mathrm{vis}}f^o_{bj})_k}{\tau_{\gamma}}\right)-1,\\[4pt]
+\bar q_{bj}&=\frac{1}{r}\sum_k q_{bjk},\\[4pt]
+\gamma_{bjk}^{\mathrm{C2}}&=1+\frac{\eta}{2}(q_{bjk}-\bar q_{bj}),\\[4pt]
+\eta&=0.25,\\[4pt]
+\frac{1}{r}\sum_k\gamma_{bjk}^{\mathrm{C2}}&=1,\\[4pt]
+\gamma_{bjk}^{\mathrm{C2}}&\in(0.75,1.25).
 \end{aligned}
 ```
 
