@@ -10,3 +10,4 @@
 | 02 | 支持损失重加权与 CP 分组学习率（A 组）；12 次训练，A1/A5/A6 三 seed | [修订说明](02/README.md) · [代码](02/code/README.md) · [配置](02/configs/README.md) · [结果](02/results/README.md) · [数据分析](02/analysis/README.md) |
 | 03 | 读出解耦与局部弱门控（B 组）；B1/B2/B3 各 seed3351，3 次训练 | [修订说明](03/README.md) · [代码](03/code/README.md) · [配置](03/configs/README.md) · [结果](03/results/README.md) · [数据分析](03/analysis/README.md) |
 | 04 | 静态幅度对照与模式中心化门控（C 组）；C1/C2 各 seed3351，另纳入 B3/3352 | [修订说明](04/README.md) · [代码](04/code/README.md) · [配置](04/configs/README.md) · [结果](04/results/README.md) · [数据分析](04/analysis/README.md) |
+| 05 | 中心化 CP 幅度联动与均值门控评估（D 组）；D1 三 seed，C2 两个补 seed、C1/3352，六 checkpoint 干预 | [修订说明](05/README.md) · [代码](05/code/README.md) · [配置](05/configs/README.md) · [结果](05/results/README.md) · [数据分析](05/analysis/README.md) |
