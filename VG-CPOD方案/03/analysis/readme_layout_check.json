@@ -81,5 +81,62 @@
     }
   ],
   "errors": [],
-  "passed": true
+  "passed": true,
+  "local_preview_only": false,
+  "checks": {
+    "local_preview": "Pandoc MathML layout and strict KaTeX syntax",
+    "github_markdown": {
+      "renderer": "GitHub Markdown REST API (mode=gfm)",
+      "files": [
+        {
+          "file": "analysis/README.md",
+          "source_sha256": "7b6af617fc9d74b6c08c1fb8121b12f9b07ade53128389ceb6d7116825b96cab",
+          "display_math": 1,
+          "inline_math": 1,
+          "tex_preserved": true,
+          "code_blocks": 1,
+          "tables": 5
+        },
+        {
+          "file": "code/README.md",
+          "source_sha256": "a758d5c2b9d58db0b8c6e77112ae42dd2ab6c9b345b8ddb6bc887e452cc20df9",
+          "display_math": 0,
+          "inline_math": 0,
+          "tex_preserved": true,
+          "code_blocks": 0,
+          "tables": 1
+        },
+        {
+          "file": "configs/README.md",
+          "source_sha256": "01cf94682aa9b25781ce4a861e1d00770c921e4069a8c16e87ce7d20b283b527",
+          "display_math": 0,
+          "inline_math": 0,
+          "tex_preserved": true,
+          "code_blocks": 0,
+          "tables": 1
+        },
+        {
+          "file": "README.md",
+          "source_sha256": "411717a6b149e3c28420f220ef1cd493d6427f18bc15ece94b34f5c484668b07",
+          "display_math": 8,
+          "inline_math": 6,
+          "tex_preserved": true,
+          "code_blocks": 4,
+          "tables": 4
+        },
+        {
+          "file": "results/README.md",
+          "source_sha256": "25c495d47e5ed69c376ccef3a6f7d8d8e2ce24d1191a83ee98cf81a0096559e2",
+          "display_math": 0,
+          "inline_math": 0,
+          "tex_preserved": true,
+          "code_blocks": 0,
+          "tables": 1
+        }
+      ],
+      "passed": true
+    },
+    "github_macro_compatibility": "Replaced operatorname rejected by the published GitHub math renderer with equivalent upright mathrm names.",
+    "row_separators": "Explicit TeX row spacing preserves row breaks through GitHub Markdown conversion."
+  }
 }

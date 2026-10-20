@@ -16,8 +16,8 @@ CLIP 编码、已有特征缓存、物体 logits、基础条件 logits、概率�
 
 ```math
 \begin{aligned}
-\operatorname{unit}(z)&=\frac{z}{\max(\lVert z\rVert_2,10^{-12})},\\
-h_{bj}^{\mathrm{B1}}&=\operatorname{unit}\!\left((1-\alpha)g_b+\alpha f^o_{bj}\right),\quad\alpha=0.5,\\
+\mathrm{unit}(z)&=\frac{z}{\max(\lVert z\rVert_2,10^{-12})},\\[4pt]
+h_{bj}^{\mathrm{B1}}&=\mathrm{unit}\!\left((1-\alpha)g_b+\alpha f^o_{bj}\right),\quad\alpha=0.5,\\[4pt]
 h_{bj}^{\mathrm{B2}}&=h_{bj}^{\mathrm{B3}}=g_b.
 \end{aligned}
 ```
@@ -25,8 +25,11 @@ h_{bj}^{\mathrm{B2}}&=h_{bj}^{\mathrm{B3}}=g_b.
 α 表示局部特征的权重。混合特征只进入 CP 修正读出；物体分支和基础条件分支继续读取全局 g。定义文本模式：
 
 ```math
-u_i=A_u e_i^a\in\mathbb{R}^{r},\qquad
-v_j=A_v e_j^o\in\mathbb{R}^{r},\qquad W_c\in\mathbb{R}^{d\times r},\quad r=32.
+\begin{aligned}
+u_i&=A_u e_i^a\in\mathbb{R}^{r},\\[4pt]
+v_j&=A_v e_j^o\in\mathbb{R}^{r},\\[4pt]
+W_c&\in\mathbb{R}^{d\times r},\qquad r=32.
+\end{aligned}
 ```
 
 修正统一为：
@@ -34,14 +37,14 @@ v_j=A_v e_j^o\in\mathbb{R}^{r},\qquad W_c\in\mathbb{R}^{d\times r},\quad r=32.
 ```math
 \begin{aligned}
 \Delta U_{bji}&=\rho\kappa\,h_{bj}^{\top}W_c
-\left(u_i\odot v_j\odot\gamma_{bj}\right),\\
-U_{bji}&=U_{bji}^{\mathrm{base}}+\Delta U_{bji},\\
-\log p(a_i,o_j\mid x_b)&=\log\operatorname{softmax}(S_b)_j
-+\log\operatorname{softmax}(U_{bj:})_i.
+\left(u_i\odot v_j\odot\gamma_{bj}\right),\\[4pt]
+U_{bji}&=U_{bji}^{\mathrm{base}}+\Delta U_{bji},\\[4pt]
+\log p(a_i,o_j\mid x_b)&=\log\mathrm{softmax}(S_b)_j
++\log\mathrm{softmax}(U_{bj:})_i.
 \end{aligned}
 ```
 
-$S_b$ 为物体 logits。联合概率在全部物体与属性组合上归一化，张量轴为 `[batch, object, attribute]`。给定门控和物体后，等价算子为 $W_c\operatorname{diag}(v_j\odot\gamma_{bj})A_u$，秩至多为 r。Wc 初始为零，三个实验都从相同 seed 的零修正开始。
+$S_b$ 为物体 logits。联合概率在全部物体与属性组合上归一化，张量轴为 `[batch, object, attribute]`。给定门控和物体后，等价算子为 $W_c\mathrm{diag}(v_j\odot\gamma_{bj})A_u$，秩至多为 r。Wc 初始为零，三个实验都从相同 seed 的零修正开始。
 
 ## 3. 公式修订：以 η 控制局部模式调制幅度
 
@@ -51,8 +54,8 @@ B1 使用全 1 模式系数。B2/B3 从局部特征计算：
 \begin{aligned}
 \gamma_{bj}^{(\eta)}
 &=\mathbf{1}_{r}+\eta\left[
-2\sigma\!\left(\frac{B_{\mathrm{vis}}f^o_{bj}}{\tau_{\gamma}}\right)-\mathbf{1}_{r}\right],
-\qquad B_{\mathrm{vis}}\in\mathbb{R}^{r\times d},\\
+2\sigma\!\left(\frac{B_{\mathrm{vis}}f^o_{bj}}{\tau_{\gamma}}\right)-\mathbf{1}_{r}\right],\\[4pt]
+B_{\mathrm{vis}}&\in\mathbb{R}^{r\times d},\\[4pt]
 \eta_{\mathrm{B2}}&=1,\qquad \eta_{\mathrm{B3}}=0.25,\qquad \tau_{\gamma}=0.1.
 \end{aligned}
 ```
@@ -69,7 +72,7 @@ B1 使用全 1 模式系数。B2/B3 从局部特征计算：
 \begin{aligned}
 \ell_{\mathrm{task}}(\beta)
 &=\frac{1.5}{1+\beta}\left[\ell_{\mathrm{pair}}
-+\beta(\ell_{\mathrm{cond}}+\ell_{\mathrm{obj}})\right]\\
++\beta(\ell_{\mathrm{cond}}+\ell_{\mathrm{obj}})\right]\\[4pt]
 &=1.5\ell_{\mathrm{pair}}+\frac{1.5\beta}{1+\beta}\ell_{\mathrm{support}},\qquad\beta=0.1.
 \end{aligned}
 ```
@@ -109,10 +112,10 @@ cond = base + rho * kappa * torch.einsum('bor,ir->boi', modes, u)
 
 ```math
 \begin{aligned}
-\mu_{tjk}&=\frac{1}{n_t}\sum_{b\in\mathcal{B}_t}\gamma_{bjk},\\
+\mu_{tjk}&=\frac{1}{n_t}\sum_{b\in\mathcal{B}_t}\gamma_{bjk},\\[4pt]
 V_{\mathrm{img}}&=\frac{1}{\sum_t n_t}\sum_t n_t\,
 \frac{1}{|\mathcal{O}|r}\sum_{j,k}\frac{1}{n_t}
-\sum_{b\in\mathcal{B}_t}(\gamma_{bjk}-\mu_{tjk})^2,\\
+\sum_{b\in\mathcal{B}_t}(\gamma_{bjk}-\mu_{tjk})^2,\\[4pt]
 \sigma_{\mathrm{img}}&=\sqrt{V_{\mathrm{img}}}.
 \end{aligned}
 ```
