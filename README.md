@@ -1,7 +1,5 @@
 # CZSL 研究：实验记录与复现
 
-最新归档（2026-10-21）：[VG-CPOD 11 · 静态与动态CP独立读出](VG-CPOD方案/11/README.md)，包含J1三个seed、静态与动态独立读出、native/exact双准则及六项均值评估，共72份预测、12份checkpoint文件；附公式与代码修订、超参数策略及末节[数据分析](VG-CPOD方案/11/analysis/README.md)。前序[10 I组](VG-CPOD方案/10/README.md)、[09 H组](VG-CPOD方案/09/README.md)、[08 G组](VG-CPOD方案/08/README.md)及其前序阶段继续保留。
-
 ## 目录
 
 ```text
