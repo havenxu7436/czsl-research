@@ -14,7 +14,7 @@
 
 ## 2. 公式修订：将中心化 CP 的 ρ 调为 0.125
 
-记全局图像特征为 $g_b\in\mathbb{R}^{d}$，物体查询特征为 $f^o_{bj}$，属性／物体文本特征为 $e_i^a,e_j^o$。本轮 d=768、r=32。沿用 04：
+记全局图像特征为 $`g_b\in\mathbb{R}^{d}`$，物体查询特征为 $`f^o_{bj}`$，属性／物体文本特征为 $`e_i^a,e_j^o`$。本轮 d=768、r=32。沿用 04：
 
 ```math
 \begin{aligned}
@@ -74,7 +74,7 @@ U_{bji}&=U^{\mathrm{base}}_{bji}+\Delta U_{bji},\\[4pt]
 \end{aligned}
 ```
 
-静态部分可写成固定物体模式因子 $v'_j=v_j\odot\bar\gamma_j$。两种条件各自在自身 VAL 上选择 CW/OW bias，再固定用于 TEST；评估优化步数为零，输出与原训练文件分开保存。
+静态部分可写成固定物体模式因子 $`v'_j=v_j\odot\bar\gamma_j`$。两种条件各自在自身 VAL 上选择 CW/OW bias，再固定用于 TEST；评估优化步数为零，输出与原训练文件分开保存。
 
 同时统计每个物体、模式上的 TRAIN 图像方差：
 

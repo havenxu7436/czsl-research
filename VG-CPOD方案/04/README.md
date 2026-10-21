@@ -12,7 +12,7 @@
 
 ## 2. 公式修订：C1 静态幅度对照
 
-记全局图像特征为 $g_b\in\mathbb{R}^{d}$，物体查询特征为 $f^o_{bj}\in\mathbb{R}^{d}$，属性与物体文本特征为 $e_i^a,e_j^o$；本轮 d=768、r=32。定义：
+记全局图像特征为 $`g_b\in\mathbb{R}^{d}`$，物体查询特征为 $`f^o_{bj}\in\mathbb{R}^{d}`$，属性与物体文本特征为 $`e_i^a,e_j^o`$；本轮 d=768、r=32。定义：
 
 ```math
 \begin{aligned}
@@ -26,7 +26,7 @@ U_{bji}&=U^{\mathrm{base}}_{bji}+\Delta U_{bji},\\[4pt]
 \end{aligned}
 ```
 
-S 为物体 logits，条件 softmax 沿全部属性计算；联合概率在属性与物体的笛卡尔积上归一化。实现张量轴为 `[batch, object, attribute]`。给定图像与物体后的修正算子为 $W_c\mathrm{diag}(v_j\odot\gamma_{bj})A_u$，秩至多为 r。
+S 为物体 logits，条件 softmax 沿全部属性计算；联合概率在属性与物体的笛卡尔积上归一化。实现张量轴为 `[batch, object, attribute]`。给定图像与物体后的修正算子为 $`W_c\mathrm{diag}(v_j\odot\gamma_{bj})A_u`$，秩至多为 r。
 
 C1 采用全 1 模式系数、ρ=0.125。在相同参数与输入下：
 

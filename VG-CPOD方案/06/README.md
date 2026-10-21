@@ -14,7 +14,7 @@ D1/3353 的 native 与 exact 验证峰值出现在不同 epoch，本轮在每次
 
 ## 2. 公式修订：中心化 CP 强度由 0.125 提高至 0.15
 
-记全局图像特征为 $g_b\in\mathbb{R}^{d}$，物体查询特征为 $f^o_{bj}\in\mathbb{R}^{d}$，属性／物体文本特征为 $e_i^a,e_j^o$。本轮 d=768、r=32，张量轴为 `[batch, object, attribute]`。沿用中心化公式：
+记全局图像特征为 $`g_b\in\mathbb{R}^{d}`$，物体查询特征为 $`f^o_{bj}\in\mathbb{R}^{d}`$，属性／物体文本特征为 $`e_i^a,e_j^o`$。本轮 d=768、r=32，张量轴为 `[batch, object, attribute]`。沿用中心化公式：
 
 ```math
 \begin{aligned}
@@ -26,7 +26,7 @@ H_r&=I_r-\frac{1}{r}\mathbf{1}_r\mathbf{1}_r^{\top},\\[4pt]
 \end{aligned}
 ```
 
-因 $\mathbf{1}_r^{\top}H_r=0$，每个图像、物体查询的模式系数均值为 1，坐标范围为 (0.75,1.25)。模式系数与因子相乘后形成 CP 修正：
+因 $`\mathbf{1}_r^{\top}H_r=0`$，每个图像、物体查询的模式系数均值为 1，坐标范围为 (0.75,1.25)。模式系数与因子相乘后形成 CP 修正：
 
 ```math
 \begin{aligned}
@@ -49,11 +49,11 @@ s_{bji}=\log p(a_i,o_j\mid x_b)
 \nabla_{\theta}\Delta U^{\mathrm{E1}}=1.2\nabla_{\theta}\Delta U^{\mathrm{D1}}.
 ```
 
-独立训练的权重由各自优化轨迹产生。模式均值约束保持坐标均值为 1；最终 logits 的尺度还取决于 Wc、u、v 和读出。给定图像和物体时，修正算子 $W_c\mathrm{diag}(v_j\odot\gamma_{bj})A_u$ 的秩至多为 r。ρ 调整改变训练参数化与优化尺度；对任意正 ρ′，将 Wc 乘以 ρ/ρ′ 可保持修正函数不变。
+独立训练的权重由各自优化轨迹产生。模式均值约束保持坐标均值为 1；最终 logits 的尺度还取决于 Wc、u、v 和读出。给定图像和物体时，修正算子 $`W_c\mathrm{diag}(v_j\odot\gamma_{bj})A_u`$ 的秩至多为 r。ρ 调整改变训练参数化与优化尺度；对任意正 ρ′，将 Wc 乘以 ρ/ρ′ 可保持修正函数不变。
 
 ## 3. 新增公式：双准则选权重与同权重均值替换
 
-令 $A_t^{\mathrm{native}}$、$A_t^{\mathrm{exact}}$ 分别为第 t 轮的 VAL CW AUC，T=10。两种选择均取首次严格最大值，并行维护各自最优状态：
+令 $`A_t^{\mathrm{native}}`$、$`A_t^{\mathrm{exact}}`$ 分别为第 t 轮的 VAL CW AUC，T=10。两种选择均取首次严格最大值，并行维护各自最优状态：
 
 ```math
 \begin{aligned}
@@ -82,11 +82,11 @@ native 沿用原有限 bias 扫描，exact 遍历完整临界点曲线。`best_n
 \end{aligned}
 ```
 
-均值形状 `[12,32]`，按图像总数加权、float64 累加，末 batch 使用实际数量。固定模式可以折入物体因子 $v'_j=v_j\odot\bar\gamma_j$。两种条件重新计算归一化概率，各自在自身 VAL 上选 CW／OW native bias，再固定用于 TEST；exact 选择的权重也使用这一校准规则。每项均值替换的优化步数为零。
+均值形状 `[12,32]`，按图像总数加权、float64 累加，末 batch 使用实际数量。固定模式可以折入物体因子 $`v'_j=v_j\odot\bar\gamma_j`$。两种条件重新计算归一化概率，各自在自身 VAL 上选 CW／OW native bias，再固定用于 TEST；exact 选择的权重也使用这一校准规则。每项均值替换的优化步数为零。
 
 ## 4. 沿用的损失与具体代码修订
 
-设训练组合集合为 $\mathcal{S}$，对 TRAIN 样本定义：
+设训练组合集合为 $`\mathcal{S}`$，对 TRAIN 样本定义：
 
 ```math
 \begin{aligned}
