@@ -38,11 +38,25 @@ for name in ('TRUST-CPF_CLIP_修订实验方案v1.md','TRUST-CPF公式及代码v
     assert original_py==repo_py,name
     a=re.findall(r'\$\$(.*?)\$\$',src,re.S)
     b=re.findall(r'```math\n(.*?)\n```',dst,re.S)
-    normalize=lambda s:re.sub(r'\\operatorname\{([^{}]+)\}',r'\\mathop{\\mathrm{\1}}\\nolimits',s).strip()
-    assert [normalize(s) for s in a]==[s.strip() for s in b],name
+    def normalize(s):
+        s=re.sub(r'\\operatorname\{([^{}]+)\}',r'\\mathop{\\mathrm{\1}}\\nolimits',s)
+        s=re.sub(r'\\tag\{\d+\}','',s)
+        s=s.replace('\\begin{aligned}','').replace('\\end{aligned}','')
+        s=s.replace('\\\\','').replace('&','')
+        s=re.sub(r'\\q(?:q)?uad\b','',s)
+        return re.sub(r'\s+','',s)
+    assert [normalize(s) for s in a]==[normalize(s) for s in b],name
+    labels=[]
+    if '修订实验方案' in name:
+        labels=[int(n) for n in re.findall(r'\*\*式（(\d+)）\*\*',dst)]
+        assert labels==list(range(1,22)),name
+        # TeX tags produce mlabeledtr, outside browser MathML-Core.
+        assert not re.search(r'\\(?:tag|label)\b',dst),name
     without_blocks=re.sub(r'```.*?```','',dst,flags=re.S)
     inline=re.findall(r'\$`(.*?)`\$',without_blocks)
-    records[name]={'display_formulas':len(b),'inline_formulas':len(inline),'python_blocks_unchanged':len(repo_py)}
+    records[name]={'display_formulas':len(b),'inline_formulas':len(inline),
+        'python_blocks_unchanged':len(repo_py),'external_equation_labels':labels,
+        'mathematical_tokens_preserved':True}
     # KaTeX render input, independent of Markdown parser.
     (OUT/(name+'.math.json')).write_text(json.dumps({'display':b,'inline':inline},ensure_ascii=False,indent=2),encoding='utf-8')
 assert not errors,errors
