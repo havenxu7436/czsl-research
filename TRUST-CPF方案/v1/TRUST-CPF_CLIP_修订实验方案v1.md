@@ -28,23 +28,26 @@ UT标签轴为16属性、12对象，张量顺序`[batch, object, attribute]`，d
 
 官方候选定义：
 
+**式（1）**
 
 ```math
-\mathcal C_{\mathrm{val}}^{\mathrm{CW}}=\mathcal C_s\cup\mathcal C_{\mathrm{val}},\quad
-\mathcal C_{\mathrm{test}}^{\mathrm{CW}}=\mathcal C_s\cup\mathcal C_{\mathrm{test}},\quad
-\mathcal C^{\mathrm{OW}}=\mathcal A\times\mathcal O.
-\tag{1}
+\begin{aligned}
+\mathcal C_{\mathrm{val}}^{\mathrm{CW}}&=\mathcal C_s\cup\mathcal C_{\mathrm{val}},\\
+\mathcal C_{\mathrm{test}}^{\mathrm{CW}}&=\mathcal C_s\cup\mathcal C_{\mathrm{test}},\\
+\mathcal C^{\mathrm{OW}}&=\mathcal A\times\mathcal O.
+\end{aligned}
 ```
-
 
 五折任务划分：
 
+**式（2）**
 
 ```math
-\mathcal C_s=C_0\sqcup\bigsqcup_{j=1}^{5}Q_j,\qquad I_j=\mathcal C_s\setminus Q_j.
-\tag{2}
+\begin{aligned}
+\mathcal C_s&=C_0\sqcup\bigsqcup_{j=1}^{5}Q_j,\\
+I_j&=\mathcal C_s\setminus Q_j.
+\end{aligned}
 ```
-
 
 分块种子2026，各Query原语在自己的Inner中均出现。仅出现于单个组合的原语对应组合放入公共Inner集合$`C_0`$。每折教师从相同CLIP缓存和适配器初始化独立训练；$`Q_1`$–$`Q_3`$拟合效用，$`Q_4`$选择效用epoch和结构参数，$`Q_5`$作机制审计。
 
@@ -54,35 +57,39 @@ UT标签轴为16属性、12对象，张量顺序`[batch, object, attribute]`，d
 
 CLIP采用ViT-L/14、224×224输入、视觉宽度1024、共同投影维度768。对最终视觉序列的CLS和全部256个补丁施加同一个`ln_post`和`visual.proj`：
 
+**式（3）**
 
 ```math
-g=\mathcal N(P_v^\top\mathop{\mathrm{LN}}\nolimits_{\mathrm{post}}(H_0)),\qquad
-p_\ell=\mathcal N(P_v^\top\mathop{\mathrm{LN}}\nolimits_{\mathrm{post}}(H_\ell)),\quad\ell=1,\ldots,256.
-\tag{3}
+\begin{aligned}
+g&=\mathcal N(P_v^\top\mathop{\mathrm{LN}}\nolimits_{\mathrm{post}}(H_0)),\\
+p_\ell&=\mathcal N(P_v^\top\mathop{\mathrm{LN}}\nolimits_{\mathrm{post}}(H_\ell)),\\
+\ell&=1,\ldots,256.
+\end{aligned}
 ```
-
 
 名称文本为属性`a photo of footwear made of {attribute}`、对象`a photo of {object}`、组合`a photo of {object} made of {attribute}`。属性/对象英文别名读取`assets/names.json`；全组合文本按对象外层、属性内层排列。单位文本向量记为$`e_a,e_o,e_{oa}\in\mathbb R^{768}`$。
 
 类别查询：
 
+**式（4）**
 
 ```math
-\alpha_\ell(e)=\mathop{\mathrm{softmax}}\nolimits_{\ell}(e^\top p_\ell/0.07),\qquad
-f(e)=\mathcal N\left(\sum_\ell\alpha_\ell(e)p_\ell\right).
-\tag{4}
+\begin{aligned}
+\alpha_\ell(e)&=\mathop{\mathrm{softmax}}\nolimits_{\ell}(e^\top p_\ell/0.07),\\
+f(e)&=\mathcal N\left(\sum_\ell\alpha_\ell(e)p_\ell\right).
+\end{aligned}
 ```
-
 
 缓存$`g`$、$`f_a=f(e_a)`$、$`f_o=f(e_o)`$，FP32编码、FP16落盘、FP32读取。训练中对这些输入施加共享适配器：
 
+**式（5）**
 
 ```math
-A_\theta(z)=\mathcal N\bigl(z+0.1U\mathop{\mathrm{GELU}}\nolimits(Dz)\bigr),\quad
-D\in\mathbb R^{8\times768},\ U\in\mathbb R^{768\times8},\ U_0=0.
-\tag{5}
+\begin{aligned}
+A_\theta(z)&=\mathcal N\bigl(z+0.1U\mathop{\mathrm{GELU}}\nolimits(Dz)\bigr),\\
+D\in\mathbb R^{8\times768},\ U\in\mathbb R^{768\times8},\ U_0&=0.
+\end{aligned}
 ```
-
 
 后文带波浪线的$`\widetilde g,\widetilde f_a,\widetilde f_o`$是适配器输出。CLIP权重、知识文本和组合文本均冻结。
 
@@ -90,20 +97,21 @@ D\in\mathbb R^{8\times768},\ U\in\mathbb R^{768\times8},\ U_0=0.
 
 对象概率读取对象查询视觉；条件分支先引入候选对象上下文：
 
+**式（6）**
 
 ```math
-z_o^0(x)=\widetilde f_o^\top e_o/T_0,\qquad
-c_{xo}=\mathcal N(\widetilde g+\beta\widetilde f_o),\quad T_0=0.07,\ \beta=0.5.
-\tag{6}
+\begin{aligned}
+z_o^0(x)&=\widetilde f_o^\top e_o/T_0,\\
+c_{xo}&=\mathcal N(\widetilde g+\beta\widetilde f_o),\\
+T_0&=0.07,\ \beta=0.5.
+\end{aligned}
 ```
 
-
+**式（7）**
 
 ```math
 U_{oa}^0(x)=\left(c_{xo}^\top e_{oa}+\widetilde f_a^\top e_a\right)/T_0.
-\tag{7}
 ```
-
 
 式(7)的组合文本和图像上下文均随候选对象改变。它提供可运行的CLIP条件基底，不依赖旧CPF投影或旧checkpoint。
 
@@ -111,48 +119,54 @@ U_{oa}^0(x)=\left(c_{xo}^\top e_{oa}+\widetilde f_a^\top e_a\right)/T_0.
 
 原语锚点$`h_c`$分别取$`e_a,e_o`$；OI源文本为父类，OE/AE源文本为`a photo of footwear with {description}`，均通过同一个CLIP文本编码器编码。对$`e=(u\to c,\rho)`$：
 
-
-```math
-d_e=h_u-h_c,\quad m_e=(I+L_\rho R_\rho)d_e,\quad
-L_\rho\in\mathbb R^{768\times16},\ R_\rho\in\mathbb R^{16\times768}.
-\tag{8}
-```
-
-
-初始化$`L_\rho`$为标准差0.01的正态矩阵，$`R_\rho=0`$。定义固定候选度数$`n_\rho(c)`$：
-
-
-```math
-Z_c(G)=\mathcal N\left(h_c+\eta\sum_\rho\frac{1}{\max(1,n_\rho(c))}
-\sum_{e\in N_\rho(c)}b_em_e\right),\quad\eta=0.1.
-\tag{9}
-```
-
-
-固定度数使边开/关只改变该边的消息。实现保存28个目标原语及每边源向量；四个父概念在多条OI边上共享同一冻结文本表示。
-
+**式（8）**
 
 ```math
 \begin{aligned}
-q_{xo}&=\mathcal N(P_vc_{xo}),\quad q_o(G)=\mathcal N(P_oZ_o(G)),\quad q_a(G)=\mathcal N(P_aZ_a(G)),\\
+d_e&=h_u-h_c,\\
+m_e&=(I+L_\rho R_\rho)d_e,\\
+&L_\rho\in\mathbb R^{768\times16},\ R_\rho\in\mathbb R^{16\times768}.
+\end{aligned}
+```
+
+初始化$`L_\rho`$为标准差0.01的正态矩阵，$`R_\rho=0`$。定义固定候选度数$`n_\rho(c)`$：
+
+**式（9）**
+
+```math
+\begin{aligned}
+Z_c(G)&=\mathcal N\left(h_c+\eta\sum_\rho\frac{1}{\max(1,n_\rho(c))}
+\sum_{e\in N_\rho(c)}b_em_e\right),\\
+\eta&=0.1.
+\end{aligned}
+```
+
+固定度数使边开/关只改变该边的消息。实现保存28个目标原语及每边源向量；四个父概念在多条OI边上共享同一冻结文本表示。
+
+**式（10）**
+
+```math
+\begin{aligned}
+q_{xo}&=\mathcal N(P_vc_{xo}),\\
+q_o(G)&=\mathcal N(P_oZ_o(G)),\\
+q_a(G)&=\mathcal N(P_aZ_a(G)),\\
 T(x,o,a;G)&=\sum_{k=1}^{64}q_{xo,k}q_{o,k}(G)q_{a,k}(G),\\
 \delta z_o&=\widetilde g^\top[Z_o(G)-h_o]/T_g,\\
 \delta U_{oa}&=[T(x,o,a;G)-T(x,o,a;\varnothing)]/T_g.
 \end{aligned}
-\tag{10}
 ```
-
 
 $`P_v,P_o,P_a`$均为64×768。最终$`z_o=z_o^0+\alpha_g\delta z_o`$、$`U_{oa}=U_{oa}^0+\alpha_g\delta U_{oa}`$，$`\alpha_g=T_g=0.1`$。空图严格退化为R0。
 
+**式（11）**
 
 ```math
-\ell_o=\log\mathop{\mathrm{softmax}}\nolimits_o(z),\quad
-\ell_{a|o}=\log\mathop{\mathrm{softmax}}\nolimits_a(U_{o,:}),\quad
-\ell_{oa}=\ell_o+\ell_{a|o}.
-\tag{11}
+\begin{aligned}
+\ell_o&=\log\mathop{\mathrm{softmax}}\nolimits_o(z),\\
+\ell_{a|o}&=\log\mathop{\mathrm{softmax}}\nolimits_a(U_{o,:}),\\
+\ell_{oa}&=\ell_o+\ell_{a|o}.
+\end{aligned}
 ```
-
 
 任意候选$`\mathcal C`$内的概率是$`\mathop{\mathrm{softmax}}\nolimits_{c\in\mathcal C}\ell_c`$。每张图先在同一候选集归一化，最后按概率平均。
 
@@ -160,41 +174,40 @@ $`P_v,P_o,P_a`$均为64×768。最终$`z_o=z_o^0+\alpha_g\delta z_o`$、$`U_{oa}
 
 教师目标在Inner候选条件化，同时保留对象/条件属性辅助损失：
 
+**式（12）**
 
 ```math
 \begin{aligned}
-\mathcal L_I&=-\ell_{o^*a^*}+\mathop{\mathrm{LSE}}\nolimits_{(a,o)\in I_j}\ell_{oa}
--0.4\ell_{o^*}-0.6\ell_{a^*|o^*}+10^{-3}\mathcal R_W,\\
+\mathcal L_I&=-\ell_{o^*a^*}+\mathop{\mathrm{LSE}}\nolimits_{(a,o)\in I_j}\ell_{oa}\\
+&\quad -0.4\ell_{o^*}-0.6\ell_{a^*|o^*}+10^{-3}\mathcal R_W,\\
 \mathcal R_W&=768^{-2}\sum_\rho\|L_\rho R_\rho\|_F^2.
 \end{aligned}
-\tag{12}
 ```
-
 
 每batch采一张独立Bernoulli(0.5)参考图。教师训练10epoch，只更新适配器、消息低秩矩阵和三线性投影。
 
 每任务从本折Query取8组合，每组合8图；组合内平均后组合等权。Query归一化候选固定为全部TRAIN组合$`\mathcal C_s`$。固定教师、Query和其他边，定义：
 
+**式（13）**
 
 ```math
-\Delta_e(G_{-e})=\ell_Q(G_{-e},0)-\ell_Q(G_{-e},1),\quad
-y_e=\frac1M\sum_{m=1}^M\Delta_{e,m},\quad
-\nu_e=\frac{1}{M(M-1)}\sum_m(\Delta_{e,m}-y_e)^2.
-\tag{13}
+\begin{aligned}
+\Delta_e(G_{-e})&=\ell_Q(G_{-e},0)-\ell_Q(G_{-e},1),\\
+y_e&=\frac1M\sum_{m=1}^M\Delta_{e,m},\\
+\nu_e&=\frac{1}{M(M-1)}\sum_m(\Delta_{e,m}-y_e)^2.
+\end{aligned}
 ```
-
 
 拟合$`M=4`$，审计$`M=16`$。同一配对共享背景图与Query。每类型每任务随机测8条边，包含概率$`\kappa_e=b_\rho/|E_\rho|`$；拟合三折各512任务，开发/审计各128任务。
 
 期望Query损失$`F(\pi)=\mathbb E_G\ell_Q(G)`$满足：
 
+**式（14）**
 
 ```math
 \frac{\partial F}{\partial\pi_e}
 =\mathbb E_{G_{-e}}[\ell_Q(G_e^+)-\ell_Q(G_e^-)]=-U_e.
-\tag{14}
 ```
-
 
 式(14)把配对效用直接连接到结构优化方向。测量保持教师冻结，效用标签以停止梯度张量保存。
 
@@ -204,26 +217,28 @@ y_e=\frac1M\sum_{m=1}^M\Delta_{e,m},\quad
 
 视觉输入从Inner的冻结全局CLIP向量生成。每原语最多抽16图，先按组合计算均值，再按对象/属性上下文等权。视觉输入为：
 
+**式（15）**
 
 ```math
-h_e^I=[r_c;r_u;h_u;h_c;r_c^\top h_u;r_c^\top h_c;
-\log(1+n_c);\log(1+k_c);m_c;m_u],
-\tag{15}
+\begin{aligned}
+h_e^I&=[r_c;r_u;h_u;h_c;r_c^\top h_u;r_c^\top h_c;\\
+&\log(1+n_c);\log(1+k_c);m_c;m_u],
+\end{aligned}
 ```
-
 
 共$`4\times768+6=3078`$维。OI的$`r_u`$为父类成员Inner摘要的单位均值；描述节点无独立图像，取零向量并标记。总输入6157维，只含语义和Inner证据。
 
 MLP预测均值$`m_\phi`$与任务条件方差$`v_\phi=\mathop{\mathrm{softplus}}\nolimits(v_{\mathrm{raw}})+10^{-4}`$。先以拟合折的类型标准差$`s_\rho`$缩放$`y`$和$`\nu`$，方差按$`s_\rho^2`$还原。观测目标：
 
+**式（16）**
 
 ```math
-L_e=\frac12\left[\log(v_\phi+\nu_e)
-+\frac{(y_e-m_\phi)^2}{v_\phi+\nu_e}\right],\qquad
-\widehat L=\frac1{|E|}\sum_{e\in B_t}\frac{L_e}{\kappa_e}.
-\tag{16}
+\begin{aligned}
+L_e&=\frac12\left[\log(v_\phi+\nu_e)
++\frac{(y_e-m_\phi)^2}{v_\phi+\nu_e}\right],\\
+\widehat L&=\frac1{|E|}\sum_{e\in B_t}\frac{L_e}{\kappa_e}.
+\end{aligned}
 ```
-
 
 三模型独立初始化，开发折NLL选epoch。测量方差$`\nu`$进入观测NLL；部署时任务方差和模型分歧分别计算。
 
@@ -231,40 +246,44 @@ L_e=\frac12\left[\log(v_\phi+\nu_e)
 
 对16份TRAIN支持摘要、3个效用模型，先得每摘要均值$`\bar m_r`$、平均条件方差$`\bar v_r`$、模型均值分歧$`e_r`$。由全方差公式：
 
+**式（17）**
 
 ```math
-\widehat\mu=\frac1R\sum_r\bar m_r,\quad
-\widehat\sigma_{\mathrm{task}}^2=\frac1R\sum_r\bar v_r+\mathop{\mathrm{Var}}\nolimits_r(\bar m_r),\quad
-\widehat v_{\mathrm{ens}}=\frac1R\sum_re_r.
-\tag{17}
+\begin{aligned}
+\widehat\mu&=\frac1R\sum_r\bar m_r,\\
+\widehat\sigma_{\mathrm{task}}^2&=\frac1R\sum_r\bar v_r+\mathop{\mathrm{Var}}\nolimits_r(\bar m_r),\\
+\widehat v_{\mathrm{ens}}&=\frac1R\sum_re_r.
+\end{aligned}
 ```
 
-
+**式（18）**
 
 ```math
 R_e=\widehat\mu_e-\lambda_{\mathrm{var}}\widehat\sigma_{\mathrm{task},e}
 -\lambda_{\mathrm{ens}}\sqrt{\widehat v_{\mathrm{ens},e}}.
-\tag{18}
 ```
-
 
 结构目标及解：
 
+**式（19）**
 
 ```math
-\min_\pi-\sum_e\pi_eR_e+\tau\sum_e\mathop{\mathrm{KL}}\nolimits(\mathop{\mathrm{Bern}}\nolimits(\pi_e)\|\mathop{\mathrm{Bern}}\nolimits(0.5)),
-\quad\sum_{e\in E_\rho}\pi_e\le B_\rho,
-\tag{19}
+\begin{aligned}
+&\min_\pi-\sum_e\pi_eR_e\\
++\tau\sum_e\mathop{\mathrm{KL}}\nolimits(\mathop{\mathrm{Bern}}\nolimits(\pi_e)\|\mathop{\mathrm{Bern}}\nolimits(0.5)),
+\quad\sum_{e\in E_\rho}\pi_e&\le B_\rho,
+\end{aligned}
 ```
 
-
+**式（20）**
 
 ```math
-\pi_e=\mathop{\mathrm{sigmoid}}\nolimits((R_e-\gamma_{\rho(e)})/\tau),\quad
-\gamma_\rho\ge0,\quad\gamma_\rho\left(\sum_{e\in E_\rho}\pi_e-B_\rho\right)=0.
-\tag{20}
+\begin{aligned}
+\pi_e&=\mathop{\mathrm{sigmoid}}\nolimits((R_e-\gamma_{\rho(e)})/\tau),\\
+\gamma_\rho&\ge0,\\
+\gamma_\rho\left(\sum_{e\in E_\rho}\pi_e-B_\rho\right)&=0.
+\end{aligned}
 ```
-
 
 二阶导为$`\tau/[\pi_e(1-\pi_e)]>0`$。预算超限时对$`\gamma`$二分60次。默认预算率0.5、$`\tau=0.5s_*`$，$`s_*`$为三拟合折效用标准差。
 
@@ -294,13 +313,14 @@ AdamW：适配器$`10^{-4}`$，图头$`3\times10^{-4}`$，weight decay $`10^{-4}
 
 ## 10. 推理与核心评价
 
+**式（21）**
 
 ```math
-\log\bar p_{\mathcal C}(c|x)=\mathop{\mathrm{LSE}}\nolimits_{k=1}^{K}
-\log p_{\mathcal C}(c|x,G^{(k)})-\log K,\quad K=16.
-\tag{21}
+\begin{aligned}
+\log\bar p_{\mathcal C}(c|x)&=\mathop{\mathrm{LSE}}\nolimits_{k=1}^{K}\log p_{\mathcal C}(c|x,G^{(k)})-\log K,\\
+K&=16.
+\end{aligned}
 ```
-
 
 同一图种子1701为全部评价batch生成相同的16张图。视觉只编码一次；图头执行K次。mean-logit和mean-graph作为readout配置可单独重复实验。
 
