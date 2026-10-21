@@ -14,7 +14,7 @@ G1 相对 F1 只改变 `task_aux_beta` 与 `experiment_id`；G0 在 G1 配置上
 
 ## 2. 公式修订：支持集系数改为 9/86
 
-张量轴为 `[batch, object, attribute]`，属性索引为 i、物体索引为 j；TRAIN 组合集合按 $(i,j)$ 记为 $\mathcal{S}$。当前链式联合分布与损失为：
+张量轴为 `[batch, object, attribute]`，属性索引为 i、物体索引为 j；TRAIN 组合集合按 $`(i,j)`$ 记为 $`\mathcal{S}`$。当前链式联合分布与损失为：
 
 ```math
 \begin{aligned}
@@ -43,7 +43,7 @@ Z_b&=\sum_{(i,j)\in\mathcal{S}}\exp(s_{bji}),\\[4pt]
 
 ## 3. 静态与动态修正、权重选择及诊断公式
 
-令 $u_i=A_ue_i^a$、$v_j=A_ve_j^o$，r=32、d=768。G1 保留局部门控和模式中心化；G0 关闭视觉门控输入：
+令 $`u_i=A_ue_i^a`$、$`v_j=A_ve_j^o`$，r=32、d=768。G1 保留局部门控和模式中心化；G0 关闭视觉门控输入：
 
 ```math
 \begin{aligned}
@@ -82,7 +82,7 @@ t_m^*&=\min\{t\in\{1,\ldots,T\}:A_t^m=\max_{1\le s\le T}A_s^m\},
 
 本轮 seed3353 的 native／exact 分别选中第 9／6 轮，因此两套结果独立保存、各自按 VAL CW／OW native bias 评价 TEST。
 
-新增诊断从保存的完整 OW 分布读取。令 $\mathcal{P}=\mathcal{A}\times\mathcal{O}$、$\mathcal{C}_h=\mathcal{S}\cup\mathcal{Y}_h$，$\mathcal{E}_h=\mathcal{P}\setminus\mathcal{C}_h$：
+新增诊断从保存的完整 OW 分布读取。令 $`\mathcal{P}=\mathcal{A}\times\mathcal{O}`$、$`\mathcal{C}_h=\mathcal{S}\cup\mathcal{Y}_h`$，$`\mathcal{E}_h=\mathcal{P}\setminus\mathcal{C}_h`$：
 
 ```math
 \begin{aligned}

@@ -70,9 +70,9 @@ VAL 上 dynamic−mean 的 CW／OW 为 −0.729／−1.259 点，TEST 为正。H
 
 ```math
 \begin{aligned}
-\bar\gamma_{jk}&=\frac{1}{N}\sum_b\gamma_{bjk},\\
-V_{\mathrm{image}}&=\frac{1}{OR}\sum_{j,k}\frac{1}{N}\sum_b(\gamma_{bjk}-\bar\gamma_{jk})^2,\\
-V_{\mathrm{fixed}}&=\mathrm{Var}_{j,k}(\bar\gamma_{jk}),\\
+\bar\gamma_{jk}&=\frac{1}{N}\sum_b\gamma_{bjk},\\[4pt]
+V_{\mathrm{image}}&=\frac{1}{OR}\sum_{j,k}\frac{1}{N}\sum_b(\gamma_{bjk}-\bar\gamma_{jk})^2,\\[4pt]
+V_{\mathrm{fixed}}&=\mathrm{Var}_{j,k}(\bar\gamma_{jk}),\\[4pt]
 V_{\mathrm{total}}&=\mathrm{Var}_{b,j,k}(\gamma_{bjk})=V_{\mathrm{image}}+V_{\mathrm{fixed}}.
 \end{aligned}
 ```
@@ -141,8 +141,8 @@ H1 三个 seed 的 native／exact 都选择 **5／8／6 epoch**，对应模型�
 
 ```math
 \begin{aligned}
-x^{\mathrm{I1}}_{bj}&=f^o_{bj}-\mu_j,\\
-q^{\mathrm{I1}}_{bjk}&=2\sigma\!\left(\frac{b_k^\top x^{\mathrm{I1}}_{bj}}{0.1}\right)-1,\\
+x^{\mathrm{I1}}_{bj}&=f^o_{bj}-\mu_j,\\[4pt]
+q^{\mathrm{I1}}_{bjk}&=2\sigma\!\left(\frac{b_k^\top x^{\mathrm{I1}}_{bj}}{0.1}\right)-1,\\[4pt]
 \gamma^{\mathrm{I1}}_{bjk}&=1+\frac{0.25}{2}\left(q^{\mathrm{I1}}_{bjk}-\frac{1}{R}\sum_{\ell=1}^R q^{\mathrm{I1}}_{bj\ell}\right).
 \end{aligned}
 ```

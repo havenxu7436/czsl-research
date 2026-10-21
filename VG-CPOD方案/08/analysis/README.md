@@ -129,8 +129,8 @@ G1 exact 选中权重的动态−均值 TEST CW／OW native AUC 为 **+0.063／�
 
 ```math
 \begin{aligned}
-V_{\mathrm{mean}}&=V\odot\bar\Gamma,\\
-\widetilde A_v^\top&=E_o^+V_{\mathrm{mean}},\\
+V_{\mathrm{mean}}&=V\odot\bar\Gamma,\\[4pt]
+\widetilde A_v^\top&=E_o^+V_{\mathrm{mean}},\\[4pt]
 E_o\widetilde A_v^\top&=E_oE_o^+V_{\mathrm{mean}}=V_{\mathrm{mean}}.
 \end{aligned}
 ```
@@ -147,10 +147,10 @@ E_o\widetilde A_v^\top&=E_oE_o^+V_{\mathrm{mean}}=V_{\mathrm{mean}}.
 
 ```math
 \begin{aligned}
-\mu_j&=\frac{1}{N_{\mathrm{train}}}\sum_{b\in\mathrm{TRAIN}}f^o_{bj},\\
+\mu_j&=\frac{1}{N_{\mathrm{train}}}\sum_{b\in\mathrm{TRAIN}}f^o_{bj},\\[4pt]
 r_{bj}&=\frac{f^o_{bj}-\mu_j}{\max(\lVert f^o_{bj}-\mu_j\rVert_2,\varepsilon)},
-\qquad \varepsilon=10^{-12},\\
-q^{\mathrm{H1}}_{bjk}&=2\sigma\!\left(\frac{r_{bj}^\top(B_{\mathrm{vis}})_{k:}^\top}{0.1}\right)-1,\\
+\qquad \varepsilon=10^{-12},\\[4pt]
+q^{\mathrm{H1}}_{bjk}&=2\sigma\!\left(\frac{r_{bj}^\top(B_{\mathrm{vis}})_{k:}^\top}{0.1}\right)-1,\\[4pt]
 \gamma^{\mathrm{H1}}_{bjk}&=1+\frac{0.25}{2}\left(q^{\mathrm{H1}}_{bjk}
 -\frac{1}{r}\sum_{\ell=1}^{r}q^{\mathrm{H1}}_{bj\ell}\right).
 \end{aligned}

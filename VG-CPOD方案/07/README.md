@@ -14,7 +14,7 @@ F1 与 E1 的配置仅 `task_aux_beta`、`experiment_id` 两个字段不同。ρ
 
 ## 2. 公式修订：降低支持集项系数，pair 项保持 1.5
 
-完整联合分布按物体与条件属性分解。记张量轴为 `[batch, object, attribute]`，真实标签为 $(i_b,j_b)$，TRAIN 组合集合为 $\mathcal{S}$：
+完整联合分布按物体与条件属性分解。记张量轴为 `[batch, object, attribute]`，真实标签为 $`(i_b,j_b)`$，TRAIN 组合集合为 $`\mathcal{S}`$：
 
 ```math
 \begin{aligned}
@@ -61,7 +61,7 @@ F1 的动态正交项和 AdamW weight decay 沿用原实现：
 
 ## 3. 沿用的视觉修正与新增日志公式
 
-令 r=32，d=768，属性／物体文本模式为 $u_i=A_u e_i^a$、$v_j=A_v e_j^o$。沿用模式中心化和全局读出：
+令 r=32，d=768，属性／物体文本模式为 $`u_i=A_u e_i^a`$、$`v_j=A_v e_j^o`$。沿用模式中心化和全局读出：
 
 ```math
 \begin{aligned}

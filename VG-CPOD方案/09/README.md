@@ -12,7 +12,7 @@ H1 相对 G1 将 `gate_input=local` 改为 `train_residual`，新增 `gate_resid
 
 ## 2. 公式修订：TRAIN 查询均值与残差门控
 
-令 $f^o_{bj}\in\mathbb{R}^{768}$ 为冻结 CLIP 的物体查询视觉特征，j 遍历 12 个查询，b 遍历 22,998 张 TRAIN 图像。均值对全部图像、全部查询计算，不读取图像标签：
+令 $`f^o_{bj}\in\mathbb{R}^{768}`$ 为冻结 CLIP 的物体查询视觉特征，j 遍历 12 个查询，b 遍历 22,998 张 TRAIN 图像。均值对全部图像、全部查询计算，不读取图像标签：
 
 ```math
 \begin{aligned}
@@ -25,7 +25,7 @@ r_{bj}&=f^o_{bj}-\mu_j,\\[4pt]
 
 统计代码以 float64 分块累计，保存 float64 均值及 float32 副本；模型 forward 使用固定 float32 buffer `gate_fo_mean`。VAL／TEST 和两个权重选择轨道使用同一 TRAIN 均值。数学上，TRAIN 原始残差均值为零；逐向量单位化后的方向均值由数据决定。
 
-令模式数 R=32，$B_{\mathrm{vis}}\in\mathbb{R}^{R\times768}$，其第 k 行转置为 $b_k$。H1 保留原模式中心化：
+令模式数 R=32，$`B_{\mathrm{vis}}\in\mathbb{R}^{R\times768}`$，其第 k 行转置为 $`b_k`$。H1 保留原模式中心化：
 
 ```math
 \begin{aligned}
@@ -49,7 +49,7 @@ q_{bjk}&=2\sigma(z_{bjk})-1,\\[4pt]
 
 ## 3. CP 读出、训练目标与评价公式
 
-张量轴为 `[batch, object, attribute]`。冻结文本特征定义 $u_i=A_ue_i^a$、$v_j=A_ve_j^o$，$W_c\in\mathbb{R}^{768\times R}$。CP 仍由全局图像特征 g 读出：
+张量轴为 `[batch, object, attribute]`。冻结文本特征定义 $`u_i=A_ue_i^a`$、$`v_j=A_ve_j^o`$，$`W_c\in\mathbb{R}^{768\times R}`$。CP 仍由全局图像特征 g 读出：
 
 ```math
 \begin{aligned}

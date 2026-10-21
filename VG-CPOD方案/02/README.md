@@ -24,16 +24,16 @@ U_{bji}=U^{\mathrm{base}}_{bji}+\Delta U_{bji}.
 
 ```math
 \begin{aligned}
-p_{ij}(x)&=p(o_j\mid x)\,p(a_i\mid o_j,x),\qquad \sum_j\sum_i p_{ij}(x)=1,\\
-Z_s(x)&=\sum_{(i,j)\in\mathcal{C}^{s}}p_{ij}(x),\\
+p_{ij}(x)&=p(o_j\mid x)\,p(a_i\mid o_j,x),\qquad \sum_j\sum_i p_{ij}(x)=1,\\[4pt]
+Z_s(x)&=\sum_{(i,j)\in\mathcal{C}^{s}}p_{ij}(x),\\[4pt]
 \ell_{\mathrm{pair}}&=-\log\frac{p_{a o}(x)}{Z_s(x)},\qquad
-\ell_{\mathrm{support}}=-\log Z_s(x),\\
+\ell_{\mathrm{support}}=-\log Z_s(x),\\[4pt]
 \ell_{\mathrm{cond}}+\ell_{\mathrm{obj}}&=-\log p_{a o}(x)
 =\ell_{\mathrm{pair}}+\ell_{\mathrm{support}}.
 \end{aligned}
 ```
 
-这里 $a,o$ 是该训练样本的真实属性与物体。原目标可精确改写为：
+这里 $`a,o`$ 是该训练样本的真实属性与物体。原目标可精确改写为：
 
 ```math
 \ell_{\mathrm{old}}
@@ -47,7 +47,7 @@ Z_s(x)&=\sum_{(i,j)\in\mathcal{C}^{s}}p_{ij}(x),\\
 \begin{aligned}
 \ell_{\mathrm{task}}(\beta)
 &=\frac{1.5}{1+\beta}\left[\ell_{\mathrm{pair}}
-+\beta(\ell_{\mathrm{cond}}+\ell_{\mathrm{obj}})\right]\\
++\beta(\ell_{\mathrm{cond}}+\ell_{\mathrm{obj}})\right]\\[4pt]
 &=1.5\ell_{\mathrm{pair}}+\frac{1.5\beta}{1+\beta}\ell_{\mathrm{support}}.
 \end{aligned}
 ```
@@ -67,14 +67,14 @@ Z_s(x)&=\sum_{(i,j)\in\mathcal{C}^{s}}p_{ij}(x),\\
 ```math
 \begin{aligned}
 \eta_t&=\eta_{\min}+\frac{\eta_{\max}-\eta_{\min}}{2}
-\left[1+\cos\left(\frac{\pi t}{T-1}\right)\right],\quad t=0,\ldots,T-1,\\
+\left[1+\cos\left(\frac{\pi t}{T-1}\right)\right],\quad t=0,\ldots,T-1,\\[4pt]
 \eta_t^{\mathrm{adapter}}&=\eta_t,\qquad
 \eta_t^{\mathrm{CP}}=s_{\mathrm{CP}}\eta_t,\qquad
 s_{\mathrm{CP}}\in\{1,0.3,0.1\}.
 \end{aligned}
 ```
 
-训练图像 22,998 张，batch64，每轮 360 次更新，10 轮共 $T=3600$。适配器保持 1e-3→1e-5；CP 比较 1e-3→1e-5、3e-4→3e-6、1e-4→1e-6。
+训练图像 22,998 张，batch64，每轮 360 次更新，10 轮共 $`T=3600`$。适配器保持 1e-3→1e-5；CP 比较 1e-3→1e-5、3e-4→3e-6、1e-4→1e-6。
 
 AdamW 的矩估计、weight decay 与总梯度裁剪沿用原实现。分组学习率缩放 AdamW 更新步及其解耦权重衰减步；梯度裁剪仍在所有可训练参数上统一计算。每一步都乘 `lr_scale`，从而保持组间比例。
 

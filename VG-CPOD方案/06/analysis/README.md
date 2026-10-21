@@ -103,7 +103,7 @@ TRAIN 均值替换后的 E1 相对 A5 的 TEST CW/OW AUC 为 **−0.128／−0.0
 
 现有实现的概率定义、中心化公式和损失计算一致。β 的变化可直接解释为训练目标中的一个系数变化。
 
-设完整联合 log 概率为 $s_{bji}$，训练组合集合为 $\mathcal{S}$，标签为 $(i_b,j_b)$。定义训练组合概率质量：
+设完整联合 log 概率为 $`s_{bji}`$，训练组合集合为 $`\mathcal{S}`$，标签为 $`(i_b,j_b)`$。定义训练组合概率质量：
 
 ```math
 Z_b=\sum_{(j,i)\in\mathcal{S}}\exp(s_{bji}),
@@ -116,7 +116,7 @@ Z_b=\sum_{(j,i)\in\mathcal{S}}\exp(s_{bji}),
 ```math
 \begin{aligned}
 \mathcal{L}_{\mathrm{pair}}
-&=\frac{1}{B}\sum_b\left[-s_{bj_bi_b}+\log Z_b\right],\\
+&=\frac{1}{B}\sum_b\left[-s_{bj_bi_b}+\log Z_b\right],\\[4pt]
 \mathcal{L}_{a}+\mathcal{L}_{o}
 &=-\frac{1}{B}\sum_b s_{bj_bi_b}
 =\mathcal{L}_{\mathrm{pair}}+\mathcal{L}_{\mathrm{support}}.
@@ -129,7 +129,7 @@ Z_b=\sum_{(j,i)\in\mathcal{S}}\exp(s_{bji}),
 \begin{aligned}
 \mathcal{L}_{\mathrm{task}}(\beta)
 &=\frac{1.5}{1+\beta}
-\left[\mathcal{L}_{\mathrm{pair}}+\beta(\mathcal{L}_{a}+\mathcal{L}_{o})\right]\\
+\left[\mathcal{L}_{\mathrm{pair}}+\beta(\mathcal{L}_{a}+\mathcal{L}_{o})\right]\\[4pt]
 &=1.5\mathcal{L}_{\mathrm{pair}}
 +\frac{1.5\beta}{1+\beta}\mathcal{L}_{\mathrm{support}}.
 \end{aligned}
@@ -140,7 +140,7 @@ Z_b=\sum_{(j,i)\in\mathcal{S}}\exp(s_{bji}),
 ```math
 \begin{aligned}
 \mathcal{L}_{\mathrm{task}}(0.1)
-&=1.5\mathcal{L}_{\mathrm{pair}}+0.1363636\mathcal{L}_{\mathrm{support}},\\
+&=1.5\mathcal{L}_{\mathrm{pair}}+0.1363636\mathcal{L}_{\mathrm{support}},\\[4pt]
 \mathcal{L}_{\mathrm{task}}(0.05)
 &=1.5\mathcal{L}_{\mathrm{pair}}+0.0714286\mathcal{L}_{\mathrm{support}}.
 \end{aligned}
@@ -148,7 +148,7 @@ Z_b=\sum_{(j,i)\in\mathcal{S}}\exp(s_{bji}),
 
 pair 项系数保持 1.5，支持集项系数变为原来的 **52.38%**。最小化支持集项会推动训练组合总概率质量增大；降低该系数直接减弱这一训练压力。正交项与权重衰减保持原值。
 
-这是下一轮的明确实验变量：在同一模型、ρ 和优化设置下，测量减弱已见支持集集中压力的结果。本次训练历史复算上述恒等式的最大误差为 $3.36\times10^{-8}$。
+这是下一轮的明确实验变量：在同一模型、ρ 和优化设置下，测量减弱已见支持集集中压力的结果。本次训练历史复算上述恒等式的最大误差为 $`3.36\times10^{-8}`$。
 
 ## 6. 下一轮直接执行 F1 三 seed
 

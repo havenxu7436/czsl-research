@@ -79,7 +79,7 @@ CW 集合外组合的总概率质量平均增加 **1.687 个百分点**；其最
 
 ### 3.1 交换已保存的两个概率因子
 
-用同 seed、同选中 epoch 的已保存预测，构造 $p_E(o\mid x)p_F(a\mid o,x)$ 和 $p_F(o\mid x)p_E(a\mid o,x)$，重新评价组合排序。该计算使用已有预测，训练步数为零；每个组合条件在自己的 VAL 上校准 bias。
+用同 seed、同选中 epoch 的已保存预测，构造 $`p_E(o\mid x)p_F(a\mid o,x)`$ 和 $`p_F(o\mid x)p_E(a\mid o,x)`$，重新评价组合排序。该计算使用已有预测，训练步数为零；每个组合条件在自己的 VAL 上校准 bias。
 
 | 联合分数构成 | TEST CW exact AUC | TEST OW exact AUC |
 | --- | --- | --- |
@@ -126,17 +126,17 @@ TRAIN 门控图像变化占比为 **1.88%／1.88%／1.51%**，其余主要为物
 
 ## 5. 公式核查：当前实现正确，β 调整继续沿用现有目标
 
-设完整联合 log 概率为 $s_{bji}$、TRAIN 组合集合为 $\mathcal{S}$，真实标签为 $(i_b,j_b)$。当前目标满足：
+设完整联合 log 概率为 $`s_{bji}`$、TRAIN 组合集合为 $`\mathcal{S}`$，真实标签为 $`(i_b,j_b)`$。当前目标满足：
 
 ```math
 \begin{aligned}
-Z_b&=\sum_{(j,i)\in\mathcal{S}}\exp(s_{bji}),\\
-\mathcal{L}_{\mathrm{support}}&=-\frac{1}{B}\sum_b\log Z_b,\\
+Z_b&=\sum_{(j,i)\in\mathcal{S}}\exp(s_{bji}),\\[4pt]
+\mathcal{L}_{\mathrm{support}}&=-\frac{1}{B}\sum_b\log Z_b,\\[4pt]
 \mathcal{L}_{\mathrm{pair}}&=\frac{1}{B}\sum_b[-s_{bj_bi_b}+\log Z_b],
-\\
-\mathcal{L}_a+\mathcal{L}_o&=\mathcal{L}_{\mathrm{pair}}+\mathcal{L}_{\mathrm{support}},\\
+\\[4pt]
+\mathcal{L}_a+\mathcal{L}_o&=\mathcal{L}_{\mathrm{pair}}+\mathcal{L}_{\mathrm{support}},\\[4pt]
 \mathcal{L}_{\mathrm{task}}(\beta)
-&=\frac{1.5}{1+\beta}[\mathcal{L}_{\mathrm{pair}}+\beta(\mathcal{L}_a+\mathcal{L}_o)]\\
+&=\frac{1.5}{1+\beta}[\mathcal{L}_{\mathrm{pair}}+\beta(\mathcal{L}_a+\mathcal{L}_o)]\\[4pt]
 &=1.5\mathcal{L}_{\mathrm{pair}}+\frac{1.5\beta}{1+\beta}\mathcal{L}_{\mathrm{support}}.
 \end{aligned}
 ```
@@ -160,7 +160,7 @@ F1 新日志的 `pair_weighted`、`support_weighted` 和系数与该恒等式一
 | **G1：动态** | 0.15 | **0.075** | local | 0.25 | 中间 β 的属性与排序平衡 |
 | **G0：静态** | 0.15 | **0.075** | **none** | 沿用配置 | 同一目标下视觉门控模块的训练收益 |
 
-G1 相对 E1 只调整 β；G0 在 G1 配置上关闭门控输入，得到 $\gamma_{bjk}=1$。G0 使用同样的 CLIP、适配器、CP 分解、初始化规则与数据顺序；静态分支的 Bvis 冻结，orth 项为零，与现有代码的分支定义一致。
+G1 相对 E1 只调整 β；G0 在 G1 配置上关闭门控输入，得到 $`\gamma_{bjk}=1`$。G0 使用同样的 CLIP、适配器、CP 分解、初始化规则与数据顺序；静态分支的 Bvis 冻结，orth 项为零，与现有代码的分支定义一致。
 
 | 物理 GPU | 顺序执行的训练 | seed |
 |---|---|---|

@@ -12,7 +12,7 @@ CLIP 编码、已有特征缓存、物体 logits、基础条件 logits、概率�
 
 ## 2. 公式修订：分开修正读出与门控输入
 
-记全局特征为 $g_b\in\mathbb{R}^{d}$，物体查询特征为 $f^o_{bj}\in\mathbb{R}^{d}$，本轮 $d=768$。读出特征定义为：
+记全局特征为 $`g_b\in\mathbb{R}^{d}`$，物体查询特征为 $`f^o_{bj}\in\mathbb{R}^{d}`$，本轮 $`d=768`$。读出特征定义为：
 
 ```math
 \begin{aligned}
@@ -44,7 +44,7 @@ U_{bji}&=U_{bji}^{\mathrm{base}}+\Delta U_{bji},\\[4pt]
 \end{aligned}
 ```
 
-$S_b$ 为物体 logits。联合概率在全部物体与属性组合上归一化，张量轴为 `[batch, object, attribute]`。给定门控和物体后，等价算子为 $W_c\mathrm{diag}(v_j\odot\gamma_{bj})A_u$，秩至多为 r。Wc 初始为零，三个实验都从相同 seed 的零修正开始。
+$`S_b`$ 为物体 logits。联合概率在全部物体与属性组合上归一化，张量轴为 `[batch, object, attribute]`。给定门控和物体后，等价算子为 $`W_c\mathrm{diag}(v_j\odot\gamma_{bj})A_u`$，秩至多为 r。Wc 初始为零，三个实验都从相同 seed 的零修正开始。
 
 ## 3. 公式修订：以 η 控制局部模式调制幅度
 
@@ -60,7 +60,7 @@ B_{\mathrm{vis}}&\in\mathbb{R}^{r\times d},\\[4pt]
 \end{aligned}
 ```
 
-η=1 恢复原 $2\sigma(\cdot)$，各模式系数位于 (0,2)；η=0.25 时位于 (0.75,1.25)；η=0 恢复全 1。在相同参数和输入下，CP 收缩对门控线性，因此：
+η=1 恢复原 $`2\sigma(\cdot)`$，各模式系数位于 (0,2)；η=0.25 时位于 (0.75,1.25)；η=0 恢复全 1。在相同参数和输入下，CP 收缩对门控线性，因此：
 
 ```math
 \Delta U_{\eta=0.25}=0.75\,\Delta U_{\eta=0}+0.25\,\Delta U_{\eta=1}.
