@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-21",
+  "line": "VG-CPOD方案",
+  "number": "09",
+  "version": "v1",
+  "title": "训练均值中心化与归一化残差门控",
+  "imported_from": "H release ZIP and downloaded H server export",
+  "new_runs": [
+    {
+      "case": "H1",
+      "seed": 3351
+    },
+    {
+      "case": "H1",
+      "seed": 3352
+    },
+    {
+      "case": "H1",
+      "seed": 3353
+    }
+  ],
+  "reference_stages": [
+    "02",
+    "04",
+    "05",
+    "06",
+    "07",
+    "08"
+  ],
+  "formula_revision": "All-TRAIN mean per object query; normalize residual; original centered eta=.25 gate and global CP readout",
+  "gate_mean_shape": [
+    12,
+    768
+  ],
+  "gate_mean_trainable": false,
+  "planned_only": [
+    "I1: unnormalized residual, tau=.1",
+    "I2: normalized residual, tau=.56"
+  ]
+}

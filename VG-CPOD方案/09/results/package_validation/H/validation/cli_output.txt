@@ -1,0 +1,39 @@
+Legacy G1
+EPOCH 1 G1 V1 seed 3351 loss 11.093573 VAL_CW_AUC_native 23.4375 VAL_OW_AUC_native 23.4375 VAL_unseen_attr 37.5 VAL_unseen_support 0.4348913107114452 best 23.4375 seconds 0.0
+EPOCH 2 G1 V1 seed 3351 loss 11.090952 VAL_CW_AUC_native 23.4375 VAL_OW_AUC_native 23.4375 VAL_unseen_attr 37.5 VAL_unseen_support 0.4348559626297725 best 23.4375 seconds 0.0
+EPOCH 3 G1 V1 seed 3351 loss 11.089795 VAL_CW_AUC_native 23.4375 VAL_OW_AUC_native 23.4375 VAL_unseen_attr 37.5 VAL_unseen_support 0.4348522819323297 best 23.4375 seconds 0.0
+TRAIN_COMPLETE C:\Users\llenovo\AppData\Local\Temp\vgcpod_h_cli_ipf11dwr\legacy\ut-zap50k\V1\seed3351
+
+first
+TRAIN_GATE_MEAN_COMPLETE C:\Users\llenovo\AppData\Local\Temp\vgcpod_h_cli_ipf11dwr\H_out\feature_statistics\train_object_query_mean.npz images 16
+START_H1START_H1 3352 GPU 2  START_H1 log33513353  C:\Users\llenovo\AppData\Local\Temp\vgcpod_h_cli_ipf11dwr\H_out\logs\H1_seed3352.log
+GPU 3 log C:\Users\llenovo\AppData\Local\Temp\vgcpod_h_cli_ipf11dwr\H_out\logs\H1_seed3353.log
+ GPU 1 log C:\Users\llenovo\AppData\Local\Temp\vgcpod_h_cli_ipf11dwr\H_out\logs\H1_seed3351.log
+START_MEAN_GATE native H1 3352 GPU 2
+START_MEAN_GATE native H1 3353 GPU 3
+START_MEAN_GATE native H1 3351 GPU 1
+START_MEAN_GATE exact H1 3352 GPU 2
+START_MEAN_GATESTART_MEAN_GATE  exact H1 exact H13351  GPU3353 GPU  13
+
+JOB_RESULT H1 3352 complete
+JOB_RESULT H1 3353 complete
+JOB_RESULT H1 3351 complete
+ROUND_H_SUMMARY C:\Users\llenovo\AppData\Local\Temp\vgcpod_h_cli_ipf11dwr\H_out\round_h_summary.json
+ROUND_H_COMPLETE C:\Users\llenovo\AppData\Local\Temp\vgcpod_h_cli_ipf11dwr\H_out training_jobs 3 mean_gate_jobs 6
+
+repeat
+TRAIN_GATE_MEAN_REUSE C:\Users\llenovo\AppData\Local\Temp\vgcpod_h_cli_ipf11dwr\H_out\feature_statistics\train_object_query_mean.npz images 16
+ALREADY_COMPLETE H1 3351 GPU 1
+START_MEAN_GATE native H1 3351 GPU 1
+ALREADY_COMPLETE H1 3352 GPU 2
+START_MEAN_GATE native H1 3352 GPU 2
+ALREADY_COMPLETE H1 3353 GPU 3
+START_MEAN_GATE native H1 3353 GPU 3
+START_MEAN_GATE exact H1 3351 GPU 1
+START_MEAN_GATE exact H1 3352 GPU 2
+START_MEAN_GATE exact H1 3353 GPU 3
+JOB_RESULT H1 3351 complete
+JOB_RESULT H1 3353 complete
+JOB_RESULT H1 3352 complete
+ROUND_H_SUMMARY C:\Users\llenovo\AppData\Local\Temp\vgcpod_h_cli_ipf11dwr\H_out\round_h_summary.json
+ROUND_H_COMPLETE C:\Users\llenovo\AppData\Local\Temp\vgcpod_h_cli_ipf11dwr\H_out training_jobs 3 mean_gate_jobs 6

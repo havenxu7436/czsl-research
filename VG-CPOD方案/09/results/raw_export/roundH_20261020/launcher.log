@@ -1,0 +1,15 @@
+TRAIN_GATE_MEAN_COMPLETE /data/xhw/vgcpod_v1_runs/roundH_20261020/feature_statistics/train_object_query_mean.npz images 22998
+START_H1 3351 GPU 1 log /data/xhw/vgcpod_v1_runs/roundH_20261020/logs/H1_seed3351.log
+START_H1 3352START_H1 3353 GPU GPU 3 log /data/xhw/vgcpod_v1_runs/roundH_20261020/logs/H1_seed3353.log
+ 2 log /data/xhw/vgcpod_v1_runs/roundH_20261020/logs/H1_seed3352.log
+START_MEAN_GATE native H1 3352 GPU 2
+START_MEAN_GATE native H1 3351 GPU 1
+START_MEAN_GATE native H1 3353 GPU 3
+START_MEAN_GATE exact H1 3352 GPU 2
+START_MEAN_GATE exact H1 3351 GPU 1
+START_MEAN_GATE exact H1 3353 GPU 3
+JOB_RESULT H1 3352 complete
+JOB_RESULT H1 3351 complete
+JOB_RESULT H1 3353 complete
+ROUND_H_SUMMARY /data/xhw/vgcpod_v1_runs/roundH_20261020/round_h_summary.json
+ROUND_H_COMPLETE /data/xhw/vgcpod_v1_runs/roundH_20261020 training_jobs 3 mean_gate_jobs 6

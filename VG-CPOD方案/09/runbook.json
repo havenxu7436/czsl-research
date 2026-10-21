@@ -1,0 +1,17 @@
+{
+  "line": "VG-CPOD方案",
+  "stage": "09",
+  "primary_package": "vgcpod_v1_roundH",
+  "commands": [
+    {
+      "source": "README.md",
+      "language": "bash",
+      "text": "git lfs pull\npython tools/reproduce.py materialize --line VG-CPOD方案 --stage 09 \\\n  --dest /data/xhw/vgcpod_project/replay_09\nconda activate vgcpod_v1\ncd /data/xhw/vgcpod_project/replay_09/vgcpod_v1_roundH\n\nexport VG_H_OUT=/data/xhw/vgcpod_v1_runs/replay_09_H\nexport VG_H_SESSION=vgcpod_09_H\nbash scripts/start_round_h_tmux.sh \\\n  --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14 --gpus 1 2 3 \\\n  --a-out /data/xhw/vgcpod_v1_runs/roundA_20261019 \\\n  --c-out /data/xhw/vgcpod_v1_runs/roundC_20261020 \\\n  --d-out /data/xhw/vgcpod_v1_runs/roundD_20261020 \\\n  --e-out /data/xhw/vgcpod_v1_runs/roundE_20261020 \\\n  --f-out /data/xhw/vgcpod_v1_runs/roundF_20261020 \\\n  --g-out /data/xhw/vgcpod_v1_runs/roundG_20261020\n\ntmux attach -t vgcpod_09_H\n"
+    },
+    {
+      "source": "README.md",
+      "language": "bash",
+      "text": "python VG-CPOD方案/09/analysis/recompute.py\npython tools/reproduce.py verify\n"
+    }
+  ]
+}
