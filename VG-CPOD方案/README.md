@@ -15,3 +15,4 @@
 | 07 | 支持集权重下调与跨组合排序诊断（F 组）；F1 三 seed、加权损失日志、双准则选权重及六项均值评估 | [修订说明](07/README.md) · [代码](07/code/README.md) · [配置](07/configs/README.md) · [结果](07/results/README.md) · [数据分析](07/analysis/README.md) |
 | 08 | 支持集权重折中与门控训练对照（G 组）；G0/G1各三seed、β=0.075、双准则选择与六项均值评估 | [修订说明](08/README.md) · [代码](08/code/README.md) · [配置](08/configs/README.md) · [结果](08/results/README.md) · [数据分析](08/analysis/README.md) |
 | 09 | 训练均值中心化与归一化残差门控（H 组）；H1三seed、共享TRAIN均值、双准则选择与六项均值评估 | [修订说明](09/README.md) · [代码](09/code/README.md) · [配置](09/configs/README.md) · [结果](09/results/README.md) · [数据分析](09/analysis/README.md) |
+| 10 | 残差幅值保留与门控温度对照（I 组）；I1/I2各三seed、双准则选择与十二项均值评估 | [修订说明](10/README.md) · [代码](10/code/README.md) · [配置](10/configs/README.md) · [结果](10/results/README.md) · [数据分析](10/analysis/README.md) |
