@@ -1,0 +1,376 @@
+<h1>10 · 残差幅值保留与门控温度对照</h1>
+<p><strong>I 组实验，VG-CPOD v1，归档日期 2026-10-21。</strong> 框架为冻结 OpenAI CLIP ViT-L/14，数据为 UT-Zappos natural split。本阶段新增 I1/I2 各三个 seed，共六次训练、60 个模型 epoch；保存 native／exact 选择的 48 份预测，以及十二项动态／TRAIN 均值评估的 96 份预测，共 <strong>144 份预测文件、24 份 checkpoint 文件</strong>。</p>
+<p><a href="code/README.md">代码与具体改动</a> · <a href="configs/README.md">超参数配置</a> · <a href="results/README.md">全部训练结果</a> · <a href="analysis/README.md">数据分析</a> · <a href="../09/README.md">09 H组</a> · <a href="../08/README.md">08 G组</a></p>
+<h2>1. 实验目的与修订范围</h2>
+<p>09 的 H1 在 TRAIN 去均值后将残差单位化。相对 G1，H1 的 TEST CW／OW AUC 下降 0.902／1.186 点；图像门控标准差约为 G1 的 5.8 倍。I 组通过两项对照检验残差幅值和投影尺度：I1 保留原始残差幅值，I2 保留单位方向并将门控温度从 0.1 调整为 0.56。</p>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>方案</th>
+<th>gate_input</th>
+<th>门控输入</th>
+<th>τγ</th>
+<th>相对H1变化</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H1：已有对照</td>
+<td>train_residual</td>
+<td>归一化TRAIN残差</td>
+<td>0.1</td>
+<td>复用09结果</td>
+</tr>
+<tr>
+<td>I1：幅值保留</td>
+<td>train_centered</td>
+<td>原始TRAIN残差</td>
+<td>0.1</td>
+<td>去掉逐向量L2归一化</td>
+</tr>
+<tr>
+<td>I2：温度对照</td>
+<td>train_residual</td>
+<td>归一化TRAIN残差</td>
+<td>0.56</td>
+<td>仅调整门控温度</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p>两组沿用 β=0.075、ρ=0.15、η=0.25、全局 g 读出和原优化设置，可训练参数均为 <strong>122,880</strong>。六次训练复用 H 组的同一 TRAIN 均值文件；新增输入分支不增加模型参数。</p>
+<h2>2. 公式修订：残差幅值与温度尺度</h2>
+<p>令 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="0d5f9d380504aa0e510f3c201d98bb42">$f^o_{bj}\in\mathbb{R}^{768}$</math-renderer> 为图像 b 对物体查询 j 的冻结 CLIP 特征；TRAIN 图像数 N=22,998，查询数 O=12，模式数 R=32。对全部 TRAIN 图像和全部查询计算：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="0d5f9d380504aa0e510f3c201d98bb42">$$\begin{aligned}
+\mu_j&amp;=\frac1N\sum_{b\in\mathrm{TRAIN}}f^o_{bj},
+\qquad r_{bj}=f^o_{bj}-\mu_j,\\[4pt]
+x^{\mathrm{I1}}_{bj}&amp;=r_{bj},
+\qquad\tau^{\mathrm{I1}}_\gamma=0.1,\\[4pt]
+x^{\mathrm{I2}}_{bj}&amp;=\frac{r_{bj}}{\max(\lVert r_{bj}\rVert_2,10^{-12})},
+\qquad\tau^{\mathrm{I2}}_\gamma=0.56.
+\end{aligned}$$</math-renderer>
+<p>均值计算不使用标签。统计以 float64 累计，forward 使用固定 float32 buffer <code class="notranslate">gate_fo_mean</code>；VAL／TEST、三 seed 及两条选权重路径均使用该 TRAIN 均值。I 组统计文件与 H 组逐字一致。</p>
+<p>令 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="0d5f9d380504aa0e510f3c201d98bb42">$B_{\mathrm{vis}}\in\mathbb{R}^{R\times768}$</math-renderer> 的第 k 行转置为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="0d5f9d380504aa0e510f3c201d98bb42">$b_k$</math-renderer>，对 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="0d5f9d380504aa0e510f3c201d98bb42">$c\in\{\mathrm{I1},\mathrm{I2}\}$</math-renderer>，沿用模式中心化门控：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="0d5f9d380504aa0e510f3c201d98bb42">$$\begin{aligned}
+z^c_{bjk}&amp;=b_k^\top x^c_{bj}/\tau^c_\gamma,\\[4pt]
+q^c_{bjk}&amp;=2\sigma(z^c_{bjk})-1,\\[4pt]
+\gamma^c_{bjk}&amp;=1+\frac{\eta}{2}\left(q^c_{bjk}-\frac1R\sum_{\ell=1}^R q^c_{bj\ell}\right),
+\qquad\eta=0.25,\\[4pt]
+\frac1R\sum_k\gamma^c_{bjk}&amp;=1,
+\qquad0.75\le\gamma^c_{bjk}\le1.25.
+\end{aligned}$$</math-renderer>
+<p>门控对视觉基的梯度为：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="0d5f9d380504aa0e510f3c201d98bb42">$$\nabla_{b_\ell}\gamma^c_{bjk}
+=\frac{\eta}{\tau^c_\gamma}\left(\delta_{k\ell}-\frac1R\right)
+\sigma(z^c_{bj\ell})[1-\sigma(z^c_{bj\ell})]x^c_{bj}.$$</math-renderer>
+<p>两组残差为零时，门控均为 1。I1 对幅值变化保留响应；I2 对超过 ε 的正比例残差使用相同单位方向。</p>
+<h3>2.1 温度0.56的选取依据</h3>
+<p>每个查询的中心化二阶矩满足精确恒等式：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="0d5f9d380504aa0e510f3c201d98bb42">$$\frac1N\sum_b\lVert r_{bj}\rVert_2^2
+=\frac1N\sum_b\lVert f^o_{bj}\rVert_2^2-\lVert\mu_j\rVert_2^2.$$</math-renderer>
+<p>用单位范数 CLIP 缓存特征估算合并残差 RMS：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="0d5f9d380504aa0e510f3c201d98bb42">$$\begin{aligned}
+s_{\mathrm{TRAIN}}&amp;\approx
+\sqrt{\frac1O\sum_{j=1}^O(1-\lVert\mu_j\rVert_2^2)}
+\approx0.17835,\\[4pt]
+\tau^{\mathrm{I2}}_\gamma&amp;\approx\frac{0.1}{s_{\mathrm{TRAIN}}}\approx0.56.
+\end{aligned}$$</math-renderer>
+<p>0.56 是本轮训练前由 TRAIN 代表尺度确定的固定值。若某个残差范数为 0.1/0.56，则同一 Bvis 下，两组 sigmoid 输入精确相等；真实残差范数随图像和查询变化，I1/I2 因而构成代表尺度下的幅值／方向对照。</p>
+<h2>3. CP读出、目标函数与评价</h2>
+<p>令 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="0d5f9d380504aa0e510f3c201d98bb42">$u_i=A_u e_i^a$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="0d5f9d380504aa0e510f3c201d98bb42">$v_j=A_v e_j^o$</math-renderer>，<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="0d5f9d380504aa0e510f3c201d98bb42">$W_c\in\mathbb{R}^{768\times32}$</math-renderer>，张量顺序为 <code class="notranslate">[batch, object, attribute]</code>。两组沿用全局 CLIP 特征 g 的读出：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="0d5f9d380504aa0e510f3c201d98bb42">$$\begin{aligned}
+U^c_{bji}&amp;=U^{\mathrm{base}}_{bji}
++\rho\kappa g_b^\top W_c(u_i\odot v_j\odot\gamma^c_{bj}),
+\qquad\rho=0.15,\ \kappa=20,\\[4pt]
+s_{bji}&amp;=\log p(o_j\mid x_b)+\log p(a_i\mid o_j,x_b),\\[4pt]
+\mathcal{L}_{\mathrm{task}}(\beta)&amp;=\frac{3}{2(1+\beta)}
+\left[\mathcal{L}_{\mathrm{pair}}+\beta(\mathcal{L}_{\mathrm{cond}}+\mathcal{L}_{\mathrm{obj}})\right],\\[4pt]
+\mathcal{L}_{\mathrm{cond}}+\mathcal{L}_{\mathrm{obj}}
+&amp;=\mathcal{L}_{\mathrm{pair}}+\mathcal{L}_{\mathrm{support}},\\[4pt]
+\mathcal{L}^{c}&amp;=\frac32\mathcal{L}_{\mathrm{pair}}+\frac9{86}\mathcal{L}_{\mathrm{support}}
++\frac{0.001}{R^2}\lVert B_{\mathrm{vis}}B_{\mathrm{vis}}^\top-I_R\rVert_F^2.
+\end{aligned}$$</math-renderer>
+<p>β=0.075；pair 为 TRAIN 支持集内重归一化后的交叉熵，support 为 TRAIN 组合概率质量的负对数，具体定义见 <a href="../08/README.md">08</a>。内部 variant=V1，prim／cent 分支为零。Wc 零初始化，AdamW weight decay 独立执行。</p>
+<p>native／exact 各自选择首次最大 VAL CW AUC 的 epoch。每套选中权重在 TRAIN 上计算门控均值：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="0d5f9d380504aa0e510f3c201d98bb42">$$\begin{aligned}
+t_m^*&amp;=\min\{t\in\{1,\ldots,10\}:A_t^m=\max_{1\le s\le10}A_s^m\},
+\qquad m\in\{\mathrm{native},\mathrm{exact}\},\\[4pt]
+\bar\gamma_{jk}&amp;=\frac1N\sum_{b\in\mathrm{TRAIN}}\gamma_{bjk},
+\qquad\gamma^{\mathrm{mean}}_{bjk}=\bar\gamma_{jk}.
+\end{aligned}$$</math-renderer>
+<p>十二项均值评估各保存 dynamic／train_mean 两种条件；优化步数为零。各权重和条件分别从 VAL CW／OW 取得 native bias，并固定用于对应 TEST。I1 的 seed3351 选中第8／10轮，其余 I1 与全部 I2 的两套权重 epoch 相同。</p>
+<h2>4. 具体代码修订与验证</h2>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>文件</th>
+<th>具体修订</th>
+<th>实验作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="code/vgcpod_v1_roundI/vgcpod/model.py">model.py</a></td>
+<td>新增 <code class="notranslate">train_centered</code> 和原幅值 <code class="notranslate">fo - mean</code> 分支</td>
+<td>I1去掉逐向量单位化</td>
+</tr>
+<tr>
+<td><a href="code/vgcpod_v1_roundI/vgcpod/engine.py">engine.py</a></td>
+<td>两种残差输入均加载固定TRAIN均值</td>
+<td>训练构造器支持I1/I2</td>
+</tr>
+<tr>
+<td><a href="code/vgcpod_v1_roundI/vgcpod/gate_features.py">gate_features.py</a></td>
+<td>将H1专用提示改为TRAIN中心化通用提示</td>
+<td>均值加载计算沿用H版本</td>
+</tr>
+<tr>
+<td><a href="configs/round_i/I1.json">I1</a>／<a href="configs/round_i/I2.json">I2</a></td>
+<td>I1改输入，I2改温度；分别命名</td>
+<td>其他训练超参同H1</td>
+</tr>
+<tr>
+<td><a href="code/vgcpod_v1_roundI/round_i.py">round_i.py</a></td>
+<td>一次统计／复用均值、三卡各I1→I2、续训、十二项评估</td>
+<td>六训练及同seed配对汇总</td>
+</tr>
+<tr>
+<td><a href="code/vgcpod_v1_roundI/ranking_diagnostics.py">ranking_diagnostics.py</a></td>
+<td>纳入I1/I2−H1/G0/G1、I1−I2及dynamic−mean</td>
+<td>概率质量与排序诊断</td>
+</tr>
+<tr>
+<td><a href="configs/references/pre_i_complete.json">历史参考</a></td>
+<td>29项历史native及H1/G0/G1的exact指标</td>
+<td>使用历史已完成结果</td>
+</tr>
+<tr>
+<td><a href="code/vgcpod_v1_roundI/scripts/start_round_i_tmux.sh">tmux启动</a>／<a href="code/vgcpod_v1_roundI/tests/test_round_i.py">I组测试</a></td>
+<td>三卡队列与四项新增测试</td>
+<td>累计48项发布测试</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p>相对09的计算修订位于 model／engine；gate_features 仅修改提示文本，均值加载计算沿用原实现。mean_gate_eval.py 及其 TRAIN 均值替换路径逐字沿用 H 版本。<a href="code/source_changes.patch">完整源码补丁</a>和<a href="results/server_source_identity.json">服务器源码身份</a>保留变化范围与原字节核对。</p>
+<p>原发布验证完成48项测试、六项CPU合成训练、十二项均值评估和重复启动复用。测试覆盖 I1 的显式CP／门控、有限差分梯度、代表尺度恒等式、幅值响应、固定buffer与续训。旧H1路径的新旧模型参数、AdamW与Torch RNG逐元素一致。<a href="results/package_validation/I/validation/result.json">原验证</a>与<a href="analysis/recompute.py">仓库复算</a>分别保存发布流程和正式数据核查。</p>
+<h2>5. 超参数选取策略与实际结果</h2>
+<ol>
+<li><strong>从TRAIN几何确定温度。</strong> I2使用τγ=0.56，对应残差RMS约0.17835；该值在本轮训练前确定。</li>
+<li><strong>将幅值和尺度分开比较。</strong> I1−H1检验去掉单位化，I2−H1检验温度变化；I1−I2比较代表尺度接近时的幅值／方向处理。</li>
+<li><strong>沿用目标和CP设置。</strong> β=0.075、ρ=0.15、η=0.25、rank32、全局g读出，适配器与CP学习率保持原日程。</li>
+<li><strong>三seed从原始初始化训练。</strong> GPU1/2/3分别跑3351/3352/3353；每卡先I1、再I2，各10轮、3600次更新。</li>
+<li><strong>比较完整训练与推理干预。</strong> I1/I2−G0/G1为独立训练方案比较，dynamic−mean为同一权重的图像变化贡献。</li>
+<li><strong>保存双准则选择。</strong> 主表继续使用VAL CW native AUC；exact结果独立保存，对应条件使用自己的VAL bias。</li>
+</ol>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>实验</th>
+<th>seed</th>
+<th>native／exact最佳epoch</th>
+<th>VAL CW</th>
+<th>VAL OW</th>
+<th>TEST CW</th>
+<th>TEST OW</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>I1</td>
+<td>3351</td>
+<td>8／10</td>
+<td>43.6373</td>
+<td>31.1230</td>
+<td>33.9122</td>
+<td>26.1414</td>
+</tr>
+<tr>
+<td>I1</td>
+<td>3352</td>
+<td>8／8</td>
+<td>41.7728</td>
+<td>29.8443</td>
+<td>35.1903</td>
+<td>23.6263</td>
+</tr>
+<tr>
+<td>I1</td>
+<td>3353</td>
+<td>6／6</td>
+<td>44.8723</td>
+<td>34.5470</td>
+<td>33.3681</td>
+<td>24.5984</td>
+</tr>
+<tr>
+<td>I2</td>
+<td>3351</td>
+<td>8／8</td>
+<td>43.7343</td>
+<td>31.1052</td>
+<td>33.9697</td>
+<td>26.1872</td>
+</tr>
+<tr>
+<td>I2</td>
+<td>3352</td>
+<td>8／8</td>
+<td>41.6859</td>
+<td>29.7517</td>
+<td>35.1811</td>
+<td>23.7244</td>
+</tr>
+<tr>
+<td>I2</td>
+<td>3353</td>
+<td>6／6</td>
+<td>44.8780</td>
+<td>34.5049</td>
+<td>33.4632</td>
+<td>24.6480</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>固定项目</th>
+<th>设置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CLIP／输入</td>
+<td>冻结OpenAI ViT-L/14，224px、768维；原特征缓存</td>
+</tr>
+<tr>
+<td>ρ／β／η</td>
+<td>0.15 / 0.075 / 0.25</td>
+</tr>
+<tr>
+<td>rank／adapter rank／κ／τv</td>
+<td>32 / 8 / 20 / 0.07</td>
+</tr>
+<tr>
+<td>epochs／batch／每轮更新</td>
+<td>10 / 64 / 360</td>
+</tr>
+<tr>
+<td>适配器LR／CP LR</td>
+<td>1e-3→1e-5 / 3e-4→3e-6，原余弦日程</td>
+</tr>
+<tr>
+<td>AdamW β₁、β₂／ε／weight decay</td>
+<td>0.9、0.999 / 1e-8 / 1e-4</td>
+</tr>
+<tr>
+<td>总梯度裁剪／λorth／eval batch／workers</td>
+<td>1 / 0.001 / 64 / 4</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p>CP优化组为Au/Av/Wc/Bvis，<code class="notranslate">cp_lr_scale=0.3</code>；<code class="notranslate">gate_fo_mean</code>为固定buffer。模板与服务器实际配置分别保存在<a href="configs/round_i/">round_i</a>与<a href="configs/runtime/">runtime</a>。</p>
+<h2>6. 仓库结构与复现入口</h2>
+<pre lang="text" class="notranslate"><code class="notranslate">10/
+  README.md          # 修订说明、公式、超参策略，末节数据分析
+  code/              # I原源码、相对H补丁与原分析源码
+  configs/           # I1/I2模板、运行配置、资产、参考与清单
+  results/           # 六训练、双选择、十二项评估、均值、日志与原归档
+  analysis/          # 数据分析、图表、预测复算和归档核对
+</code></pre>
+<p>在仓库根目录恢复原运行包，复用服务器已有CLIP缓存及历史对照：</p>
+<div class="highlight highlight-source-shell"><pre class="notranslate">git lfs pull
+python tools/reproduce.py materialize --line VG-CPOD方案 --stage 10 \
+  --dest /data/xhw/vgcpod_project/replay_10
+conda activate vgcpod_v1
+<span class="pl-c1">cd</span> /data/xhw/vgcpod_project/replay_10/vgcpod_v1_roundI
+
+<span class="pl-k">export</span> VG_I_OUT=/data/xhw/vgcpod_v1_runs/replay_10_I
+<span class="pl-k">export</span> VG_I_SESSION=vgcpod_10_I
+bash scripts/start_round_i_tmux.sh \
+  --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14 --gpus 1 2 3 \
+  --a-out /data/xhw/vgcpod_v1_runs/roundA_20261019 \
+  --c-out /data/xhw/vgcpod_v1_runs/roundC_20261020 \
+  --d-out /data/xhw/vgcpod_v1_runs/roundD_20261020 \
+  --e-out /data/xhw/vgcpod_v1_runs/roundE_20261020 \
+  --f-out /data/xhw/vgcpod_v1_runs/roundF_20261020 \
+  --g-out /data/xhw/vgcpod_v1_runs/roundG_20261020 \
+  --h-out /data/xhw/vgcpod_v1_runs/roundH_20261020
+
+tmux attach -t vgcpod_10_I</pre></div>
+<p>脚本先复用／生成一次共享TRAIN均值，再生成I1/I2运行配置并启动三卡队列。Ctrl+b、d脱离tmux。<code class="notranslate">launcher.exitcode=0</code>且日志出现<code class="notranslate">ROUND_I_COMPLETE ... training_jobs 6 mean_gate_jobs 12</code>表示整轮完成。输入见<a href="external_inputs.json">external_inputs.json</a>，命令见<a href="runbook.json">runbook.json</a>。</p>
+<p>在仓库根目录复算保存预测的指标、配对差值和图表：</p>
+<div class="highlight highlight-source-shell"><pre class="notranslate">python VG-CPOD方案/10/analysis/recompute.py
+python tools/reproduce.py verify</pre></div>
+<p>复算依赖NumPy、PyTorch、Matplotlib，输出至<code class="notranslate">analysis/recomputed/</code>；原分析保存在<code class="notranslate">analysis/confirmed/</code>。materialize按<a href="package_members.json">映射</a>恢复原包85个成员的布局与字节。</p>
+<h2>7. 数据分析与下一轮方向</h2>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>方案</th>
+<th>VAL CW</th>
+<th>VAL OW</th>
+<th>TEST CW</th>
+<th>TEST OW</th>
+<th>未见条件属性</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>D1</td>
+<td>43.301</td>
+<td>31.564</td>
+<td>34.791</td>
+<td>25.453</td>
+<td>24.343%</td>
+</tr>
+<tr>
+<td>G0</td>
+<td>43.343</td>
+<td>31.615</td>
+<td>34.512</td>
+<td>25.184</td>
+<td>24.731%</td>
+</tr>
+<tr>
+<td>G1</td>
+<td>43.544</td>
+<td>31.675</td>
+<td>34.531</td>
+<td>25.057</td>
+<td>24.696%</td>
+</tr>
+<tr>
+<td>H1</td>
+<td>43.519</td>
+<td>32.031</td>
+<td>33.629</td>
+<td>23.870</td>
+<td>23.321%</td>
+</tr>
+<tr>
+<td>I1</td>
+<td>43.427</td>
+<td>31.838</td>
+<td>34.157</td>
+<td>24.789</td>
+<td>23.973%</td>
+</tr>
+<tr>
+<td>I2</td>
+<td>43.433</td>
+<td>31.787</td>
+<td>34.205</td>
+<td>24.853</td>
+<td>24.061%</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<ul>
+<li><strong>I1/I2收回H1的主要退化。</strong> 相对H1，TEST CW／OW分别回升0.528／0.918和0.576／0.983点，三个seed均改善。</li>
+<li><strong>两种残差处理结果接近。</strong> I2比I1高0.048／0.064点，TEST未见条件属性预测一致率99.63%–99.84%；exact选择后CW排名翻转。</li>
+<li><strong>输入尺度回落，图像变化保留。</strong> TRAIN图像门控标准差从H1的0.06636降至I1/I2的0.02748／0.02807，图像方差占比仍接近100%。</li>
+<li><strong>完整结果仍低于静态G0。</strong> I2−G0的TEST CW／OW为−0.307／−0.330点；I2 dynamic−mean为+0.428／+0.098点。条件属性与未见组合排序仍有差距。</li>
+<li><strong>下一轮建议J1检验读出共享约束。</strong> 沿用I2的τγ=0.56、η=0.25，分别学习静态／动态CP读出，属性／物体因子共享；三seed各10轮。J1为下一轮计划，本阶段正式结果为I1/I2。</li>
+</ul>
+<p><a target="_blank" rel="noopener noreferrer" href="analysis/confirmed/figures/01_results_and_selection.png"><img src="analysis/confirmed/figures/01_results_and_selection.png" alt="I组与历史对照及双准则选择" style="max-width: 100%;"></a></p>
+<p>完整配对SD、逐seed差值、动态／均值分析、公式核查及J1的推导见<a href="analysis/README.md">数据分析README</a>。D1继续作为已有性能参照，G0/G1为同β／ρ对照。</p>

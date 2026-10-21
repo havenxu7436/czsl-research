@@ -1,0 +1,384 @@
+[
+  {
+    "path": "VG-CPOD方案/10/README.md",
+    "sha256": "c5242182c4e5a90e9937762f9f667dc2249a692be434fac1d30f3950d6c8ad4e",
+    "expected_display": 7,
+    "expected_inline": 7,
+    "rendered_display": 7,
+    "rendered_inline": 7,
+    "expected": [
+      {
+        "line": 21,
+        "display": false,
+        "safe": true,
+        "tex": "f^o_{bj}\\in\\mathbb{R}^{768}"
+      },
+      {
+        "line": 23,
+        "display": true,
+        "tex": "\\begin{aligned}\n\\mu_j&=\\frac1N\\sum_{b\\in\\mathrm{TRAIN}}f^o_{bj},\n\\qquad r_{bj}=f^o_{bj}-\\mu_j,\\\\[4pt]\nx^{\\mathrm{I1}}_{bj}&=r_{bj},\n\\qquad\\tau^{\\mathrm{I1}}_\\gamma=0.1,\\\\[4pt]\nx^{\\mathrm{I2}}_{bj}&=\\frac{r_{bj}}{\\max(\\lVert r_{bj}\\rVert_2,10^{-12})},\n\\qquad\\tau^{\\mathrm{I2}}_\\gamma=0.56.\n\\end{aligned}"
+      },
+      {
+        "line": 36,
+        "display": false,
+        "safe": true,
+        "tex": "B_{\\mathrm{vis}}\\in\\mathbb{R}^{R\\times768}"
+      },
+      {
+        "line": 36,
+        "display": false,
+        "safe": true,
+        "tex": "b_k"
+      },
+      {
+        "line": 36,
+        "display": false,
+        "safe": true,
+        "tex": "c\\in\\{\\mathrm{I1},\\mathrm{I2}\\}"
+      },
+      {
+        "line": 38,
+        "display": true,
+        "tex": "\\begin{aligned}\nz^c_{bjk}&=b_k^\\top x^c_{bj}/\\tau^c_\\gamma,\\\\[4pt]\nq^c_{bjk}&=2\\sigma(z^c_{bjk})-1,\\\\[4pt]\n\\gamma^c_{bjk}&=1+\\frac{\\eta}{2}\\left(q^c_{bjk}-\\frac1R\\sum_{\\ell=1}^R q^c_{bj\\ell}\\right),\n\\qquad\\eta=0.25,\\\\[4pt]\n\\frac1R\\sum_k\\gamma^c_{bjk}&=1,\n\\qquad0.75\\le\\gamma^c_{bjk}\\le1.25.\n\\end{aligned}"
+      },
+      {
+        "line": 51,
+        "display": true,
+        "tex": "\\nabla_{b_\\ell}\\gamma^c_{bjk}\n=\\frac{\\eta}{\\tau^c_\\gamma}\\left(\\delta_{k\\ell}-\\frac1R\\right)\n\\sigma(z^c_{bj\\ell})[1-\\sigma(z^c_{bj\\ell})]x^c_{bj}."
+      },
+      {
+        "line": 63,
+        "display": true,
+        "tex": "\\frac1N\\sum_b\\lVert r_{bj}\\rVert_2^2\n=\\frac1N\\sum_b\\lVert f^o_{bj}\\rVert_2^2-\\lVert\\mu_j\\rVert_2^2."
+      },
+      {
+        "line": 70,
+        "display": true,
+        "tex": "\\begin{aligned}\ns_{\\mathrm{TRAIN}}&\\approx\n\\sqrt{\\frac1O\\sum_{j=1}^O(1-\\lVert\\mu_j\\rVert_2^2)}\n\\approx0.17835,\\\\[4pt]\n\\tau^{\\mathrm{I2}}_\\gamma&\\approx\\frac{0.1}{s_{\\mathrm{TRAIN}}}\\approx0.56.\n\\end{aligned}"
+      },
+      {
+        "line": 83,
+        "display": false,
+        "safe": true,
+        "tex": "u_i=A_u e_i^a"
+      },
+      {
+        "line": 83,
+        "display": false,
+        "safe": true,
+        "tex": "v_j=A_v e_j^o"
+      },
+      {
+        "line": 83,
+        "display": false,
+        "safe": true,
+        "tex": "W_c\\in\\mathbb{R}^{768\\times32}"
+      },
+      {
+        "line": 85,
+        "display": true,
+        "tex": "\\begin{aligned}\nU^c_{bji}&=U^{\\mathrm{base}}_{bji}\n+\\rho\\kappa g_b^\\top W_c(u_i\\odot v_j\\odot\\gamma^c_{bj}),\n\\qquad\\rho=0.15,\\ \\kappa=20,\\\\[4pt]\ns_{bji}&=\\log p(o_j\\mid x_b)+\\log p(a_i\\mid o_j,x_b),\\\\[4pt]\n\\mathcal{L}_{\\mathrm{task}}(\\beta)&=\\frac{3}{2(1+\\beta)}\n\\left[\\mathcal{L}_{\\mathrm{pair}}+\\beta(\\mathcal{L}_{\\mathrm{cond}}+\\mathcal{L}_{\\mathrm{obj}})\\right],\\\\[4pt]\n\\mathcal{L}_{\\mathrm{cond}}+\\mathcal{L}_{\\mathrm{obj}}\n&=\\mathcal{L}_{\\mathrm{pair}}+\\mathcal{L}_{\\mathrm{support}},\\\\[4pt]\n\\mathcal{L}^{c}&=\\frac32\\mathcal{L}_{\\mathrm{pair}}+\\frac9{86}\\mathcal{L}_{\\mathrm{support}}\n+\\frac{0.001}{R^2}\\lVert B_{\\mathrm{vis}}B_{\\mathrm{vis}}^\\top-I_R\\rVert_F^2.\n\\end{aligned}"
+      },
+      {
+        "line": 104,
+        "display": true,
+        "tex": "\\begin{aligned}\nt_m^*&=\\min\\{t\\in\\{1,\\ldots,10\\}:A_t^m=\\max_{1\\le s\\le10}A_s^m\\},\n\\qquad m\\in\\{\\mathrm{native},\\mathrm{exact}\\},\\\\[4pt]\n\\bar\\gamma_{jk}&=\\frac1N\\sum_{b\\in\\mathrm{TRAIN}}\\gamma_{bjk},\n\\qquad\\gamma^{\\mathrm{mean}}_{bjk}=\\bar\\gamma_{jk}.\n\\end{aligned}"
+      }
+    ],
+    "rendered": [
+      {
+        "display": false,
+        "tex": "$f^o_{bj}\\in\\mathbb{R}^{768}$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\begin{aligned}\n\\mu_j&=\\frac1N\\sum_{b\\in\\mathrm{TRAIN}}f^o_{bj},\n\\qquad r_{bj}=f^o_{bj}-\\mu_j,\\\\[4pt]\nx^{\\mathrm{I1}}_{bj}&=r_{bj},\n\\qquad\\tau^{\\mathrm{I1}}_\\gamma=0.1,\\\\[4pt]\nx^{\\mathrm{I2}}_{bj}&=\\frac{r_{bj}}{\\max(\\lVert r_{bj}\\rVert_2,10^{-12})},\n\\qquad\\tau^{\\mathrm{I2}}_\\gamma=0.56.\n\\end{aligned}$$"
+      },
+      {
+        "display": false,
+        "tex": "$B_{\\mathrm{vis}}\\in\\mathbb{R}^{R\\times768}$"
+      },
+      {
+        "display": false,
+        "tex": "$b_k$"
+      },
+      {
+        "display": false,
+        "tex": "$c\\in\\{\\mathrm{I1},\\mathrm{I2}\\}$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\begin{aligned}\nz^c_{bjk}&=b_k^\\top x^c_{bj}/\\tau^c_\\gamma,\\\\[4pt]\nq^c_{bjk}&=2\\sigma(z^c_{bjk})-1,\\\\[4pt]\n\\gamma^c_{bjk}&=1+\\frac{\\eta}{2}\\left(q^c_{bjk}-\\frac1R\\sum_{\\ell=1}^R q^c_{bj\\ell}\\right),\n\\qquad\\eta=0.25,\\\\[4pt]\n\\frac1R\\sum_k\\gamma^c_{bjk}&=1,\n\\qquad0.75\\le\\gamma^c_{bjk}\\le1.25.\n\\end{aligned}$$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\nabla_{b_\\ell}\\gamma^c_{bjk}\n=\\frac{\\eta}{\\tau^c_\\gamma}\\left(\\delta_{k\\ell}-\\frac1R\\right)\n\\sigma(z^c_{bj\\ell})[1-\\sigma(z^c_{bj\\ell})]x^c_{bj}.$$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\frac1N\\sum_b\\lVert r_{bj}\\rVert_2^2\n=\\frac1N\\sum_b\\lVert f^o_{bj}\\rVert_2^2-\\lVert\\mu_j\\rVert_2^2.$$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\begin{aligned}\ns_{\\mathrm{TRAIN}}&\\approx\n\\sqrt{\\frac1O\\sum_{j=1}^O(1-\\lVert\\mu_j\\rVert_2^2)}\n\\approx0.17835,\\\\[4pt]\n\\tau^{\\mathrm{I2}}_\\gamma&\\approx\\frac{0.1}{s_{\\mathrm{TRAIN}}}\\approx0.56.\n\\end{aligned}$$"
+      },
+      {
+        "display": false,
+        "tex": "$u_i=A_u e_i^a$"
+      },
+      {
+        "display": false,
+        "tex": "$v_j=A_v e_j^o$"
+      },
+      {
+        "display": false,
+        "tex": "$W_c\\in\\mathbb{R}^{768\\times32}$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\begin{aligned}\nU^c_{bji}&=U^{\\mathrm{base}}_{bji}\n+\\rho\\kappa g_b^\\top W_c(u_i\\odot v_j\\odot\\gamma^c_{bj}),\n\\qquad\\rho=0.15,\\ \\kappa=20,\\\\[4pt]\ns_{bji}&=\\log p(o_j\\mid x_b)+\\log p(a_i\\mid o_j,x_b),\\\\[4pt]\n\\mathcal{L}_{\\mathrm{task}}(\\beta)&=\\frac{3}{2(1+\\beta)}\n\\left[\\mathcal{L}_{\\mathrm{pair}}+\\beta(\\mathcal{L}_{\\mathrm{cond}}+\\mathcal{L}_{\\mathrm{obj}})\\right],\\\\[4pt]\n\\mathcal{L}_{\\mathrm{cond}}+\\mathcal{L}_{\\mathrm{obj}}\n&=\\mathcal{L}_{\\mathrm{pair}}+\\mathcal{L}_{\\mathrm{support}},\\\\[4pt]\n\\mathcal{L}^{c}&=\\frac32\\mathcal{L}_{\\mathrm{pair}}+\\frac9{86}\\mathcal{L}_{\\mathrm{support}}\n+\\frac{0.001}{R^2}\\lVert B_{\\mathrm{vis}}B_{\\mathrm{vis}}^\\top-I_R\\rVert_F^2.\n\\end{aligned}$$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\begin{aligned}\nt_m^*&=\\min\\{t\\in\\{1,\\ldots,10\\}:A_t^m=\\max_{1\\le s\\le10}A_s^m\\},\n\\qquad m\\in\\{\\mathrm{native},\\mathrm{exact}\\},\\\\[4pt]\n\\bar\\gamma_{jk}&=\\frac1N\\sum_{b\\in\\mathrm{TRAIN}}\\gamma_{bjk},\n\\qquad\\gamma^{\\mathrm{mean}}_{bjk}=\\bar\\gamma_{jk}.\n\\end{aligned}$$"
+      }
+    ]
+  },
+  {
+    "path": "VG-CPOD方案/10/code/README.md",
+    "sha256": "b155716341e05e3098cda6a86244a0febb8687b74975b4b1d4338970234e025c",
+    "expected_display": 0,
+    "expected_inline": 0,
+    "rendered_display": 0,
+    "rendered_inline": 0,
+    "expected": [],
+    "rendered": []
+  },
+  {
+    "path": "VG-CPOD方案/10/configs/README.md",
+    "sha256": "d4d380c4958b6b4dff35a44c708d724dbf25fc80556be037157bbe2ed2c163e5",
+    "expected_display": 1,
+    "expected_inline": 0,
+    "rendered_display": 1,
+    "rendered_inline": 0,
+    "expected": [
+      {
+        "line": 18,
+        "display": true,
+        "tex": "\\mathcal{L}_{\\mathrm{task}}(0.075)\n=\\frac32\\mathcal{L}_{\\mathrm{pair}}+\\frac9{86}\\mathcal{L}_{\\mathrm{support}}."
+      }
+    ],
+    "rendered": [
+      {
+        "display": true,
+        "tex": "$$\\mathcal{L}_{\\mathrm{task}}(0.075)\n=\\frac32\\mathcal{L}_{\\mathrm{pair}}+\\frac9{86}\\mathcal{L}_{\\mathrm{support}}.$$"
+      }
+    ]
+  },
+  {
+    "path": "VG-CPOD方案/10/results/README.md",
+    "sha256": "11bdd03dd97e399a61ab18fe942ff8838548fc65493a2de8af9bccf072177d05",
+    "expected_display": 0,
+    "expected_inline": 0,
+    "rendered_display": 0,
+    "rendered_inline": 0,
+    "expected": [],
+    "rendered": []
+  },
+  {
+    "path": "VG-CPOD方案/10/analysis/README.md",
+    "sha256": "2d611bfd6513d413e8248018ff902c3924823ad1e3301e38cb37cbd29219294e",
+    "expected_display": 6,
+    "expected_inline": 13,
+    "rendered_display": 6,
+    "rendered_inline": 13,
+    "expected": [
+      {
+        "line": 112,
+        "display": false,
+        "safe": true,
+        "tex": "u_i=A_u e_i^a"
+      },
+      {
+        "line": 112,
+        "display": false,
+        "safe": true,
+        "tex": "v_j=A_v e_j^o"
+      },
+      {
+        "line": 112,
+        "display": false,
+        "safe": true,
+        "tex": "a_{ij}=u_i\\odot v_j"
+      },
+      {
+        "line": 112,
+        "display": false,
+        "safe": true,
+        "tex": "h_{bj}=\\gamma_{bj}-\\mathbf{1}"
+      },
+      {
+        "line": 112,
+        "display": false,
+        "safe": true,
+        "tex": "g_b\\in\\mathbb{R}^{768}"
+      },
+      {
+        "line": 112,
+        "display": false,
+        "safe": true,
+        "tex": "\\kappa=20"
+      },
+      {
+        "line": 112,
+        "display": false,
+        "safe": true,
+        "tex": "i,j,b"
+      },
+      {
+        "line": 114,
+        "display": true,
+        "tex": "\\begin{aligned}\n\\Delta U^{\\mathrm{I2}}_{bji}\n&=\\rho\\kappa\\,g_b^\\top W_c(a_{ij}\\odot\\gamma_{bj})\\\\[4pt]\n&=\\rho\\kappa\\,g_b^\\top W_c a_{ij}\n+\\rho\\kappa\\,g_b^\\top W_c(a_{ij}\\odot h_{bj}).\n\\end{aligned}"
+      },
+      {
+        "line": 129,
+        "display": false,
+        "safe": true,
+        "tex": "W_s,W_d\\in\\mathbb{R}^{768\\times32}"
+      },
+      {
+        "line": 129,
+        "display": false,
+        "safe": true,
+        "tex": "A_u,A_v"
+      },
+      {
+        "line": 131,
+        "display": true,
+        "tex": "\\begin{aligned}\nU^{\\mathrm{J1}}_{bji}\n&=U^{\\mathrm{base}}_{bji}+\\Delta U^{\\mathrm{J1}}_{bji},\\\\[4pt]\n\\Delta U^{\\mathrm{J1}}_{bji}\n&=\\rho\\kappa\\,g_b^\\top W_s a_{ij}\n+\\rho\\kappa\\,g_b^\\top W_d(a_{ij}\\odot h_{bj}).\n\\end{aligned}"
+      },
+      {
+        "line": 141,
+        "display": false,
+        "safe": true,
+        "tex": "W_s=W_d=W_c"
+      },
+      {
+        "line": 141,
+        "display": false,
+        "safe": true,
+        "tex": "W_d=0"
+      },
+      {
+        "line": 143,
+        "display": true,
+        "tex": "M_{bj}=\\left[W_s\\operatorname{diag}(v_j)\n+W_d\\operatorname{diag}(v_j\\odot h_{bj})\\right]A_u,\n\\qquad \\operatorname{rank}(M_{bj})\\le32."
+      },
+      {
+        "line": 151,
+        "display": true,
+        "tex": "\\begin{aligned}\n\\nabla_{W_s}\\Delta U^{\\mathrm{J1}}_{bji}\n&=\\rho\\kappa\\,g_b a_{ij}^\\top,\\\\[4pt]\n\\nabla_{W_d}\\Delta U^{\\mathrm{J1}}_{bji}\n&=\\rho\\kappa\\,g_b(a_{ij}\\odot h_{bj})^\\top.\n\\end{aligned}"
+      },
+      {
+        "line": 168,
+        "display": true,
+        "tex": "\\begin{aligned}\nr_{bj}&=f^o_{bj}-\\mu_j,\\qquad\n\\widehat r_{bj}=\\frac{r_{bj}}{\\max(\\lVert r_{bj}\\rVert_2,10^{-12})},\\\\[4pt]\nq_{bjk}&=2\\sigma\\!\\left(\\frac{b_k^\\top\\widehat r_{bj}}{0.56}\\right)-1,\\\\[4pt]\nh_{bjk}&=\\frac{0.25}{2}\\left(q_{bjk}-\\frac{1}{32}\\sum_{\\ell=1}^{32}q_{bj\\ell}\\right),\\\\[4pt]\n\\mathcal{L}&=\\frac{3}{2}\\mathcal{L}_{\\mathrm{pair}}+\\frac{9}{86}\\mathcal{L}_{\\mathrm{support}}\n+10^{-3}\\mathcal{L}_{\\mathrm{orth}}.\n\\end{aligned}"
+      },
+      {
+        "line": 179,
+        "display": false,
+        "safe": true,
+        "tex": "b_k"
+      },
+      {
+        "line": 179,
+        "display": false,
+        "safe": true,
+        "tex": "k"
+      },
+      {
+        "line": 213,
+        "display": true,
+        "tex": "\\bar h_{jk}=\\frac{1}{N}\\sum_{b\\in\\mathrm{TRAIN}}h_{bjk},\n\\qquad\n\\Delta U^{\\mathrm{J1,mean}}_{bji}\n=\\rho\\kappa g_b^\\top W_s a_{ij}\n+\\rho\\kappa g_b^\\top W_d(a_{ij}\\odot\\bar h_j)."
+      }
+    ],
+    "rendered": [
+      {
+        "display": false,
+        "tex": "$u_i=A_u e_i^a$"
+      },
+      {
+        "display": false,
+        "tex": "$v_j=A_v e_j^o$"
+      },
+      {
+        "display": false,
+        "tex": "$a_{ij}=u_i\\odot v_j$"
+      },
+      {
+        "display": false,
+        "tex": "$h_{bj}=\\gamma_{bj}-\\mathbf{1}$"
+      },
+      {
+        "display": false,
+        "tex": "$g_b\\in\\mathbb{R}^{768}$"
+      },
+      {
+        "display": false,
+        "tex": "$\\kappa=20$"
+      },
+      {
+        "display": false,
+        "tex": "$i,j,b$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\begin{aligned}\n\\Delta U^{\\mathrm{I2}}_{bji}\n&=\\rho\\kappa\\,g_b^\\top W_c(a_{ij}\\odot\\gamma_{bj})\\\\[4pt]\n&=\\rho\\kappa\\,g_b^\\top W_c a_{ij}\n+\\rho\\kappa\\,g_b^\\top W_c(a_{ij}\\odot h_{bj}).\n\\end{aligned}$$"
+      },
+      {
+        "display": false,
+        "tex": "$W_s,W_d\\in\\mathbb{R}^{768\\times32}$"
+      },
+      {
+        "display": false,
+        "tex": "$A_u,A_v$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\begin{aligned}\nU^{\\mathrm{J1}}_{bji}\n&=U^{\\mathrm{base}}_{bji}+\\Delta U^{\\mathrm{J1}}_{bji},\\\\[4pt]\n\\Delta U^{\\mathrm{J1}}_{bji}\n&=\\rho\\kappa\\,g_b^\\top W_s a_{ij}\n+\\rho\\kappa\\,g_b^\\top W_d(a_{ij}\\odot h_{bj}).\n\\end{aligned}$$"
+      },
+      {
+        "display": false,
+        "tex": "$W_s=W_d=W_c$"
+      },
+      {
+        "display": false,
+        "tex": "$W_d=0$"
+      },
+      {
+        "display": true,
+        "tex": "$$M_{bj}=\\left[W_s\\operatorname{diag}(v_j)\n+W_d\\operatorname{diag}(v_j\\odot h_{bj})\\right]A_u,\n\\qquad \\operatorname{rank}(M_{bj})\\le32.$$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\begin{aligned}\n\\nabla_{W_s}\\Delta U^{\\mathrm{J1}}_{bji}\n&=\\rho\\kappa\\,g_b a_{ij}^\\top,\\\\[4pt]\n\\nabla_{W_d}\\Delta U^{\\mathrm{J1}}_{bji}\n&=\\rho\\kappa\\,g_b(a_{ij}\\odot h_{bj})^\\top.\n\\end{aligned}$$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\begin{aligned}\nr_{bj}&=f^o_{bj}-\\mu_j,\\qquad\n\\widehat r_{bj}=\\frac{r_{bj}}{\\max(\\lVert r_{bj}\\rVert_2,10^{-12})},\\\\[4pt]\nq_{bjk}&=2\\sigma\\!\\left(\\frac{b_k^\\top\\widehat r_{bj}}{0.56}\\right)-1,\\\\[4pt]\nh_{bjk}&=\\frac{0.25}{2}\\left(q_{bjk}-\\frac{1}{32}\\sum_{\\ell=1}^{32}q_{bj\\ell}\\right),\\\\[4pt]\n\\mathcal{L}&=\\frac{3}{2}\\mathcal{L}_{\\mathrm{pair}}+\\frac{9}{86}\\mathcal{L}_{\\mathrm{support}}\n+10^{-3}\\mathcal{L}_{\\mathrm{orth}}.\n\\end{aligned}$$"
+      },
+      {
+        "display": false,
+        "tex": "$b_k$"
+      },
+      {
+        "display": false,
+        "tex": "$k$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\bar h_{jk}=\\frac{1}{N}\\sum_{b\\in\\mathrm{TRAIN}}h_{bjk},\n\\qquad\n\\Delta U^{\\mathrm{J1,mean}}_{bji}\n=\\rho\\kappa g_b^\\top W_s a_{ij}\n+\\rho\\kappa g_b^\\top W_d(a_{ij}\\odot\\bar h_j).$$"
+      }
+    ]
+  }
+]

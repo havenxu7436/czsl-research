@@ -1,0 +1,52 @@
+{
+  "date": "2026-10-21",
+  "line": "VG-CPOD方案",
+  "number": "10",
+  "version": "v1",
+  "title": "残差幅值保留与门控温度对照",
+  "imported_from": "I release ZIP and downloaded I server export",
+  "new_runs": [
+    {
+      "case": "I1",
+      "seed": 3351
+    },
+    {
+      "case": "I1",
+      "seed": 3352
+    },
+    {
+      "case": "I1",
+      "seed": 3353
+    },
+    {
+      "case": "I2",
+      "seed": 3351
+    },
+    {
+      "case": "I2",
+      "seed": 3352
+    },
+    {
+      "case": "I2",
+      "seed": 3353
+    }
+  ],
+  "reference_stages": [
+    "02",
+    "04",
+    "05",
+    "06",
+    "07",
+    "08",
+    "09"
+  ],
+  "formula_revision": "I1 keeps TRAIN residual magnitude with tau=.1; I2 normalizes residual with tau=.56; centered eta=.25 gate and global CP readout",
+  "gate_mean_shape": [
+    12,
+    768
+  ],
+  "gate_mean_trainable": false,
+  "planned_only": [
+    "J1: separate static/dynamic CP readouts with shared attribute/object factors"
+  ]
+}

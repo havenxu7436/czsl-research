@@ -1,0 +1,58 @@
+Legacy H1
+EPOCH 1 H1 V1 seed 3351 loss 11.093577 VAL_CW_AUC_native 23.4375 VAL_OW_AUC_native 23.4375 VAL_unseen_attr 37.5 VAL_unseen_support 0.4348932188967587 best 23.4375 seconds 0.1
+EPOCH 2 H1 V1 seed 3351 loss 11.090963 VAL_CW_AUC_native 23.4375 VAL_OW_AUC_native 23.4375 VAL_unseen_attr 37.5 VAL_unseen_support 0.4348584504838591 best 23.4375 seconds 0.0
+EPOCH 3 H1 V1 seed 3351 loss 11.089813 VAL_CW_AUC_native 23.4375 VAL_OW_AUC_native 23.4375 VAL_unseen_attr 37.5 VAL_unseen_support 0.43485484971631283 best 23.4375 seconds 0.0
+TRAIN_COMPLETE C:\Users\llenovo\AppData\Local\Temp\vgcpod_i_cli_071gp692\legacy\ut-zap50k\V1\seed3351
+
+first
+TRAIN_GATE_MEAN_COPIED_FROM_H C:\Users\llenovo\AppData\Local\Temp\vgcpod_i_cli_071gp692\H_out\feature_statistics\train_object_query_mean.npz
+TRAIN_GATE_MEAN_REUSE C:\Users\llenovo\AppData\Local\Temp\vgcpod_i_cli_071gp692\I_out\feature_statistics\train_object_query_mean.npz images 16
+STARTSTART I1 3351START  I1 I1GPU  33531  GPUlog  3C:\Users\llenovo\AppData\Local\Temp\vgcpod_i_cli_071gp692\I_out\logs\I1_seed3351.log
+ log C:\Users\llenovo\AppData\Local\Temp\vgcpod_i_cli_071gp692\I_out\logs\I1_seed3353.log 
+3352 GPU 2 log C:\Users\llenovo\AppData\Local\Temp\vgcpod_i_cli_071gp692\I_out\logs\I1_seed3352.log
+STARTSTART  STARTI2 I23351  GPUI2 1  3352 log C:\Users\llenovo\AppData\Local\Temp\vgcpod_i_cli_071gp692\I_out\logs\I2_seed3351.log
+ 3353 GPU 3 log C:\Users\llenovo\AppData\Local\Temp\vgcpod_i_cli_071gp692\I_out\logs\I2_seed3353.log
+GPU 2 log C:\Users\llenovo\AppData\Local\Temp\vgcpod_i_cli_071gp692\I_out\logs\I2_seed3352.log
+START_MEAN_GATE native I1 3353 GPU 3
+START_MEAN_GATE native I1 3351 GPU 1
+START_MEAN_GATE native I1 3352 GPU 2
+START_MEAN_GATE exact I1 3353 GPU 3
+START_MEAN_GATE exact I1 3351 GPU 1
+START_MEAN_GATE exact I1 3352 GPU 2
+START_MEAN_GATE native I2 3353 GPU 3
+START_MEAN_GATE native I2 3351 GPU 1
+START_MEAN_GATE native I2 3352 GPU 2
+START_MEAN_GATE exact I2 3353 GPU 3
+START_MEAN_GATE exact I2 3352 GPU 2
+START_MEAN_GATE exact I2 3351 GPU 1
+JOB_RESULT 3353 complete
+JOB_RESULT 3351 complete
+JOB_RESULT 3352 complete
+ROUND_I_SUMMARY C:\Users\llenovo\AppData\Local\Temp\vgcpod_i_cli_071gp692\I_out\round_i_summary.json
+ROUND_I_COMPLETE C:\Users\llenovo\AppData\Local\Temp\vgcpod_i_cli_071gp692\I_out training_jobs 6 mean_gate_jobs 12
+
+repeat
+TRAIN_GATE_MEAN_REUSE C:\Users\llenovo\AppData\Local\Temp\vgcpod_i_cli_071gp692\I_out\feature_statistics\train_object_query_mean.npz images 16
+ALREADY_COMPLETE I1 3353 GPU 3
+ALREADY_COMPLETE I1 3351 GPU 1
+ALREADY_COMPLETE I1 3352 GPU 2
+ALREADY_COMPLETE I2 3353 GPU 3
+START_MEAN_GATE native I1 3353 GPU 3
+ALREADY_COMPLETE I2 3351 GPU 1
+ALREADY_COMPLETE I2 3352 GPU 2
+START_MEAN_GATE native I1 3351 GPU 1
+START_MEAN_GATE native I1 3352 GPU 2
+START_MEAN_GATE exact I1 3352 GPU 2
+START_MEAN_GATE exact I1 3353 GPU 3
+START_MEAN_GATE exact I1 3351 GPU 1
+START_MEAN_GATE native I2 3353 GPU 3
+START_MEAN_GATE native I2 3351 GPU 1
+START_MEAN_GATE native I2 3352 GPU 2
+START_MEAN_GATE exact I2 3351 GPU 1
+START_MEAN_GATE exact I2 3353 GPU 3
+START_MEAN_GATE exact I2 3352 GPU 2
+JOB_RESULT 3352 complete
+JOB_RESULT 3351 complete
+JOB_RESULT 3353 complete
+ROUND_I_SUMMARY C:\Users\llenovo\AppData\Local\Temp\vgcpod_i_cli_071gp692\I_out\round_i_summary.json
+ROUND_I_COMPLETE C:\Users\llenovo\AppData\Local\Temp\vgcpod_i_cli_071gp692\I_out training_jobs 6 mean_gate_jobs 12

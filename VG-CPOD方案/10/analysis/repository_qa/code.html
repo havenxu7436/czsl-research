@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>10 code</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+  <link href="data:text/css;charset=utf-8,html%20%7B%20color%3A%20%23203043%3B%20background%3A%20%23f3f6fa%3B%20%7D%0Abody%20%7B%20max%2Dwidth%3A%201240px%3B%20margin%3A%2036px%20auto%3B%20padding%3A%2042px%2052px%3B%20background%3A%20%23fff%3B%20border%3A%201px%20solid%20%23e0e6ef%3B%20border%2Dradius%3A%2012px%3B%20font%3A%2016px%2F1%2E85%20%27Microsoft%20YaHei%27%2C%20%27Noto%20Sans%20CJK%20SC%27%2C%20sans%2Dserif%3B%20%7D%0Ah1%20%7B%20font%2Dsize%3A%202em%3B%20line%2Dheight%3A%201%2E35%3B%20color%3A%20%23173b58%3B%20%7D%0Ah2%20%7B%20margin%2Dtop%3A%202%2E3em%3B%20border%2Dbottom%3A%202px%20solid%20%23e5edf4%3B%20padding%2Dbottom%3A%20%2E3em%3B%20color%3A%20%23173b58%3B%20%7D%0Ah3%20%7B%20margin%2Dtop%3A%201%2E7em%3B%20color%3A%20%23245c78%3B%20%7D%0Ap%2C%20ul%2C%20ol%20%7B%20margin%3A%201em%200%3B%20%7D%0Atable%20%7B%20display%3A%20table%3B%20border%2Dcollapse%3A%20collapse%3B%20font%2Dsize%3A%2013px%3B%20line%2Dheight%3A%201%2E65%3B%20width%3A%20100%25%20%21important%3B%20margin%3A%201%2E4em%200%3B%20%7D%0Ath%2C%20td%20%7B%20border%3A%201px%20solid%20%23dce4ed%3B%20padding%3A%208px%2010px%3B%20text%2Dalign%3A%20left%3B%20vertical%2Dalign%3A%20top%3B%20%7D%0Ath%20%7B%20background%3A%20%23eaf1f7%3B%20font%2Dweight%3A%20600%3B%20white%2Dspace%3A%20nowrap%3B%20%7D%0Atbody%20tr%3Anth%2Dchild%28even%29%20%7B%20background%3A%20%23f7f9fc%3B%20%7D%0Aimg%20%7B%20max%2Dwidth%3A%20100%25%3B%20height%3A%20auto%3B%20%7D%0Afigure%20%7B%20margin%3A%201%2E5em%200%3B%20%7D%0Afigcaption%20%7B%20color%3A%20%23657185%3B%20font%2Dsize%3A%2013px%3B%20%7D%0Acode%20%7B%20background%3A%20%23edf2f7%3B%20border%2Dradius%3A%203px%3B%20padding%3A%201px%204px%3B%20overflow%2Dwrap%3A%20anywhere%3B%20%7D%0Apre%20%7B%20padding%3A%2015px%3B%20background%3A%20%23edf2f7%3B%20overflow%2Dx%3A%20auto%3B%20%7D%0Aa%20%7B%20color%3A%20%2317658a%3B%20text%2Dunderline%2Doffset%3A%203px%3B%20%7D%0Amath%5Bdisplay%3D%27block%27%5D%20%7B%20margin%3A%201%2E4em%200%3B%20overflow%2Dx%3A%20auto%3B%20%7D%0A%40media%20%28max%2Dwidth%3A%20800px%29%20%7B%20body%20%7B%20padding%3A%2020px%3B%20margin%3A%200%3B%20border%3A%200%3B%20border%2Dradius%3A%200%3B%20%7D%20table%20%7B%20display%3A%20block%3B%20overflow%2Dx%3A%20auto%3B%20font%2Dsize%3A%2012px%3B%20%7D%20%7D%0A" rel="stylesheet">
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="代码与修订">10 · 代码与修订</h1>
+<p>原I包源码位于<a href="vgcpod_v1_roundI/">vgcpod_v1_roundI</a>。配置、资产、原说明和发布验证按平行结构保存；materialize恢复原布局。相对<a href="../../09/code/README.md">09 H组</a>的完整差异见<a href="source_changes.patch">源码补丁</a>。</p>
+<h2 id="原始残差分支与共享均值">1. 原始残差分支与共享均值</h2>
+<p><a href="vgcpod_v1_roundI/vgcpod/model.py">model.py</a>在原<code>train_residual</code>路径旁新增<code>train_centered</code>：</p>
+<div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="cf">if</span> <span class="va">self</span>.gate_input <span class="op">==</span> <span class="st">'train_residual'</span>:
+    gate_input <span class="op">=</span> F.normalize(fo <span class="op">-</span> <span class="va">self</span>.gate_fo_mean[<span class="va">None</span>], dim<span class="op">=-</span><span class="dv">1</span>,
+                             eps<span class="op">=</span>c.get(<span class="st">'gate_residual_eps'</span>, <span class="fl">1e-12</span>))
+<span class="cf">elif</span> <span class="va">self</span>.gate_input <span class="op">==</span> <span class="st">'train_centered'</span>:
+    gate_input <span class="op">=</span> fo <span class="op">-</span> <span class="va">self</span>.gate_fo_mean[<span class="va">None</span>]</code></pre></div>
+<p>两种分支都使用固定<code>gate_fo_mean</code>buffer；后续sigmoid、η=0.25模式中心化和全局g的CP读出相同。I2只通过配置把<code>tau_gamma</code>设为0.56。</p>
+<p><a href="vgcpod_v1_roundI/vgcpod/engine.py">engine.py</a>的模型构造条件扩展为接受<code>train_residual</code>和<code>train_centered</code>，两种输入都调用原均值加载函数。<a href="vgcpod_v1_roundI/vgcpod/gate_features.py">gate_features.py</a>仅将H1专用提示改为TRAIN中心化通用提示，统计与加载计算沿用H版本；<a href="vgcpod_v1_roundI/mean_gate_eval.py">mean_gate_eval.py</a>逐字沿用H组。checkpoint保存并恢复固定buffer，native／exact评价直接读取保存的均值。</p>
+<h2 id="三gpu队列双选择和诊断">2. 三GPU队列、双选择和诊断</h2>
+<ul>
+<li><a href="vgcpod_v1_roundI/round_i.py">round_i.py</a>：优先逐字复用H组的同缓存TRAIN均值；生成I1/I2运行配置。GPU1/2/3分别执行seed3351/3352/3353，每队列依次训练I1、I2，再执行四项均值评估。</li>
+<li><a href="vgcpod_v1_roundI/scripts/start_round_i_tmux.sh">tmux启动</a>：保存激活环境Python、会话、日志和退出码。完成任务直接复用，未完成训练从最后完整epoch继续原十轮日程。</li>
+<li><code>summarize()</code>：native／exact分别比较I1/I2−H1/G0/G1、I1−I2，汇总支持损失、逐组合变化和dynamic−mean。</li>
+<li><a href="vgcpod_v1_roundI/ranking_diagnostics.py">ranking_diagnostics.py</a>：纳入I组的OW预测，按all/seen/unseen统计物体、条件属性、支持概率及未见候选排序。</li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th>内容</th>
+<th>仓库入口</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>两项配置模板</td>
+<td><a href="../configs/round_i/I1.json">I1</a> · <a href="../configs/round_i/I2.json">I2</a></td>
+</tr>
+<tr class="even">
+<td>原服务器运行配置</td>
+<td><a href="../configs/runtime/">runtime</a></td>
+</tr>
+<tr class="odd">
+<td>29项历史native及H1/G0/G1 exact参考</td>
+<td><a href="../configs/references/pre_i_complete.json">pre_i_complete.json</a></td>
+</tr>
+<tr class="even">
+<td>源码差异与服务器身份</td>
+<td><a href="source_changes.patch">补丁</a> · <a href="../results/server_source_identity.json">身份核对</a></td>
+</tr>
+<tr class="odd">
+<td>原包布局恢复</td>
+<td><a href="../package_members.json">package_members.json</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="发布验证与仓库复算">3. 发布验证与仓库复算</h2>
+<ul>
+<li><a href="../results/package_validation/I/validation/unit_tests.txt">48项测试</a>、<a href="../results/package_validation/I/validation/unit_test_summary.json">结构化摘要</a>、<a href="../results/package_validation/I/validation/result.json">六训练十二评估流程</a>。</li>
+<li><a href="vgcpod_v1_roundI/tests/test_round_i.py">四项I组测试</a>：配置及参数数量、显式门控／CP和有限差分梯度、代表尺度等价与幅值响应、I1续训和固定均值恢复。</li>
+<li>原H1路径在新旧核心上的参数、AdamW和Torch RNG逐元素一致；CPU合成流程重复启动跳过六项训练和十二项评估。</li>
+<li><a href="../analysis/recompute.py">正式结果复算</a>、<a href="original_analysis/">原分析源码</a>、<a href="../analysis/repository_validation.json">仓库验证</a>。</li>
+</ul>
+<p>正式训练使用Python3.8.18、PyTorch1.13.1+cu117、NumPy1.24.4与RTX3090。发布流程验证使用CPU合成缓存；本阶段训练结果来自服务器CLIP缓存。CLIP许可见<a href="vgcpod_v1_roundI/vendor/CLIP_LICENSE">CLIP_LICENSE</a>。</p>
+</body>
+</html>

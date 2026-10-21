@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>10 results</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link href="data:text/css;charset=utf-8,html%20%7B%20color%3A%20%23203043%3B%20background%3A%20%23f3f6fa%3B%20%7D%0Abody%20%7B%20max%2Dwidth%3A%201240px%3B%20margin%3A%2036px%20auto%3B%20padding%3A%2042px%2052px%3B%20background%3A%20%23fff%3B%20border%3A%201px%20solid%20%23e0e6ef%3B%20border%2Dradius%3A%2012px%3B%20font%3A%2016px%2F1%2E85%20%27Microsoft%20YaHei%27%2C%20%27Noto%20Sans%20CJK%20SC%27%2C%20sans%2Dserif%3B%20%7D%0Ah1%20%7B%20font%2Dsize%3A%202em%3B%20line%2Dheight%3A%201%2E35%3B%20color%3A%20%23173b58%3B%20%7D%0Ah2%20%7B%20margin%2Dtop%3A%202%2E3em%3B%20border%2Dbottom%3A%202px%20solid%20%23e5edf4%3B%20padding%2Dbottom%3A%20%2E3em%3B%20color%3A%20%23173b58%3B%20%7D%0Ah3%20%7B%20margin%2Dtop%3A%201%2E7em%3B%20color%3A%20%23245c78%3B%20%7D%0Ap%2C%20ul%2C%20ol%20%7B%20margin%3A%201em%200%3B%20%7D%0Atable%20%7B%20display%3A%20table%3B%20border%2Dcollapse%3A%20collapse%3B%20font%2Dsize%3A%2013px%3B%20line%2Dheight%3A%201%2E65%3B%20width%3A%20100%25%20%21important%3B%20margin%3A%201%2E4em%200%3B%20%7D%0Ath%2C%20td%20%7B%20border%3A%201px%20solid%20%23dce4ed%3B%20padding%3A%208px%2010px%3B%20text%2Dalign%3A%20left%3B%20vertical%2Dalign%3A%20top%3B%20%7D%0Ath%20%7B%20background%3A%20%23eaf1f7%3B%20font%2Dweight%3A%20600%3B%20white%2Dspace%3A%20nowrap%3B%20%7D%0Atbody%20tr%3Anth%2Dchild%28even%29%20%7B%20background%3A%20%23f7f9fc%3B%20%7D%0Aimg%20%7B%20max%2Dwidth%3A%20100%25%3B%20height%3A%20auto%3B%20%7D%0Afigure%20%7B%20margin%3A%201%2E5em%200%3B%20%7D%0Afigcaption%20%7B%20color%3A%20%23657185%3B%20font%2Dsize%3A%2013px%3B%20%7D%0Acode%20%7B%20background%3A%20%23edf2f7%3B%20border%2Dradius%3A%203px%3B%20padding%3A%201px%204px%3B%20overflow%2Dwrap%3A%20anywhere%3B%20%7D%0Apre%20%7B%20padding%3A%2015px%3B%20background%3A%20%23edf2f7%3B%20overflow%2Dx%3A%20auto%3B%20%7D%0Aa%20%7B%20color%3A%20%2317658a%3B%20text%2Dunderline%2Doffset%3A%203px%3B%20%7D%0Amath%5Bdisplay%3D%27block%27%5D%20%7B%20margin%3A%201%2E4em%200%3B%20overflow%2Dx%3A%20auto%3B%20%7D%0A%40media%20%28max%2Dwidth%3A%20800px%29%20%7B%20body%20%7B%20padding%3A%2020px%3B%20margin%3A%200%3B%20border%3A%200%3B%20border%2Dradius%3A%200%3B%20%7D%20table%20%7B%20display%3A%20block%3B%20overflow%2Dx%3A%20auto%3B%20font%2Dsize%3A%2012px%3B%20%7D%20%7D%0A" rel="stylesheet">
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="i组训练结果">10 · I组训练结果</h1>
+<p>本阶段新增I1/I2各三seed，共六次训练、60个模型epoch。native／exact两条选择分别保存24份评价与预测；十二项均值评估包含24个条件、96份评价与预测。合计 <strong>144份预测文件、24份checkpoint文件</strong>，共享TRAIN查询均值与十二套门控矩另行保存。</p>
+<h2 id="native选择主结果">1. native选择主结果</h2>
+<table>
+<thead>
+<tr class="header">
+<th>实验</th>
+<th>seed</th>
+<th>native／exact最佳epoch</th>
+<th>VAL CW</th>
+<th>VAL OW</th>
+<th>TEST CW</th>
+<th>TEST OW</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>I1</td>
+<td>3351</td>
+<td>8／10</td>
+<td>43.6373</td>
+<td>31.1230</td>
+<td>33.9122</td>
+<td>26.1414</td>
+</tr>
+<tr class="even">
+<td>I1</td>
+<td>3352</td>
+<td>8／8</td>
+<td>41.7728</td>
+<td>29.8443</td>
+<td>35.1903</td>
+<td>23.6263</td>
+</tr>
+<tr class="odd">
+<td>I1</td>
+<td>3353</td>
+<td>6／6</td>
+<td>44.8723</td>
+<td>34.5470</td>
+<td>33.3681</td>
+<td>24.5984</td>
+</tr>
+<tr class="even">
+<td>I2</td>
+<td>3351</td>
+<td>8／8</td>
+<td>43.7343</td>
+<td>31.1052</td>
+<td>33.9697</td>
+<td>26.1872</td>
+</tr>
+<tr class="odd">
+<td>I2</td>
+<td>3352</td>
+<td>8／8</td>
+<td>41.6859</td>
+<td>29.7517</td>
+<td>35.1811</td>
+<td>23.7244</td>
+</tr>
+<tr class="even">
+<td>I2</td>
+<td>3353</td>
+<td>6／6</td>
+<td>44.8780</td>
+<td>34.5049</td>
+<td>33.4632</td>
+<td>24.6480</td>
+</tr>
+</tbody>
+</table>
+<p>AUC使用服务器原始分数保存的native曲线积分，面积×100。每次训练完成十轮、3600次更新，完整物体／条件属性、CW／OW、seen／unseen及NLL指标保存在各运行JSON中。</p>
+<h2 id="exact选择结果">2. exact选择结果</h2>
+<table>
+<thead>
+<tr class="header">
+<th>实验</th>
+<th>seed</th>
+<th>exact最佳epoch</th>
+<th>VAL CW native</th>
+<th>VAL CW exact</th>
+<th>TEST CW native</th>
+<th>TEST OW native</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>I1</td>
+<td>3351</td>
+<td>10</td>
+<td>43.6287</td>
+<td>43.8530</td>
+<td>34.2815</td>
+<td>26.3127</td>
+</tr>
+<tr class="even">
+<td>I1</td>
+<td>3352</td>
+<td>8</td>
+<td>41.7728</td>
+<td>41.9822</td>
+<td>35.1903</td>
+<td>23.6263</td>
+</tr>
+<tr class="odd">
+<td>I1</td>
+<td>3353</td>
+<td>6</td>
+<td>44.8723</td>
+<td>45.1963</td>
+<td>33.3681</td>
+<td>24.5984</td>
+</tr>
+<tr class="even">
+<td>I2</td>
+<td>3351</td>
+<td>8</td>
+<td>43.7343</td>
+<td>43.8698</td>
+<td>33.9697</td>
+<td>26.1872</td>
+</tr>
+<tr class="odd">
+<td>I2</td>
+<td>3352</td>
+<td>8</td>
+<td>41.6859</td>
+<td>41.8783</td>
+<td>35.1811</td>
+<td>23.7244</td>
+</tr>
+<tr class="even">
+<td>I2</td>
+<td>3353</td>
+<td>6</td>
+<td>44.8780</td>
+<td>45.1829</td>
+<td>33.4632</td>
+<td>24.6480</td>
+</tr>
+</tbody>
+</table>
+<p>I1/3351的native选择第8轮，exact选择第10轮。其余五次训练的两条选择轨道epoch相同，对应参数与预测一致。<code>best.pt</code>与<code>best_native.pt</code>为逐字别名；<code>best_exact.pt</code>独立保存；<code>last.pt</code>保存末轮完整模型、优化器和随机状态。</p>
+<h2 id="原运行共享均值与汇总">3. 原运行、共享均值与汇总</h2>
+<ul>
+<li><a href="raw_export/roundI_20261021/I1/ut-zap50k/V1/">I1三seed</a>与<a href="raw_export/roundI_20261021/I2/ut-zap50k/V1/">I2三seed</a>：protocol、history、metrics、曲线、预测、四份checkpoint和exact_selection。</li>
+<li><a href="raw_export/roundI_20261021/feature_statistics/">共享TRAIN均值</a>、<a href="raw_export/roundI_20261021/configs/">运行配置</a>：22,998张图像、12个查询，float64累计，float32模型buffer。</li>
+<li><a href="raw_export/roundI_20261021/round_i_status.json">三卡状态</a>、<a href="raw_export/roundI_20261021/round_i_jobs.json">任务表</a>、<a href="raw_export/roundI_20261021/launcher.log">主日志</a>、<a href="raw_export/roundI_20261021/launcher.exitcode">退出码0</a>。</li>
+<li><a href="raw_export/roundI_20261021/round_i_summary.json">主结果</a>、<a href="raw_export/roundI_20261021/round_i_mean_sd.csv">均值与SD</a>、<a href="raw_export/roundI_20261021/round_i_paired_deltas.csv">配对差值</a>、<a href="raw_export/roundI_20261021/round_i_paired_mean_sd.csv">配对汇总</a>。</li>
+<li><a href="raw_export/roundI_20261021/matched_native_summary.csv">同ρ／β主表</a>、<a href="raw_export/roundI_20261021/support_training_summary.csv">支持损失</a>、<a href="raw_export/roundI_20261021/exact_selection_summary.csv">exact指标</a>、<a href="raw_export/roundI_20261021/exact_reference_paired_mean_sd.csv">exact历史配对</a>。</li>
+<li><a href="raw_export/roundI_20261021/ranking_diagnostics.json">排序诊断</a>、<a href="raw_export/roundI_20261021/ranking_diagnostic_paired_mean_sd.csv">诊断配对汇总</a>、<a href="raw_export/roundI_20261021/pair_probability_diagnostics.csv">逐组合概率</a>、<a href="raw_export/roundI_20261021/per_pair_gains.csv">逐组合增量</a>。</li>
+</ul>
+<h2 id="动态与train均值替换">4. 动态与TRAIN均值替换</h2>
+<table>
+<thead>
+<tr class="header">
+<th>实验</th>
+<th>seed</th>
+<th>动态−均值 TEST CW</th>
+<th>TEST OW</th>
+<th>未见属性正确数变化</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>I1</td>
+<td>3351</td>
+<td>+0.2081</td>
+<td>-0.1352</td>
+<td>+8</td>
+</tr>
+<tr class="even">
+<td>I1</td>
+<td>3352</td>
+<td>+0.4597</td>
+<td>+0.1403</td>
+<td>-7</td>
+</tr>
+<tr class="odd">
+<td>I1</td>
+<td>3353</td>
+<td>+0.2832</td>
+<td>-0.0747</td>
+<td>+2</td>
+</tr>
+<tr class="even">
+<td>I2</td>
+<td>3351</td>
+<td>+0.3251</td>
+<td>-0.0534</td>
+<td>+10</td>
+</tr>
+<tr class="odd">
+<td>I2</td>
+<td>3352</td>
+<td>+0.4003</td>
+<td>+0.3004</td>
+<td>-3</td>
+</tr>
+<tr class="even">
+<td>I2</td>
+<td>3353</td>
+<td>+0.5592</td>
+<td>+0.0484</td>
+<td>+5</td>
+</tr>
+</tbody>
+</table>
+<p><a href="raw_export/roundI_20261021/mean_gate/">native评估</a>与<a href="raw_export/roundI_20261021/mean_gate_exact/">exact评估</a>保存TRAIN门控均值[12,32]、方差以及dynamic/train_mean两条件的四种评价、预测与曲线。每项统计全部TRAIN图像，优化步数为零，各条件使用自己的VAL bias。</p>
+<h2 id="原交付来源与数据分析">5. 原交付、来源与数据分析</h2>
+<ul>
+<li><a href="archives/vgcpod_roundI_results_20261021.tar.gz">原服务器TAR</a>、<a href="archives/vgcpod_v1_roundI_20261021.zip">原I训练ZIP</a>，旁附SHA256；二进制沿用Git LFS。</li>
+<li><a href="package_validation/I/">原发布验证</a>、<a href="package_support/I/">原包说明字节</a>、<a href="package_support/original_reports/">原实施和分析报告字节</a>。</li>
+<li><a href="../package_members.json">原包85个成员映射</a>、<a href="raw_export_members.json">结果成员与哈希</a>、<a href="server_source_identity.json">服务器源码身份</a>、<a href="reused_reference_members.json">历史引用</a>、<a href="../file_manifest.json">阶段SHA256</a>。</li>
+<li>原TAR的C/D/E/F/G/H历史结果映射到<a href="../../04/results/README.md">04</a>、<a href="../../05/results/README.md">05</a>、<a href="../../06/results/README.md">06</a>、<a href="../../07/results/README.md">07</a>、<a href="../../08/results/README.md">08</a>、<a href="../../09/results/README.md">09</a>；A5/A6引用<a href="../../02/results/README.md">02</a>。</li>
+<li><a href="../analysis/repository_validation.json">仓库复算与归档核对</a>、<a href="../analysis/README.md">完整数据分析</a>。</li>
+</ul>
+<p>I2相对H1的TEST CW／OW回升0.576／0.983点，相对G0仍低0.307／0.330点。I1/I2差异较小；下一轮建议J1检验静态与动态CP读出分别学习的效果。</p>
+</body>
+</html>

@@ -1,0 +1,522 @@
+<h1>10 · 数据分析与下一轮方向</h1>
+<p>日期：2026-10-21。框架：冻结 OpenAI CLIP ViT-L/14；数据：UT-Zappos。分析本次下载的 I1／I2 各三个 seed 和十二项均值门控评估。</p>
+<p><strong>下一轮优先做 J1：沿用 I2 的残差门控，分别学习静态 CP 读出与动态 CP 读出。</strong> 属性／物体因子继续共享，仅增加一个 768×32 动态读出矩阵，三 seed 各训练 10 epochs。现有 I2 是共享读出的直接对照，G0／G1 继续提供静态和原门控参照。</p>
+<p>I1／I2 相对 H1 的 TEST CW／OW AUC 分别回升 <strong>0.528／0.918 点、0.576／0.983 点</strong>，三个 seed 均回升。I1 与 I2 的差异很小：I2 的 CW／OW 均值高 0.048／0.064 点，TEST 未见属性预测一致率为 99.63%–99.84%。本轮支持继续使用较温和的残差投影尺度；保留原始幅值与归一化后调整温度，两种处理给出的表现接近。</p>
+<p>I2 相对静态 G0 的 TEST CW／OW 仍为 <strong>−0.307／−0.330 点</strong>；其动态门控相对自身 TRAIN 均值条件提高 <strong>0.428／0.098 点</strong>。下一步计算集中于静态和动态修正共用读出矩阵这一结构约束。</p>
+<h2>1. 本轮完整结果</h2>
+<p>主表使用各模型原定的 VAL CW native AUC 选权重规则，数值为三 seed 均值。AUC 为面积乘 100；条件属性使用真实物体标签。</p>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>模型</th>
+<th>VAL CW AUC</th>
+<th>VAL OW AUC</th>
+<th>TEST CW AUC</th>
+<th>TEST OW AUC</th>
+<th>未见条件属性</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>D1</td>
+<td>43.301</td>
+<td>31.564</td>
+<td>34.791</td>
+<td>25.453</td>
+<td>24.343%</td>
+</tr>
+<tr>
+<td>G0</td>
+<td>43.343</td>
+<td>31.615</td>
+<td>34.512</td>
+<td>25.184</td>
+<td>24.731%</td>
+</tr>
+<tr>
+<td>G1</td>
+<td>43.544</td>
+<td>31.675</td>
+<td>34.531</td>
+<td>25.057</td>
+<td>24.696%</td>
+</tr>
+<tr>
+<td>H1</td>
+<td>43.519</td>
+<td>32.031</td>
+<td>33.629</td>
+<td>23.870</td>
+<td>23.321%</td>
+</tr>
+<tr>
+<td>I1</td>
+<td>43.427</td>
+<td>31.838</td>
+<td>34.157</td>
+<td>24.789</td>
+<td>23.973%</td>
+</tr>
+<tr>
+<td>I2</td>
+<td>43.433</td>
+<td>31.787</td>
+<td>34.205</td>
+<td>24.853</td>
+<td>24.061%</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p>D1 的 TEST CW／OW 为 34.791／25.453，继续作为当前性能参照。G0／G1 与 I 组使用相同的 β=0.075，适合分析门控与结构变化；D1 的 β=0.1，反映已有方案达到的结果。</p>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>比较</th>
+<th>TEST CW AUC：均值 ± 配对 SD</th>
+<th>TEST OW AUC：均值 ± 配对 SD</th>
+<th>未见属性增量</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>I1-H1</td>
+<td>+0.528 ± 0.293</td>
+<td>+0.918 ± 0.815</td>
+<td>+0.652 个百分点</td>
+</tr>
+<tr>
+<td>I2-H1</td>
+<td>+0.576 ± 0.333</td>
+<td>+0.983 ± 0.806</td>
+<td>+0.740 个百分点</td>
+</tr>
+<tr>
+<td>I1-I2</td>
+<td>-0.048 ± 0.053</td>
+<td>-0.064 ± 0.029</td>
+<td>-0.088 个百分点</td>
+</tr>
+<tr>
+<td>I1-G0</td>
+<td>-0.355 ± 0.394</td>
+<td>-0.395 ± 0.485</td>
+<td>-0.758 个百分点</td>
+</tr>
+<tr>
+<td>I2-G0</td>
+<td>-0.307 ± 0.345</td>
+<td>-0.330 ± 0.496</td>
+<td>-0.670 个百分点</td>
+</tr>
+<tr>
+<td>I1-G1</td>
+<td>-0.374 ± 0.423</td>
+<td>-0.268 ± 0.469</td>
+<td>-0.723 个百分点</td>
+</tr>
+<tr>
+<td>I2-G1</td>
+<td>-0.326 ± 0.373</td>
+<td>-0.204 ± 0.485</td>
+<td>-0.635 个百分点</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p><a target="_blank" rel="noopener noreferrer" href="confirmed/figures/01_results_and_selection.png"><img src="confirmed/figures/01_results_and_selection.png" alt="完整结果及两种选权重路径" style="max-width: 100%;"></a></p>
+<p>I2 的 VAL CW 比 I1 高 0.005 点，VAL OW 低 0.051 点；TEST CW／OW 高 0.048／0.064 点。两组输入尺度相近后，保留幅值与使用单位方向得到非常接近的结果。</p>
+<p>在 1,891 张 TEST 未见图像中，I1 相对 I2 的条件属性正确数净变化为 0／−3／−2。正确数和预测一致性共同表明，接下来的主变量可以转向 CP 的静态／动态读出。后续固定 I2 门控，便于与已有 I2 一对一比较。</p>
+<h2>2. 选权重差异解释了部分均值变化</h2>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>seed</th>
+<th>I1 native/exact epoch</th>
+<th>I2 native/exact epoch</th>
+<th>I2−G1 CW AUC</th>
+<th>I2−G1 OW AUC</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3351</td>
+<td>8/10</td>
+<td>8/8</td>
+<td>-0.244</td>
+<td>-0.004</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>8/8</td>
+<td>8/8</td>
+<td>-0.000</td>
+<td>+0.151</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>6/6</td>
+<td>6/6</td>
+<td>-0.733</td>
+<td>-0.757</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p>I1 的 seed3351 出现 native 第 8 轮、exact 第 10 轮的差异。I2 两种选择都为 8／8／6；G1 的 native 为 8／8／9、exact 为 8／8／6。</p>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>比较</th>
+<th>选权重依据</th>
+<th>TEST CW native AUC 差值</th>
+<th>TEST OW native AUC 差值</th>
+<th>CW exact AUC 差值</th>
+<th>OW exact AUC 差值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>I1−I2</td>
+<td>native</td>
+<td>−0.048</td>
+<td>−0.064</td>
+<td>−0.025</td>
+<td>−0.062</td>
+</tr>
+<tr>
+<td>I1−I2</td>
+<td>exact</td>
+<td>+0.075</td>
+<td>−0.007</td>
+<td>+0.088</td>
+<td>−0.003</td>
+</tr>
+<tr>
+<td>I2−G1</td>
+<td>native</td>
+<td>−0.326</td>
+<td>−0.204</td>
+<td>−0.278</td>
+<td>−0.192</td>
+</tr>
+<tr>
+<td>I2−G1</td>
+<td>exact</td>
+<td>−0.133</td>
+<td>+0.012</td>
+<td>−0.092</td>
+<td>+0.018</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p>选权重改变后，I1/I2 的小幅 CW 排名翻转。I2 与 G1 在 exact 路径的 OW 基本持平，CW 仍低 0.133 点。两组已经收回 H1 的主要退化，当前结果更适合支持结构实验，而非继续围绕 I1/I2 的小幅排名细分超参。</p>
+<h2>3. 投影尺度影响明确，动态强弱与整体收益需要分别看</h2>
+<p>以下门控矩使用各模型选中权重，在全部 22,998 张 TRAIN 图像上统计。dynamic−mean 指同一权重下，逐图像门控相对 TRAIN 物体／模式均值门控的配对差值。</p>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>模型</th>
+<th>TRAIN 图像门控标准差</th>
+<th>图像方差占比</th>
+<th>CW dynamic−mean</th>
+<th>OW dynamic−mean</th>
+<th>未见属性增量（百分点）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>G1</td>
+<td>0.01139</td>
+<td>1.931%</td>
+<td>+0.135 ± 0.179</td>
+<td>-0.037 ± 0.187</td>
+<td>-0.088</td>
+</tr>
+<tr>
+<td>H1</td>
+<td>0.06636</td>
+<td>99.883%</td>
+<td>+2.146 ± 0.486</td>
+<td>+1.516 ± 0.630</td>
+<td>+1.340</td>
+</tr>
+<tr>
+<td>I1</td>
+<td>0.02748</td>
+<td>99.992%</td>
+<td>+0.317 ± 0.129</td>
+<td>-0.023 ± 0.145</td>
+<td>+0.053</td>
+</tr>
+<tr>
+<td>I2</td>
+<td>0.02807</td>
+<td>99.905%</td>
+<td>+0.428 ± 0.120</td>
+<td>+0.098 ± 0.182</td>
+<td>+0.212</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p>H1 的图像门控标准差约 0.066，I1/I2 降至约 0.027–0.028，图像方差占比仍接近 100%。本轮调低了实际图像调制尺度，同时保留了中心化门控的动态图像成分。</p>
+<p><a target="_blank" rel="noopener noreferrer" href="confirmed/figures/02_gate_effects.png"><img src="confirmed/figures/02_gate_effects.png" alt="门控变化与推理干预收益" style="max-width: 100%;"></a></p>
+<p>I2 的 CW dynamic−mean 增量为 +0.325／+0.400／+0.559 点，三个 seed 为正；OW 为 −0.053／+0.300／+0.048 点。未见属性正确数净变化为 +10／−3／+5，三 seed 平均提高 0.212 个百分点。</p>
+<p>将完整结果写成“均值条件相对 G0 的差距”与“图像动态的推理贡献”之和：</p>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>模型</th>
+<th>CW：mean−G0</th>
+<th>CW：dynamic−mean</th>
+<th>CW：完整模型−G0</th>
+<th>OW：mean−G0</th>
+<th>OW：dynamic−mean</th>
+<th>OW：完整模型−G0</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H1</td>
+<td>-3.029</td>
+<td>+2.146</td>
+<td>-0.883</td>
+<td>-2.829</td>
+<td>+1.516</td>
+<td>-1.313</td>
+</tr>
+<tr>
+<td>I1</td>
+<td>-0.672</td>
+<td>+0.317</td>
+<td>-0.355</td>
+<td>-0.372</td>
+<td>-0.023</td>
+<td>-0.395</td>
+</tr>
+<tr>
+<td>I2</td>
+<td>-0.735</td>
+<td>+0.428</td>
+<td>-0.307</td>
+<td>-0.429</td>
+<td>+0.098</td>
+<td>-0.330</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p>以 I2 为例，均值条件比独立训练 G0 的 CW／OW 低 0.735／0.429 点，逐图像门控回收 0.428／0.098 点，完整 I2 最后仍低 0.307／0.330 点。</p>
+<p>均值条件是已训练模型的推理干预；G0 是独立训练的静态模型。这两项比较分别显示同一模型中的动态贡献和整个训练方案的表现。它们提出下一轮的具体假设：<strong>给静态和动态修正各自的读出矩阵，能否改善整体排序，同时保留动态图像贡献。</strong></p>
+<p><a target="_blank" rel="noopener noreferrer" href="confirmed/figures/03_static_dynamic_effects.png"><img src="confirmed/figures/03_static_dynamic_effects.png" alt="均值条件、动态贡献和完整训练效果" style="max-width: 100%;"></a></p>
+<h2>4. 属性迁移与组合排序的剩余差距</h2>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>TEST 未见图像指标</th>
+<th>G0</th>
+<th>G1</th>
+<th>H1</th>
+<th>I1</th>
+<th>I2</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>物体准确率（%）</td>
+<td>63.5114</td>
+<td>63.4937</td>
+<td>63.4409</td>
+<td>63.5466</td>
+<td>63.5466</td>
+</tr>
+<tr>
+<td>GT-object 条件属性准确率（%）</td>
+<td>24.7312</td>
+<td>24.6959</td>
+<td>23.3210</td>
+<td>23.9732</td>
+<td>24.0613</td>
+</tr>
+<tr>
+<td>GT-object 条件属性 NLL</td>
+<td>2.3293</td>
+<td>2.3286</td>
+<td>2.3831</td>
+<td>2.3445</td>
+<td>2.3433</td>
+</tr>
+<tr>
+<td>TRAIN 组合概率质量（%）</td>
+<td>72.3286</td>
+<td>72.2818</td>
+<td>72.4988</td>
+<td>72.4170</td>
+<td>72.4065</td>
+</tr>
+<tr>
+<td>CW 集合外组合概率质量（%）</td>
+<td>11.8220</td>
+<td>11.8260</td>
+<td>12.0025</td>
+<td>11.8223</td>
+<td>11.8239</td>
+</tr>
+<tr>
+<td>全部未见候选内真实组合 top-1（%）</td>
+<td>49.6386</td>
+<td>49.4447</td>
+<td>47.5939</td>
+<td>49.1803</td>
+<td>49.2861</td>
+</tr>
+<tr>
+<td>CW 集合外最高分超过 CW 内未见最高分（%）</td>
+<td>24.1495</td>
+<td>24.4315</td>
+<td>25.0308</td>
+<td>24.3610</td>
+<td>24.2905</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p>I2 相对 H1 的未见条件属性提高 0.740 个百分点，条件属性 NLL 从 2.3831 降到 2.3433；未见候选内真实组合 top-1 从 47.594% 回升至 49.286%。这些变化与 CW／OW 回升一致。</p>
+<p>相对 G0，I2 物体准确率基本持平，未见条件属性低 0.670 个百分点，未见候选内真实组合 top-1 低 0.353 个百分点。下一项结构实验仍聚焦条件属性和组合排序。</p>
+<h2>5. 当前公式核查与 J1 的改动依据</h2>
+<h3>5.1 当前模型中两类修正共用 Wc</h3>
+<p>令 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$u_i=A_u e_i^a$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$v_j=A_v e_j^o$</math-renderer>，<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$a_{ij}=u_i\odot v_j$</math-renderer>，<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$h_{bj}=\gamma_{bj}-\mathbf{1}$</math-renderer>。其中 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$g_b\in\mathbb{R}^{768}$</math-renderer> 为图像全局 CLIP 特征，<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$\kappa=20$</math-renderer>；<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$i,j,b$</math-renderer> 分别索引属性、物体和图像。当前 I2 的修正可以精确展开为：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$$\begin{aligned}
+\Delta U^{\mathrm{I2}}_{bji}
+&amp;=\rho\kappa\,g_b^\top W_c(a_{ij}\odot\gamma_{bj})\\[4pt]
+&amp;=\rho\kappa\,g_b^\top W_c a_{ij}
++\rho\kappa\,g_b^\top W_c(a_{ij}\odot h_{bj}).
+\end{aligned}$$</math-renderer>
+<p>第一项是静态 CP 修正，第二项是图像动态修正，两者通过同一个 Wc 接收训练更新。这个共享约束来自当前实现。本轮的均值干预与独立静态训练结果，支持将其作为下一项结构变量。</p>
+<p>现有概率链式分解、TRAIN 残差、门控中心化、张量维度和损失恒等式复核一致。J1 调整参数共享方式。</p>
+<h3>5.2 J1：分别学习静态和动态读出</h3>
+<p>设 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$W_s,W_d\in\mathbb{R}^{768\times32}$</math-renderer>，继续共享 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$A_u,A_v$</math-renderer>，使用：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$$\begin{aligned}
+U^{\mathrm{J1}}_{bji}
+&amp;=U^{\mathrm{base}}_{bji}+\Delta U^{\mathrm{J1}}_{bji},\\[4pt]
+\Delta U^{\mathrm{J1}}_{bji}
+&amp;=\rho\kappa\,g_b^\top W_s a_{ij}
++\rho\kappa\,g_b^\top W_d(a_{ij}\odot h_{bj}).
+\end{aligned}$$</math-renderer>
+<p>静态和动态两路联合训练。<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$W_s=W_d=W_c$</math-renderer> 时，公式精确恢复 I2；<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$W_d=0$</math-renderer> 时，CP 修正恢复静态形式。对应类别算子为：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$$M_{bj}=\left[W_s\operatorname{diag}(v_j)
++W_d\operatorname{diag}(v_j\odot h_{bj})\right]A_u,
+\qquad \operatorname{rank}(M_{bj})\le32.$$</math-renderer>
+<p>共享属性因子使算子的秩上界继续为 32。单个修正分数对两路矩阵的梯度为：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$$\begin{aligned}
+\nabla_{W_s}\Delta U^{\mathrm{J1}}_{bji}
+&amp;=\rho\kappa\,g_b a_{ij}^\top,\\[4pt]
+\nabla_{W_d}\Delta U^{\mathrm{J1}}_{bji}
+&amp;=\rho\kappa\,g_b(a_{ij}\odot h_{bj})^\top.
+\end{aligned}$$</math-renderer>
+<p>当前共享 Wc 接收的分数梯度是上述两项之和；J1 将两项梯度分配给各自矩阵，再由优化器更新。属性／物体因子仍共同训练。该实验检验解除读出共享约束后的整体效果。</p>
+<p>新增参数为 <strong>24,576</strong>，可训练参数从 I2 的 <strong>122,880</strong> 变为 <strong>147,456</strong>，增加 20%。I2 作为共享读出对照，J1 的 dynamic−mean 继续测量同一模型中的图像变化贡献。</p>
+<h3>5.3 门控与损失固定</h3>
+<p>J1 沿用 I2：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$$\begin{aligned}
+r_{bj}&amp;=f^o_{bj}-\mu_j,\qquad
+\widehat r_{bj}=\frac{r_{bj}}{\max(\lVert r_{bj}\rVert_2,10^{-12})},\\[4pt]
+q_{bjk}&amp;=2\sigma\!\left(\frac{b_k^\top\widehat r_{bj}}{0.56}\right)-1,\\[4pt]
+h_{bjk}&amp;=\frac{0.25}{2}\left(q_{bjk}-\frac{1}{32}\sum_{\ell=1}^{32}q_{bj\ell}\right),\\[4pt]
+\mathcal{L}&amp;=\frac{3}{2}\mathcal{L}_{\mathrm{pair}}+\frac{9}{86}\mathcal{L}_{\mathrm{support}}
++10^{-3}\mathcal{L}_{\mathrm{orth}}.
+\end{aligned}$$</math-renderer>
+<p><math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$b_k$</math-renderer> 是视觉门控矩阵第 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$k$</math-renderer> 行的转置。η 保持 0.25，门控 γ 仍在 [0.75,1.25]；ρ=0.15、β=0.075。两路矩阵独立后，修正分数由各自权重共同决定。</p>
+<h2>6. 下一轮具体安排</h2>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>项目</th>
+<th>J1 设置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>主要变量</td>
+<td>静态 W_s、动态 W_d 分别学习</td>
+</tr>
+<tr>
+<td>属性／物体因子</td>
+<td>共享原 A_u、A_v</td>
+</tr>
+<tr>
+<td>CLIP／输入缓存</td>
+<td>冻结 OpenAI ViT-L/14，复用现有缓存和 TRAIN 均值</td>
+</tr>
+<tr>
+<td>门控输入／τγ／η</td>
+<td>I2 归一化残差／0.56／0.25</td>
+</tr>
+<tr>
+<td>ρ／β／rank／adapter rank</td>
+<td>0.15／0.075／32／8</td>
+</tr>
+<tr>
+<td>epoch／batch</td>
+<td>10／64</td>
+</tr>
+<tr>
+<td>初始化</td>
+<td>各 seed 原始初始化；W_s=0、W_d=0</td>
+</tr>
+<tr>
+<td>CP 学习率</td>
+<td>两路均 3e-4，原余弦日程降到 3e-6</td>
+</tr>
+<tr>
+<td>适配器学习率</td>
+<td>1e-3，余弦降到 1e-5</td>
+</tr>
+<tr>
+<td>λorth／weight decay／gradient clip</td>
+<td>0.001／1e-4／1</td>
+</tr>
+<tr>
+<td>GPU1／GPU2／GPU3</td>
+<td>seed3351／3352／3353</td>
+</tr>
+<tr>
+<td>新增训练量</td>
+<td>3 次训练、30 个模型 epoch</td>
+</tr>
+<tr>
+<td>训练后评估</td>
+<td>native／exact 各三项 TRAIN 均值门控评估，共 6 项</td>
+</tr>
+<tr>
+<td>已有对照</td>
+<td>I2、G0、G1；D1 作性能参照，另保留 I1/H1 结果</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p>先比较 J1−I2：解除读出共享约束的完整训练效果；再比较 J1−G0/G1，以及 J1 dynamic−mean。并列记录条件属性、候选排序、两路修正的 RMS 和选权重路径。</p>
+<p>主要选择依据继续为 VAL CW native AUC，exact 选择并列保存。输入尺度、β、ρ、rank 等保持上表数值，让下一轮围绕一个结构变量得出结论。</p>
+<h3>6.1 后续代码改动范围</h3>
+<ol>
+<li><code class="notranslate">vgcpod/model.py</code>：将当前 Wc 作为静态 W_s，新增零初始化 W_d，前向分别计算静态项与 h 动态项；共享 A_u/A_v。</li>
+<li><code class="notranslate">mean_gate_eval.py</code>：均值条件使用同一 W_s，加上 W_d 对 TRAIN 均值 h 的动态项。新前向中两路矩阵需要分别参与评估。</li>
+<li>训练日志：增加静态／动态修正的独立 RMS；两路矩阵沿用现有 CP 参数组与学习率规则。</li>
+<li>配置／调度／汇总：新增 J1，三卡三个 seed，自动与现有 I2/G0/G1 做配对比较，并保存两条选权重路径。</li>
+</ol>
+<p>均值条件的正确表达式为：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$$\bar h_{jk}=\frac{1}{N}\sum_{b\in\mathrm{TRAIN}}h_{bjk},
+\qquad
+\Delta U^{\mathrm{J1,mean}}_{bji}
+=\rho\kappa g_b^\top W_s a_{ij}
++\rho\kappa g_b^\top W_d(a_{ij}\odot\bar h_j).$$</math-renderer>
+<p>本次已用三组真实 I2 权重和合成输入检验共享矩阵恢复、静态特例及梯度公式；float64 最大恢复误差为 2.66e-15。这是下一轮公式的数值核查，实验代码保持本轮版本。</p>
+<h2>7. 数据与实现复核</h2>
+<ul>
+<li>六次训练与十二项评估全部完成，整轮退出码为 0。</li>
+<li>H/I 的 TRAIN 均值文件 SHA256 相同；I1/I2 六个模型的 native／exact／末轮 checkpoint 均值 buffer 与保存文件逐元素一致。</li>
+<li>核对 238 个交付文件哈希、225 个运行源文件指纹，读取 252 个预测文件并重算 306 行排序诊断。</li>
+<li>保存曲线积分与 AUC 的最大差异为 1.42e-14；概率复算 exact AUC 的最大差异为 4.88e-5 点；固定 VAL bias 的 HM、未见条件属性准确率复算一致。</li>
+<li>float32 归一化概率重算 native 扫描的最大差异为 0.028018 点，主表使用原始分数保存的曲线积分。native／exact 两类结果均在报告中保留。</li>
+<li>下载包包含 TRAIN 均值与身份信息；原始大特征数组仍保存在服务器。本次复算依据 checkpoint、预测、曲线和日志。</li>
+</ul>
+<p>明细位于 <a href="confirmed/">confirmed/</a>：<code class="notranslate">analysis.json</code>、<code class="notranslate">audit.json</code>、<code class="notranslate">next_equations_audit.json</code>、<code class="notranslate">tables/</code> 和 <code class="notranslate">figures/</code>。</p>
+<h2>8. 仓库复算与归档核对</h2>
+<p><a href="../README.md">主说明</a>记录本轮公式、代码修订与超参策略；<a href="confirmed/analysis.json">分析明细</a>、<a href="confirmed/audit.json">预测审计</a>、<a href="confirmed/next_equations_audit.json">下一轮公式数值核查</a>、<a href="repository_validation.json">仓库验证</a>与<a href="../code/source_changes.patch">源码补丁</a>按平行结构保存。</p>
+<div class="highlight highlight-source-shell"><pre class="notranslate">python VG-CPOD方案/10/analysis/recompute.py
+python tools/reproduce.py verify</pre></div>
+<p>复算读取本轮I1/I2、前序D/E/F/G/H、缓存元数据和共享均值，覆盖252个预测文件、306行排序诊断及checkpoint均值副本。输出至<code class="notranslate">recomputed/</code>，与原分析JSON及CSV逐字比较。J1的数值核查使用真实I2权重和合成输入；J1为下一轮结构建议。</p>

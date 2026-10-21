@@ -1,0 +1,219 @@
+<h1>10 · I组训练结果</h1>
+<p>本阶段新增I1/I2各三seed，共六次训练、60个模型epoch。native／exact两条选择分别保存24份评价与预测；十二项均值评估包含24个条件、96份评价与预测。合计 <strong>144份预测文件、24份checkpoint文件</strong>，共享TRAIN查询均值与十二套门控矩另行保存。</p>
+<h2>1. native选择主结果</h2>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>实验</th>
+<th>seed</th>
+<th>native／exact最佳epoch</th>
+<th>VAL CW</th>
+<th>VAL OW</th>
+<th>TEST CW</th>
+<th>TEST OW</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>I1</td>
+<td>3351</td>
+<td>8／10</td>
+<td>43.6373</td>
+<td>31.1230</td>
+<td>33.9122</td>
+<td>26.1414</td>
+</tr>
+<tr>
+<td>I1</td>
+<td>3352</td>
+<td>8／8</td>
+<td>41.7728</td>
+<td>29.8443</td>
+<td>35.1903</td>
+<td>23.6263</td>
+</tr>
+<tr>
+<td>I1</td>
+<td>3353</td>
+<td>6／6</td>
+<td>44.8723</td>
+<td>34.5470</td>
+<td>33.3681</td>
+<td>24.5984</td>
+</tr>
+<tr>
+<td>I2</td>
+<td>3351</td>
+<td>8／8</td>
+<td>43.7343</td>
+<td>31.1052</td>
+<td>33.9697</td>
+<td>26.1872</td>
+</tr>
+<tr>
+<td>I2</td>
+<td>3352</td>
+<td>8／8</td>
+<td>41.6859</td>
+<td>29.7517</td>
+<td>35.1811</td>
+<td>23.7244</td>
+</tr>
+<tr>
+<td>I2</td>
+<td>3353</td>
+<td>6／6</td>
+<td>44.8780</td>
+<td>34.5049</td>
+<td>33.4632</td>
+<td>24.6480</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p>AUC使用服务器原始分数保存的native曲线积分，面积×100。每次训练完成十轮、3600次更新，完整物体／条件属性、CW／OW、seen／unseen及NLL指标保存在各运行JSON中。</p>
+<h2>2. exact选择结果</h2>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>实验</th>
+<th>seed</th>
+<th>exact最佳epoch</th>
+<th>VAL CW native</th>
+<th>VAL CW exact</th>
+<th>TEST CW native</th>
+<th>TEST OW native</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>I1</td>
+<td>3351</td>
+<td>10</td>
+<td>43.6287</td>
+<td>43.8530</td>
+<td>34.2815</td>
+<td>26.3127</td>
+</tr>
+<tr>
+<td>I1</td>
+<td>3352</td>
+<td>8</td>
+<td>41.7728</td>
+<td>41.9822</td>
+<td>35.1903</td>
+<td>23.6263</td>
+</tr>
+<tr>
+<td>I1</td>
+<td>3353</td>
+<td>6</td>
+<td>44.8723</td>
+<td>45.1963</td>
+<td>33.3681</td>
+<td>24.5984</td>
+</tr>
+<tr>
+<td>I2</td>
+<td>3351</td>
+<td>8</td>
+<td>43.7343</td>
+<td>43.8698</td>
+<td>33.9697</td>
+<td>26.1872</td>
+</tr>
+<tr>
+<td>I2</td>
+<td>3352</td>
+<td>8</td>
+<td>41.6859</td>
+<td>41.8783</td>
+<td>35.1811</td>
+<td>23.7244</td>
+</tr>
+<tr>
+<td>I2</td>
+<td>3353</td>
+<td>6</td>
+<td>44.8780</td>
+<td>45.1829</td>
+<td>33.4632</td>
+<td>24.6480</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p>I1/3351的native选择第8轮，exact选择第10轮。其余五次训练的两条选择轨道epoch相同，对应参数与预测一致。<code class="notranslate">best.pt</code>与<code class="notranslate">best_native.pt</code>为逐字别名；<code class="notranslate">best_exact.pt</code>独立保存；<code class="notranslate">last.pt</code>保存末轮完整模型、优化器和随机状态。</p>
+<h2>3. 原运行、共享均值与汇总</h2>
+<ul>
+<li><a href="raw_export/roundI_20261021/I1/ut-zap50k/V1/">I1三seed</a>与<a href="raw_export/roundI_20261021/I2/ut-zap50k/V1/">I2三seed</a>：protocol、history、metrics、曲线、预测、四份checkpoint和exact_selection。</li>
+<li><a href="raw_export/roundI_20261021/feature_statistics/">共享TRAIN均值</a>、<a href="raw_export/roundI_20261021/configs/">运行配置</a>：22,998张图像、12个查询，float64累计，float32模型buffer。</li>
+<li><a href="raw_export/roundI_20261021/round_i_status.json">三卡状态</a>、<a href="raw_export/roundI_20261021/round_i_jobs.json">任务表</a>、<a href="raw_export/roundI_20261021/launcher.log">主日志</a>、<a href="raw_export/roundI_20261021/launcher.exitcode">退出码0</a>。</li>
+<li><a href="raw_export/roundI_20261021/round_i_summary.json">主结果</a>、<a href="raw_export/roundI_20261021/round_i_mean_sd.csv">均值与SD</a>、<a href="raw_export/roundI_20261021/round_i_paired_deltas.csv">配对差值</a>、<a href="raw_export/roundI_20261021/round_i_paired_mean_sd.csv">配对汇总</a>。</li>
+<li><a href="raw_export/roundI_20261021/matched_native_summary.csv">同ρ／β主表</a>、<a href="raw_export/roundI_20261021/support_training_summary.csv">支持损失</a>、<a href="raw_export/roundI_20261021/exact_selection_summary.csv">exact指标</a>、<a href="raw_export/roundI_20261021/exact_reference_paired_mean_sd.csv">exact历史配对</a>。</li>
+<li><a href="raw_export/roundI_20261021/ranking_diagnostics.json">排序诊断</a>、<a href="raw_export/roundI_20261021/ranking_diagnostic_paired_mean_sd.csv">诊断配对汇总</a>、<a href="raw_export/roundI_20261021/pair_probability_diagnostics.csv">逐组合概率</a>、<a href="raw_export/roundI_20261021/per_pair_gains.csv">逐组合增量</a>。</li>
+</ul>
+<h2>4. 动态与TRAIN均值替换</h2>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>实验</th>
+<th>seed</th>
+<th>动态−均值 TEST CW</th>
+<th>TEST OW</th>
+<th>未见属性正确数变化</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>I1</td>
+<td>3351</td>
+<td>+0.2081</td>
+<td>-0.1352</td>
+<td>+8</td>
+</tr>
+<tr>
+<td>I1</td>
+<td>3352</td>
+<td>+0.4597</td>
+<td>+0.1403</td>
+<td>-7</td>
+</tr>
+<tr>
+<td>I1</td>
+<td>3353</td>
+<td>+0.2832</td>
+<td>-0.0747</td>
+<td>+2</td>
+</tr>
+<tr>
+<td>I2</td>
+<td>3351</td>
+<td>+0.3251</td>
+<td>-0.0534</td>
+<td>+10</td>
+</tr>
+<tr>
+<td>I2</td>
+<td>3352</td>
+<td>+0.4003</td>
+<td>+0.3004</td>
+<td>-3</td>
+</tr>
+<tr>
+<td>I2</td>
+<td>3353</td>
+<td>+0.5592</td>
+<td>+0.0484</td>
+<td>+5</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p><a href="raw_export/roundI_20261021/mean_gate/">native评估</a>与<a href="raw_export/roundI_20261021/mean_gate_exact/">exact评估</a>保存TRAIN门控均值[12,32]、方差以及dynamic/train_mean两条件的四种评价、预测与曲线。每项统计全部TRAIN图像，优化步数为零，各条件使用自己的VAL bias。</p>
+<h2>5. 原交付、来源与数据分析</h2>
+<ul>
+<li><a href="archives/vgcpod_roundI_results_20261021.tar.gz">原服务器TAR</a>、<a href="archives/vgcpod_v1_roundI_20261021.zip">原I训练ZIP</a>，旁附SHA256；二进制沿用Git LFS。</li>
+<li><a href="package_validation/I/">原发布验证</a>、<a href="package_support/I/">原包说明字节</a>、<a href="package_support/original_reports/">原实施和分析报告字节</a>。</li>
+<li><a href="../package_members.json">原包85个成员映射</a>、<a href="raw_export_members.json">结果成员与哈希</a>、<a href="server_source_identity.json">服务器源码身份</a>、<a href="reused_reference_members.json">历史引用</a>、<a href="../file_manifest.json">阶段SHA256</a>。</li>
+<li>原TAR的C/D/E/F/G/H历史结果映射到<a href="../../04/results/README.md">04</a>、<a href="../../05/results/README.md">05</a>、<a href="../../06/results/README.md">06</a>、<a href="../../07/results/README.md">07</a>、<a href="../../08/results/README.md">08</a>、<a href="../../09/results/README.md">09</a>；A5/A6引用<a href="../../02/results/README.md">02</a>。</li>
+<li><a href="../analysis/repository_validation.json">仓库复算与归档核对</a>、<a href="../analysis/README.md">完整数据分析</a>。</li>
+</ul>
+<p>I2相对H1的TEST CW／OW回升0.576／0.983点，相对G0仍低0.307／0.330点。I1/I2差异较小；下一轮建议J1检验静态与动态CP读出分别学习的效果。</p>

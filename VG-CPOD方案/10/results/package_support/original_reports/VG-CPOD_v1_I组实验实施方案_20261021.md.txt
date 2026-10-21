@@ -1,0 +1,297 @@
+# VG-CPOD 方案 v1：I 组残差幅值实验与三卡实践命令
+
+日期：2026-10-21。框架：冻结 OpenAI CLIP ViT-L/14；数据：UT-Zappos；版本：v1。
+
+**本轮训练 I1／I2，各三个 seed。I1 保留 TRAIN 去均值，去掉残差 L2 归一化；I2 保留归一化残差，将 τγ 改为 0.56。** 两组继续使用 η=0.25、ρ=0.15、β=0.075。三卡自动运行六次训练、十二项均值门控评估，并汇总与 H1／G0／G1 的配对差值。
+
+## 1. 实验变量与 GPU 分工
+
+H1 相对 G1 的 TEST CW／OW AUC 下降 0.902／1.186 点，同时 H1 动态门控相对自身 TRAIN 均值门控提高 2.146／1.516 点。TRAIN 查询均值对应的残差 RMS 约为 0.17–0.19；原逐向量单位化改变了残差幅值。I 组分别检验保留幅值和降低归一化残差投影尺度的效果。
+
+| 模型 | gate_input | 门控输入 | τγ | 相对 H1 的变化 |
+|---|---|---|---|---|
+| H1：已完成对照 | train_residual | 单位化 TRAIN 残差 | 0.1 | 复用历史结果 |
+| I1：主实验 | train_centered | TRAIN 残差，保留幅值 | 0.1 | 去掉残差单位化 |
+| I2：尺度对照 | train_residual | 单位化 TRAIN 残差 | 0.56 | 调整温度 |
+
+| 物理 GPU | seed | 自动队列 |
+|---|---|---|
+| GPU1 | 3351 | I1 训练 → I2 训练 → I1 native/exact 均值评估 → I2 native/exact 均值评估 |
+| GPU2 | 3352 | 同上 |
+| GPU3 | 3353 | 同上 |
+
+每个模型训练 10 epochs，共 **6 个模型、60 个模型 epoch、12 项零优化步的门控评估**。两组从各 seed 的原始初始化开始。
+
+| 固定参数 | 设置 |
+|---|---|
+| CLIP／数据缓存 | 冻结 OpenAI ViT-L/14，复用现有 UT-Zappos 图像／文本特征 |
+| CP rank／adapter rank／κ | 32／8／20 |
+| CP 读出 | 全局图像特征 g |
+| ρ／β／η | 0.15／0.075／0.25 |
+| 门控模式中心化／τv | 开启／0.07 |
+| epochs／batch／workers | 10／64／4 |
+| 适配器学习率 | 1e-3，余弦降至 1e-5 |
+| CP 学习率 | 3e-4，余弦降至 3e-6 |
+| λorth／weight decay／gradient clip | 0.001／1e-4／1 |
+| seeds | 3351／3352／3353 |
+
+## 2. 公式与代码实现
+
+### 2.1 共享 TRAIN 查询均值
+
+令 $f^o_{bj}\in\mathbb{R}^{768}$ 为图像 $b$ 对物体查询 $j$ 的冻结 CLIP 视觉特征。TRAIN 有 $N=22998$ 张图像，物体查询数 $O=12$。每张图像对全部查询都有特征，使用：
+
+$$
+\mu_j=\frac{1}{N}\sum_{b\in\mathrm{TRAIN}}f^o_{bj},
+\qquad r_{bj}=f^o_{bj}-\mu_j.
+$$
+
+统计读取全部 TRAIN 图像／查询，不使用标签。两组和三个 seed 共用同一均值，VAL／TEST 使用该固定均值。脚本优先将 H 组已有、缓存身份一致的均值文件逐字复制到 I 组；该缓存首次运行时，也可由 TRAIN 特征分块生成一次均值。
+
+`vgcpod/gate_features.py` 使用 float64 累计；模型的固定 buffer `gate_fo_mean` 使用其 float32 副本。I1／I2 checkpoint 都保存该 buffer，评价时直接从 checkpoint 恢复。
+
+### 2.2 两组输入与门控公式
+
+设 $B_{\mathrm{vis}}\in\mathbb{R}^{R\times768}$，$R=32$，第 $k$ 行的转置为 $b_k$。两组定义：
+
+$$
+\begin{aligned}
+x^{\mathrm{I1}}_{bj}&=r_{bj},&\tau^{\mathrm{I1}}_\gamma&=0.1,\\
+x^{\mathrm{I2}}_{bj}&=\frac{r_{bj}}{\max(\lVert r_{bj}\rVert_2,10^{-12})},&\tau^{\mathrm{I2}}_\gamma&=0.56.
+\end{aligned}
+$$
+
+对于 $c\in\{\mathrm{I1},\mathrm{I2}\}$，沿用同一 sigmoid 与模式中心化：
+
+$$
+\begin{aligned}
+q^c_{bjk}&=2\sigma\!\left(\frac{b_k^\top x^c_{bj}}{\tau^c_\gamma}\right)-1,\\
+\gamma^c_{bjk}&=1+\frac{0.25}{2}\left(q^c_{bjk}-\frac{1}{R}\sum_{\ell=1}^Rq^c_{bj\ell}\right),\\
+\frac{1}{R}\sum_k\gamma^c_{bjk}&=1,\qquad 0.75\le\gamma^c_{bjk}\le1.25.
+\end{aligned}
+$$
+
+若残差为零，两组门控均为 1。`vgcpod/model.py::forward()` 的 I1 分支直接使用 `fo - gate_fo_mean[None]`；I2 继续进入原 `train_residual` 分支，通过配置读取温度 0.56。两组的参数数量与 H1 相同。
+
+I2 的温度来自 TRAIN 特征几何。对任意查询有：
+
+$$
+\frac{1}{N}\sum_b\lVert r_{bj}\rVert_2^2
+=\frac{1}{N}\sum_b\lVert f^o_{bj}\rVert_2^2-\lVert\mu_j\rVert_2^2.
+$$
+
+以单位化缓存特征估算合并残差 RMS，得到：
+
+$$
+s_{\mathrm{TRAIN}}\approx\sqrt{\frac{1}{O}\sum_j(1-\lVert\mu_j\rVert_2^2)}\approx0.17835,
+\qquad \frac{0.1}{s_{\mathrm{TRAIN}}}\approx0.56.
+$$
+
+实际 I2 配置固定为 0.56。若某个残差范数恰为 $0.1/0.56$，同一组 Bvis 参数下两组的 sigmoid 输入相等。改变该残差的幅值时，I1 保留相应变化，I2 继续使用其单位方向。
+
+### 2.3 全局 CP 读出与训练目标
+
+令 $g_b$ 为冻结 CLIP 全局图像特征，$e_i^a,e_j^o$ 为属性／物体文本特征，$A_u,A_v\in\mathbb{R}^{R\times768}$、$W_c\in\mathbb{R}^{768\times R}$。两组沿用：
+
+$$
+\begin{aligned}
+u_i&=A_u e_i^a,\qquad v_j=A_v e_j^o,\\
+U^c_{bji}&=U^{\mathrm{base}}_{bji}+0.15\kappa\,g_b^\top W_c(u_i\odot v_j\odot\gamma^c_{bj}),\\
+s^c_{bji}&:=\log p(a_i,o_j\mid x_b)\\
+&=\log\operatorname{softmax}(S_b)_j+\log\operatorname{softmax}(U^c_{bj:})_i.
+\end{aligned}
+$$
+
+$S$ 和 $U^{\mathrm{base}}$ 使用已有适配器。CP 仍由全局图像特征读出。设 $\mathcal{S}$ 为 TRAIN 组合集合、$(i_b,j_b)$ 为真实训练标签，则：
+
+$$
+\begin{aligned}
+Z_b&=\sum_{(i,j)\in\mathcal{S}}\exp(s^c_{bji}),\\
+\mathcal{L}_{\mathrm{pair}}&=\frac{1}{B}\sum_b[-s^c_{bj_bi_b}+\log Z_b],\\
+\mathcal{L}_{\mathrm{support}}&=-\frac{1}{B}\sum_b\log Z_b,\\
+\mathcal{L}_a+\mathcal{L}_o&=\mathcal{L}_{\mathrm{pair}}+\mathcal{L}_{\mathrm{support}},\\
+\mathcal{L}_{\mathrm{task}}&=\frac{1.5}{1+0.075}[\mathcal{L}_{\mathrm{pair}}+0.075(\mathcal{L}_a+\mathcal{L}_o)]\\
+&=\frac{3}{2}\mathcal{L}_{\mathrm{pair}}+\frac{9}{86}\mathcal{L}_{\mathrm{support}},\\
+\mathcal{L}&=\mathcal{L}_{\mathrm{task}}+10^{-3}\frac{\lVert B_{\mathrm{vis}}B_{\mathrm{vis}}^\top-I_R\rVert_F^2}{R^2}.
+\end{aligned}
+$$
+
+V1 组合分支通过配置开启门控，prim／cent 项为零。AdamW 的 weight decay 独立执行。初始化、优化器分组、损失、学习率日程和数据顺序沿用 H1。
+
+### 2.4 权重选择与十二项均值门控评估
+
+每个模型独立保存 VAL CW native／exact AUC 首次达到最大值的权重：
+
+$$
+t_m^*=\min\left\{t\in\{1,\ldots,10\}:A_t^m=\max_{1\le s\le10}A_s^m\right\},
+\quad m\in\{\mathrm{native},\mathrm{exact}\}.
+$$
+
+native 主结果使用 `best.pt`，它是 `best_native.pt` 的逐字别名；exact 结果使用 `best_exact.pt`，输出位于 `exact_selection/`。
+
+每种选中权重在全部 TRAIN 图像上统计门控均值，评价 dynamic／train_mean 两种条件：
+
+$$
+\bar\gamma_{jk}=\frac{1}{N}\sum_{b\in\mathrm{TRAIN}}\gamma_{bjk},
+\qquad \gamma^{\mathrm{mean}}_{bjk}=\bar\gamma_{jk}.
+$$
+
+各权重／条件分别在 VAL CW／OW 上取得 native bias，固定用于对应 TEST；同时报告 native／exact AUC。2 个模型×3 seed×2 种选择，共 12 项评估，优化步数为零。
+
+## 3. 已修改的代码
+
+| 文件 | 内容 |
+|---|---|
+| `vgcpod/model.py` | 新增 `train_centered`，保留原幅值残差 |
+| `vgcpod/engine.py` | 为两种残差分支加载固定 TRAIN 均值 |
+| `configs/round_i/I1.json` | 相对 H1 改 experiment_id、gate_input |
+| `configs/round_i/I2.json` | 相对 H1 改 experiment_id、tau_gamma=0.56 |
+| `round_i.py` | 共用／复用均值、三卡 I1→I2、自动续训和十二项评估 |
+| `ranking_diagnostics.py` | I1/I2−H1/G0/G1、I1−I2 及 dynamic−mean 的诊断 |
+| `references/pre_i_complete.json` | 29 个历史 native 运行，以及 H1/G0/G1 的 exact 指标快照 |
+| `scripts/start_round_i_tmux.sh` | tmux 启动、整轮日志及退出码 |
+| `tests/test_round_i.py` | 公式梯度、幅值对照恒等式、I1 续训与 buffer 恢复 |
+
+输出目录中的 `feature_statistics/train_object_query_mean.npz` 为共享均值。运行配置自动写入 `configs/I1.json`、`configs/I2.json`，包含均值文件路径和相同 SHA256。
+
+## 4. 本机上传
+
+在 Windows PowerShell 执行，替换实际服务器 IP：
+
+```powershell
+$vgServer = "xhw@你的服务器IP"
+scp "C:\Users\llenovo\Documents\ChatGPT\VG-CPOD\vgcpod_v1_roundI_20261021.zip" "${vgServer}:/data/xhw/vgcpod_project/"
+```
+
+## 5. 服务器实践命令
+
+### 5.1 激活环境并启动三卡 tmux
+
+```bash
+conda activate vgcpod_v1
+cd /data/xhw/vgcpod_project
+unzip -o vgcpod_v1_roundI_20261021.zip
+cd /data/xhw/vgcpod_project/vgcpod_v1_roundI
+
+bash scripts/start_round_i_tmux.sh --gpus 1 2 3
+tmux attach -t vgcpod_I
+```
+
+脚本保存当前 conda Python 的绝对路径，用 GPU1/2/3 分别跑 seed3351/3352/3353。各子进程中的可见设备为 `cuda:0`。按 **Ctrl+b**，松开后按 **d**，退出查看，tmux 中训练继续。
+
+默认路径：
+
+| 内容 | 服务器位置 |
+|---|---|
+| CLIP 特征缓存 | `/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14` |
+| 本轮输出 | `/data/xhw/vgcpod_v1_runs/roundI_20261021` |
+| H 组均值及对照 | `/data/xhw/vgcpod_v1_runs/roundH_20261020` |
+| G 组对照 | `/data/xhw/vgcpod_v1_runs/roundG_20261020` |
+
+A/C/D/E/F 对照也按此前目录读取。统计先执行一次，随后三卡并行。I1/I2 均从对应 seed 的原始初始化训练；历史模型直接读取已完成结果。
+
+### 5.2 查看进度与完成状态
+
+```bash
+tail -f /data/xhw/vgcpod_v1_runs/roundI_20261021/launcher.log
+```
+
+查看各卡队列中的两个模型：
+
+```bash
+tail -n 4 /data/xhw/vgcpod_v1_runs/roundI_20261021/logs/I1_seed3351.log
+tail -n 4 /data/xhw/vgcpod_v1_runs/roundI_20261021/logs/I2_seed3351.log
+tail -n 4 /data/xhw/vgcpod_v1_runs/roundI_20261021/logs/I1_seed3352.log
+tail -n 4 /data/xhw/vgcpod_v1_runs/roundI_20261021/logs/I2_seed3352.log
+tail -n 4 /data/xhw/vgcpod_v1_runs/roundI_20261021/logs/I1_seed3353.log
+tail -n 4 /data/xhw/vgcpod_v1_runs/roundI_20261021/logs/I2_seed3353.log
+cat /data/xhw/vgcpod_v1_runs/roundI_20261021/launcher.exitcode
+```
+
+I2 日志在该卡的 I1 训练完成后创建。**退出码为 0，且主日志出现 `ROUND_I_COMPLETE ... training_jobs 6 mean_gate_jobs 12`，表示六次训练、十二项评估和汇总均已完成。** `TRAIN_COMPLETE` 表示单个模型完成；`RUNNING` 表示整轮还在执行。任务状态写在 `round_i_status.json`。`tail -f` 按 Ctrl+C 退出查看。
+
+### 5.3 中断后继续
+
+原训练进程退出后执行：
+
+```bash
+conda activate vgcpod_v1
+cd /data/xhw/vgcpod_project/vgcpod_v1_roundI
+VG_I_SESSION=vgcpod_I_resume bash scripts/start_round_i_tmux.sh --gpus 1 2 3
+tmux attach -t vgcpod_I_resume
+```
+
+均值文件和已完成模型、评估直接复用；未完成模型从最后完整 epoch 的模型、AdamW 和随机状态继续，使用原定 10 epochs 余弦日程。
+
+单独继续 I1/3351 时，使用已由启动器生成的运行配置：
+
+```bash
+conda activate vgcpod_v1
+cd /data/xhw/vgcpod_project/vgcpod_v1_roundI
+CUDA_VISIBLE_DEVICES=1 python -u run.py train \
+  --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14 \
+  --out /data/xhw/vgcpod_v1_runs/roundI_20261021/I1 \
+  --config /data/xhw/vgcpod_v1_runs/roundI_20261021/configs/I1.json \
+  --seed 3351 --device cuda --resume
+```
+
+整轮启动器会补齐后续 I2、门控评估和汇总。单独重建汇总：
+
+```bash
+conda activate vgcpod_v1
+cd /data/xhw/vgcpod_project/vgcpod_v1_roundI
+python -u round_i.py summarize
+```
+
+## 6. 输出文件与分析顺序
+
+训练目录为 `I1/ut-zap50k/V1/seed3351/` 和 `I2/ut-zap50k/V1/seed3351/`，其余 seed 相同。每个目录包含 `checkpoints/`、`history.json`、`protocol.json`、native 结果和 `exact_selection/`。
+
+均值评估在 `mean_gate/I1/seed3351/`、`mean_gate_exact/I1/seed3351/` 及对应 I2 目录；保存 dynamic／train_mean 的预测、曲线和 TRAIN 门控均值／方差。
+
+| 汇总文件 | 内容 |
+|---|---|
+| `round_i_summary.json`、`round_i_mean_sd.csv` | 六个运行及两组的均值／样本标准差 |
+| `round_i_paired_deltas.csv`、`round_i_paired_mean_sd.csv` | I1/I2−H1/G0/G1 等、I1−I2 的同 seed native 差值 |
+| `matched_native_summary.csv`、`matched_native_mean_sd.csv` | 相同 ρ／β 下 G0/G1/H1/I1/I2 对比 |
+| `exact_selection_summary.csv`、`exact_selection_effects.csv` | 各自 exact 选中结果与相对 native 的差值 |
+| `exact_reference_deltas.csv`、`exact_reference_paired_mean_sd.csv` | exact 选中的 I1/I2−H1/G0/G1、I1−I2 |
+| `mean_gate_effects.csv` | 两组、两种选中权重的 dynamic−mean |
+| `support_training_summary.csv` | 选中／末轮的原始、加权损失与支持概率 |
+| `ranking_diagnostics.json`、`ranking_diagnostic_paired_mean_sd.csv` | 条件属性／物体／未见候选排序的同 seed 差值 |
+| `per_pair_gains.csv`、`pair_probability_diagnostics.csv` | 逐组合准确率、正确数与概率质量 |
+
+先看 I1−H1、I2−H1 和 I1−I2，再看相对 G0/G1 的整体收益。主要选择依据继续为 VAL CW native AUC；并列报告 TEST CW／OW、未见条件属性和 exact 选权重结果。各自 dynamic−mean 与图像方差解释残差表示的作用。
+
+历史标量比较也已写入包内快照，预测级对照读取已有服务器结果。native 与 exact 各自比较同 seed、同缓存、对应选择的权重。
+
+## 7. 完成后下载
+
+在服务器打包本轮与 H/G/F/E/D/C 结果及对应代码：
+
+```bash
+tar -czf /data/xhw/vgcpod_project/vgcpod_roundI_results_20261021.tar.gz \
+  -C /data/xhw/vgcpod_v1_runs roundI_20261021 roundH_20261020 roundG_20261020 roundF_20261020 roundE_20261020 roundD_20261020 roundC_20261020 \
+  -C /data/xhw/vgcpod_project vgcpod_v1_roundI vgcpod_v1_roundH vgcpod_v1_roundG vgcpod_v1_roundF vgcpod_v1_roundE vgcpod_v1_roundD vgcpod_v1_roundC
+```
+
+Windows PowerShell 下载并解压：
+
+```powershell
+$vgServer = "xhw@你的服务器IP"
+$vgLocal = "C:\Users\llenovo\Documents\ChatGPT\VG-CPOD"
+scp "${vgServer}:/data/xhw/vgcpod_project/vgcpod_roundI_results_20261021.tar.gz" "$vgLocal\"
+$vgExtract = Join-Path $vgLocal "server_results_roundI_20261021"
+New-Item -ItemType Directory -Force -Path $vgExtract | Out-Null
+tar -xzf "$vgLocal\vgcpod_roundI_results_20261021.tar.gz" -C "$vgExtract"
+```
+
+## 8. 交付验证
+
+- 48 项测试通过：包含 I1 门控／CP 公式与有限差分梯度、代表尺度恒等式、残差幅值变化、固定 buffer 和中断续训。
+- CPU 合成缓存完成六次训练、十二项门控评估；重复启动跳过六次训练和十二项评估，checkpoint 保持一致。
+- I1/I2 共用从 H 组逐字复制的均值；六个模型、两种选中权重均保存相同均值 buffer。
+- 原 H1 配置在新旧训练器中的模型参数、AdamW、Torch 随机状态逐元素一致。
+- 检查 Python 3.8 语法、Bash／PowerShell 命令和 Markdown／HTML 公式排版。明细见 `validation/`。
+
+以上为本地 CPU 验证；本轮完整 CLIP 缓存实验使用上述服务器命令执行。
