@@ -389,8 +389,8 @@ math-renderer.js-inline-math{display:inline-block}mjx-container{margin:0!importa
 <p>相对 G0，I2 物体准确率基本持平，未见条件属性低 0.670 个百分点，未见候选内真实组合 top-1 低 0.353 个百分点。下一项结构实验仍聚焦条件属性和组合排序。</p>
 <h2>5. 当前公式核查与 J1 的改动依据</h2>
 <h3>5.1 当前模型中两类修正共用 Wc</h3>
-<p>令 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$u_i=A_u e_i^a$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$v_j=A_v e_j^o$</math-renderer>，<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$a_{ij}=u_i\odot v_j$</math-renderer>，<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$h_{bj}=\gamma_{bj}-\mathbf{1}$</math-renderer>。其中 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$g_b\in\mathbb{R}^{768}$</math-renderer> 为图像全局 CLIP 特征，<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$\kappa=20$</math-renderer>；<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$i,j,b$</math-renderer> 分别索引属性、物体和图像。当前 I2 的修正可以精确展开为：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$$\begin{aligned}
+<p>令 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="32ee2f47a4c8623257028f27822dea49">$u_i=A_u e_i^a$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="32ee2f47a4c8623257028f27822dea49">$v_j=A_v e_j^o$</math-renderer>，<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="32ee2f47a4c8623257028f27822dea49">$a_{ij}=u_i\odot v_j$</math-renderer>，<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="32ee2f47a4c8623257028f27822dea49">$h_{bj}=\gamma_{bj}-\mathbf{1}$</math-renderer>。其中 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="32ee2f47a4c8623257028f27822dea49">$g_b\in\mathbb{R}^{768}$</math-renderer> 为图像全局 CLIP 特征，<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="32ee2f47a4c8623257028f27822dea49">$\kappa=20$</math-renderer>；<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="32ee2f47a4c8623257028f27822dea49">$i,j,b$</math-renderer> 分别索引属性、物体和图像。当前 I2 的修正可以精确展开为：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="32ee2f47a4c8623257028f27822dea49">$$\begin{aligned}
 \Delta U^{\mathrm{I2}}_{bji}
 &amp;=\rho\kappa\,g_b^\top W_c(a_{ij}\odot\gamma_{bj})\\[4pt]
 &amp;=\rho\kappa\,g_b^\top W_c a_{ij}
@@ -399,20 +399,20 @@ math-renderer.js-inline-math{display:inline-block}mjx-container{margin:0!importa
 <p>第一项是静态 CP 修正，第二项是图像动态修正，两者通过同一个 Wc 接收训练更新。这个共享约束来自当前实现。本轮的均值干预与独立静态训练结果，支持将其作为下一项结构变量。</p>
 <p>现有概率链式分解、TRAIN 残差、门控中心化、张量维度和损失恒等式复核一致。J1 调整参数共享方式。</p>
 <h3>5.2 J1：分别学习静态和动态读出</h3>
-<p>设 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$W_s,W_d\in\mathbb{R}^{768\times32}$</math-renderer>，继续共享 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$A_u,A_v$</math-renderer>，使用：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$$\begin{aligned}
+<p>设 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="32ee2f47a4c8623257028f27822dea49">$W_s,W_d\in\mathbb{R}^{768\times32}$</math-renderer>，继续共享 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="32ee2f47a4c8623257028f27822dea49">$A_u,A_v$</math-renderer>，使用：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="32ee2f47a4c8623257028f27822dea49">$$\begin{aligned}
 U^{\mathrm{J1}}_{bji}
 &amp;=U^{\mathrm{base}}_{bji}+\Delta U^{\mathrm{J1}}_{bji},\\[4pt]
 \Delta U^{\mathrm{J1}}_{bji}
 &amp;=\rho\kappa\,g_b^\top W_s a_{ij}
 +\rho\kappa\,g_b^\top W_d(a_{ij}\odot h_{bj}).
 \end{aligned}$$</math-renderer>
-<p>静态和动态两路联合训练。<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$W_s=W_d=W_c$</math-renderer> 时，公式精确恢复 I2；<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$W_d=0$</math-renderer> 时，CP 修正恢复静态形式。对应类别算子为：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$$M_{bj}=\left[W_s\operatorname{diag}(v_j)
-+W_d\operatorname{diag}(v_j\odot h_{bj})\right]A_u,
-\qquad \operatorname{rank}(M_{bj})\le32.$$</math-renderer>
+<p>静态和动态两路联合训练。<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="32ee2f47a4c8623257028f27822dea49">$W_s=W_d=W_c$</math-renderer> 时，公式精确恢复 I2；<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="32ee2f47a4c8623257028f27822dea49">$W_d=0$</math-renderer> 时，CP 修正恢复静态形式。对应类别算子为：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="32ee2f47a4c8623257028f27822dea49">$$M_{bj}=\left[W_s\mathrm{diag}(v_j)
++W_d\mathrm{diag}(v_j\odot h_{bj})\right]A_u,
+\qquad \mathrm{rank}(M_{bj})\le32.$$</math-renderer>
 <p>共享属性因子使算子的秩上界继续为 32。单个修正分数对两路矩阵的梯度为：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$$\begin{aligned}
+<math-renderer class="js-display-math" style="display: block" data-run-id="32ee2f47a4c8623257028f27822dea49">$$\begin{aligned}
 \nabla_{W_s}\Delta U^{\mathrm{J1}}_{bji}
 &amp;=\rho\kappa\,g_b a_{ij}^\top,\\[4pt]
 \nabla_{W_d}\Delta U^{\mathrm{J1}}_{bji}
@@ -422,7 +422,7 @@ U^{\mathrm{J1}}_{bji}
 <p>新增参数为 <strong>24,576</strong>，可训练参数从 I2 的 <strong>122,880</strong> 变为 <strong>147,456</strong>，增加 20%。I2 作为共享读出对照，J1 的 dynamic−mean 继续测量同一模型中的图像变化贡献。</p>
 <h3>5.3 门控与损失固定</h3>
 <p>J1 沿用 I2：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$$\begin{aligned}
+<math-renderer class="js-display-math" style="display: block" data-run-id="32ee2f47a4c8623257028f27822dea49">$$\begin{aligned}
 r_{bj}&amp;=f^o_{bj}-\mu_j,\qquad
 \widehat r_{bj}=\frac{r_{bj}}{\max(\lVert r_{bj}\rVert_2,10^{-12})},\\[4pt]
 q_{bjk}&amp;=2\sigma\!\left(\frac{b_k^\top\widehat r_{bj}}{0.56}\right)-1,\\[4pt]
@@ -430,7 +430,7 @@ h_{bjk}&amp;=\frac{0.25}{2}\left(q_{bjk}-\frac{1}{32}\sum_{\ell=1}^{32}q_{bj\ell
 \mathcal{L}&amp;=\frac{3}{2}\mathcal{L}_{\mathrm{pair}}+\frac{9}{86}\mathcal{L}_{\mathrm{support}}
 +10^{-3}\mathcal{L}_{\mathrm{orth}}.
 \end{aligned}$$</math-renderer>
-<p><math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$b_k$</math-renderer> 是视觉门控矩阵第 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$k$</math-renderer> 行的转置。η 保持 0.25，门控 γ 仍在 [0.75,1.25]；ρ=0.15、β=0.075。两路矩阵独立后，修正分数由各自权重共同决定。</p>
+<p><math-renderer class="js-inline-math" style="display: inline-block" data-run-id="32ee2f47a4c8623257028f27822dea49">$b_k$</math-renderer> 是视觉门控矩阵第 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="32ee2f47a4c8623257028f27822dea49">$k$</math-renderer> 行的转置。η 保持 0.25，门控 γ 仍在 [0.75,1.25]；ρ=0.15、β=0.075。两路矩阵独立后，修正分数由各自权重共同决定。</p>
 <h2>6. 下一轮具体安排</h2>
 <markdown-accessiblity-table><table role="table">
 <thead>
@@ -508,7 +508,7 @@ h_{bjk}&amp;=\frac{0.25}{2}\left(q_{bjk}-\frac{1}{32}\sum_{\ell=1}^{32}q_{bj\ell
 <li>配置／调度／汇总：新增 J1，三卡三个 seed，自动与现有 I2/G0/G1 做配对比较，并保存两条选权重路径。</li>
 </ol>
 <p>均值条件的正确表达式为：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="c67d82a9ef2d7d653ad07aebf0f81baa">$$\bar h_{jk}=\frac{1}{N}\sum_{b\in\mathrm{TRAIN}}h_{bjk},
+<math-renderer class="js-display-math" style="display: block" data-run-id="32ee2f47a4c8623257028f27822dea49">$$\bar h_{jk}=\frac{1}{N}\sum_{b\in\mathrm{TRAIN}}h_{bjk},
 \qquad
 \Delta U^{\mathrm{J1,mean}}_{bji}
 =\rho\kappa g_b^\top W_s a_{ij}

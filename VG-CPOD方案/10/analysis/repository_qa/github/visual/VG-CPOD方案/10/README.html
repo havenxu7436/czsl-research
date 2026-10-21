@@ -48,8 +48,8 @@ math-renderer.js-inline-math{display:inline-block}mjx-container{margin:0!importa
 </table></markdown-accessiblity-table>
 <p>两组沿用 β=0.075、ρ=0.15、η=0.25、全局 g 读出和原优化设置，可训练参数均为 <strong>122,880</strong>。六次训练复用 H 组的同一 TRAIN 均值文件；新增输入分支不增加模型参数。</p>
 <h2>2. 公式修订：残差幅值与温度尺度</h2>
-<p>令 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="0d5f9d380504aa0e510f3c201d98bb42">$f^o_{bj}\in\mathbb{R}^{768}$</math-renderer> 为图像 b 对物体查询 j 的冻结 CLIP 特征；TRAIN 图像数 N=22,998，查询数 O=12，模式数 R=32。对全部 TRAIN 图像和全部查询计算：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="0d5f9d380504aa0e510f3c201d98bb42">$$\begin{aligned}
+<p>令 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="0e8b1811611206a6221929d9addc3600">$f^o_{bj}\in\mathbb{R}^{768}$</math-renderer> 为图像 b 对物体查询 j 的冻结 CLIP 特征；TRAIN 图像数 N=22,998，查询数 O=12，模式数 R=32。对全部 TRAIN 图像和全部查询计算：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="0e8b1811611206a6221929d9addc3600">$$\begin{aligned}
 \mu_j&amp;=\frac1N\sum_{b\in\mathrm{TRAIN}}f^o_{bj},
 \qquad r_{bj}=f^o_{bj}-\mu_j,\\[4pt]
 x^{\mathrm{I1}}_{bj}&amp;=r_{bj},
@@ -58,8 +58,8 @@ x^{\mathrm{I2}}_{bj}&amp;=\frac{r_{bj}}{\max(\lVert r_{bj}\rVert_2,10^{-12})},
 \qquad\tau^{\mathrm{I2}}_\gamma=0.56.
 \end{aligned}$$</math-renderer>
 <p>均值计算不使用标签。统计以 float64 累计，forward 使用固定 float32 buffer <code class="notranslate">gate_fo_mean</code>；VAL／TEST、三 seed 及两条选权重路径均使用该 TRAIN 均值。I 组统计文件与 H 组逐字一致。</p>
-<p>令 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="0d5f9d380504aa0e510f3c201d98bb42">$B_{\mathrm{vis}}\in\mathbb{R}^{R\times768}$</math-renderer> 的第 k 行转置为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="0d5f9d380504aa0e510f3c201d98bb42">$b_k$</math-renderer>，对 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="0d5f9d380504aa0e510f3c201d98bb42">$c\in\{\mathrm{I1},\mathrm{I2}\}$</math-renderer>，沿用模式中心化门控：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="0d5f9d380504aa0e510f3c201d98bb42">$$\begin{aligned}
+<p>令 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="0e8b1811611206a6221929d9addc3600">$B_{\mathrm{vis}}\in\mathbb{R}^{R\times768}$</math-renderer> 的第 k 行转置为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="0e8b1811611206a6221929d9addc3600">$b_k$</math-renderer>，对 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="0e8b1811611206a6221929d9addc3600">$c\in\{\mathrm{I1},\mathrm{I2}\}$</math-renderer>，沿用模式中心化门控：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="0e8b1811611206a6221929d9addc3600">$$\begin{aligned}
 z^c_{bjk}&amp;=b_k^\top x^c_{bj}/\tau^c_\gamma,\\[4pt]
 q^c_{bjk}&amp;=2\sigma(z^c_{bjk})-1,\\[4pt]
 \gamma^c_{bjk}&amp;=1+\frac{\eta}{2}\left(q^c_{bjk}-\frac1R\sum_{\ell=1}^R q^c_{bj\ell}\right),
@@ -68,16 +68,16 @@ q^c_{bjk}&amp;=2\sigma(z^c_{bjk})-1,\\[4pt]
 \qquad0.75\le\gamma^c_{bjk}\le1.25.
 \end{aligned}$$</math-renderer>
 <p>门控对视觉基的梯度为：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="0d5f9d380504aa0e510f3c201d98bb42">$$\nabla_{b_\ell}\gamma^c_{bjk}
+<math-renderer class="js-display-math" style="display: block" data-run-id="0e8b1811611206a6221929d9addc3600">$$\nabla_{b_\ell}\gamma^c_{bjk}
 =\frac{\eta}{\tau^c_\gamma}\left(\delta_{k\ell}-\frac1R\right)
 \sigma(z^c_{bj\ell})[1-\sigma(z^c_{bj\ell})]x^c_{bj}.$$</math-renderer>
 <p>两组残差为零时，门控均为 1。I1 对幅值变化保留响应；I2 对超过 ε 的正比例残差使用相同单位方向。</p>
 <h3>2.1 温度0.56的选取依据</h3>
 <p>每个查询的中心化二阶矩满足精确恒等式：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="0d5f9d380504aa0e510f3c201d98bb42">$$\frac1N\sum_b\lVert r_{bj}\rVert_2^2
+<math-renderer class="js-display-math" style="display: block" data-run-id="0e8b1811611206a6221929d9addc3600">$$\frac1N\sum_b\lVert r_{bj}\rVert_2^2
 =\frac1N\sum_b\lVert f^o_{bj}\rVert_2^2-\lVert\mu_j\rVert_2^2.$$</math-renderer>
 <p>用单位范数 CLIP 缓存特征估算合并残差 RMS：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="0d5f9d380504aa0e510f3c201d98bb42">$$\begin{aligned}
+<math-renderer class="js-display-math" style="display: block" data-run-id="0e8b1811611206a6221929d9addc3600">$$\begin{aligned}
 s_{\mathrm{TRAIN}}&amp;\approx
 \sqrt{\frac1O\sum_{j=1}^O(1-\lVert\mu_j\rVert_2^2)}
 \approx0.17835,\\[4pt]
@@ -85,8 +85,8 @@ s_{\mathrm{TRAIN}}&amp;\approx
 \end{aligned}$$</math-renderer>
 <p>0.56 是本轮训练前由 TRAIN 代表尺度确定的固定值。若某个残差范数为 0.1/0.56，则同一 Bvis 下，两组 sigmoid 输入精确相等；真实残差范数随图像和查询变化，I1/I2 因而构成代表尺度下的幅值／方向对照。</p>
 <h2>3. CP读出、目标函数与评价</h2>
-<p>令 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="0d5f9d380504aa0e510f3c201d98bb42">$u_i=A_u e_i^a$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="0d5f9d380504aa0e510f3c201d98bb42">$v_j=A_v e_j^o$</math-renderer>，<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="0d5f9d380504aa0e510f3c201d98bb42">$W_c\in\mathbb{R}^{768\times32}$</math-renderer>，张量顺序为 <code class="notranslate">[batch, object, attribute]</code>。两组沿用全局 CLIP 特征 g 的读出：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="0d5f9d380504aa0e510f3c201d98bb42">$$\begin{aligned}
+<p>令 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="0e8b1811611206a6221929d9addc3600">$u_i=A_u e_i^a$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="0e8b1811611206a6221929d9addc3600">$v_j=A_v e_j^o$</math-renderer>，<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="0e8b1811611206a6221929d9addc3600">$W_c\in\mathbb{R}^{768\times32}$</math-renderer>，张量顺序为 <code class="notranslate">[batch, object, attribute]</code>。两组沿用全局 CLIP 特征 g 的读出：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="0e8b1811611206a6221929d9addc3600">$$\begin{aligned}
 U^c_{bji}&amp;=U^{\mathrm{base}}_{bji}
 +\rho\kappa g_b^\top W_c(u_i\odot v_j\odot\gamma^c_{bj}),
 \qquad\rho=0.15,\ \kappa=20,\\[4pt]
@@ -100,7 +100,7 @@ s_{bji}&amp;=\log p(o_j\mid x_b)+\log p(a_i\mid o_j,x_b),\\[4pt]
 \end{aligned}$$</math-renderer>
 <p>β=0.075；pair 为 TRAIN 支持集内重归一化后的交叉熵，support 为 TRAIN 组合概率质量的负对数，具体定义见 <a href="../08/README.md">08</a>。内部 variant=V1，prim／cent 分支为零。Wc 零初始化，AdamW weight decay 独立执行。</p>
 <p>native／exact 各自选择首次最大 VAL CW AUC 的 epoch。每套选中权重在 TRAIN 上计算门控均值：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="0d5f9d380504aa0e510f3c201d98bb42">$$\begin{aligned}
+<math-renderer class="js-display-math" style="display: block" data-run-id="0e8b1811611206a6221929d9addc3600">$$\begin{aligned}
 t_m^*&amp;=\min\{t\in\{1,\ldots,10\}:A_t^m=\max_{1\le s\le10}A_s^m\},
 \qquad m\in\{\mathrm{native},\mathrm{exact}\},\\[4pt]
 \bar\gamma_{jk}&amp;=\frac1N\sum_{b\in\mathrm{TRAIN}}\gamma_{bjk},
