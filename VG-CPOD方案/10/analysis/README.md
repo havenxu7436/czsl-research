@@ -141,9 +141,9 @@ U^{\mathrm{J1}}_{bji}
 静态和动态两路联合训练。$`W_s=W_d=W_c`$ 时，公式精确恢复 I2；$`W_d=0`$ 时，CP 修正恢复静态形式。对应类别算子为：
 
 ```math
-M_{bj}=\left[W_s\operatorname{diag}(v_j)
-+W_d\operatorname{diag}(v_j\odot h_{bj})\right]A_u,
-\qquad \operatorname{rank}(M_{bj})\le32.
+M_{bj}=\left[W_s\mathrm{diag}(v_j)
++W_d\mathrm{diag}(v_j\odot h_{bj})\right]A_u,
+\qquad \mathrm{rank}(M_{bj})\le32.
 ```
 
 共享属性因子使算子的秩上界继续为 32。单个修正分数对两路矩阵的梯度为：
