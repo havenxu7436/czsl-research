@@ -1,0 +1,65 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>VG-CPOD方案/11/code/README.md</title>
+    <base href="file:///C:/Users/llenovo/Documents/ChatGPT/CZSL/VG-CPOD%E6%96%B9%E6%A1%88/11/code/">
+    <style>body {margin:0;background:#fff;color:#1f2328;font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}
+.markdown-body{max-width:940px;margin:auto;padding:32px;box-sizing:border-box}h1,h2,h3{line-height:1.3;margin:24px 0 16px}
+h1,h2{border-bottom:1px solid #d1d9e0;padding-bottom:.3em}a{color:#0969da;text-decoration:none}
+p{margin:0 0 16px}code,pre{font:13px/1.5 Consolas,monospace}pre{padding:16px;background:#f6f8fa;overflow:auto}code{background:#f6f8fa}
+table{display:block;max-width:100%;overflow:auto;border-collapse:collapse;margin-bottom:16px}td,th{border:1px solid #d1d9e0;padding:6px 13px}tr:nth-child(even){background:#f6f8fa}
+img{max-width:100%}math-renderer.js-display-math{display:block;margin:20px 0;overflow-x:auto;overflow-y:hidden;padding:5px 0}
+math-renderer.js-inline-math{display:inline-block}mjx-container{margin:0!important}mjx-container[display="true"]{text-align:center}</style><script>window.MathJax={startup:{typeset:false},svg:{fontCache:'none'},options:{enableMenu:false}};</script>
+    <script src="file:///C:/Users/llenovo/Documents/ChatGPT/CZSL/VG-CPOD%E6%96%B9%E6%A1%88/11/analysis/repository_qa/github/tex-svg.js"></script><body><article class="markdown-body"><h1>11 · 代码与修订</h1>
+<p>原运行源码位于<a href="vgcpod_v1_roundJ/">vgcpod_v1_roundJ</a>，配置、资产、说明与验证按平行目录保存；<a href="../package_members.json">映射</a>供materialize恢复原包。相对<a href="../../10/code/README.md">10 I组</a>的全部差异见<a href="source_changes.patch">source_changes.patch</a>。</p>
+<h2>1. 两路独立读出</h2>
+<p><a href="vgcpod_v1_roundJ/vgcpod/model.py">model.py</a>保留Wc作为静态Ws，新增零初始化Wd；原有参数的随机初始化序列保留。新分支的核心计算为：</p>
+<div class="highlight highlight-source-python"><pre class="notranslate"><span class="pl-s1">static_modes</span> <span class="pl-c1">=</span> (<span class="pl-s1">readout</span> @ <span class="pl-s1">self</span>.<span class="pl-c1">Wc</span>) <span class="pl-c1">*</span> <span class="pl-s1">v</span>[<span class="pl-c1">None</span>, :, :]
+<span class="pl-s1">dynamic_modes</span> <span class="pl-c1">=</span> (<span class="pl-s1">readout</span> @ <span class="pl-s1">self</span>.<span class="pl-c1">Wd</span>) <span class="pl-c1">*</span> (<span class="pl-s1">gamma</span> <span class="pl-c1">-</span> <span class="pl-c1">1</span>) <span class="pl-c1">*</span> <span class="pl-s1">v</span>[<span class="pl-c1">None</span>, :, :]
+<span class="pl-s1">static</span> <span class="pl-c1">=</span> <span class="pl-s1">rho</span> <span class="pl-c1">*</span> <span class="pl-s1">kappa</span> <span class="pl-c1">*</span> <span class="pl-s1">torch</span>.<span class="pl-c1">einsum</span>(<span class="pl-s">'bor,ir-&gt;boi'</span>, <span class="pl-s1">static_modes</span>, <span class="pl-s1">u</span>)
+<span class="pl-s1">dynamic</span> <span class="pl-c1">=</span> <span class="pl-s1">rho</span> <span class="pl-c1">*</span> <span class="pl-s1">kappa</span> <span class="pl-c1">*</span> <span class="pl-s1">torch</span>.<span class="pl-c1">einsum</span>(<span class="pl-s">'bor,ir-&gt;boi'</span>, <span class="pl-s1">dynamic_modes</span>, <span class="pl-s1">u</span>)
+<span class="pl-s1">cond</span> <span class="pl-c1">=</span> <span class="pl-s1">base</span> <span class="pl-c1">+</span> <span class="pl-s1">static</span> <span class="pl-c1">+</span> <span class="pl-s1">dynamic</span></pre></div>
+<p><code class="notranslate">cp_readout_mode="separate"</code>启用上述分支。I2配置沿用共享分支；J1输出额外保存<code class="notranslate">cp_static/cp_dynamic</code>。Au/Av共享、矩阵Wd新增24,576个参数，两路联合训练。</p>
+<h2>2. 均值评估与幅值日志</h2>
+<p><a href="vgcpod_v1_roundJ/mean_gate_eval.py">mean_gate_eval.py</a>先使用当前模型的静态输出，再通过Wd、TRAIN均值门控减1和原因子计算动态输出。这样两路矩阵都参与均值条件，最后重算条件softmax与联合分布。</p>
+<p><a href="vgcpod_v1_roundJ/vgcpod/engine.py">engine.py</a>记录两路原始MSE和沿属性维中心化MSE，按图像数汇总后计算epoch RMS。日志是训练epoch各batch前向权重的统计。J1仍使用原adapter与CP两个AdamW参数组，Wc/Wd属于相同CP组；LR均为3e-4→3e-6。</p>
+<h2>3. 调度、配置与诊断</h2>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>入口</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="vgcpod_v1_roundJ/round_j.py">round_j.py</a></td>
+<td>从I组复用TRAIN均值；三卡三个seed，完成训练及native/exact六项干预</td>
+</tr>
+<tr>
+<td><a href="vgcpod_v1_roundJ/scripts/start_round_j_tmux.sh">tmux脚本</a></td>
+<td>当前Python、会话、日志与退出码；中断后从完整epoch继续</td>
+</tr>
+<tr>
+<td><a href="../configs/round_j/J1.json">J1模板</a></td>
+<td>在I2基础上新增separate模式及实验编号</td>
+</tr>
+<tr>
+<td><a href="../configs/references/pre_j_complete.json">35项历史快照</a></td>
+<td>native及G0/G1/H1/I1/I2 exact指标</td>
+</tr>
+<tr>
+<td><a href="vgcpod_v1_roundJ/ranking_diagnostics.py">ranking_diagnostics.py</a></td>
+<td>J1−I2/G0/G1/H1/I1与dynamic−mean预测级比较</td>
+</tr>
+<tr>
+<td><a href="../results/raw_export/roundJ_20261021/readout_training_summary.csv">readout_training_summary</a></td>
+<td>native/exact选中epoch和末轮两路修正统计</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h2>4. 验证与正式结果复算</h2>
+<ul>
+<li><a href="../results/package_validation/J/validation/unit_tests.txt">55项原发布测试</a>、<a href="../results/package_validation/J/validation/unit_test_summary.json">结构化摘要</a>、<a href="../results/package_validation/J/validation/result.json">三训练六评估流程</a>。</li>
+<li><a href="vgcpod_v1_roundJ/tests/test_round_j.py">七项J组测试</a>：参数计数与分组、I2恢复恒等式、显式低秩算子、五组参数有限差分、独立矩阵均值评估、首步双路学习和续训。</li>
+<li>旧I2配置在新旧训练器中的参数、AdamW及Torch RNG逐元素相同；CPU流程重复启动跳过三训练和六评估。</li>
+<li><a href="../analysis/recompute.py">正式数据复算</a>、<a href="original_analysis/">原分析脚本</a>、<a href="../analysis/repository_validation.json">仓库验证</a>、<a href="../results/server_source_identity.json">服务器源码身份</a>。</li>
+</ul>
+<p>正式训练的软件与GPU身份保存在各protocol.json；发布验证使用CPU合成缓存。CLIP许可见<a href="vgcpod_v1_roundJ/vendor/CLIP_LICENSE">CLIP_LICENSE</a>。公式推导与当前结果见<a href="../README.md">主说明</a>，完整解释见<a href="../analysis/README.md">数据分析</a>。</p></article></body></html>

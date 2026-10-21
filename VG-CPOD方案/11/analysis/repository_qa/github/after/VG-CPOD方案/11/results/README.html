@@ -1,0 +1,141 @@
+<h1>11 · J组训练结果</h1>
+<p>本阶段完成J1三seed，共三次训练、30个模型epoch。native/exact分别保存12份评价与预测；六项均值评估包含12个条件、48份评价与预测。合计 <strong>72份预测文件、12份checkpoint文件</strong>，另保存共享TRAIN查询均值与六套门控矩。</p>
+<h2>1. native选择主结果</h2>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>实验</th>
+<th>seed</th>
+<th>native／exact最佳epoch</th>
+<th>VAL CW</th>
+<th>VAL OW</th>
+<th>TEST CW</th>
+<th>TEST OW</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>J1</td>
+<td>3351</td>
+<td>5／5</td>
+<td>43.9794</td>
+<td>31.0402</td>
+<td>33.8136</td>
+<td>23.7420</td>
+</tr>
+<tr>
+<td>J1</td>
+<td>3352</td>
+<td>6／6</td>
+<td>41.2374</td>
+<td>29.8925</td>
+<td>35.9243</td>
+<td>24.3884</td>
+</tr>
+<tr>
+<td>J1</td>
+<td>3353</td>
+<td>6／6</td>
+<td>44.7703</td>
+<td>33.6924</td>
+<td>34.2198</td>
+<td>25.4464</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p>AUC为服务器保存的原始分数曲线积分，面积×100。每次训练均完成十轮、3600次更新；物体、条件属性、CW/OW、seen/unseen、HM和NLL见各运行JSON。</p>
+<h2>2. exact选择结果</h2>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>实验</th>
+<th>seed</th>
+<th>exact最佳epoch</th>
+<th>VAL CW native</th>
+<th>VAL CW exact</th>
+<th>TEST CW native</th>
+<th>TEST OW native</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>J1</td>
+<td>3351</td>
+<td>5</td>
+<td>43.9794</td>
+<td>44.1396</td>
+<td>33.8136</td>
+<td>23.7420</td>
+</tr>
+<tr>
+<td>J1</td>
+<td>3352</td>
+<td>6</td>
+<td>41.2374</td>
+<td>41.3872</td>
+<td>35.9243</td>
+<td>24.3884</td>
+</tr>
+<tr>
+<td>J1</td>
+<td>3353</td>
+<td>6</td>
+<td>44.7703</td>
+<td>44.9359</td>
+<td>34.2198</td>
+<td>25.4464</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p>三seed的native/exact分别选中5/6/6轮，对应参数与预测完全相同。<code class="notranslate">best.pt</code>与<code class="notranslate">best_native.pt</code>为逐字别名；<code class="notranslate">best_exact.pt</code>独立保存，<code class="notranslate">last.pt</code>保存末轮模型、AdamW和随机状态。</p>
+<h2>3. 原运行、均值与汇总</h2>
+<ul>
+<li><a href="raw_export/roundJ_20261021/J1/ut-zap50k/V1/">三seed完整运行</a>：protocol、history、metrics、曲线、预测、checkpoint、exact_selection。</li>
+<li><a href="raw_export/roundJ_20261021/feature_statistics/">固定TRAIN查询均值</a>、<a href="raw_export/roundJ_20261021/configs/">运行配置</a>。</li>
+<li><a href="raw_export/roundJ_20261021/round_j_status.json">三卡状态</a>、<a href="raw_export/roundJ_20261021/round_j_jobs.json">任务表</a>、<a href="raw_export/roundJ_20261021/launcher.log">主日志</a>、<a href="raw_export/roundJ_20261021/launcher.exitcode">退出码0</a>。</li>
+<li><a href="raw_export/roundJ_20261021/round_j_summary.json">结果总表</a>、<a href="raw_export/roundJ_20261021/round_j_mean_sd.csv">均值与SD</a>、<a href="raw_export/roundJ_20261021/round_j_paired_deltas.csv">配对差值</a>、<a href="raw_export/roundJ_20261021/round_j_paired_mean_sd.csv">配对汇总</a>。</li>
+<li><a href="raw_export/roundJ_20261021/readout_training_summary.csv">两路训练修正RMS</a>、<a href="raw_export/roundJ_20261021/support_training_summary.csv">支持损失</a>、<a href="raw_export/roundJ_20261021/matched_native_summary.csv">同ρ/β对照</a>。</li>
+<li><a href="raw_export/roundJ_20261021/exact_selection_summary.csv">exact选择结果</a>、<a href="raw_export/roundJ_20261021/exact_reference_paired_mean_sd.csv">exact配对</a>。</li>
+<li><a href="raw_export/roundJ_20261021/ranking_diagnostics.json">排序诊断</a>、<a href="raw_export/roundJ_20261021/per_pair_gains.csv">逐组合增量</a>、<a href="raw_export/roundJ_20261021/pair_probability_diagnostics.csv">逐组合概率</a>。</li>
+</ul>
+<h2>4. 动态与TRAIN均值干预</h2>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>seed</th>
+<th>TEST CW dynamic−mean</th>
+<th>TEST OW dynamic−mean</th>
+<th>未见属性净正确数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3351</td>
+<td>+8.5720</td>
+<td>+3.5260</td>
+<td>+19</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>+8.1282</td>
+<td>+2.4147</td>
+<td>+38</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>+9.2352</td>
+<td>+4.8356</td>
+<td>+132</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p><a href="raw_export/roundJ_20261021/mean_gate/">native评估</a>与<a href="raw_export/roundJ_20261021/mean_gate_exact/">exact评估</a>各保存[12,32]门控均值、图像方差和dynamic/train_mean四种设置的预测与曲线。静态Wc和动态Wd分别参与均值条件。三seed的两条选择轨道均相同，因此对应干预指标相同。</p>
+<h2>5. 原包、来源与数据分析</h2>
+<ul>
+<li><a href="archives/vgcpod_roundJ_results_20261021.tar.gz">服务器TAR</a>、<a href="archives/vgcpod_v1_roundJ_20261021.zip">训练ZIP</a>，旁附SHA256，二进制沿用Git LFS。</li>
+<li><a href="package_validation/J/">原发布验证</a>、<a href="package_support/J/">原说明字节</a>、<a href="package_support/original_reports/">原实施与分析报告</a>。</li>
+<li><a href="../package_members.json">91个成员映射</a>、<a href="raw_export_members.json">结果哈希</a>、<a href="server_source_identity.json">服务器源码身份</a>、<a href="reused_reference_members.json">历史引用</a>、<a href="../file_manifest.json">阶段清单</a>。</li>
+<li>历史结果沿用<a href="../../10/results/README.md">10 I组</a>、<a href="../../09/results/README.md">09 H组</a>、<a href="../../08/results/README.md">08 G组</a>及其前序引用。</li>
+<li><a href="../analysis/repository_validation.json">仓库复核</a>、<a href="../analysis/README.md">完整数据分析</a>。</li>
+</ul>
+<p>J1相对I2的CW提高0.448点、OW下降0.328点；seed3351的OW下降2.445点。动态分数修正幅值约增大9.9倍，下一轮优先检验Wd独立学习率。具体配对差值、Adam状态及推导见末项数据分析。</p>

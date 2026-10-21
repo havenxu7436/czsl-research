@@ -91,6 +91,10 @@ def verify():
     if (ROOT/'VG-CPOD方案/08/inputs.json').is_file():
         from register_vgcpod_round_g import check as check_vgcpod_g
         g_check=check_vgcpod_g()
+    j_check=None
+    if (ROOT/'VG-CPOD方案/11/inputs.json').is_file():
+        from register_vgcpod_round_j import check as check_vgcpod_j
+        j_check=check_vgcpod_j()
     i_check=None
     if (ROOT/'VG-CPOD方案/10/inputs.json').is_file():
         from register_vgcpod_round_i import check as check_vgcpod_i
@@ -101,7 +105,7 @@ def verify():
         h_check=check_vgcpod_h()
     result={'passed':not(failures or links or formatting or syntax),'original_canonical_files':len(expected),
       'changed_or_missing':failures,'broken_links':links,'formatting_errors':formatting,
-      'python_syntax_errors':syntax,'vgcpod':route_check,'vgcpod_round_b':b_check,'vgcpod_round_c':c_check,'vgcpod_round_d':d_check,'vgcpod_round_e':e_check,'vgcpod_round_f':f_check,'vgcpod_round_g':g_check,'vgcpod_round_h':h_check,'vgcpod_round_i':i_check,'training_started':False}
+      'python_syntax_errors':syntax,'vgcpod':route_check,'vgcpod_round_b':b_check,'vgcpod_round_c':c_check,'vgcpod_round_d':d_check,'vgcpod_round_e':e_check,'vgcpod_round_f':f_check,'vgcpod_round_g':g_check,'vgcpod_round_h':h_check,'vgcpod_round_i':i_check,'vgcpod_round_j':j_check,'training_started':False}
     print(json.dumps(result,ensure_ascii=False))
     if not result['passed']: raise SystemExit(1)
 
@@ -116,6 +120,10 @@ def archive_stage(line,number):
     return matches[0]
 
 def materialize(stage,destination,line=None,number=None):
+    if stage=='30':
+        from register_vgcpod_round_j import materialize as materialize_vgcpod_j
+        print(json.dumps(materialize_vgcpod_j(destination),ensure_ascii=False))
+        return
     if stage=='29':
         from register_vgcpod_round_i import materialize as materialize_vgcpod_i
         print(json.dumps(materialize_vgcpod_i(destination),ensure_ascii=False))

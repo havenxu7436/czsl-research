@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-21",
+  "line": "VG-CPOD方案",
+  "number": "11",
+  "version": "v1",
+  "title": "静态与动态CP独立读出",
+  "imported_from": "J release ZIP and downloaded J server export",
+  "new_runs": [
+    {
+      "case": "J1",
+      "seed": 3351
+    },
+    {
+      "case": "J1",
+      "seed": 3352
+    },
+    {
+      "case": "J1",
+      "seed": 3353
+    }
+  ],
+  "reference_stages": [
+    "02",
+    "04",
+    "05",
+    "06",
+    "07",
+    "08",
+    "09",
+    "10"
+  ],
+  "formula_revision": "Separate static Wc and dynamic Wd readouts, shared Au/Av; I2 residual gates with tau=.56 and eta=.25",
+  "trainable_parameters": 147456,
+  "added_parameters": 24576,
+  "planned_only": [
+    "K1: Wd learning-rate multiplier .3",
+    "K2: Wd learning-rate multiplier .1"
+  ]
+}

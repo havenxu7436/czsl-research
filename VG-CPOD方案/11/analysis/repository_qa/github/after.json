@@ -1,0 +1,318 @@
+[
+  {
+    "path": "VG-CPOD方案/11/README.md",
+    "sha256": "dd7133b5b4dbab6e7db1151a848092e37d077a8e5f5804f560dca927882e69d7",
+    "expected_display": 5,
+    "expected_inline": 10,
+    "rendered_display": 5,
+    "rendered_inline": 10,
+    "expected": [
+      {
+        "line": 20,
+        "display": false,
+        "safe": true,
+        "tex": "g_b\\in\\mathbb{R}^{768}"
+      },
+      {
+        "line": 20,
+        "display": false,
+        "safe": true,
+        "tex": "f^o_{bj}"
+      },
+      {
+        "line": 22,
+        "display": true,
+        "tex": "\\begin{aligned}\n\\mu_j&=\\frac{1}{N}\\sum_{b\\in\\mathrm{TRAIN}}f^o_{bj},\\qquad\n\\widehat r_{bj}=\\frac{f^o_{bj}-\\mu_j}{\\max(\\lVert f^o_{bj}-\\mu_j\\rVert_2,10^{-12})},\\\\[4pt]\nq_{bjk}&=2\\sigma\\!\\left(\\frac{b_k^\\top\\widehat r_{bj}}{0.56}\\right)-1,\\\\[4pt]\nh_{bjk}&=\\frac{0.25}{2}\\left(q_{bjk}-\\frac{1}{R}\\sum_{\\ell=1}^{R}q_{bj\\ell}\\right),\\qquad\n\\gamma_{bjk}=1+h_{bjk}.\n\\end{aligned}"
+      },
+      {
+        "line": 32,
+        "display": false,
+        "safe": true,
+        "tex": "b_k"
+      },
+      {
+        "line": 34,
+        "display": false,
+        "safe": true,
+        "tex": "u_i=A_ue_i^a"
+      },
+      {
+        "line": 34,
+        "display": false,
+        "safe": true,
+        "tex": "v_j=A_ve_j^o"
+      },
+      {
+        "line": 34,
+        "display": false,
+        "safe": true,
+        "tex": "a_{ij}=u_i\\odot v_j"
+      },
+      {
+        "line": 36,
+        "display": true,
+        "tex": "\\begin{aligned}\n\\Delta U^{\\mathrm{I2}}_{bji}\n&=\\rho\\kappa g_b^\\top W_c(a_{ij}\\odot\\gamma_{bj})\\\\[4pt]\n&=\\rho\\kappa g_b^\\top W_ca_{ij}\n+\\rho\\kappa g_b^\\top W_c(a_{ij}\\odot h_{bj}),\\\\[4pt]\n\\Delta U^s_{bji}&=\\rho\\kappa g_b^\\top W_sa_{ij},\\\\[4pt]\n\\Delta U^d_{bji}&=\\rho\\kappa g_b^\\top W_d(a_{ij}\\odot h_{bj}),\\\\[4pt]\nU^{\\mathrm{J1}}_{bji}&=U^{\\mathrm{base}}_{bji}+\\Delta U^s_{bji}+\\Delta U^d_{bji}.\n\\end{aligned}"
+      },
+      {
+        "line": 48,
+        "display": false,
+        "safe": true,
+        "tex": "W_s,W_d\\in\\mathbb{R}^{768\\times32}"
+      },
+      {
+        "line": 48,
+        "display": false,
+        "safe": true,
+        "tex": "W_s=W_d=W_c"
+      },
+      {
+        "line": 48,
+        "display": false,
+        "safe": true,
+        "tex": "W_d=0"
+      },
+      {
+        "line": 52,
+        "display": true,
+        "tex": "\\begin{aligned}\nM_{bj}&=\\left[W_s\\mathrm{diag}(v_j)\n+W_d\\mathrm{diag}(v_j\\odot h_{bj})\\right]A_u,\\qquad\n\\mathrm{rank}(M_{bj})\\le R,\\\\[4pt]\n\\nabla_{W_s}\\Delta U_{bji}&=\\rho\\kappa g_ba_{ij}^{\\top},\\\\[4pt]\n\\nabla_{W_d}\\Delta U_{bji}&=\\rho\\kappa g_b(a_{ij}\\odot h_{bj})^{\\top}.\n\\end{aligned}"
+      },
+      {
+        "line": 68,
+        "display": true,
+        "tex": "\\begin{aligned}\ns_{bji}&=\\log\\mathrm{softmax}(S_b)_j+\n\\log\\mathrm{softmax}(U^{\\mathrm{J1}}_{bj:})_i,\\\\[4pt]\nZ_b&=\\sum_{(i,j)\\in\\mathcal{S}}\\exp(s_{bji}),\\\\[4pt]\n\\mathcal{L}_{\\mathrm{pair}}&=\\frac{1}{B}\\sum_b[-s_{bj_bi_b}+\\log Z_b],\\qquad\n\\mathcal{L}_{\\mathrm{support}}=-\\frac{1}{B}\\sum_b\\log Z_b,\\\\[4pt]\n\\mathcal{L}_{\\mathrm{task}}&=\\frac{3}{2}\\mathcal{L}_{\\mathrm{pair}}+\\frac{9}{86}\\mathcal{L}_{\\mathrm{support}},\\\\[4pt]\n\\mathcal{L}&=\\mathcal{L}_{\\mathrm{task}}+\n\\frac{0.001}{R^2}\\lVert B_{\\mathrm{vis}}B_{\\mathrm{vis}}^\\top-I_R\\rVert_F^2.\n\\end{aligned}"
+      },
+      {
+        "line": 81,
+        "display": false,
+        "safe": true,
+        "tex": "\\mathcal{S}"
+      },
+      {
+        "line": 85,
+        "display": true,
+        "tex": "\\begin{aligned}\n\\bar\\gamma_{jk}&=\\frac{1}{N}\\sum_{b\\in\\mathrm{TRAIN}}\\gamma_{bjk},\\qquad\n\\bar h_j=\\bar\\gamma_j-\\mathbf{1},\\\\[4pt]\nU^{\\mathrm{mean}}_{bji}&=U^{\\mathrm{base}}_{bji}+\n\\rho\\kappa g_b^\\top W_sa_{ij}+\n\\rho\\kappa g_b^\\top W_d(a_{ij}\\odot\\bar h_j).\n\\end{aligned}"
+      }
+    ],
+    "rendered": [
+      {
+        "display": false,
+        "tex": "$g_b\\in\\mathbb{R}^{768}$"
+      },
+      {
+        "display": false,
+        "tex": "$f^o_{bj}$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\begin{aligned}\n\\mu_j&=\\frac{1}{N}\\sum_{b\\in\\mathrm{TRAIN}}f^o_{bj},\\qquad\n\\widehat r_{bj}=\\frac{f^o_{bj}-\\mu_j}{\\max(\\lVert f^o_{bj}-\\mu_j\\rVert_2,10^{-12})},\\\\[4pt]\nq_{bjk}&=2\\sigma\\!\\left(\\frac{b_k^\\top\\widehat r_{bj}}{0.56}\\right)-1,\\\\[4pt]\nh_{bjk}&=\\frac{0.25}{2}\\left(q_{bjk}-\\frac{1}{R}\\sum_{\\ell=1}^{R}q_{bj\\ell}\\right),\\qquad\n\\gamma_{bjk}=1+h_{bjk}.\n\\end{aligned}$$"
+      },
+      {
+        "display": false,
+        "tex": "$b_k$"
+      },
+      {
+        "display": false,
+        "tex": "$u_i=A_ue_i^a$"
+      },
+      {
+        "display": false,
+        "tex": "$v_j=A_ve_j^o$"
+      },
+      {
+        "display": false,
+        "tex": "$a_{ij}=u_i\\odot v_j$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\begin{aligned}\n\\Delta U^{\\mathrm{I2}}_{bji}\n&=\\rho\\kappa g_b^\\top W_c(a_{ij}\\odot\\gamma_{bj})\\\\[4pt]\n&=\\rho\\kappa g_b^\\top W_ca_{ij}\n+\\rho\\kappa g_b^\\top W_c(a_{ij}\\odot h_{bj}),\\\\[4pt]\n\\Delta U^s_{bji}&=\\rho\\kappa g_b^\\top W_sa_{ij},\\\\[4pt]\n\\Delta U^d_{bji}&=\\rho\\kappa g_b^\\top W_d(a_{ij}\\odot h_{bj}),\\\\[4pt]\nU^{\\mathrm{J1}}_{bji}&=U^{\\mathrm{base}}_{bji}+\\Delta U^s_{bji}+\\Delta U^d_{bji}.\n\\end{aligned}$$"
+      },
+      {
+        "display": false,
+        "tex": "$W_s,W_d\\in\\mathbb{R}^{768\\times32}$"
+      },
+      {
+        "display": false,
+        "tex": "$W_s=W_d=W_c$"
+      },
+      {
+        "display": false,
+        "tex": "$W_d=0$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\begin{aligned}\nM_{bj}&=\\left[W_s\\mathrm{diag}(v_j)\n+W_d\\mathrm{diag}(v_j\\odot h_{bj})\\right]A_u,\\qquad\n\\mathrm{rank}(M_{bj})\\le R,\\\\[4pt]\n\\nabla_{W_s}\\Delta U_{bji}&=\\rho\\kappa g_ba_{ij}^{\\top},\\\\[4pt]\n\\nabla_{W_d}\\Delta U_{bji}&=\\rho\\kappa g_b(a_{ij}\\odot h_{bj})^{\\top}.\n\\end{aligned}$$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\begin{aligned}\ns_{bji}&=\\log\\mathrm{softmax}(S_b)_j+\n\\log\\mathrm{softmax}(U^{\\mathrm{J1}}_{bj:})_i,\\\\[4pt]\nZ_b&=\\sum_{(i,j)\\in\\mathcal{S}}\\exp(s_{bji}),\\\\[4pt]\n\\mathcal{L}_{\\mathrm{pair}}&=\\frac{1}{B}\\sum_b[-s_{bj_bi_b}+\\log Z_b],\\qquad\n\\mathcal{L}_{\\mathrm{support}}=-\\frac{1}{B}\\sum_b\\log Z_b,\\\\[4pt]\n\\mathcal{L}_{\\mathrm{task}}&=\\frac{3}{2}\\mathcal{L}_{\\mathrm{pair}}+\\frac{9}{86}\\mathcal{L}_{\\mathrm{support}},\\\\[4pt]\n\\mathcal{L}&=\\mathcal{L}_{\\mathrm{task}}+\n\\frac{0.001}{R^2}\\lVert B_{\\mathrm{vis}}B_{\\mathrm{vis}}^\\top-I_R\\rVert_F^2.\n\\end{aligned}$$"
+      },
+      {
+        "display": false,
+        "tex": "$\\mathcal{S}$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\begin{aligned}\n\\bar\\gamma_{jk}&=\\frac{1}{N}\\sum_{b\\in\\mathrm{TRAIN}}\\gamma_{bjk},\\qquad\n\\bar h_j=\\bar\\gamma_j-\\mathbf{1},\\\\[4pt]\nU^{\\mathrm{mean}}_{bji}&=U^{\\mathrm{base}}_{bji}+\n\\rho\\kappa g_b^\\top W_sa_{ij}+\n\\rho\\kappa g_b^\\top W_d(a_{ij}\\odot\\bar h_j).\n\\end{aligned}$$"
+      }
+    ]
+  },
+  {
+    "path": "VG-CPOD方案/11/code/README.md",
+    "sha256": "667b01cbcd4798347d1baf61b15070c4239177cd91e0065b3182b0331745a927",
+    "expected_display": 0,
+    "expected_inline": 0,
+    "rendered_display": 0,
+    "rendered_inline": 0,
+    "expected": [],
+    "rendered": []
+  },
+  {
+    "path": "VG-CPOD方案/11/configs/README.md",
+    "sha256": "b9870cb74862014494e195b193dfac976187d1cb1a2e54d547b1304c59036088",
+    "expected_display": 1,
+    "expected_inline": 0,
+    "rendered_display": 1,
+    "rendered_inline": 0,
+    "expected": [
+      {
+        "line": 17,
+        "display": true,
+        "tex": "\\mathcal{L}_{\\mathrm{task}}(0.075)=\n\\frac{3}{2}\\mathcal{L}_{\\mathrm{pair}}+\\frac{9}{86}\\mathcal{L}_{\\mathrm{support}}."
+      }
+    ],
+    "rendered": [
+      {
+        "display": true,
+        "tex": "$$\\mathcal{L}_{\\mathrm{task}}(0.075)=\n\\frac{3}{2}\\mathcal{L}_{\\mathrm{pair}}+\\frac{9}{86}\\mathcal{L}_{\\mathrm{support}}.$$"
+      }
+    ]
+  },
+  {
+    "path": "VG-CPOD方案/11/results/README.md",
+    "sha256": "985e981c43ec1c8722cb5225b89d02abf89fc1cfdc04d788c0f2ad535c4a6b59",
+    "expected_display": 0,
+    "expected_inline": 0,
+    "rendered_display": 0,
+    "rendered_inline": 0,
+    "expected": [],
+    "rendered": []
+  },
+  {
+    "path": "VG-CPOD方案/11/analysis/README.md",
+    "sha256": "f76770d1fe82036b90b6045520f77736a69f8507e0d05fdd0d9a96c5a7eb69d8",
+    "expected_display": 4,
+    "expected_inline": 7,
+    "rendered_display": 4,
+    "rendered_inline": 7,
+    "expected": [
+      {
+        "line": 95,
+        "display": false,
+        "safe": true,
+        "tex": "a_{ij}=(A_ue_i^a)\\odot(A_ve_j^o)"
+      },
+      {
+        "line": 95,
+        "display": false,
+        "safe": true,
+        "tex": "h_{bj}=\\gamma_{bj}-\\mathbf{1}"
+      },
+      {
+        "line": 97,
+        "display": true,
+        "tex": "U_{bji}=U^{\\mathrm{base}}_{bji}\n+\\rho\\kappa g_b^\\top W_s a_{ij}\n+\\rho\\kappa g_b^\\top W_d(a_{ij}\\odot h_{bj})."
+      },
+      {
+        "line": 103,
+        "display": false,
+        "safe": true,
+        "tex": "W_s"
+      },
+      {
+        "line": 103,
+        "display": false,
+        "safe": true,
+        "tex": "W_s=W_d=W_c"
+      },
+      {
+        "line": 103,
+        "display": false,
+        "safe": true,
+        "tex": "W_d"
+      },
+      {
+        "line": 117,
+        "display": true,
+        "tex": "\\begin{aligned}\nm_t&=\\beta_1m_{t-1}+(1-\\beta_1)G_t,\\\\[4pt]\nv_t&=\\beta_2v_{t-1}+(1-\\beta_2)G_t^{\\odot2},\\\\[4pt]\n\\widehat m_t&=\\frac{m_t}{1-\\beta_1^t},\\qquad\n\\widehat v_t=\\frac{v_t}{1-\\beta_2^t},\\\\[4pt]\n\\Delta\\theta_t^{\\mathrm{Adam}}&=-\\alpha_t\n\\frac{\\widehat m_t}{\\sqrt{\\widehat v_t}+\\epsilon}.\n\\end{aligned}"
+      },
+      {
+        "line": 128,
+        "display": false,
+        "safe": true,
+        "tex": "c"
+      },
+      {
+        "line": 130,
+        "display": true,
+        "tex": "\\widehat m'_t=c\\widehat m_t,\\qquad\n\\widehat v'_t=c^2\\widehat v_t,\\qquad\n\\Delta\\theta'_t=-\\alpha_t\\frac{\\widehat m_t}{\\sqrt{\\widehat v_t}+\\epsilon/c}."
+      },
+      {
+        "line": 140,
+        "display": false,
+        "safe": true,
+        "tex": "m_d"
+      },
+      {
+        "line": 142,
+        "display": true,
+        "tex": "\\alpha_{s,t}=\\alpha_{\\mathrm{CP},t},\\qquad\n\\alpha_{d,t}=m_d\\alpha_{\\mathrm{CP},t},\\qquad\nm_d\\in\\{0.3,0.1\\}."
+      }
+    ],
+    "rendered": [
+      {
+        "display": false,
+        "tex": "$a_{ij}=(A_ue_i^a)\\odot(A_ve_j^o)$"
+      },
+      {
+        "display": false,
+        "tex": "$h_{bj}=\\gamma_{bj}-\\mathbf{1}$"
+      },
+      {
+        "display": true,
+        "tex": "$$U_{bji}=U^{\\mathrm{base}}_{bji}\n+\\rho\\kappa g_b^\\top W_s a_{ij}\n+\\rho\\kappa g_b^\\top W_d(a_{ij}\\odot h_{bj}).$$"
+      },
+      {
+        "display": false,
+        "tex": "$W_s$"
+      },
+      {
+        "display": false,
+        "tex": "$W_s=W_d=W_c$"
+      },
+      {
+        "display": false,
+        "tex": "$W_d$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\begin{aligned}\nm_t&=\\beta_1m_{t-1}+(1-\\beta_1)G_t,\\\\[4pt]\nv_t&=\\beta_2v_{t-1}+(1-\\beta_2)G_t^{\\odot2},\\\\[4pt]\n\\widehat m_t&=\\frac{m_t}{1-\\beta_1^t},\\qquad\n\\widehat v_t=\\frac{v_t}{1-\\beta_2^t},\\\\[4pt]\n\\Delta\\theta_t^{\\mathrm{Adam}}&=-\\alpha_t\n\\frac{\\widehat m_t}{\\sqrt{\\widehat v_t}+\\epsilon}.\n\\end{aligned}$$"
+      },
+      {
+        "display": false,
+        "tex": "$c$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\widehat m'_t=c\\widehat m_t,\\qquad\n\\widehat v'_t=c^2\\widehat v_t,\\qquad\n\\Delta\\theta'_t=-\\alpha_t\\frac{\\widehat m_t}{\\sqrt{\\widehat v_t}+\\epsilon/c}.$$"
+      },
+      {
+        "display": false,
+        "tex": "$m_d$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\alpha_{s,t}=\\alpha_{\\mathrm{CP},t},\\qquad\n\\alpha_{d,t}=m_d\\alpha_{\\mathrm{CP},t},\\qquad\nm_d\\in\\{0.3,0.1\\}.$$"
+      }
+    ]
+  }
+]

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>11 configs</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link href="data:text/css;charset=utf-8,html%20%7B%20color%3A%20%23203043%3B%20background%3A%20%23f3f6fa%3B%20%7D%0Abody%20%7B%20max%2Dwidth%3A%201240px%3B%20margin%3A%2036px%20auto%3B%20padding%3A%2042px%2052px%3B%20background%3A%20%23fff%3B%20border%3A%201px%20solid%20%23e0e6ef%3B%20border%2Dradius%3A%2012px%3B%20font%3A%2016px%2F1%2E85%20%27Microsoft%20YaHei%27%2C%20%27Noto%20Sans%20CJK%20SC%27%2C%20sans%2Dserif%3B%20%7D%0Ah1%20%7B%20font%2Dsize%3A%202em%3B%20line%2Dheight%3A%201%2E35%3B%20color%3A%20%23173b58%3B%20%7D%0Ah2%20%7B%20margin%2Dtop%3A%202%2E3em%3B%20border%2Dbottom%3A%202px%20solid%20%23e5edf4%3B%20padding%2Dbottom%3A%20%2E3em%3B%20color%3A%20%23173b58%3B%20%7D%0Ah3%20%7B%20margin%2Dtop%3A%201%2E7em%3B%20color%3A%20%23245c78%3B%20%7D%0Ap%2C%20ul%2C%20ol%20%7B%20margin%3A%201em%200%3B%20%7D%0Atable%20%7B%20display%3A%20table%3B%20border%2Dcollapse%3A%20collapse%3B%20font%2Dsize%3A%2013px%3B%20line%2Dheight%3A%201%2E65%3B%20width%3A%20100%25%20%21important%3B%20margin%3A%201%2E4em%200%3B%20%7D%0Ath%2C%20td%20%7B%20border%3A%201px%20solid%20%23dce4ed%3B%20padding%3A%208px%2010px%3B%20text%2Dalign%3A%20left%3B%20vertical%2Dalign%3A%20top%3B%20%7D%0Ath%20%7B%20background%3A%20%23eaf1f7%3B%20font%2Dweight%3A%20600%3B%20white%2Dspace%3A%20nowrap%3B%20%7D%0Atbody%20tr%3Anth%2Dchild%28even%29%20%7B%20background%3A%20%23f7f9fc%3B%20%7D%0Aimg%20%7B%20max%2Dwidth%3A%20100%25%3B%20height%3A%20auto%3B%20%7D%0Afigure%20%7B%20margin%3A%201%2E5em%200%3B%20%7D%0Afigcaption%20%7B%20color%3A%20%23657185%3B%20font%2Dsize%3A%2013px%3B%20%7D%0Acode%20%7B%20background%3A%20%23edf2f7%3B%20border%2Dradius%3A%203px%3B%20padding%3A%201px%204px%3B%20overflow%2Dwrap%3A%20anywhere%3B%20%7D%0Apre%20%7B%20padding%3A%2015px%3B%20background%3A%20%23edf2f7%3B%20overflow%2Dx%3A%20auto%3B%20%7D%0Aa%20%7B%20color%3A%20%2317658a%3B%20text%2Dunderline%2Doffset%3A%203px%3B%20%7D%0Amath%5Bdisplay%3D%27block%27%5D%20%7B%20margin%3A%201%2E4em%200%3B%20overflow%2Dx%3A%20auto%3B%20%7D%0A%40media%20%28max%2Dwidth%3A%20800px%29%20%7B%20body%20%7B%20padding%3A%2020px%3B%20margin%3A%200%3B%20border%3A%200%3B%20border%2Dradius%3A%200%3B%20%7D%20table%20%7B%20display%3A%20block%3B%20overflow%2Dx%3A%20auto%3B%20font%2Dsize%3A%2012px%3B%20%7D%20%7D%0A" rel="stylesheet">
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="配置与超参数策略">11 · 配置与超参数策略</h1>
+<table>
+<thead>
+<tr class="header">
+<th>方案</th>
+<th>读出模式</th>
+<th>τγ／η／ρ／β</th>
+<th>CP LR</th>
+<th>native／exact最佳epoch</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a href="round_j/J1.json">J1</a></td>
+<td>separate</td>
+<td>0.56／0.25／0.15／0.075</td>
+<td>Ws/Wd均3e-4→3e-6</td>
+<td>5/6/6；5/6/6</td>
+</tr>
+</tbody>
+</table>
+<p>轮次按seed3351/3352/3353顺序。三次训练各十轮、3600次更新，完整配置和两套结果见<a href="experiment_inventory.json" class="uri">experiment_inventory.json</a>。</p>
+<h2 id="本轮选取策略">1. 本轮选取策略</h2>
+<ol type="1">
+<li>以I2作直接对照，固定归一化TRAIN残差、温度0.56、η=0.25，比较读出参数共享方式。</li>
+<li>固定β=0.075、ρ=0.15、rank32、adapter rank8、全局g读出与原损失。</li>
+<li>两路读出从零初始化，属性／物体因子和适配器沿用对应seed原始初始化。</li>
+<li>本轮Ws/Wd均使用原CP组LR，不新增学习率分组；记录各自修正RMS，观察实际学习幅值。</li>
+<li>native按VAL CW native AUC选权重，exact独立保存；各权重、条件分别使用自己的VAL bias。</li>
+</ol>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mstyle mathvariant="normal"><mi>t</mi><mi>a</mi><mi>s</mi><mi>k</mi></mstyle></msub><mo stretchy="false" form="prefix">(</mo><mn>0.075</mn><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mfrac><mn>3</mn><mn>2</mn></mfrac><msub><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mstyle mathvariant="normal"><mi>p</mi><mi>a</mi><mi>i</mi><mi>r</mi></mstyle></msub><mo>+</mo><mfrac><mn>9</mn><mn>86</mn></mfrac><msub><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mstyle mathvariant="normal"><mi>s</mi><mi>u</mi><mi>p</mi><mi>p</mi><mi>o</mi><mi>r</mi><mi>t</mi></mstyle></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\mathcal{L}_{\mathrm{task}}(0.075)=
+\frac{3}{2}\mathcal{L}_{\mathrm{pair}}+\frac{9}{86}\mathcal{L}_{\mathrm{support}}.
+</annotation></semantics></math></p>
+<table>
+<thead>
+<tr class="header">
+<th>固定项</th>
+<th>设置</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>CLIP／输入</td>
+<td>冻结OpenAI ViT-L/14，224px、768维</td>
+</tr>
+<tr class="even">
+<td>rank／adapter rank／κ／τv</td>
+<td>32 / 8 / 20 / 0.07</td>
+</tr>
+<tr class="odd">
+<td>epochs／batch／每轮更新</td>
+<td>10 / 64 / 360</td>
+</tr>
+<tr class="even">
+<td>适配器LR／CP LR</td>
+<td>1e-3→1e-5 / 3e-4→3e-6</td>
+</tr>
+<tr class="odd">
+<td>AdamW β₁、β₂／ε／weight decay</td>
+<td>0.9、0.999 / 1e-8 / 1e-4</td>
+</tr>
+<tr class="even">
+<td>总梯度裁剪／λorth／eval batch／workers</td>
+<td>1 / 0.001 / 64 / 4</td>
+</tr>
+<tr class="odd">
+<td>模式中心化／残差ε</td>
+<td>开启 / 1e-12</td>
+</tr>
+<tr class="even">
+<td>可训练参数／均值buffer</td>
+<td>147,456 / [12,768]</td>
+</tr>
+</tbody>
+</table>
+<p>内部variant=V1，通过配置开启门控；prim/cent项为零。CP优化组为Au/Av/Bvis/Wc/Wd，<code>cp_lr_scale=0.3</code>。</p>
+<h2 id="模板运行配置与统计身份">2. 模板、运行配置与统计身份</h2>
+<ul>
+<li><a href="round_j/J1.json">模板</a>来自发布ZIP；<a href="runtime/J1.json">runtime</a>为服务器实际配置，补充TRAIN均值文件路径与SHA256。</li>
+<li><a href="../results/raw_export/roundJ_20261021/feature_statistics/">TRAIN均值与身份</a>包含全部22,998张TRAIN图像、12个查询的固定统计，与<a href="../../10/configs/README.md">10 I组</a>逐字相同。</li>
+<li><a href="experiment_inventory.json">三训练清单</a>、<a href="intervention_inventory.json">六项均值评估</a>、<a href="references/pre_j_complete.json">历史参考</a>、<a href="assets/">文本资产</a>、<a href="../external_inputs.json">外部输入</a>。</li>
+<li>对照模板：<a href="round_i/I2.json">I2</a>、<a href="round_g/G0.json">G0</a>、<a href="round_g/G1.json">G1</a>。特征manifest SHA256为<code>bb8b7a8eb8c4e77a14ef65dd5c626aac559880d7c8d642dcc1e9a2a843831d2a</code>。</li>
+</ul>
+<h2 id="后续配置建议">3. 后续配置建议</h2>
+<p>数据分析建议下一轮将Wd独立分组，使用原CP LR的0.3/0.1倍，即9e-5/3e-5。依据是checkpoint中的Adam步长与动态图像修正幅值；本阶段已完成配置为J1的双路相同CP学习率。推导和实验安排见<a href="../analysis/README.md">数据分析</a>。</p>
+</body>
+</html>

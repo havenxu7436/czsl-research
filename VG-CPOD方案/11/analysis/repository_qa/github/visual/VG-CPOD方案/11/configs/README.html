@@ -1,0 +1,93 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>VG-CPOD方案/11/configs/README.md</title>
+    <base href="file:///C:/Users/llenovo/Documents/ChatGPT/CZSL/VG-CPOD%E6%96%B9%E6%A1%88/11/configs/">
+    <style>body {margin:0;background:#fff;color:#1f2328;font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}
+.markdown-body{max-width:940px;margin:auto;padding:32px;box-sizing:border-box}h1,h2,h3{line-height:1.3;margin:24px 0 16px}
+h1,h2{border-bottom:1px solid #d1d9e0;padding-bottom:.3em}a{color:#0969da;text-decoration:none}
+p{margin:0 0 16px}code,pre{font:13px/1.5 Consolas,monospace}pre{padding:16px;background:#f6f8fa;overflow:auto}code{background:#f6f8fa}
+table{display:block;max-width:100%;overflow:auto;border-collapse:collapse;margin-bottom:16px}td,th{border:1px solid #d1d9e0;padding:6px 13px}tr:nth-child(even){background:#f6f8fa}
+img{max-width:100%}math-renderer.js-display-math{display:block;margin:20px 0;overflow-x:auto;overflow-y:hidden;padding:5px 0}
+math-renderer.js-inline-math{display:inline-block}mjx-container{margin:0!important}mjx-container[display="true"]{text-align:center}</style><script>window.MathJax={startup:{typeset:false},svg:{fontCache:'none'},options:{enableMenu:false}};</script>
+    <script src="file:///C:/Users/llenovo/Documents/ChatGPT/CZSL/VG-CPOD%E6%96%B9%E6%A1%88/11/analysis/repository_qa/github/tex-svg.js"></script><body><article class="markdown-body"><h1>11 · 配置与超参数策略</h1>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>方案</th>
+<th>读出模式</th>
+<th>τγ／η／ρ／β</th>
+<th>CP LR</th>
+<th>native／exact最佳epoch</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="round_j/J1.json">J1</a></td>
+<td>separate</td>
+<td>0.56／0.25／0.15／0.075</td>
+<td>Ws/Wd均3e-4→3e-6</td>
+<td>5/6/6；5/6/6</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p>轮次按seed3351/3352/3353顺序。三次训练各十轮、3600次更新，完整配置和两套结果见<a href="experiment_inventory.json">experiment_inventory.json</a>。</p>
+<h2>1. 本轮选取策略</h2>
+<ol>
+<li>以I2作直接对照，固定归一化TRAIN残差、温度0.56、η=0.25，比较读出参数共享方式。</li>
+<li>固定β=0.075、ρ=0.15、rank32、adapter rank8、全局g读出与原损失。</li>
+<li>两路读出从零初始化，属性／物体因子和适配器沿用对应seed原始初始化。</li>
+<li>本轮Ws/Wd均使用原CP组LR，不新增学习率分组；记录各自修正RMS，观察实际学习幅值。</li>
+<li>native按VAL CW native AUC选权重，exact独立保存；各权重、条件分别使用自己的VAL bias。</li>
+</ol>
+<math-renderer class="js-display-math" style="display: block" data-run-id="11f06efcf43a198df68d55434c2e89e0">$$\mathcal{L}_{\mathrm{task}}(0.075)=
+\frac{3}{2}\mathcal{L}_{\mathrm{pair}}+\frac{9}{86}\mathcal{L}_{\mathrm{support}}.$$</math-renderer>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>固定项</th>
+<th>设置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CLIP／输入</td>
+<td>冻结OpenAI ViT-L/14，224px、768维</td>
+</tr>
+<tr>
+<td>rank／adapter rank／κ／τv</td>
+<td>32 / 8 / 20 / 0.07</td>
+</tr>
+<tr>
+<td>epochs／batch／每轮更新</td>
+<td>10 / 64 / 360</td>
+</tr>
+<tr>
+<td>适配器LR／CP LR</td>
+<td>1e-3→1e-5 / 3e-4→3e-6</td>
+</tr>
+<tr>
+<td>AdamW β₁、β₂／ε／weight decay</td>
+<td>0.9、0.999 / 1e-8 / 1e-4</td>
+</tr>
+<tr>
+<td>总梯度裁剪／λorth／eval batch／workers</td>
+<td>1 / 0.001 / 64 / 4</td>
+</tr>
+<tr>
+<td>模式中心化／残差ε</td>
+<td>开启 / 1e-12</td>
+</tr>
+<tr>
+<td>可训练参数／均值buffer</td>
+<td>147,456 / [12,768]</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p>内部variant=V1，通过配置开启门控；prim/cent项为零。CP优化组为Au/Av/Bvis/Wc/Wd，<code class="notranslate">cp_lr_scale=0.3</code>。</p>
+<h2>2. 模板、运行配置与统计身份</h2>
+<ul>
+<li><a href="round_j/J1.json">模板</a>来自发布ZIP；<a href="runtime/J1.json">runtime</a>为服务器实际配置，补充TRAIN均值文件路径与SHA256。</li>
+<li><a href="../results/raw_export/roundJ_20261021/feature_statistics/">TRAIN均值与身份</a>包含全部22,998张TRAIN图像、12个查询的固定统计，与<a href="../../10/configs/README.md">10 I组</a>逐字相同。</li>
+<li><a href="experiment_inventory.json">三训练清单</a>、<a href="intervention_inventory.json">六项均值评估</a>、<a href="references/pre_j_complete.json">历史参考</a>、<a href="assets/">文本资产</a>、<a href="../external_inputs.json">外部输入</a>。</li>
+<li>对照模板：<a href="round_i/I2.json">I2</a>、<a href="round_g/G0.json">G0</a>、<a href="round_g/G1.json">G1</a>。特征manifest SHA256为<code class="notranslate">bb8b7a8eb8c4e77a14ef65dd5c626aac559880d7c8d642dcc1e9a2a843831d2a</code>。</li>
+</ul>
+<h2>3. 后续配置建议</h2>
+<p>数据分析建议下一轮将Wd独立分组，使用原CP LR的0.3/0.1倍，即9e-5/3e-5。依据是checkpoint中的Adam步长与动态图像修正幅值；本阶段已完成配置为J1的双路相同CP学习率。推导和实验安排见<a href="../analysis/README.md">数据分析</a>。</p></article></body></html>
