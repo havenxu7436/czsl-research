@@ -99,9 +99,9 @@ G1−G0 三 seed 合计的未见属性正确数变化较大项为：Synthetic／
 在全部 22,998 张 TRAIN 图像上，门控的总体方差可分解为物体／模式均值的方差和逐图像变化：
 
 ```math
-\operatorname{Var}_{b,j,k}(\gamma_{bjk})
-=\operatorname{Var}_{j,k}(\bar\gamma_{jk})
-+\mathbb{E}_{j,k}\operatorname{Var}_b(\gamma_{bjk}),
+\mathrm{Var}_{b,j,k}(\gamma_{bjk})
+=\mathrm{Var}_{j,k}(\bar\gamma_{jk})
++\mathbb{E}_{j,k}\mathrm{Var}_b(\gamma_{bjk}),
 \qquad \bar\gamma_{jk}=\mathbb{E}_b[\gamma_{bjk}].
 ```
 
@@ -125,7 +125,7 @@ G1 exact 选中权重的动态−均值 TEST CW／OW native AUC 为 **+0.063／�
 
 ### 5.1 固定均值门控可由现有 CP 物体因子表达
 
-令物体文本矩阵 $E_o\in\mathbb{R}^{O\times d}$，物体 CP 因子矩阵 $V=E_oA_v^\top\in\mathbb{R}^{O\times r}$。固定均值门控后，模型使用 $V\odot\bar\Gamma$。在当前已知物体词表上，可定义：
+令物体文本矩阵 $`E_o\in\mathbb{R}^{O\times d}`$，物体 CP 因子矩阵 $`V=E_oA_v^\top\in\mathbb{R}^{O\times r}`$。固定均值门控后，模型使用 $`V\odot\bar\Gamma`$。在当前已知物体词表上，可定义：
 
 ```math
 \begin{aligned}
@@ -135,11 +135,11 @@ E_o\widetilde A_v^\top&=E_oE_o^+V_{\mathrm{mean}}=V_{\mathrm{mean}}.
 \end{aligned}
 ```
 
-这里 $E_o^+$ 为 Moore–Penrose 伪逆，最后一步使用 $E_o$ 满行秩。实际 CLIP 物体文本矩阵形状为 **12×768**、秩为 **12**、条件数约 **9.49**。因此，在该词表上，固定均值门控可以吸收进静态 CP 的物体投影矩阵，同时保持原 rank。
+这里 $`E_o^+`$ 为 Moore–Penrose 伪逆，最后一步使用 $`E_o`$ 满行秩。实际 CLIP 物体文本矩阵形状为 **12×768**、秩为 **12**、条件数约 **9.49**。因此，在该词表上，固定均值门控可以吸收进静态 CP 的物体投影矩阵，同时保持原 rank。
 
 已在 G1 六个 native／exact 选中条件上进行数值验证：保持其他权重不变，使用 19 个确定性生成的全局视觉向量，均值门控与折叠后的静态 CP 修正 logits 最大误差小于 **1×10⁻¹⁴**。该验证确认两者的算子等价关系。
 
-这将 VG-CPOD 的视觉创新目标具体落在 $\gamma_{bjk}-\bar\gamma_{jk}$ 这一逐图像成分。下一轮针对输入表示检验这部分的学习效果。
+这将 VG-CPOD 的视觉创新目标具体落在 $`\gamma_{bjk}-\bar\gamma_{jk}`$ 这一逐图像成分。下一轮针对输入表示检验这部分的学习效果。
 
 ## 6. 下一轮 H1：以 TRAIN 均值中心化的视觉残差驱动门控
 

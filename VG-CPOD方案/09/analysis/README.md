@@ -66,14 +66,14 @@ VAL 上 dynamic−mean 的 CW／OW 为 −0.729／−1.259 点，TEST 为正。H
 | 3352 | 1.948% | 99.892% | 0.01171 | 0.06704 |
 | 3353 | 1.829% | 99.851% | 0.01099 | 0.06528 |
 
-设 $O=12$ 为物体查询数、$R=32$ 为模式数、$N=22998$ 为 TRAIN 图像数。总方差按固定物体／模式均值的差异和图像变化分解：
+设 $`O=12`$ 为物体查询数、$`R=32`$ 为模式数、$`N=22998`$ 为 TRAIN 图像数。总方差按固定物体／模式均值的差异和图像变化分解：
 
 ```math
 \begin{aligned}
 \bar\gamma_{jk}&=\frac{1}{N}\sum_b\gamma_{bjk},\\
 V_{\mathrm{image}}&=\frac{1}{OR}\sum_{j,k}\frac{1}{N}\sum_b(\gamma_{bjk}-\bar\gamma_{jk})^2,\\
-V_{\mathrm{fixed}}&=\operatorname{Var}_{j,k}(\bar\gamma_{jk}),\\
-V_{\mathrm{total}}&=\operatorname{Var}_{b,j,k}(\gamma_{bjk})=V_{\mathrm{image}}+V_{\mathrm{fixed}}.
+V_{\mathrm{fixed}}&=\mathrm{Var}_{j,k}(\bar\gamma_{jk}),\\
+V_{\mathrm{total}}&=\mathrm{Var}_{b,j,k}(\gamma_{bjk})=V_{\mathrm{image}}+V_{\mathrm{fixed}}.
 \end{aligned}
 ```
 
@@ -137,7 +137,7 @@ H1 三个 seed 的 native／exact 都选择 **5／8／6 epoch**，对应模型�
 
 ### 6.1 I1：去掉残差的逐向量 L2 归一化
 
-先保留 TRAIN 中心化，直接将原始残差输入视觉门控。令 $b_k\in\mathbb{R}^{768}$ 为 $B_{\mathrm{vis}}$ 第 $k$ 行的转置，$\sigma$ 为 sigmoid：
+先保留 TRAIN 中心化，直接将原始残差输入视觉门控。令 $`b_k\in\mathbb{R}^{768}`$ 为 $`B_{\mathrm{vis}}`$ 第 $`k`$ 行的转置，$`\sigma`$ 为 sigmoid：
 
 ```math
 \begin{aligned}
@@ -165,7 +165,7 @@ s_{\mathrm{TRAIN}}\approx\sqrt{\frac{1}{O}\sum_j(1-\lVert\mu_j\rVert_2^2)},
 \qquad \tau^{\mathrm{I2}}_\gamma=\frac{0.1}{s_{\mathrm{TRAIN}}}\approx0.56.
 ```
 
-使用未取整的温度公式时，当某个残差范数恰为 $s_{\mathrm{TRAIN}}$，I1 与 I2 的 sigmoid 输入相同；实际配置将温度取为 0.56。不同幅值的图像在两组中获得不同处理。I1−H1 检验去掉单位化的效果，I2−H1 检验降低代表投影尺度的效果，I1−I2 进一步比较保留残差幅值与仅使用方向。
+使用未取整的温度公式时，当某个残差范数恰为 $`s_{\mathrm{TRAIN}}`$，I1 与 I2 的 sigmoid 输入相同；实际配置将温度取为 0.56。不同幅值的图像在两组中获得不同处理。I1−H1 检验去掉单位化的效果，I2−H1 检验降低代表投影尺度的效果，I1−I2 进一步比较保留残差幅值与仅使用方向。
 
 ### 6.3 三卡安排与固定参数
 
@@ -190,7 +190,7 @@ s_{\mathrm{TRAIN}}\approx\sqrt{\frac{1}{O}\sum_j(1-\lVert\mu_j\rVert_2^2)},
 | λorth／weight decay／clip | 0.001／1e-4／1 | 相同 |
 | 初始化 | 对应 seed 的原始初始化 | 相同 |
 
-新训练沿用 task 损失 $1.5\mathcal{L}_{\mathrm{pair}}+(9/86)\mathcal{L}_{\mathrm{support}}$。均值、原 CLIP 缓存、数据顺序与评价设置共用当前定义。
+新训练沿用 task 损失 $`1.5\mathcal{L}_{\mathrm{pair}}+(9/86)\mathcal{L}_{\mathrm{support}}`$。均值、原 CLIP 缓存、数据顺序与评价设置共用当前定义。
 
 ### 6.4 后续代码改动范围
 
