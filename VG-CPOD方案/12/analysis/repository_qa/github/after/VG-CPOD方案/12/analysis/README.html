@@ -298,8 +298,8 @@
 <p>三列“全部未见候选 top-1／同物体内排错／跨物体竞争排错”相加为 100%。G0 的错误由约 30.72% 的同物体属性排序错误和 19.64% 的跨物体竞争错误构成；K1/K2 没有改善这两个部分的整体水平。</p>
 <p><a target="_blank" rel="noopener noreferrer" href="confirmed/figures/03_error_decomposition.png"><img src="confirmed/figures/03_error_decomposition.png" alt="未见候选内的错误分解" style="max-width: 100%;"></a></p>
 <p><strong>下一阶段把主要投入放在可训练的局部属性判别，并继续衡量跨物体竞争。</strong> 只改变组合先验、统一 seen/unseen 偏置或动态分支幅度，无法直接解决同物体内的未见属性排序。</p>
-<p>对固定物体 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$o$</math-renderer> 和两个未见组合属性 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$a_1,a_2$</math-renderer>，当前联合对数概率满足：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$$\begin{aligned}
+<p>对固定物体 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$o$</math-renderer> 和两个未见组合属性 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$a_1,a_2$</math-renderer>，当前联合对数概率满足：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$$\begin{aligned}
 s(x,a,o)&amp;=\log p(o\mid x)+U(x,a,o)-\log\sum_{a'}\exp U(x,a',o),\\[4pt]
 s(x,a_1,o)-s(x,a_2,o)&amp;=U(x,a_1,o)-U(x,a_2,o).
 \end{aligned}$$</math-renderer>
@@ -416,69 +416,69 @@ s(x,a_1,o)-s(x,a_2,o)&amp;=U(x,a_1,o)-U(x,a_2,o).
 <p>因此，“新增 Adapter”“换成 patch”“使用图”“加入对比损失”都不是本方案的贡献表述。<strong>贡献候选是：物体条件下，先逐位置比较、再边缘化的组合判别算子，以及它对未见组合内部排序的作用。</strong> 与上述已核查工作的差异落实在公式和对照模型上；现阶段将其称为有明确差异的研究方案。</p>
 <h2>6. 新机制的数学定义与正式实验</h2>
 <h3>6.1 共同基座：同一个 CLIP、同一个局部评分器</h3>
-<p>继续使用 OpenAI CLIP ViT-L/14。冻结其预训练主权重，在视觉 Transformer 中训练 bottleneck64 的 Adapter。最后一层经 <code class="notranslate">ln_post</code>、视觉投影和 L2 归一化后，得到 CLS 向量 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$g\in\mathbb{R}^{d}$</math-renderer> 与 patch 向量 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$p_n\in\mathbb{R}^{d}$</math-renderer>；224 输入下 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$N=256$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$d=768$</math-renderer>。首版直接使用最后一层，集中研究判别机制。</p>
-<p>设属性、物体、组合的固定文本向量分别为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$e_a^a,e_o^o,e_{ao}^c\in\mathbb{R}^{d}$</math-renderer>。沿用 G0 的静态评分器，只将输入写成任意视觉向量 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$v$</math-renderer>：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$$\begin{aligned}
+<p>继续使用 OpenAI CLIP ViT-L/14。冻结其预训练主权重，在视觉 Transformer 中训练 bottleneck64 的 Adapter。最后一层经 <code class="notranslate">ln_post</code>、视觉投影和 L2 归一化后，得到 CLS 向量 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$g\in\mathbb{R}^{d}$</math-renderer> 与 patch 向量 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$p_n\in\mathbb{R}^{d}$</math-renderer>；224 输入下 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$N=256$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$d=768$</math-renderer>。首版直接使用最后一层，集中研究判别机制。</p>
+<p>设属性、物体、组合的固定文本向量分别为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$e_a^a,e_o^o,e_{ao}^c\in\mathbb{R}^{d}$</math-renderer>。沿用 G0 的静态评分器，只将输入写成任意视觉向量 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$v$</math-renderer>：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$$\begin{aligned}
 u_a&amp;=A_u e_a^a,\qquad v_o=A_v e_o^o,\\[4pt]
 R(v,a,o)
 &amp;=\kappa v^{\top}e_{ao}^c
 +(v^{\top}B_c)\bigl((e_{ao}^c)^{\top}C_c\bigr)^{\top}
 +\rho\kappa v^{\top}W_c(u_a\odot v_o).
 \end{aligned}$$</math-renderer>
-<p>维度为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$A_u,A_v\in\mathbb{R}^{r\times d}$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$B_c,C_c\in\mathbb{R}^{d\times q}$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$W_c\in\mathbb{R}^{d\times r}$</math-renderer>。固定 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$r=32$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$q=8$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$\kappa=20$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$\rho=0.15$</math-renderer>，与当前静态头一致。记局部响应为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$r_{nao}=R(p_n,a,o)$</math-renderer>。</p>
+<p>维度为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$A_u,A_v\in\mathbb{R}^{r\times d}$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$B_c,C_c\in\mathbb{R}^{d\times q}$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$W_c\in\mathbb{R}^{d\times r}$</math-renderer>。固定 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$r=32$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$q=8$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$\kappa=20$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$\rho=0.15$</math-renderer>，与当前静态头一致。记局部响应为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$r_{nao}=R(p_n,a,o)$</math-renderer>。</p>
 <p>所有属性共用物体条件的位置权重：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$$w_{no}=\frac{\exp\!\left(\kappa p_n^{\top}e_o^o\right)}
+<math-renderer class="js-display-math" style="display: block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$$w_{no}=\frac{\exp\!\left(\kappa p_n^{\top}e_o^o\right)}
 {\sum_{k=1}^{N}\exp\!\left(\kappa p_k^{\top}e_o^o\right)},
 \qquad \sum_n w_{no}=1.$$</math-renderer>
 <p>位置权重随视觉 Adapter 训练而变化。它只依赖图像和候选物体；推理逐候选物体计算。R1/R2 完全共用这一评分器、权重定义和可训练参数，差别只有下面的计算顺序。</p>
 <h3>6.2 现有形式对照：分别汇聚，再比较</h3>
 <p>每个属性单独得到局部汇聚分数：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$$\ell_{ao}(x)=\log\sum_n w_{no}\exp(r_{nao}),
+<math-renderer class="js-display-math" style="display: block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$$\ell_{ao}(x)=\log\sum_n w_{no}\exp(r_{nao}),
 \qquad m^{\mathrm{sep}}_{ab,o}=\ell_{ao}-\ell_{bo}.$$</math-renderer>
 <p>这个分数可以利用局部高响应，但两个属性的高响应可能来自不同位置。这是正式对照 R1，具有与新方法相同的可训练局部视觉能力。</p>
 <h3>6.3 核心改变：逐位置比较，再边缘化</h3>
 <p>首先在每个位置比较两个属性假设：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$$\delta_{n,ab,o}=r_{nao}-r_{nbo}.$$</math-renderer>
-<p>将局部位置 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$n$</math-renderer> 看成需要边缘化的隐变量，给两个相反假设定义对称能量：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$$\begin{aligned}
+<math-renderer class="js-display-math" style="display: block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$$\delta_{n,ab,o}=r_{nao}-r_{nbo}.$$</math-renderer>
+<p>将局部位置 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$n$</math-renderer> 看成需要边缘化的隐变量，给两个相反假设定义对称能量：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$$\begin{aligned}
 Z^+_{ab,o}&amp;=\sum_n w_{no}\exp\!\left(\frac{\delta_{n,ab,o}}{2}\right),\\[4pt]
 Z^-_{ab,o}&amp;=\sum_n w_{no}\exp\!\left(-\frac{\delta_{n,ab,o}}{2}\right),\\[4pt]
 q(+\mid x,a,b,o)&amp;=\frac{Z^+_{ab,o}}{Z^+_{ab,o}+Z^-_{ab,o}},\\[4pt]
 m_{ab,o}&amp;=\log\frac{q(+\mid x,a,b,o)}{1-q(+\mid x,a,b,o)}
 =\log Z^+_{ab,o}-\log Z^-_{ab,o}.
 \end{aligned}$$</math-renderer>
-<p>这里的 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$q$</math-renderer> 是所定义二元能量模型的概率；全属性预测使用下一节的一致分数。<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$1/2$</math-renderer> 使单 patch 情形严格恢复原始响应差。实现用 <code class="notranslate">logsumexp(log_w ± delta/2)</code>，指数尺度直接沿用已有 logits 单位。</p>
+<p>这里的 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$q$</math-renderer> 是所定义二元能量模型的概率；全属性预测使用下一节的一致分数。<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$1/2$</math-renderer> 使单 patch 情形严格恢复原始响应差。实现用 <code class="notranslate">logsumexp(log_w ± delta/2)</code>，指数尺度直接沿用已有 logits 单位。</p>
 <p>该定义满足四个可直接验证的性质。</p>
-<p><strong>（一）方向一致。</strong> 交换属性次序得到 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$m_{ba,o}=-m_{ab,o}$</math-renderer>；<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$m_{aa,o}=0$</math-renderer>。</p>
-<p><strong>（二）消除逐位置的共同响应。</strong> 固定 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$w_{no}$</math-renderer>，若给该物体所有属性响应加上同一位置项 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$h_{no}(x)$</math-renderer>，则</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$$r'_{nao}=r_{nao}+h_{no}(x)
+<p><strong>（一）方向一致。</strong> 交换属性次序得到 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$m_{ba,o}=-m_{ab,o}$</math-renderer>；<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$m_{aa,o}=0$</math-renderer>。</p>
+<p><strong>（二）消除逐位置的共同响应。</strong> 固定 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$w_{no}$</math-renderer>，若给该物体所有属性响应加上同一位置项 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$h_{no}(x)$</math-renderer>，则</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$$r'_{nao}=r_{nao}+h_{no}(x)
 \quad\Longrightarrow\quad
 \delta'_{n,ab,o}=\delta_{n,ab,o}
 \quad\Longrightarrow\quad
 m'_{ab,o}=m_{ab,o}.$$</math-renderer>
-<p>共同项可以随位置变化。分别做非线性汇聚再相减，一般没有这一性质。这是<strong>响应层面、位置权重固定时</strong>的不变性；图像变化也会改变 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$w$</math-renderer>，需要通过完整模型测量。</p>
+<p>共同项可以随位置变化。分别做非线性汇聚再相减，一般没有这一性质。这是<strong>响应层面、位置权重固定时</strong>的不变性；图像变化也会改变 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$w$</math-renderer>，需要通过完整模型测量。</p>
 <p><strong>（三）区分证据可以反向训练视觉 token。</strong> 定义</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$$\pi^{\pm}_{n,ab,o}
+<math-renderer class="js-display-math" style="display: block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$$\pi^{\pm}_{n,ab,o}
 =\frac{w_{no}\exp(\pm\delta_{n,ab,o}/2)}{Z^{\pm}_{ab,o}},
 \qquad
 \left.\frac{\partial m_{ab,o}}{\partial\delta_{n,ab,o}}\right|_{w}
 =\frac{\pi^+_{n,ab,o}+\pi^-_{n,ab,o}}{2}.$$</math-renderer>
-<p>该偏导非负且对位置求和等于 1，支持和反对某一属性的强差异位置都会接收梯度。完整反向传播同时经过 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$w$</math-renderer> 和 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$r$</math-renderer>。</p>
-<p><strong>（四）小响应极限回到普通线性读取。</strong> 对整体缩放后的局部差 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$t\delta$</math-renderer>，令 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$t\to0$</math-renderer>：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$$m(t\delta)=t\,\mathbb{E}_{w}[\delta]
-+\frac{t^3}{24}\operatorname{cum}_{3,w}(\delta)+O(t^5).$$</math-renderer>
+<p>该偏导非负且对位置求和等于 1，支持和反对某一属性的强差异位置都会接收梯度。完整反向传播同时经过 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$w$</math-renderer> 和 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$r$</math-renderer>。</p>
+<p><strong>（四）小响应极限回到普通线性读取。</strong> 对整体缩放后的局部差 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$t\delta$</math-renderer>，令 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$t\to0$</math-renderer>：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$$m(t\delta)=t\,\mathbb{E}_{w}[\delta]
++\frac{t^3}{24}\mathrm{cum}_{3,w}(\delta)+O(t^5).$$</math-renderer>
 <p>首项是普通位置加权平均，非线性项来自局部差异分布的高阶奇数累积量。一般情况下，新算子与“先汇聚再比较”不等价；单位置或某些对称差异分布下会退化为平均差。这给出明确的等价边界。</p>
-<p>另一个边界也能写成公式：若加入的是属性特有、位置无关的偏置 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$b_{ao}$</math-renderer>，则</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$$r'_{nao}=r_{nao}+b_{ao}
+<p>另一个边界也能写成公式：若加入的是属性特有、位置无关的偏置 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$b_{ao}$</math-renderer>，则</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$$r'_{nao}=r_{nao}+b_{ao}
 \quad\Longrightarrow\quad
 m'_{ab,o}=m_{ab,o}+b_{ao}-b_{bo}.$$</math-renderer>
 <p>因此，此机制针对的是共同局部响应；seen/unseen 类别偏好仍由原有训练目标与 VAL 校准处理。</p>
-<p>一个只说明代数差异的三位置例子：<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$r_a=(4,0,0)$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$r_b=(0,3,0)$</math-renderer>，位置权重均匀；共同项 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$h=(0,5,0)$</math-renderer>。</p>
+<p>一个只说明代数差异的三位置例子：<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$r_a=(4,0,0)$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$r_b=(0,3,0)$</math-renderer>，位置权重均匀；共同项 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$h=(0,5,0)$</math-renderer>。</p>
 <markdown-accessiblity-table><table role="table">
 <thead>
 <tr>
 <th>算法</th>
-<th align="right">添加共同项前的 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$a-b$</math-renderer> 分数</th>
+<th align="right">添加共同项前的 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$a-b$</math-renderer> 分数</th>
 <th align="right">添加共同项后</th>
 </tr>
 </thead>
@@ -497,29 +497,29 @@ m'_{ab,o}=m_{ab,o}+b_{ao}-b_{bo}.$$</math-renderer>
 </table></markdown-accessiblity-table>
 <p>这是构造数组上的公式核验，作用是说明两个函数确实不同。</p>
 <h3>6.4 将成对证据还原为条件概率</h3>
-<p>一般的 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$m_{ab,o}$</math-renderer> 不保证三角一致性，不能直接把每条边都当成同一个多类概率的 log-odds。对固定、连通的属性比较图 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$G=(\mathcal{A},E)$</math-renderer>，给边 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$(a,b)$</math-renderer> 约定方向。关联矩阵 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$B\in\mathbb{R}^{|E|\times A}$</math-renderer> 的对应行在 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$a$</math-renderer> 列为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$+1$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$b$</math-renderer> 列为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$-1$</math-renderer>，其中 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$A=|\mathcal{A}|$</math-renderer>。</p>
+<p>一般的 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$m_{ab,o}$</math-renderer> 不保证三角一致性，不能直接把每条边都当成同一个多类概率的 log-odds。对固定、连通的属性比较图 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$G=(\mathcal{A},E)$</math-renderer>，给边 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$(a,b)$</math-renderer> 约定方向。关联矩阵 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$B\in\mathbb{R}^{|E|\times A}$</math-renderer> 的对应行在 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$a$</math-renderer> 列为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$+1$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$b$</math-renderer> 列为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$-1$</math-renderer>，其中 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$A=|\mathcal{A}|$</math-renderer>。</p>
 <p>按最小二乘得到统一条件 logits：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$$U_o=\underset{\mathbf{1}^{\top}U=0}{\operatorname{argmin}}
+<math-renderer class="js-display-math" style="display: block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$$U_o=\underset{\mathbf{1}^{\top}U=0}{\mathrm{argmin}}
 \;\frac12\lVert BU-m_o\rVert_2^2.$$</math-renderer>
-<p>令 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$L=B^{\top}B$</math-renderer>。连通性给出 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$\operatorname{null}(L)=\operatorname{span}(\mathbf{1})$</math-renderer>，从而有唯一解：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$$U_o=Dm_o,
+<p>令 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$L=B^{\top}B$</math-renderer>。连通性给出 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$\mathrm{null}(L)=\mathrm{span}(\mathbf{1})$</math-renderer>，从而有唯一解：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$$U_o=Dm_o,
 \qquad
 D=\left(L+\frac{\mathbf{1}\mathbf{1}^{\top}}{A}\right)^{-1}B^{\top}.$$</math-renderer>
-<p><math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$D$</math-renderer> 在训练前一次计算，并检查零和与正规方程。它不含可学习参数。完整图时进一步简化为</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$$U_{ao}=\frac1A\sum_{b\in\mathcal{A}}m_{ab,o}.$$</math-renderer>
-<p>这一步采用已有的最小二乘排序思想。对 R1，若输入 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$m_o^{\mathrm{sep}}=B\ell_o$</math-renderer>，同一映射精确恢复 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$U_o=\ell_o-\overline{\ell}_o\mathbf{1}$</math-renderer>，softmax 与直接使用 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$\ell_o$</math-renderer> 完全相同。因此，R1/R2 的差别可严格归于边证据的计算，而非额外图模型。</p>
-<p>为使 MIT-States 上的计算量可控，首版统一采用固定图：按冻结属性文本向量的余弦距离，取每个属性最近的 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$\min(8,A-1)$</math-renderer> 个邻居，做无向并集，再并入同一距离上的最小生成树。距离相同时按标签索引排序。图只使用属性词表，跨 seed、物体、TRAIN/VAL/TEST、CW/OW 共用。8 为首版计算规格，当前不安排邻居数搜索。</p>
-<p>完整图的成对局部运算量为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$O(ON A^2)$</math-renderer>；上述稀疏图为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$O(ON|E|)$</math-renderer>，且 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$|E|\leq 8A+A-1$</math-renderer>。属性分数仍覆盖全部 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$A$</math-renderer> 个词。候选组合只在最终评价时筛选，比较图不随 CW/OW 候选变化。</p>
+<p><math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$D$</math-renderer> 在训练前一次计算，并检查零和与正规方程。它不含可学习参数。完整图时进一步简化为</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$$U_{ao}=\frac1A\sum_{b\in\mathcal{A}}m_{ab,o}.$$</math-renderer>
+<p>这一步采用已有的最小二乘排序思想。对 R1，若输入 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$m_o^{\mathrm{sep}}=B\ell_o$</math-renderer>，同一映射精确恢复 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$U_o=\ell_o-\overline{\ell}_o\mathbf{1}$</math-renderer>，softmax 与直接使用 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$\ell_o$</math-renderer> 完全相同。因此，R1/R2 的差别可严格归于边证据的计算，而非额外图模型。</p>
+<p>为使 MIT-States 上的计算量可控，首版统一采用固定图：按冻结属性文本向量的余弦距离，取每个属性最近的 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$\min(8,A-1)$</math-renderer> 个邻居，做无向并集，再并入同一距离上的最小生成树。距离相同时按标签索引排序。图只使用属性词表，跨 seed、物体、TRAIN/VAL/TEST、CW/OW 共用。8 为首版计算规格，当前不安排邻居数搜索。</p>
+<p>完整图的成对局部运算量为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$O(ON A^2)$</math-renderer>；上述稀疏图为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$O(ON|E|)$</math-renderer>，且 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$|E|\leq 8A+A-1$</math-renderer>。属性分数仍覆盖全部 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$A$</math-renderer> 个词。候选组合只在最终评价时筛选，比较图不随 CW/OW 候选变化。</p>
 <p>联合概率沿用现有框架：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$$\begin{aligned}
+<math-renderer class="js-display-math" style="display: block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$$\begin{aligned}
 S_o(x)&amp;=\kappa g^{\top}e_o^o
 +(g^{\top}B_o)\bigl((e_o^o)^{\top}C_o\bigr)^{\top},\\[4pt]
-p(o\mid x)&amp;=\operatorname{softmax}_o S_o(x),\\[4pt]
-p(a\mid o,x)&amp;=\operatorname{softmax}_a U_{ao}(x),\\[4pt]
+p(o\mid x)&amp;=\mathrm{softmax}_o S_o(x),\\[4pt]
+p(a\mid o,x)&amp;=\mathrm{softmax}_a U_{ao}(x),\\[4pt]
 p(a,o\mid x)&amp;=p(o\mid x)p(a\mid o,x).
 \end{aligned}$$</math-renderer>
-<p>沿用当前 TRAIN 支持集 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$\mathcal{C}_{\mathrm{tr}}$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$s=\log p(a,o\mid x)$</math-renderer>，对真实组合 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$y=(a,o)$</math-renderer>：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$$\begin{aligned}
+<p>沿用当前 TRAIN 支持集 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$\mathcal{C}_{\mathrm{tr}}$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$s=\log p(a,o\mid x)$</math-renderer>，对真实组合 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$y=(a,o)$</math-renderer>：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$$\begin{aligned}
 \mathcal{L}_{\mathrm{pair}}
 &amp;=\mathbb{E}\!\left[-s(x,y)+\log\sum_{c\in\mathcal{C}_{\mathrm{tr}}}e^{s(x,c)}\right],\\[4pt]
 \mathcal{L}_{\mathrm{support}}
@@ -528,7 +528,7 @@ p(a,o\mid x)&amp;=p(o\mid x)p(a\mid o,x).
 &amp;=1.5\,\mathcal{L}_{\mathrm{pair}}
 +\frac{9}{86}\,\mathcal{L}_{\mathrm{support}}.
 \end{aligned}$$</math-renderer>
-<p>最后一式就是 G0 在 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$\beta=0.075$</math-renderer> 时的任务损失恒等式。新模型通过同一分类目标训练证据算子；预测保存格式、VAL 选模和 native/exact 评价继续复用。</p>
+<p>最后一式就是 G0 在 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$\beta=0.075$</math-renderer> 时的任务损失恒等式。新模型通过同一分类目标训练证据算子；预测保存格式、VAL 选模和 native/exact 评价继续复用。</p>
 <h3>6.5 一套完整的机制比较</h3>
 <markdown-accessiblity-table><table role="table">
 <thead>
@@ -541,18 +541,18 @@ p(a,o\mid x)&amp;=p(o\mid x)p(a\mid o,x).
 <tbody>
 <tr>
 <td>R0</td>
-<td>可训练视觉 Adapter；<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$U_{ao}=R(g,a,o)$</math-renderer>，全局读取</td>
+<td>可训练视觉 Adapter；<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$U_{ao}=R(g,a,o)$</math-renderer>，全局读取</td>
 <td>将梯度接入 CLIP 后，普通静态头的表现</td>
 </tr>
 <tr>
 <td>R1</td>
-<td>相同 Adapter；最后层局部响应分别汇聚为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$\ell_{ao}$</math-renderer>
+<td>相同 Adapter；最后层局部响应分别汇聚为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$\ell_{ao}$</math-renderer>
 </td>
 <td>普通局部视觉证据学习的收益</td>
 </tr>
 <tr>
 <td><strong>R2</strong></td>
-<td>相同 Adapter、局部响应、物体权重；使用 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$\delta\to m\to U$</math-renderer>
+<td>相同 Adapter、局部响应、物体权重；使用 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$\delta\to m\to U$</math-renderer>
 </td>
 <td><strong>先比较后汇聚是否改善未见组合判别</strong></td>
 </tr>
@@ -560,14 +560,14 @@ p(a,o\mid x)&amp;=p(o\mid x)p(a\mid o,x).
 </table></markdown-accessiblity-table>
 <p>R1/R2 参数量相同，训练图像、增强、初始化、优化器、训练步数和选模规则相同。R2 的额外代价是成对响应与固定线性映射，需在结果中同时报告实际耗时和峰值显存。</p>
 <p>安排 <strong>UT-Zappos、MIT-States × R0/R1/R2 × seed3351/3352/3353，共 18 次完整训练</strong>。每张 GPU 负责一个 seed，依次执行两数据集的三个模型。UT 与现有 G0/D1 建立联系；MIT 检查状态词和更多物体下的迁移。每次训练固定 10 epochs、有效 batch64；显存通过 microbatch 和梯度累积处理。</p>
-<p>固定首版配方：视觉 Adapter 学习率 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$5\times10^{-5}$</math-renderer>，现有后编码适配矩阵 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$10^{-3}$</math-renderer>，静态 CP 参数 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$3\times10^{-4}$</math-renderer>；使用余弦衰减至各自初始值的 1%，AdamW weight decay <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$10^{-4}$</math-renderer>。三个模型共用此配方。<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$\rho=0.15$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$\beta=0.075$</math-renderer>、rank32 和图邻居数8 全部固定。这份配方是正式比较的起点，不把上一轮冻结特征头的学习率原样用于 CLIP 内部。</p>
+<p>固定首版配方：视觉 Adapter 学习率 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$5\times10^{-5}$</math-renderer>，现有后编码适配矩阵 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$10^{-3}$</math-renderer>，静态 CP 参数 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$3\times10^{-4}$</math-renderer>；使用余弦衰减至各自初始值的 1%，AdamW weight decay <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$10^{-4}$</math-renderer>。三个模型共用此配方。<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$\rho=0.15$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$\beta=0.075$</math-renderer>、rank32 和图邻居数8 全部固定。这份配方是正式比较的起点，不把上一轮冻结特征头的学习率原样用于 CLIP 内部。</p>
 <p>UT 使用现有文本模板；MIT 使用适合状态—物体组合的模板，三个模型共用。数据集以已有标准训练／验证／测试划分接入，不按 TEST 错误选图、选边或选择负例。</p>
 <p><strong>主比较为 R2−R1。</strong> R2 相对旧 G0 的收益同时包含“视觉适配、局部特征和新算子”，应与 R2−R1 分开解释。结果同时给出：</p>
 <ol>
 <li>三 seed CW/OW AUC 与固定 VAL bias 的 HM。</li>
 <li>真实物体内的未见属性排序、跨物体竞争，以及共同错误的纠正量和新增错误量。</li>
 <li>R1/R2 的边 margin、投影后的最终 margin、位置梯度分布；报告投影残差，判断有效判别信息是否保留下来。</li>
-<li>正常图像上的差异证据可视化，以及固定 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$w$</math-renderer> 的响应共同项不变性检查。后者用于核验实现，前者用于解释真实学习结果。</li>
+<li>正常图像上的差异证据可视化，以及固定 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$w$</math-renderer> 的响应共同项不变性检查。后者用于核验实现，前者用于解释真实学习结果。</li>
 </ol>
 <p>其中 1–3 来自这 18 次完整训练及保存的预测；无需继续串行追加温度、幅度或学习率小网格。论文定位还应与 CPF/MSCI 等已有方法按相同骨干和候选协议比较；本轮 R0/R1/R2 首先把新机制的贡献与工程适配收益明确分开。</p>
 <h3>6.6 下一次代码工作的明确范围</h3>
@@ -575,9 +575,9 @@ p(a,o\mid x)&amp;=p(o\mid x)p(a\mid o,x).
 <li>
 <strong>在线视觉训练路径。</strong> 复用本机 <code class="notranslate">CZSL/src/LOGICZSL_repro/model/troika.py</code> 中视觉 Adapter 与 CLIP 前向接口，输出 CLS 和最后层 patch；旧 <code class="notranslate">g/fa/fo</code> 缓存保留用于历史结果读取。</li>
 <li>
-<strong>统一评分器与三种读取。</strong> 同一个静态 CP 参数集合实现 R0、R1、R2；将 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$\delta\to m\to Dm$</math-renderer> 写成独立、可微的算子，不引入新的动态门控。</li>
+<strong>统一评分器与三种读取。</strong> 同一个静态 CP 参数集合实现 R0、R1、R2；将 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$\delta\to m\to Dm$</math-renderer> 写成独立、可微的算子，不引入新的动态门控。</li>
 <li>
-<strong>固定比较图与分块计算。</strong> 保存词表、文本向量、边方向和 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$D$</math-renderer>；按候选物体、边和 microbatch 分块计算，避免物化完整 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$[B,O,A,A,N]$</math-renderer> 张量。累积训练梯度时使用重计算控制激活内存，<code class="notranslate">logsumexp</code> 和图投影采用 FP32。</li>
+<strong>固定比较图与分块计算。</strong> 保存词表、文本向量、边方向和 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$D$</math-renderer>；按候选物体、边和 microbatch 分块计算，避免物化完整 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="d5be7c2701459c63b4e212d6cc88d7eb">$[B,O,A,A,N]$</math-renderer> 张量。累积训练梯度时使用重计算控制激活内存，<code class="notranslate">logsumexp</code> 和图投影采用 FP32。</li>
 <li>
 <strong>保留评价体系，补充机制记录。</strong> 继续保存图像身份、候选顺序、完整 logits、checkpoint、优化器状态和三 seed 汇总；增加 TRAIN/VAL 固定样本的 patch 响应及最终模型的边证据诊断。</li>
 <li>

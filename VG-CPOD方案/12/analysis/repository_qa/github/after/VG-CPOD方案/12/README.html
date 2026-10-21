@@ -36,43 +36,43 @@
 <p>K组模型前向、概率、损失和147,456个可训练参数均沿用J1。公式上的本轮修订是参数组学习率与AdamW更新；同时把更新量、门控变化、分数变化和最终排序分别记录。模型仍使用缓存上的后编码适配矩阵，CLIP骨干固定。</p>
 <h2>2. 公式与实现</h2>
 <h3>2.1 固定 TRAIN 均值与残差门控</h3>
-<p>令 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="02096ad888470bd8249ef2905988bb37">$g_b\in\mathbb{R}^{768}$</math-renderer> 为图像全局特征，<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="02096ad888470bd8249ef2905988bb37">$f^o_{bj}$</math-renderer> 为物体查询特征，<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="02096ad888470bd8249ef2905988bb37">$R=32$</math-renderer>，TRAIN 图像数 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="02096ad888470bd8249ef2905988bb37">$N=22998$</math-renderer>：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="02096ad888470bd8249ef2905988bb37">$$\begin{aligned}
+<p>令 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$g_b\in\mathbb{R}^{768}$</math-renderer> 为图像全局特征，<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$f^o_{bj}$</math-renderer> 为物体查询特征，<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$R=32$</math-renderer>，TRAIN 图像数 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$N=22998$</math-renderer>：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$$\begin{aligned}
 \mu_j&amp;=\frac{1}{N}\sum_{b\in\mathrm{TRAIN}}f^o_{bj},\\[4pt]
 r_{bj}&amp;=f^o_{bj}-\mu_j,\qquad
 \widehat r_{bj}=\frac{r_{bj}}{\max(\lVert r_{bj}\rVert_2,10^{-12})}.
 \end{aligned}$$</math-renderer>
 <p><code class="notranslate">round_k.py</code> 从 J 组逐字复制与当前缓存一致的均值文件。首次生成采用 TRAIN 特征 float64 分块累计，随后转成 float32 buffer <code class="notranslate">gate_fo_mean</code>，随 checkpoint 保存。所有 seed 共用同一均值。</p>
-<p>设 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="02096ad888470bd8249ef2905988bb37">$B_{\mathrm{vis}}\in\mathbb{R}^{R\times768}$</math-renderer> 第 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="02096ad888470bd8249ef2905988bb37">$k$</math-renderer> 行转置为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="02096ad888470bd8249ef2905988bb37">$b_k$</math-renderer>，门控为：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="02096ad888470bd8249ef2905988bb37">$$\begin{aligned}
+<p>设 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$B_{\mathrm{vis}}\in\mathbb{R}^{R\times768}$</math-renderer> 第 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$k$</math-renderer> 行转置为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$b_k$</math-renderer>，门控为：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$$\begin{aligned}
 q_{bjk}&amp;=2\sigma\!\left(\frac{b_k^\top\widehat r_{bj}}{0.56}\right)-1,\\[4pt]
 h_{bjk}&amp;=\frac{0.25}{2}\left(q_{bjk}-\frac{1}{R}\sum_{\ell=1}^{R}q_{bj\ell}\right),\\[4pt]
 \gamma_{bjk}&amp;=1+h_{bjk},\qquad
 \frac{1}{R}\sum_k\gamma_{bjk}=1,\quad 0.75\le\gamma_{bjk}\le1.25.
 \end{aligned}$$</math-renderer>
 <h3>2.2 静态与动态独立读出</h3>
-<p>设 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="02096ad888470bd8249ef2905988bb37">$A_u,A_v\in\mathbb{R}^{R\times768}$</math-renderer>，<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="02096ad888470bd8249ef2905988bb37">$W_s,W_d\in\mathbb{R}^{768\times R}$</math-renderer>。代码中 <code class="notranslate">Wc</code> 对应 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="02096ad888470bd8249ef2905988bb37">$W_s$</math-renderer>，<code class="notranslate">Wd</code> 对应 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="02096ad888470bd8249ef2905988bb37">$W_d$</math-renderer>：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="02096ad888470bd8249ef2905988bb37">$$\begin{aligned}
+<p>设 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$A_u,A_v\in\mathbb{R}^{R\times768}$</math-renderer>，<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$W_s,W_d\in\mathbb{R}^{768\times R}$</math-renderer>。代码中 <code class="notranslate">Wc</code> 对应 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$W_s$</math-renderer>，<code class="notranslate">Wd</code> 对应 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$W_d$</math-renderer>：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$$\begin{aligned}
 u_i&amp;=A_ue_i^a,\qquad v_j=A_ve_j^o,\qquad a_{ij}=u_i\odot v_j,\\[4pt]
 \Delta U^s_{bji}&amp;=\rho\kappa g_b^\top W_s a_{ij},\\[4pt]
 \Delta U^d_{bji}&amp;=\rho\kappa g_b^\top W_d(a_{ij}\odot h_{bj}),\\[4pt]
 U_{bji}&amp;=U^{\mathrm{base}}_{bji}+\Delta U^s_{bji}+\Delta U^d_{bji}.
 \end{aligned}$$</math-renderer>
 <p>两组与 J1 使用相同的前向公式。类别算子及单个分数对读出的梯度为：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="02096ad888470bd8249ef2905988bb37">$$\begin{aligned}
+<math-renderer class="js-display-math" style="display: block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$$\begin{aligned}
 M_{bj}&amp;=\left[W_s\mathrm{diag}(v_j)
 +W_d\mathrm{diag}(v_j\odot h_{bj})\right]A_u,
 \qquad\mathrm{rank}(M_{bj})\le R,\\[4pt]
 \nabla_{W_s}\Delta U_{bji}&amp;=\rho\kappa g_ba_{ij}^{\top},\\[4pt]
 \nabla_{W_d}\Delta U_{bji}&amp;=\rho\kappa g_b(a_{ij}\odot h_{bj})^{\top}.
 \end{aligned}$$</math-renderer>
-<p>两路共享 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="02096ad888470bd8249ef2905988bb37">$A_u$</math-renderer>，算子秩上界为 32。首步任务梯度进入两个读出矩阵，后续经非零读出传播到属性／物体因子及门控。K1/K2 改变 Wd 的优化器学习率，梯度公式由上述前向直接计算。</p>
+<p>两路共享 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$A_u$</math-renderer>，算子秩上界为 32。首步任务梯度进入两个读出矩阵，后续经非零读出传播到属性／物体因子及门控。K1/K2 改变 Wd 的优化器学习率，梯度公式由上述前向直接计算。</p>
 <h3>2.3 联合概率与损失</h3>
-<p>沿用 CLIP 特征上的物体分支 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="02096ad888470bd8249ef2905988bb37">$S_b$</math-renderer> 和组合适配器基底 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="02096ad888470bd8249ef2905988bb37">$U^{\mathrm{base}}$</math-renderer>：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="02096ad888470bd8249ef2905988bb37">$$s_{bji}=\log\operatorname{softmax}(S_b)_j
-+\log\operatorname{softmax}(U_{bj:})_i.$$</math-renderer>
-<p>设 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="02096ad888470bd8249ef2905988bb37">$\mathcal{S}$</math-renderer> 为 TRAIN 组合集合，批量大小为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="02096ad888470bd8249ef2905988bb37">$B$</math-renderer>，样本真实标签为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="02096ad888470bd8249ef2905988bb37">$(i_b,j_b)$</math-renderer>：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="02096ad888470bd8249ef2905988bb37">$$\begin{aligned}
+<p>沿用 CLIP 特征上的物体分支 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$S_b$</math-renderer> 和组合适配器基底 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$U^{\mathrm{base}}$</math-renderer>：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$$s_{bji}=\log\mathrm{softmax}(S_b)_j
++\log\mathrm{softmax}(U_{bj:})_i.$$</math-renderer>
+<p>设 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$\mathcal{S}$</math-renderer> 为 TRAIN 组合集合，批量大小为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$B$</math-renderer>，样本真实标签为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$(i_b,j_b)$</math-renderer>：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$$\begin{aligned}
 Z_b&amp;=\sum_{(i,j)\in\mathcal{S}}\exp(s_{bji}),\\[4pt]
 \mathcal{L}_{\mathrm{pair}}&amp;=\frac{1}{B}\sum_b[-s_{bj_bi_b}+\log Z_b],\\[4pt]
 \mathcal{L}_{\mathrm{support}}&amp;=-\frac{1}{B}\sum_b\log Z_b,\\[4pt]
@@ -83,10 +83,10 @@ Z_b&amp;=\sum_{(i,j)\in\mathcal{S}}\exp(s_{bji}),\\[4pt]
 \mathcal{L}&amp;=\mathcal{L}_{\mathrm{task}}
 +10^{-3}\frac{\lVert B_{\mathrm{vis}}B_{\mathrm{vis}}^{\top}-I_R\rVert_F^2}{R^2}.
 \end{aligned}$$</math-renderer>
-<p><math-renderer class="js-inline-math" style="display: inline-block" data-run-id="02096ad888470bd8249ef2905988bb37">$\mathcal{L}_a$</math-renderer> 为真实物体条件下的属性负对数似然，<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="02096ad888470bd8249ef2905988bb37">$\mathcal{L}_o$</math-renderer> 为物体负对数似然。<code class="notranslate">V1</code> 配置开启残差门控；primitive/cent 项为零。</p>
+<p><math-renderer class="js-inline-math" style="display: inline-block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$\mathcal{L}_a$</math-renderer> 为真实物体条件下的属性负对数似然，<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$\mathcal{L}_o$</math-renderer> 为物体负对数似然。<code class="notranslate">V1</code> 配置开启残差门控；primitive/cent 项为零。</p>
 <h3>2.4 动态学习率和 AdamW 更新</h3>
-<p>令总更新数 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="02096ad888470bd8249ef2905988bb37">$T=10\lceil N/64\rceil=3600$</math-renderer>，更新编号 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="02096ad888470bd8249ef2905988bb37">$t=1,\ldots,T$</math-renderer>。代码日程索引为 <code class="notranslate">step=t-1</code>：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="02096ad888470bd8249ef2905988bb37">$$\begin{aligned}
+<p>令总更新数 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$T=10\lceil N/64\rceil=3600$</math-renderer>，更新编号 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$t=1,\ldots,T$</math-renderer>。代码日程索引为 <code class="notranslate">step=t-1</code>：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$$\begin{aligned}
 \alpha_t&amp;=10^{-5}+\frac{10^{-3}-10^{-5}}{2}
 \left[1+\cos\!\left(\frac{\pi(t-1)}{T-1}\right)\right],\\[4pt]
 \alpha_{\mathrm{adapter},t}&amp;=\alpha_t,\qquad
@@ -122,11 +122,11 @@ m_d\in\{0.3,0.1\}.
 </tr>
 </tbody>
 </table></markdown-accessiblity-table>
-<p>对全模型梯度按原实现做全局范数裁剪。设 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="02096ad888470bd8249ef2905988bb37">$\mathbf{G}_t^{\mathrm{raw}}$</math-renderer> 为所有参数梯度的拼接，参数 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="02096ad888470bd8249ef2905988bb37">$p$</math-renderer> 的原始梯度为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="02096ad888470bd8249ef2905988bb37">$G_{p,t}^{\mathrm{raw}}$</math-renderer>：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="02096ad888470bd8249ef2905988bb37">$$c_t=\min\!\left(1,\frac{1}{\lVert\mathbf{G}_t^{\mathrm{raw}}\rVert_2+10^{-12}}\right),
+<p>对全模型梯度按原实现做全局范数裁剪。设 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$\mathbf{G}_t^{\mathrm{raw}}$</math-renderer> 为所有参数梯度的拼接，参数 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$p$</math-renderer> 的原始梯度为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$G_{p,t}^{\mathrm{raw}}$</math-renderer>：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$$c_t=\min\!\left(1,\frac{1}{\lVert\mathbf{G}_t^{\mathrm{raw}}\rVert_2+10^{-12}}\right),
 \qquad G_{p,t}=c_tG_{p,t}^{\mathrm{raw}}.$$</math-renderer>
-<p>各参数按所属组的学习率 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="02096ad888470bd8249ef2905988bb37">$\alpha_{p,t}$</math-renderer> 进行 AdamW 更新。以下矩状态对应同一个参数 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="02096ad888470bd8249ef2905988bb37">$p$</math-renderer>，初始化 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="02096ad888470bd8249ef2905988bb37">$m_0=v_0=0$</math-renderer>：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="02096ad888470bd8249ef2905988bb37">$$\begin{aligned}
+<p>各参数按所属组的学习率 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$\alpha_{p,t}$</math-renderer> 进行 AdamW 更新。以下矩状态对应同一个参数 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$p$</math-renderer>，初始化 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$m_0=v_0=0$</math-renderer>：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$$\begin{aligned}
 m_t&amp;=0.9m_{t-1}+0.1G_{p,t},\\[4pt]
 v_t&amp;=0.999v_{t-1}+0.001G_{p,t}^{\odot2},\\[4pt]
 \widehat m_t&amp;=\frac{m_t}{1-0.9^t},\qquad
@@ -135,21 +135,21 @@ D_t&amp;=\frac{\widehat m_t}{\sqrt{\widehat v_t}+10^{-8}},\\[4pt]
 \theta_t&amp;=(1-\alpha_{p,t}10^{-4})\theta_{t-1}-\alpha_{p,t}D_t.
 \end{aligned}$$</math-renderer>
 <p>开方、平方与除法逐元素执行。组学习率同时缩放自适应更新和 AdamW 的解耦衰减，weight decay 系数继续为 1e-4。未配置新倍率的历史模型沿用原参数组和参数顺序。</p>
-<p><code class="notranslate">readout_diagnostics.py</code> 从选中与末轮 checkpoint 的 AdamW 状态重建 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="02096ad888470bd8249ef2905988bb37">$\lVert m_t\rVert_F$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="02096ad888470bd8249ef2905988bb37">$\lVert v_t\rVert_F$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="02096ad888470bd8249ef2905988bb37">$\lVert D_t\rVert_F$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="02096ad888470bd8249ef2905988bb37">$\alpha_{p,t}\lVert D_t\rVert_F$</math-renderer>，以及动态／静态比值。最后一项对应该 checkpoint 最后一步的自适应更新范数。矩阵范数来自更新后的参数，AdamW 衰减单独执行。</p>
+<p><code class="notranslate">readout_diagnostics.py</code> 从选中与末轮 checkpoint 的 AdamW 状态重建 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$\lVert m_t\rVert_F$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$\lVert v_t\rVert_F$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$\lVert D_t\rVert_F$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$\alpha_{p,t}\lVert D_t\rVert_F$</math-renderer>，以及动态／静态比值。最后一项对应该 checkpoint 最后一步的自适应更新范数。矩阵范数来自更新后的参数，AdamW 衰减单独执行。</p>
 <h3>2.5 TRAIN 均值门控与幅值诊断</h3>
 <p>在 native/exact 各自选中的权重下，对全部 TRAIN 图像统计门控均值，再评估：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="02096ad888470bd8249ef2905988bb37">$$\begin{aligned}
+<math-renderer class="js-display-math" style="display: block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$$\begin{aligned}
 \bar h_j&amp;=\frac{1}{N}\sum_{b\in\mathrm{TRAIN}}\gamma_{bj}-\mathbf{1},\\[4pt]
 U^{\mathrm{mean}}_{bji}&amp;=U^{\mathrm{base}}_{bji}
 +\rho\kappa g_b^\top W_s a_{ij}
 +\rho\kappa g_b^\top W_d(a_{ij}\odot\bar h_j).
 \end{aligned}$$</math-renderer>
 <p>dynamic/mean 分别重算条件 softmax、联合概率和 CW/OW 曲线，并各自在 VAL 上选择 bias，用对应 bias 评价 TEST。每项均值评估优化步数为零。</p>
-<p>训练日志保留两路修正的原始和属性中心化 RMS。令 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="02096ad888470bd8249ef2905988bb37">$A,O$</math-renderer> 为属性数和物体数，对 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="02096ad888470bd8249ef2905988bb37">$z\in\{s,d\}$</math-renderer>：</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="02096ad888470bd8249ef2905988bb37">$$\begin{aligned}
+<p>训练日志保留两路修正的原始和属性中心化 RMS。令 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$A,O$</math-renderer> 为属性数和物体数，对 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$z\in\{s,d\}$</math-renderer>：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="91f29ebad87b95b37cfa4d9e4de3c52a">$$\begin{aligned}
 \widetilde{\Delta U}^{z}_{bji}&amp;=\Delta U^{z}_{bji}
 -\frac{1}{A}\sum_{i'=1}^{A}\Delta U^{z}_{bji'},\\[4pt]
-\operatorname{RMS}_{z,\mathrm{centered}}&amp;=
+\mathrm{RMS}_{z,\mathrm{centered}}&amp;=
 \sqrt{\frac{1}{NOA}\sum_{b,j,i}(\widetilde{\Delta U}^{z}_{bji})^2}.
 \end{aligned}$$</math-renderer>
 <p>每个 epoch 的统计来自各 batch 前向时的权重，均方值按图像数加权汇总后再开平方。<code class="notranslate">history.json</code> 同时记录三组学习率。</p>

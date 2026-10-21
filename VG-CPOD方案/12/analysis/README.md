@@ -265,7 +265,7 @@ m'_{ab,o}=m_{ab,o}.
 
 ```math
 m(t\delta)=t\,\mathbb{E}_{w}[\delta]
-+\frac{t^3}{24}\operatorname{cum}_{3,w}(\delta)+O(t^5).
++\frac{t^3}{24}\mathrm{cum}_{3,w}(\delta)+O(t^5).
 ```
 
 首项是普通位置加权平均，非线性项来自局部差异分布的高阶奇数累积量。一般情况下，新算子与“先汇聚再比较”不等价；单位置或某些对称差异分布下会退化为平均差。这给出明确的等价边界。
@@ -296,11 +296,11 @@ m'_{ab,o}=m_{ab,o}+b_{ao}-b_{bo}.
 按最小二乘得到统一条件 logits：
 
 ```math
-U_o=\underset{\mathbf{1}^{\top}U=0}{\operatorname{argmin}}
+U_o=\underset{\mathbf{1}^{\top}U=0}{\mathrm{argmin}}
 \;\frac12\lVert BU-m_o\rVert_2^2.
 ```
 
-令 $`L=B^{\top}B`$。连通性给出 $`\operatorname{null}(L)=\operatorname{span}(\mathbf{1})`$，从而有唯一解：
+令 $`L=B^{\top}B`$。连通性给出 $`\mathrm{null}(L)=\mathrm{span}(\mathbf{1})`$，从而有唯一解：
 
 ```math
 U_o=Dm_o,
@@ -326,8 +326,8 @@ U_{ao}=\frac1A\sum_{b\in\mathcal{A}}m_{ab,o}.
 \begin{aligned}
 S_o(x)&=\kappa g^{\top}e_o^o
 +(g^{\top}B_o)\bigl((e_o^o)^{\top}C_o\bigr)^{\top},\\[4pt]
-p(o\mid x)&=\operatorname{softmax}_o S_o(x),\\[4pt]
-p(a\mid o,x)&=\operatorname{softmax}_a U_{ao}(x),\\[4pt]
+p(o\mid x)&=\mathrm{softmax}_o S_o(x),\\[4pt]
+p(a\mid o,x)&=\mathrm{softmax}_a U_{ao}(x),\\[4pt]
 p(a,o\mid x)&=p(o\mid x)p(a\mid o,x).
 \end{aligned}
 ```

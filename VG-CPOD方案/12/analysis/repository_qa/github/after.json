@@ -1,7 +1,7 @@
 [
   {
     "path": "VG-CPOD方案/12/README.md",
-    "sha256": "1a542c94b2007988efc9af896b0b4861cd10b0a4e3309a58b2b6162f3921dd24",
+    "sha256": "a10202ff4283be0fd426369fde1d61e4bccc14d91c2e2d285394db93f44eccdd",
     "expected_display": 11,
     "expected_inline": 33,
     "rendered_display": 11,
@@ -114,7 +114,7 @@
       {
         "line": 77,
         "display": true,
-        "tex": "s_{bji}=\\log\\operatorname{softmax}(S_b)_j\n+\\log\\operatorname{softmax}(U_{bj:})_i."
+        "tex": "s_{bji}=\\log\\mathrm{softmax}(S_b)_j\n+\\log\\mathrm{softmax}(U_{bj:})_i."
       },
       {
         "line": 82,
@@ -258,7 +258,7 @@
       {
         "line": 165,
         "display": true,
-        "tex": "\\begin{aligned}\n\\widetilde{\\Delta U}^{z}_{bji}&=\\Delta U^{z}_{bji}\n-\\frac{1}{A}\\sum_{i'=1}^{A}\\Delta U^{z}_{bji'},\\\\[4pt]\n\\operatorname{RMS}_{z,\\mathrm{centered}}&=\n\\sqrt{\\frac{1}{NOA}\\sum_{b,j,i}(\\widetilde{\\Delta U}^{z}_{bji})^2}.\n\\end{aligned}"
+        "tex": "\\begin{aligned}\n\\widetilde{\\Delta U}^{z}_{bji}&=\\Delta U^{z}_{bji}\n-\\frac{1}{A}\\sum_{i'=1}^{A}\\Delta U^{z}_{bji'},\\\\[4pt]\n\\mathrm{RMS}_{z,\\mathrm{centered}}&=\n\\sqrt{\\frac{1}{NOA}\\sum_{b,j,i}(\\widetilde{\\Delta U}^{z}_{bji})^2}.\n\\end{aligned}"
       }
     ],
     "rendered": [
@@ -336,7 +336,7 @@
       },
       {
         "display": true,
-        "tex": "$$s_{bji}=\\log\\operatorname{softmax}(S_b)_j\n+\\log\\operatorname{softmax}(U_{bj:})_i.$$"
+        "tex": "$$s_{bji}=\\log\\mathrm{softmax}(S_b)_j\n+\\log\\mathrm{softmax}(U_{bj:})_i.$$"
       },
       {
         "display": false,
@@ -436,7 +436,7 @@
       },
       {
         "display": true,
-        "tex": "$$\\begin{aligned}\n\\widetilde{\\Delta U}^{z}_{bji}&=\\Delta U^{z}_{bji}\n-\\frac{1}{A}\\sum_{i'=1}^{A}\\Delta U^{z}_{bji'},\\\\[4pt]\n\\operatorname{RMS}_{z,\\mathrm{centered}}&=\n\\sqrt{\\frac{1}{NOA}\\sum_{b,j,i}(\\widetilde{\\Delta U}^{z}_{bji})^2}.\n\\end{aligned}$$"
+        "tex": "$$\\begin{aligned}\n\\widetilde{\\Delta U}^{z}_{bji}&=\\Delta U^{z}_{bji}\n-\\frac{1}{A}\\sum_{i'=1}^{A}\\Delta U^{z}_{bji'},\\\\[4pt]\n\\mathrm{RMS}_{z,\\mathrm{centered}}&=\n\\sqrt{\\frac{1}{NOA}\\sum_{b,j,i}(\\widetilde{\\Delta U}^{z}_{bji})^2}.\n\\end{aligned}$$"
       }
     ]
   },
@@ -483,7 +483,7 @@
   },
   {
     "path": "VG-CPOD方案/12/analysis/README.md",
-    "sha256": "ce566a88c00f1da65a6490f063fc021227a1ecfaaa73c757e39955effc0aec83",
+    "sha256": "b8a320495fc2268b6ce30f87c18dd113e7f6b0de3a9e8f53c481d712434c3440",
     "expected_display": 15,
     "expected_inline": 70,
     "rendered_display": 15,
@@ -700,7 +700,7 @@
       {
         "line": 266,
         "display": true,
-        "tex": "m(t\\delta)=t\\,\\mathbb{E}_{w}[\\delta]\n+\\frac{t^3}{24}\\operatorname{cum}_{3,w}(\\delta)+O(t^5)."
+        "tex": "m(t\\delta)=t\\,\\mathbb{E}_{w}[\\delta]\n+\\frac{t^3}{24}\\mathrm{cum}_{3,w}(\\delta)+O(t^5)."
       },
       {
         "line": 273,
@@ -794,7 +794,7 @@
       {
         "line": 298,
         "display": true,
-        "tex": "U_o=\\underset{\\mathbf{1}^{\\top}U=0}{\\operatorname{argmin}}\n\\;\\frac12\\lVert BU-m_o\\rVert_2^2."
+        "tex": "U_o=\\underset{\\mathbf{1}^{\\top}U=0}{\\mathrm{argmin}}\n\\;\\frac12\\lVert BU-m_o\\rVert_2^2."
       },
       {
         "line": 303,
@@ -806,7 +806,7 @@
         "line": 303,
         "display": false,
         "safe": true,
-        "tex": "\\operatorname{null}(L)=\\operatorname{span}(\\mathbf{1})"
+        "tex": "\\mathrm{null}(L)=\\mathrm{span}(\\mathbf{1})"
       },
       {
         "line": 305,
@@ -875,7 +875,7 @@
       {
         "line": 325,
         "display": true,
-        "tex": "\\begin{aligned}\nS_o(x)&=\\kappa g^{\\top}e_o^o\n+(g^{\\top}B_o)\\bigl((e_o^o)^{\\top}C_o\\bigr)^{\\top},\\\\[4pt]\np(o\\mid x)&=\\operatorname{softmax}_o S_o(x),\\\\[4pt]\np(a\\mid o,x)&=\\operatorname{softmax}_a U_{ao}(x),\\\\[4pt]\np(a,o\\mid x)&=p(o\\mid x)p(a\\mid o,x).\n\\end{aligned}"
+        "tex": "\\begin{aligned}\nS_o(x)&=\\kappa g^{\\top}e_o^o\n+(g^{\\top}B_o)\\bigl((e_o^o)^{\\top}C_o\\bigr)^{\\top},\\\\[4pt]\np(o\\mid x)&=\\mathrm{softmax}_o S_o(x),\\\\[4pt]\np(a\\mid o,x)&=\\mathrm{softmax}_a U_{ao}(x),\\\\[4pt]\np(a,o\\mid x)&=p(o\\mid x)p(a\\mid o,x).\n\\end{aligned}"
       },
       {
         "line": 335,
@@ -1132,7 +1132,7 @@
       },
       {
         "display": true,
-        "tex": "$$m(t\\delta)=t\\,\\mathbb{E}_{w}[\\delta]\n+\\frac{t^3}{24}\\operatorname{cum}_{3,w}(\\delta)+O(t^5).$$"
+        "tex": "$$m(t\\delta)=t\\,\\mathbb{E}_{w}[\\delta]\n+\\frac{t^3}{24}\\mathrm{cum}_{3,w}(\\delta)+O(t^5).$$"
       },
       {
         "display": false,
@@ -1196,7 +1196,7 @@
       },
       {
         "display": true,
-        "tex": "$$U_o=\\underset{\\mathbf{1}^{\\top}U=0}{\\operatorname{argmin}}\n\\;\\frac12\\lVert BU-m_o\\rVert_2^2.$$"
+        "tex": "$$U_o=\\underset{\\mathbf{1}^{\\top}U=0}{\\mathrm{argmin}}\n\\;\\frac12\\lVert BU-m_o\\rVert_2^2.$$"
       },
       {
         "display": false,
@@ -1204,7 +1204,7 @@
       },
       {
         "display": false,
-        "tex": "$\\operatorname{null}(L)=\\operatorname{span}(\\mathbf{1})$"
+        "tex": "$\\mathrm{null}(L)=\\mathrm{span}(\\mathbf{1})$"
       },
       {
         "display": true,
@@ -1252,7 +1252,7 @@
       },
       {
         "display": true,
-        "tex": "$$\\begin{aligned}\nS_o(x)&=\\kappa g^{\\top}e_o^o\n+(g^{\\top}B_o)\\bigl((e_o^o)^{\\top}C_o\\bigr)^{\\top},\\\\[4pt]\np(o\\mid x)&=\\operatorname{softmax}_o S_o(x),\\\\[4pt]\np(a\\mid o,x)&=\\operatorname{softmax}_a U_{ao}(x),\\\\[4pt]\np(a,o\\mid x)&=p(o\\mid x)p(a\\mid o,x).\n\\end{aligned}$$"
+        "tex": "$$\\begin{aligned}\nS_o(x)&=\\kappa g^{\\top}e_o^o\n+(g^{\\top}B_o)\\bigl((e_o^o)^{\\top}C_o\\bigr)^{\\top},\\\\[4pt]\np(o\\mid x)&=\\mathrm{softmax}_o S_o(x),\\\\[4pt]\np(a\\mid o,x)&=\\mathrm{softmax}_a U_{ao}(x),\\\\[4pt]\np(a,o\\mid x)&=p(o\\mid x)p(a\\mid o,x).\n\\end{aligned}$$"
       },
       {
         "display": false,

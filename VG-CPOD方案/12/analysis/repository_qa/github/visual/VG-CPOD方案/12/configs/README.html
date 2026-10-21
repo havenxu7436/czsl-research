@@ -45,7 +45,7 @@ math-renderer.js-inline-math{display:inline-block}mjx-container{margin:0!importa
 <p>轮次按seed3351/3352/3353顺序。六训练各十轮、3600次更新，实际配置和两套结果见<a href="experiment_inventory.json">experiment_inventory.json</a>。</p>
 <h2>1. 选择依据</h2>
 <p>J1中动态梯度的一阶矩较小，但Adam归一化后实际步长接近静态读出。K组固定两档倍率，直接改变Wd的更新速度；其余表示、目标、初始化及训练预算沿用J1，三seed完整比较。</p>
-<math-renderer class="js-display-math" style="display: block" data-run-id="22932d267dcdf5d45f7863dea72f1d91">$$\alpha_{d,t}=m_d\alpha_{\mathrm{CP},t},\qquad
+<math-renderer class="js-display-math" style="display: block" data-run-id="92bb20c5cc32c6d2a4d5c97212ae3e9d">$$\alpha_{d,t}=m_d\alpha_{\mathrm{CP},t},\qquad
 \alpha_{\mathrm{CP},t}=0.3\alpha_t,\qquad
 m_d\in\{0.3,0.1\}.$$</math-renderer>
 <p>学习率同时作用于自适应项和AdamW解耦衰减，weight decay系数保持1e-4。K1的dynamic_cp lr_scale为0.09，K2为0.03。</p>
