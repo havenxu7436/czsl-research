@@ -1,0 +1,71 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>VG-CPOD方案/12/code/README.md</title>
+    <base href="file:///C:/Users/llenovo/Documents/ChatGPT/CZSL/VG-CPOD%E6%96%B9%E6%A1%88/12/code/">
+    <style>body {margin:0;background:#fff;color:#1f2328;font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}
+.markdown-body{max-width:940px;margin:auto;padding:32px;box-sizing:border-box}h1,h2,h3{line-height:1.3;margin:24px 0 16px}
+h1,h2{border-bottom:1px solid #d1d9e0;padding-bottom:.3em}a{color:#0969da;text-decoration:none}
+p{margin:0 0 16px}code,pre{font:13px/1.5 Consolas,monospace}pre{padding:16px;background:#f6f8fa;overflow:auto}code{background:#f6f8fa}
+table{display:block;max-width:100%;overflow:auto;border-collapse:collapse;margin-bottom:16px}td,th{border:1px solid #d1d9e0;padding:6px 13px}tr:nth-child(even){background:#f6f8fa}
+img{max-width:100%}math-renderer.js-display-math{display:block;margin:20px 0;overflow-x:auto;overflow-y:hidden;padding:5px 0}
+math-renderer.js-inline-math{display:inline-block}mjx-container{margin:0!important}mjx-container[display="true"]{text-align:center}</style><script>window.MathJax={startup:{typeset:false},svg:{fontCache:'none'},options:{enableMenu:false}};</script>
+    <script src="file:///C:/Users/llenovo/Documents/ChatGPT/CZSL/VG-CPOD%E6%96%B9%E6%A1%88/12/analysis/repository_qa/github/tex-svg.js"></script><body><article class="markdown-body"><h1>12 · 代码与修订</h1>
+<p>原运行源码位于<a href="vgcpod_v1_roundK/">vgcpod_v1_roundK</a>。配置、资产和验证按平行目录保存，<a href="../package_members.json">成员映射</a>供materialize恢复原包。相对<a href="../../11/code/README.md">11 J组</a>的完整差异见<a href="source_changes.patch">source_changes.patch</a>。</p>
+<h2>1. Wd独立学习率组</h2>
+<p><a href="vgcpod_v1_roundK/vgcpod/engine.py">engine.py</a>的<code class="notranslate">make_optimizer</code>在配置含<code class="notranslate">dynamic_readout_lr_multiplier</code>时，将Wd从普通CP组移出：</p>
+<div class="highlight highlight-source-python"><pre class="notranslate"><span class="pl-k">if</span> <span class="pl-s1">separate_dynamic</span>:
+    <span class="pl-s1">scale</span> <span class="pl-c1">=</span> <span class="pl-s1">cp_scale</span> <span class="pl-c1">*</span> <span class="pl-s1">multiplier</span>
+    <span class="pl-s1">groups</span>.<span class="pl-c1">append</span>({<span class="pl-s">'params'</span>: [<span class="pl-s1">model</span>.<span class="pl-c1">Wd</span>], <span class="pl-s">'name'</span>: <span class="pl-s">'dynamic_cp'</span>,
+                   <span class="pl-s">'lr_scale'</span>: <span class="pl-s1">scale</span>, <span class="pl-s">'lr'</span>: <span class="pl-s1">cfg</span>[<span class="pl-s">'lr'</span>] <span class="pl-c1">*</span> <span class="pl-s1">scale</span>})</pre></div>
+<p>adapter组为Bo/Co/Bc/Cc，CP组为Au/Av/Bvis/Wc，dynamic_cp只含Wd。三个组的lr_scale分别为1、0.3、0.09或0.03。<code class="notranslate">set_learning_rates</code>将同一余弦日程乘组倍率。无新配置键时保持原J1参数分组与顺序。</p>
+<p>本轮<a href="vgcpod_v1_roundK/vgcpod/model.py">model.py</a>与<a href="vgcpod_v1_roundK/mean_gate_eval.py">mean_gate_eval.py</a>和J组逐字一致，继续使用separate读出、原损失及TRAIN均值评估。可训练参数147,456，新增参数为0。</p>
+<h2>2. 从真实Adam状态核验更新</h2>
+<p>新增<a href="vgcpod_v1_roundK/readout_diagnostics.py">readout_diagnostics.py</a>：</p>
+<ol>
+<li>按模型与优化器参数顺序，将checkpoint中的参数ID映射为Wc/Wd。</li>
+<li>读取step、exp_avg、exp_avg_sq、β₁/β₂、ε、lr及lr_scale，做Adam偏差修正。</li>
+<li>分别输出矩阵范数、一阶／二阶矩、归一化方向和学习率乘自适应方向的范数。</li>
+<li>对native选中、exact选中和末轮checkpoint分别记录，并报告动态／静态比值。</li>
+</ol>
+<p>该诊断中的更新范数对应最后一步自适应项；weight decay单独执行。诊断模型初始化保留调用方Torch RNG。</p>
+<h2>3. 调度与输出</h2>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>文件</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="vgcpod_v1_roundK/round_k.py">round_k.py</a></td>
+<td>每卡K1→K2；复制J组TRAIN均值；完成十二项均值评估和历史配对</td>
+</tr>
+<tr>
+<td><a href="vgcpod_v1_roundK/scripts/start_round_k_tmux.sh">tmux脚本</a></td>
+<td>当前Python、会话、日志与退出码；从完整epoch续训</td>
+</tr>
+<tr>
+<td><a href="../configs/round_k/">K1/K2模板</a></td>
+<td>Wd倍率0.3/0.1</td>
+</tr>
+<tr>
+<td><a href="../configs/references/pre_k_complete.json">历史参考</a></td>
+<td>38项已有运行快照，含J1</td>
+</tr>
+<tr>
+<td><a href="vgcpod_v1_roundK/ranking_diagnostics.py">ranking_diagnostics.py</a></td>
+<td>K1/K2−J1及K1−K2等逐图配对</td>
+</tr>
+<tr>
+<td><a href="../results/raw_export/roundK_20261021/readout_optimizer_summary.csv">优化器总表</a></td>
+<td>J1/K1/K2实际更新量</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h2>4. 验证与结果复算</h2>
+<ul>
+<li><a href="../results/package_validation/K/validation/unit_tests.txt">61项发布测试</a>、<a href="../results/package_validation/K/validation/unit_test_summary.json">摘要</a>、<a href="../results/package_validation/K/validation/result.json">CPU六训练十二评估</a>。</li>
+<li><a href="vgcpod_v1_roundK/tests/test_round_k.py">test_round_k.py</a>：分组成员与倍率、首末学习率、相同梯度下的AdamW更新、配置合法性及J1兼容性。</li>
+<li>原J1配置在新旧训练器中的参数、AdamW和Torch RNG逐元素相同；CPU流程重复启动跳过已完成训练和评估。</li>
+<li><a href="../analysis/recompute.py">正式结果复算</a>、<a href="original_analysis/">原分析脚本</a>、<a href="../analysis/repository_validation.json">仓库验证</a>、<a href="../results/server_source_identity.json">服务器源码身份</a>。</li>
+</ul>
+<p>CLIP许可见<a href="vgcpod_v1_roundK/vendor/CLIP_LICENSE">CLIP_LICENSE</a>。发布验证与正式服务器训练分别记录；公式及超参数见<a href="../README.md">主说明</a>，结果解释见<a href="../analysis/README.md">末项数据分析</a>。</p></article></body></html>

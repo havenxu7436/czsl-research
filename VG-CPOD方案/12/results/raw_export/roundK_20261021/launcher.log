@@ -1,0 +1,25 @@
+TRAIN_GATE_MEAN_COPIED_FROM_J /data/xhw/vgcpod_v1_runs/roundJ_20261021/feature_statistics/train_object_query_mean.npz
+TRAIN_GATE_MEAN_REUSE /data/xhw/vgcpod_v1_runs/roundK_20261021/feature_statistics/train_object_query_mean.npz images 22998
+START K1 3351 GPU 1 logSTARTSTART K1  3352/data/xhw/vgcpod_v1_runs/roundK_20261021/logs/K1_seed3351.log
+ GPU 2 log  /data/xhw/vgcpod_v1_runs/roundK_20261021/logs/K1_seed3352.log
+K1 3353 GPU 3 log /data/xhw/vgcpod_v1_runs/roundK_20261021/logs/K1_seed3353.log
+START K2 3352 GPU 2 log /data/xhw/vgcpod_v1_runs/roundK_20261021/logs/K2_seed3352.log
+START K2 3351 GPU 1 log /data/xhw/vgcpod_v1_runs/roundK_20261021/logs/K2_seed3351.log
+START K2 3353 GPU 3 log /data/xhw/vgcpod_v1_runs/roundK_20261021/logs/K2_seed3353.log
+START_MEAN_GATE native K1 3352 GPU 2
+START_MEAN_GATE native K1 3351 GPU 1
+START_MEAN_GATE exact K1 3352 GPU 2
+START_MEAN_GATE exact K1 3351 GPU 1
+START_MEAN_GATE native K2 3352 GPU 2
+START_MEAN_GATE native K2 3351 GPU 1
+START_MEAN_GATE exact K2 3352 GPU 2
+START_MEAN_GATE exact K2 3351 GPU 1
+START_MEAN_GATE native K1 3353 GPU 3
+JOB_RESULT 3352 complete
+JOB_RESULT 3351 complete
+START_MEAN_GATE exact K1 3353 GPU 3
+START_MEAN_GATE native K2 3353 GPU 3
+START_MEAN_GATE exact K2 3353 GPU 3
+JOB_RESULT 3353 complete
+ROUND_K_SUMMARY /data/xhw/vgcpod_v1_runs/roundK_20261021/round_k_summary.json
+ROUND_K_COMPLETE /data/xhw/vgcpod_v1_runs/roundK_20261021 training_jobs 6 mean_gate_jobs 12

@@ -1,0 +1,1331 @@
+[
+  {
+    "path": "VG-CPOD方案/12/README.md",
+    "sha256": "1a542c94b2007988efc9af896b0b4861cd10b0a4e3309a58b2b6162f3921dd24",
+    "expected_display": 11,
+    "expected_inline": 33,
+    "rendered_display": 11,
+    "rendered_inline": 33,
+    "expected": [
+      {
+        "line": 23,
+        "display": false,
+        "safe": true,
+        "tex": "g_b\\in\\mathbb{R}^{768}"
+      },
+      {
+        "line": 23,
+        "display": false,
+        "safe": true,
+        "tex": "f^o_{bj}"
+      },
+      {
+        "line": 23,
+        "display": false,
+        "safe": true,
+        "tex": "R=32"
+      },
+      {
+        "line": 23,
+        "display": false,
+        "safe": true,
+        "tex": "N=22998"
+      },
+      {
+        "line": 25,
+        "display": true,
+        "tex": "\\begin{aligned}\n\\mu_j&=\\frac{1}{N}\\sum_{b\\in\\mathrm{TRAIN}}f^o_{bj},\\\\[4pt]\nr_{bj}&=f^o_{bj}-\\mu_j,\\qquad\n\\widehat r_{bj}=\\frac{r_{bj}}{\\max(\\lVert r_{bj}\\rVert_2,10^{-12})}.\n\\end{aligned}"
+      },
+      {
+        "line": 35,
+        "display": false,
+        "safe": true,
+        "tex": "B_{\\mathrm{vis}}\\in\\mathbb{R}^{R\\times768}"
+      },
+      {
+        "line": 35,
+        "display": false,
+        "safe": true,
+        "tex": "k"
+      },
+      {
+        "line": 35,
+        "display": false,
+        "safe": true,
+        "tex": "b_k"
+      },
+      {
+        "line": 37,
+        "display": true,
+        "tex": "\\begin{aligned}\nq_{bjk}&=2\\sigma\\!\\left(\\frac{b_k^\\top\\widehat r_{bj}}{0.56}\\right)-1,\\\\[4pt]\nh_{bjk}&=\\frac{0.25}{2}\\left(q_{bjk}-\\frac{1}{R}\\sum_{\\ell=1}^{R}q_{bj\\ell}\\right),\\\\[4pt]\n\\gamma_{bjk}&=1+h_{bjk},\\qquad\n\\frac{1}{R}\\sum_k\\gamma_{bjk}=1,\\quad 0.75\\le\\gamma_{bjk}\\le1.25.\n\\end{aligned}"
+      },
+      {
+        "line": 48,
+        "display": false,
+        "safe": true,
+        "tex": "A_u,A_v\\in\\mathbb{R}^{R\\times768}"
+      },
+      {
+        "line": 48,
+        "display": false,
+        "safe": true,
+        "tex": "W_s,W_d\\in\\mathbb{R}^{768\\times R}"
+      },
+      {
+        "line": 48,
+        "display": false,
+        "safe": true,
+        "tex": "W_s"
+      },
+      {
+        "line": 48,
+        "display": false,
+        "safe": true,
+        "tex": "W_d"
+      },
+      {
+        "line": 50,
+        "display": true,
+        "tex": "\\begin{aligned}\nu_i&=A_ue_i^a,\\qquad v_j=A_ve_j^o,\\qquad a_{ij}=u_i\\odot v_j,\\\\[4pt]\n\\Delta U^s_{bji}&=\\rho\\kappa g_b^\\top W_s a_{ij},\\\\[4pt]\n\\Delta U^d_{bji}&=\\rho\\kappa g_b^\\top W_d(a_{ij}\\odot h_{bj}),\\\\[4pt]\nU_{bji}&=U^{\\mathrm{base}}_{bji}+\\Delta U^s_{bji}+\\Delta U^d_{bji}.\n\\end{aligned}"
+      },
+      {
+        "line": 61,
+        "display": true,
+        "tex": "\\begin{aligned}\nM_{bj}&=\\left[W_s\\mathrm{diag}(v_j)\n+W_d\\mathrm{diag}(v_j\\odot h_{bj})\\right]A_u,\n\\qquad\\mathrm{rank}(M_{bj})\\le R,\\\\[4pt]\n\\nabla_{W_s}\\Delta U_{bji}&=\\rho\\kappa g_ba_{ij}^{\\top},\\\\[4pt]\n\\nabla_{W_d}\\Delta U_{bji}&=\\rho\\kappa g_b(a_{ij}\\odot h_{bj})^{\\top}.\n\\end{aligned}"
+      },
+      {
+        "line": 71,
+        "display": false,
+        "safe": true,
+        "tex": "A_u"
+      },
+      {
+        "line": 75,
+        "display": false,
+        "safe": true,
+        "tex": "S_b"
+      },
+      {
+        "line": 75,
+        "display": false,
+        "safe": true,
+        "tex": "U^{\\mathrm{base}}"
+      },
+      {
+        "line": 77,
+        "display": true,
+        "tex": "s_{bji}=\\log\\operatorname{softmax}(S_b)_j\n+\\log\\operatorname{softmax}(U_{bj:})_i."
+      },
+      {
+        "line": 82,
+        "display": false,
+        "safe": true,
+        "tex": "\\mathcal{S}"
+      },
+      {
+        "line": 82,
+        "display": false,
+        "safe": true,
+        "tex": "B"
+      },
+      {
+        "line": 82,
+        "display": false,
+        "safe": true,
+        "tex": "(i_b,j_b)"
+      },
+      {
+        "line": 84,
+        "display": true,
+        "tex": "\\begin{aligned}\nZ_b&=\\sum_{(i,j)\\in\\mathcal{S}}\\exp(s_{bji}),\\\\[4pt]\n\\mathcal{L}_{\\mathrm{pair}}&=\\frac{1}{B}\\sum_b[-s_{bj_bi_b}+\\log Z_b],\\\\[4pt]\n\\mathcal{L}_{\\mathrm{support}}&=-\\frac{1}{B}\\sum_b\\log Z_b,\\\\[4pt]\n\\mathcal{L}_a+\\mathcal{L}_o&=\\mathcal{L}_{\\mathrm{pair}}+\\mathcal{L}_{\\mathrm{support}},\\\\[4pt]\n\\mathcal{L}_{\\mathrm{task}}&=\\frac{1.5}{1+0.075}\n\\left[\\mathcal{L}_{\\mathrm{pair}}+0.075(\\mathcal{L}_a+\\mathcal{L}_o)\\right]\\\\[4pt]\n&=\\frac{3}{2}\\mathcal{L}_{\\mathrm{pair}}+\\frac{9}{86}\\mathcal{L}_{\\mathrm{support}},\\\\[4pt]\n\\mathcal{L}&=\\mathcal{L}_{\\mathrm{task}}\n+10^{-3}\\frac{\\lVert B_{\\mathrm{vis}}B_{\\mathrm{vis}}^{\\top}-I_R\\rVert_F^2}{R^2}.\n\\end{aligned}"
+      },
+      {
+        "line": 98,
+        "display": false,
+        "safe": true,
+        "tex": "\\mathcal{L}_a"
+      },
+      {
+        "line": 98,
+        "display": false,
+        "safe": true,
+        "tex": "\\mathcal{L}_o"
+      },
+      {
+        "line": 102,
+        "display": false,
+        "safe": true,
+        "tex": "T=10\\lceil N/64\\rceil=3600"
+      },
+      {
+        "line": 102,
+        "display": false,
+        "safe": true,
+        "tex": "t=1,\\ldots,T"
+      },
+      {
+        "line": 104,
+        "display": true,
+        "tex": "\\begin{aligned}\n\\alpha_t&=10^{-5}+\\frac{10^{-3}-10^{-5}}{2}\n\\left[1+\\cos\\!\\left(\\frac{\\pi(t-1)}{T-1}\\right)\\right],\\\\[4pt]\n\\alpha_{\\mathrm{adapter},t}&=\\alpha_t,\\qquad\n\\alpha_{\\mathrm{CP},t}=0.3\\alpha_t,\\\\[4pt]\n\\alpha_{s,t}&=\\alpha_{\\mathrm{CP},t},\\qquad\n\\alpha_{d,t}=m_d\\alpha_{\\mathrm{CP},t},\\qquad\nm_d\\in\\{0.3,0.1\\}.\n\\end{aligned}"
+      },
+      {
+        "line": 124,
+        "display": false,
+        "safe": true,
+        "tex": "\\mathbf{G}_t^{\\mathrm{raw}}"
+      },
+      {
+        "line": 124,
+        "display": false,
+        "safe": true,
+        "tex": "p"
+      },
+      {
+        "line": 124,
+        "display": false,
+        "safe": true,
+        "tex": "G_{p,t}^{\\mathrm{raw}}"
+      },
+      {
+        "line": 126,
+        "display": true,
+        "tex": "c_t=\\min\\!\\left(1,\\frac{1}{\\lVert\\mathbf{G}_t^{\\mathrm{raw}}\\rVert_2+10^{-12}}\\right),\n\\qquad G_{p,t}=c_tG_{p,t}^{\\mathrm{raw}}."
+      },
+      {
+        "line": 131,
+        "display": false,
+        "safe": true,
+        "tex": "\\alpha_{p,t}"
+      },
+      {
+        "line": 131,
+        "display": false,
+        "safe": true,
+        "tex": "p"
+      },
+      {
+        "line": 131,
+        "display": false,
+        "safe": true,
+        "tex": "m_0=v_0=0"
+      },
+      {
+        "line": 133,
+        "display": true,
+        "tex": "\\begin{aligned}\nm_t&=0.9m_{t-1}+0.1G_{p,t},\\\\[4pt]\nv_t&=0.999v_{t-1}+0.001G_{p,t}^{\\odot2},\\\\[4pt]\n\\widehat m_t&=\\frac{m_t}{1-0.9^t},\\qquad\n\\widehat v_t=\\frac{v_t}{1-0.999^t},\\\\[4pt]\nD_t&=\\frac{\\widehat m_t}{\\sqrt{\\widehat v_t}+10^{-8}},\\\\[4pt]\n\\theta_t&=(1-\\alpha_{p,t}10^{-4})\\theta_{t-1}-\\alpha_{p,t}D_t.\n\\end{aligned}"
+      },
+      {
+        "line": 146,
+        "display": false,
+        "safe": true,
+        "tex": "\\lVert m_t\\rVert_F"
+      },
+      {
+        "line": 146,
+        "display": false,
+        "safe": true,
+        "tex": "\\lVert v_t\\rVert_F"
+      },
+      {
+        "line": 146,
+        "display": false,
+        "safe": true,
+        "tex": "\\lVert D_t\\rVert_F"
+      },
+      {
+        "line": 146,
+        "display": false,
+        "safe": true,
+        "tex": "\\alpha_{p,t}\\lVert D_t\\rVert_F"
+      },
+      {
+        "line": 152,
+        "display": true,
+        "tex": "\\begin{aligned}\n\\bar h_j&=\\frac{1}{N}\\sum_{b\\in\\mathrm{TRAIN}}\\gamma_{bj}-\\mathbf{1},\\\\[4pt]\nU^{\\mathrm{mean}}_{bji}&=U^{\\mathrm{base}}_{bji}\n+\\rho\\kappa g_b^\\top W_s a_{ij}\n+\\rho\\kappa g_b^\\top W_d(a_{ij}\\odot\\bar h_j).\n\\end{aligned}"
+      },
+      {
+        "line": 163,
+        "display": false,
+        "safe": true,
+        "tex": "A,O"
+      },
+      {
+        "line": 163,
+        "display": false,
+        "safe": true,
+        "tex": "z\\in\\{s,d\\}"
+      },
+      {
+        "line": 165,
+        "display": true,
+        "tex": "\\begin{aligned}\n\\widetilde{\\Delta U}^{z}_{bji}&=\\Delta U^{z}_{bji}\n-\\frac{1}{A}\\sum_{i'=1}^{A}\\Delta U^{z}_{bji'},\\\\[4pt]\n\\operatorname{RMS}_{z,\\mathrm{centered}}&=\n\\sqrt{\\frac{1}{NOA}\\sum_{b,j,i}(\\widetilde{\\Delta U}^{z}_{bji})^2}.\n\\end{aligned}"
+      }
+    ],
+    "rendered": [
+      {
+        "display": false,
+        "tex": "$g_b\\in\\mathbb{R}^{768}$"
+      },
+      {
+        "display": false,
+        "tex": "$f^o_{bj}$"
+      },
+      {
+        "display": false,
+        "tex": "$R=32$"
+      },
+      {
+        "display": false,
+        "tex": "$N=22998$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\begin{aligned}\n\\mu_j&=\\frac{1}{N}\\sum_{b\\in\\mathrm{TRAIN}}f^o_{bj},\\\\[4pt]\nr_{bj}&=f^o_{bj}-\\mu_j,\\qquad\n\\widehat r_{bj}=\\frac{r_{bj}}{\\max(\\lVert r_{bj}\\rVert_2,10^{-12})}.\n\\end{aligned}$$"
+      },
+      {
+        "display": false,
+        "tex": "$B_{\\mathrm{vis}}\\in\\mathbb{R}^{R\\times768}$"
+      },
+      {
+        "display": false,
+        "tex": "$k$"
+      },
+      {
+        "display": false,
+        "tex": "$b_k$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\begin{aligned}\nq_{bjk}&=2\\sigma\\!\\left(\\frac{b_k^\\top\\widehat r_{bj}}{0.56}\\right)-1,\\\\[4pt]\nh_{bjk}&=\\frac{0.25}{2}\\left(q_{bjk}-\\frac{1}{R}\\sum_{\\ell=1}^{R}q_{bj\\ell}\\right),\\\\[4pt]\n\\gamma_{bjk}&=1+h_{bjk},\\qquad\n\\frac{1}{R}\\sum_k\\gamma_{bjk}=1,\\quad 0.75\\le\\gamma_{bjk}\\le1.25.\n\\end{aligned}$$"
+      },
+      {
+        "display": false,
+        "tex": "$A_u,A_v\\in\\mathbb{R}^{R\\times768}$"
+      },
+      {
+        "display": false,
+        "tex": "$W_s,W_d\\in\\mathbb{R}^{768\\times R}$"
+      },
+      {
+        "display": false,
+        "tex": "$W_s$"
+      },
+      {
+        "display": false,
+        "tex": "$W_d$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\begin{aligned}\nu_i&=A_ue_i^a,\\qquad v_j=A_ve_j^o,\\qquad a_{ij}=u_i\\odot v_j,\\\\[4pt]\n\\Delta U^s_{bji}&=\\rho\\kappa g_b^\\top W_s a_{ij},\\\\[4pt]\n\\Delta U^d_{bji}&=\\rho\\kappa g_b^\\top W_d(a_{ij}\\odot h_{bj}),\\\\[4pt]\nU_{bji}&=U^{\\mathrm{base}}_{bji}+\\Delta U^s_{bji}+\\Delta U^d_{bji}.\n\\end{aligned}$$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\begin{aligned}\nM_{bj}&=\\left[W_s\\mathrm{diag}(v_j)\n+W_d\\mathrm{diag}(v_j\\odot h_{bj})\\right]A_u,\n\\qquad\\mathrm{rank}(M_{bj})\\le R,\\\\[4pt]\n\\nabla_{W_s}\\Delta U_{bji}&=\\rho\\kappa g_ba_{ij}^{\\top},\\\\[4pt]\n\\nabla_{W_d}\\Delta U_{bji}&=\\rho\\kappa g_b(a_{ij}\\odot h_{bj})^{\\top}.\n\\end{aligned}$$"
+      },
+      {
+        "display": false,
+        "tex": "$A_u$"
+      },
+      {
+        "display": false,
+        "tex": "$S_b$"
+      },
+      {
+        "display": false,
+        "tex": "$U^{\\mathrm{base}}$"
+      },
+      {
+        "display": true,
+        "tex": "$$s_{bji}=\\log\\operatorname{softmax}(S_b)_j\n+\\log\\operatorname{softmax}(U_{bj:})_i.$$"
+      },
+      {
+        "display": false,
+        "tex": "$\\mathcal{S}$"
+      },
+      {
+        "display": false,
+        "tex": "$B$"
+      },
+      {
+        "display": false,
+        "tex": "$(i_b,j_b)$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\begin{aligned}\nZ_b&=\\sum_{(i,j)\\in\\mathcal{S}}\\exp(s_{bji}),\\\\[4pt]\n\\mathcal{L}_{\\mathrm{pair}}&=\\frac{1}{B}\\sum_b[-s_{bj_bi_b}+\\log Z_b],\\\\[4pt]\n\\mathcal{L}_{\\mathrm{support}}&=-\\frac{1}{B}\\sum_b\\log Z_b,\\\\[4pt]\n\\mathcal{L}_a+\\mathcal{L}_o&=\\mathcal{L}_{\\mathrm{pair}}+\\mathcal{L}_{\\mathrm{support}},\\\\[4pt]\n\\mathcal{L}_{\\mathrm{task}}&=\\frac{1.5}{1+0.075}\n\\left[\\mathcal{L}_{\\mathrm{pair}}+0.075(\\mathcal{L}_a+\\mathcal{L}_o)\\right]\\\\[4pt]\n&=\\frac{3}{2}\\mathcal{L}_{\\mathrm{pair}}+\\frac{9}{86}\\mathcal{L}_{\\mathrm{support}},\\\\[4pt]\n\\mathcal{L}&=\\mathcal{L}_{\\mathrm{task}}\n+10^{-3}\\frac{\\lVert B_{\\mathrm{vis}}B_{\\mathrm{vis}}^{\\top}-I_R\\rVert_F^2}{R^2}.\n\\end{aligned}$$"
+      },
+      {
+        "display": false,
+        "tex": "$\\mathcal{L}_a$"
+      },
+      {
+        "display": false,
+        "tex": "$\\mathcal{L}_o$"
+      },
+      {
+        "display": false,
+        "tex": "$T=10\\lceil N/64\\rceil=3600$"
+      },
+      {
+        "display": false,
+        "tex": "$t=1,\\ldots,T$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\begin{aligned}\n\\alpha_t&=10^{-5}+\\frac{10^{-3}-10^{-5}}{2}\n\\left[1+\\cos\\!\\left(\\frac{\\pi(t-1)}{T-1}\\right)\\right],\\\\[4pt]\n\\alpha_{\\mathrm{adapter},t}&=\\alpha_t,\\qquad\n\\alpha_{\\mathrm{CP},t}=0.3\\alpha_t,\\\\[4pt]\n\\alpha_{s,t}&=\\alpha_{\\mathrm{CP},t},\\qquad\n\\alpha_{d,t}=m_d\\alpha_{\\mathrm{CP},t},\\qquad\nm_d\\in\\{0.3,0.1\\}.\n\\end{aligned}$$"
+      },
+      {
+        "display": false,
+        "tex": "$\\mathbf{G}_t^{\\mathrm{raw}}$"
+      },
+      {
+        "display": false,
+        "tex": "$p$"
+      },
+      {
+        "display": false,
+        "tex": "$G_{p,t}^{\\mathrm{raw}}$"
+      },
+      {
+        "display": true,
+        "tex": "$$c_t=\\min\\!\\left(1,\\frac{1}{\\lVert\\mathbf{G}_t^{\\mathrm{raw}}\\rVert_2+10^{-12}}\\right),\n\\qquad G_{p,t}=c_tG_{p,t}^{\\mathrm{raw}}.$$"
+      },
+      {
+        "display": false,
+        "tex": "$\\alpha_{p,t}$"
+      },
+      {
+        "display": false,
+        "tex": "$p$"
+      },
+      {
+        "display": false,
+        "tex": "$m_0=v_0=0$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\begin{aligned}\nm_t&=0.9m_{t-1}+0.1G_{p,t},\\\\[4pt]\nv_t&=0.999v_{t-1}+0.001G_{p,t}^{\\odot2},\\\\[4pt]\n\\widehat m_t&=\\frac{m_t}{1-0.9^t},\\qquad\n\\widehat v_t=\\frac{v_t}{1-0.999^t},\\\\[4pt]\nD_t&=\\frac{\\widehat m_t}{\\sqrt{\\widehat v_t}+10^{-8}},\\\\[4pt]\n\\theta_t&=(1-\\alpha_{p,t}10^{-4})\\theta_{t-1}-\\alpha_{p,t}D_t.\n\\end{aligned}$$"
+      },
+      {
+        "display": false,
+        "tex": "$\\lVert m_t\\rVert_F$"
+      },
+      {
+        "display": false,
+        "tex": "$\\lVert v_t\\rVert_F$"
+      },
+      {
+        "display": false,
+        "tex": "$\\lVert D_t\\rVert_F$"
+      },
+      {
+        "display": false,
+        "tex": "$\\alpha_{p,t}\\lVert D_t\\rVert_F$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\begin{aligned}\n\\bar h_j&=\\frac{1}{N}\\sum_{b\\in\\mathrm{TRAIN}}\\gamma_{bj}-\\mathbf{1},\\\\[4pt]\nU^{\\mathrm{mean}}_{bji}&=U^{\\mathrm{base}}_{bji}\n+\\rho\\kappa g_b^\\top W_s a_{ij}\n+\\rho\\kappa g_b^\\top W_d(a_{ij}\\odot\\bar h_j).\n\\end{aligned}$$"
+      },
+      {
+        "display": false,
+        "tex": "$A,O$"
+      },
+      {
+        "display": false,
+        "tex": "$z\\in\\{s,d\\}$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\begin{aligned}\n\\widetilde{\\Delta U}^{z}_{bji}&=\\Delta U^{z}_{bji}\n-\\frac{1}{A}\\sum_{i'=1}^{A}\\Delta U^{z}_{bji'},\\\\[4pt]\n\\operatorname{RMS}_{z,\\mathrm{centered}}&=\n\\sqrt{\\frac{1}{NOA}\\sum_{b,j,i}(\\widetilde{\\Delta U}^{z}_{bji})^2}.\n\\end{aligned}$$"
+      }
+    ]
+  },
+  {
+    "path": "VG-CPOD方案/12/code/README.md",
+    "sha256": "84d42f25725833fa65000dd5171f94cd145f373136d6807e7bdcf5dcf60742c0",
+    "expected_display": 0,
+    "expected_inline": 0,
+    "rendered_display": 0,
+    "rendered_inline": 0,
+    "expected": [],
+    "rendered": []
+  },
+  {
+    "path": "VG-CPOD方案/12/configs/README.md",
+    "sha256": "59f58522794472b36b3f3e65874a2487e2bb8d2fd0132362f1e427de508e0be9",
+    "expected_display": 1,
+    "expected_inline": 0,
+    "rendered_display": 1,
+    "rendered_inline": 0,
+    "expected": [
+      {
+        "line": 15,
+        "display": true,
+        "tex": "\\alpha_{d,t}=m_d\\alpha_{\\mathrm{CP},t},\\qquad\n\\alpha_{\\mathrm{CP},t}=0.3\\alpha_t,\\qquad\nm_d\\in\\{0.3,0.1\\}."
+      }
+    ],
+    "rendered": [
+      {
+        "display": true,
+        "tex": "$$\\alpha_{d,t}=m_d\\alpha_{\\mathrm{CP},t},\\qquad\n\\alpha_{\\mathrm{CP},t}=0.3\\alpha_t,\\qquad\nm_d\\in\\{0.3,0.1\\}.$$"
+      }
+    ]
+  },
+  {
+    "path": "VG-CPOD方案/12/results/README.md",
+    "sha256": "fbd3f36d7c449a8ec7afb71b5249ae00cc017875e5c92bcce41aa59e2061bbaa",
+    "expected_display": 0,
+    "expected_inline": 0,
+    "rendered_display": 0,
+    "rendered_inline": 0,
+    "expected": [],
+    "rendered": []
+  },
+  {
+    "path": "VG-CPOD方案/12/analysis/README.md",
+    "sha256": "ce566a88c00f1da65a6490f063fc021227a1ecfaaa73c757e39955effc0aec83",
+    "expected_display": 15,
+    "expected_inline": 70,
+    "rendered_display": 15,
+    "rendered_inline": 70,
+    "expected": [
+      {
+        "line": 109,
+        "display": false,
+        "safe": true,
+        "tex": "o"
+      },
+      {
+        "line": 109,
+        "display": false,
+        "safe": true,
+        "tex": "a_1,a_2"
+      },
+      {
+        "line": 111,
+        "display": true,
+        "tex": "\\begin{aligned}\ns(x,a,o)&=\\log p(o\\mid x)+U(x,a,o)-\\log\\sum_{a'}\\exp U(x,a',o),\\\\[4pt]\ns(x,a_1,o)-s(x,a_2,o)&=U(x,a_1,o)-U(x,a_2,o).\n\\end{aligned}"
+      },
+      {
+        "line": 177,
+        "display": false,
+        "safe": true,
+        "tex": "g\\in\\mathbb{R}^{d}"
+      },
+      {
+        "line": 177,
+        "display": false,
+        "safe": true,
+        "tex": "p_n\\in\\mathbb{R}^{d}"
+      },
+      {
+        "line": 177,
+        "display": false,
+        "safe": true,
+        "tex": "N=256"
+      },
+      {
+        "line": 177,
+        "display": false,
+        "safe": true,
+        "tex": "d=768"
+      },
+      {
+        "line": 179,
+        "display": false,
+        "safe": true,
+        "tex": "e_a^a,e_o^o,e_{ao}^c\\in\\mathbb{R}^{d}"
+      },
+      {
+        "line": 179,
+        "display": false,
+        "safe": true,
+        "tex": "v"
+      },
+      {
+        "line": 181,
+        "display": true,
+        "tex": "\\begin{aligned}\nu_a&=A_u e_a^a,\\qquad v_o=A_v e_o^o,\\\\[4pt]\nR(v,a,o)\n&=\\kappa v^{\\top}e_{ao}^c\n+(v^{\\top}B_c)\\bigl((e_{ao}^c)^{\\top}C_c\\bigr)^{\\top}\n+\\rho\\kappa v^{\\top}W_c(u_a\\odot v_o).\n\\end{aligned}"
+      },
+      {
+        "line": 191,
+        "display": false,
+        "safe": true,
+        "tex": "A_u,A_v\\in\\mathbb{R}^{r\\times d}"
+      },
+      {
+        "line": 191,
+        "display": false,
+        "safe": true,
+        "tex": "B_c,C_c\\in\\mathbb{R}^{d\\times q}"
+      },
+      {
+        "line": 191,
+        "display": false,
+        "safe": true,
+        "tex": "W_c\\in\\mathbb{R}^{d\\times r}"
+      },
+      {
+        "line": 191,
+        "display": false,
+        "safe": true,
+        "tex": "r=32"
+      },
+      {
+        "line": 191,
+        "display": false,
+        "safe": true,
+        "tex": "q=8"
+      },
+      {
+        "line": 191,
+        "display": false,
+        "safe": true,
+        "tex": "\\kappa=20"
+      },
+      {
+        "line": 191,
+        "display": false,
+        "safe": true,
+        "tex": "\\rho=0.15"
+      },
+      {
+        "line": 191,
+        "display": false,
+        "safe": true,
+        "tex": "r_{nao}=R(p_n,a,o)"
+      },
+      {
+        "line": 195,
+        "display": true,
+        "tex": "w_{no}=\\frac{\\exp\\!\\left(\\kappa p_n^{\\top}e_o^o\\right)}\n{\\sum_{k=1}^{N}\\exp\\!\\left(\\kappa p_k^{\\top}e_o^o\\right)},\n\\qquad \\sum_n w_{no}=1."
+      },
+      {
+        "line": 207,
+        "display": true,
+        "tex": "\\ell_{ao}(x)=\\log\\sum_n w_{no}\\exp(r_{nao}),\n\\qquad m^{\\mathrm{sep}}_{ab,o}=\\ell_{ao}-\\ell_{bo}."
+      },
+      {
+        "line": 218,
+        "display": true,
+        "tex": "\\delta_{n,ab,o}=r_{nao}-r_{nbo}."
+      },
+      {
+        "line": 222,
+        "display": false,
+        "safe": true,
+        "tex": "n"
+      },
+      {
+        "line": 224,
+        "display": true,
+        "tex": "\\begin{aligned}\nZ^+_{ab,o}&=\\sum_n w_{no}\\exp\\!\\left(\\frac{\\delta_{n,ab,o}}{2}\\right),\\\\[4pt]\nZ^-_{ab,o}&=\\sum_n w_{no}\\exp\\!\\left(-\\frac{\\delta_{n,ab,o}}{2}\\right),\\\\[4pt]\nq(+\\mid x,a,b,o)&=\\frac{Z^+_{ab,o}}{Z^+_{ab,o}+Z^-_{ab,o}},\\\\[4pt]\nm_{ab,o}&=\\log\\frac{q(+\\mid x,a,b,o)}{1-q(+\\mid x,a,b,o)}\n=\\log Z^+_{ab,o}-\\log Z^-_{ab,o}.\n\\end{aligned}"
+      },
+      {
+        "line": 234,
+        "display": false,
+        "safe": true,
+        "tex": "q"
+      },
+      {
+        "line": 234,
+        "display": false,
+        "safe": true,
+        "tex": "1/2"
+      },
+      {
+        "line": 238,
+        "display": false,
+        "safe": true,
+        "tex": "m_{ba,o}=-m_{ab,o}"
+      },
+      {
+        "line": 238,
+        "display": false,
+        "safe": true,
+        "tex": "m_{aa,o}=0"
+      },
+      {
+        "line": 240,
+        "display": false,
+        "safe": true,
+        "tex": "w_{no}"
+      },
+      {
+        "line": 240,
+        "display": false,
+        "safe": true,
+        "tex": "h_{no}(x)"
+      },
+      {
+        "line": 242,
+        "display": true,
+        "tex": "r'_{nao}=r_{nao}+h_{no}(x)\n\\quad\\Longrightarrow\\quad\n\\delta'_{n,ab,o}=\\delta_{n,ab,o}\n\\quad\\Longrightarrow\\quad\nm'_{ab,o}=m_{ab,o}."
+      },
+      {
+        "line": 250,
+        "display": false,
+        "safe": true,
+        "tex": "w"
+      },
+      {
+        "line": 254,
+        "display": true,
+        "tex": "\\pi^{\\pm}_{n,ab,o}\n=\\frac{w_{no}\\exp(\\pm\\delta_{n,ab,o}/2)}{Z^{\\pm}_{ab,o}},\n\\qquad\n\\left.\\frac{\\partial m_{ab,o}}{\\partial\\delta_{n,ab,o}}\\right|_{w}\n=\\frac{\\pi^+_{n,ab,o}+\\pi^-_{n,ab,o}}{2}."
+      },
+      {
+        "line": 262,
+        "display": false,
+        "safe": true,
+        "tex": "w"
+      },
+      {
+        "line": 262,
+        "display": false,
+        "safe": true,
+        "tex": "r"
+      },
+      {
+        "line": 264,
+        "display": false,
+        "safe": true,
+        "tex": "t\\delta"
+      },
+      {
+        "line": 264,
+        "display": false,
+        "safe": true,
+        "tex": "t\\to0"
+      },
+      {
+        "line": 266,
+        "display": true,
+        "tex": "m(t\\delta)=t\\,\\mathbb{E}_{w}[\\delta]\n+\\frac{t^3}{24}\\operatorname{cum}_{3,w}(\\delta)+O(t^5)."
+      },
+      {
+        "line": 273,
+        "display": false,
+        "safe": true,
+        "tex": "b_{ao}"
+      },
+      {
+        "line": 275,
+        "display": true,
+        "tex": "r'_{nao}=r_{nao}+b_{ao}\n\\quad\\Longrightarrow\\quad\nm'_{ab,o}=m_{ab,o}+b_{ao}-b_{bo}."
+      },
+      {
+        "line": 283,
+        "display": false,
+        "safe": true,
+        "tex": "r_a=(4,0,0)"
+      },
+      {
+        "line": 283,
+        "display": false,
+        "safe": true,
+        "tex": "r_b=(0,3,0)"
+      },
+      {
+        "line": 283,
+        "display": false,
+        "safe": true,
+        "tex": "h=(0,5,0)"
+      },
+      {
+        "line": 285,
+        "display": false,
+        "safe": true,
+        "tex": "a-b"
+      },
+      {
+        "line": 294,
+        "display": false,
+        "safe": true,
+        "tex": "m_{ab,o}"
+      },
+      {
+        "line": 294,
+        "display": false,
+        "safe": true,
+        "tex": "G=(\\mathcal{A},E)"
+      },
+      {
+        "line": 294,
+        "display": false,
+        "safe": true,
+        "tex": "(a,b)"
+      },
+      {
+        "line": 294,
+        "display": false,
+        "safe": true,
+        "tex": "B\\in\\mathbb{R}^{|E|\\times A}"
+      },
+      {
+        "line": 294,
+        "display": false,
+        "safe": true,
+        "tex": "a"
+      },
+      {
+        "line": 294,
+        "display": false,
+        "safe": true,
+        "tex": "+1"
+      },
+      {
+        "line": 294,
+        "display": false,
+        "safe": true,
+        "tex": "b"
+      },
+      {
+        "line": 294,
+        "display": false,
+        "safe": true,
+        "tex": "-1"
+      },
+      {
+        "line": 294,
+        "display": false,
+        "safe": true,
+        "tex": "A=|\\mathcal{A}|"
+      },
+      {
+        "line": 298,
+        "display": true,
+        "tex": "U_o=\\underset{\\mathbf{1}^{\\top}U=0}{\\operatorname{argmin}}\n\\;\\frac12\\lVert BU-m_o\\rVert_2^2."
+      },
+      {
+        "line": 303,
+        "display": false,
+        "safe": true,
+        "tex": "L=B^{\\top}B"
+      },
+      {
+        "line": 303,
+        "display": false,
+        "safe": true,
+        "tex": "\\operatorname{null}(L)=\\operatorname{span}(\\mathbf{1})"
+      },
+      {
+        "line": 305,
+        "display": true,
+        "tex": "U_o=Dm_o,\n\\qquad\nD=\\left(L+\\frac{\\mathbf{1}\\mathbf{1}^{\\top}}{A}\\right)^{-1}B^{\\top}."
+      },
+      {
+        "line": 311,
+        "display": false,
+        "safe": true,
+        "tex": "D"
+      },
+      {
+        "line": 313,
+        "display": true,
+        "tex": "U_{ao}=\\frac1A\\sum_{b\\in\\mathcal{A}}m_{ab,o}."
+      },
+      {
+        "line": 317,
+        "display": false,
+        "safe": true,
+        "tex": "m_o^{\\mathrm{sep}}=B\\ell_o"
+      },
+      {
+        "line": 317,
+        "display": false,
+        "safe": true,
+        "tex": "U_o=\\ell_o-\\overline{\\ell}_o\\mathbf{1}"
+      },
+      {
+        "line": 317,
+        "display": false,
+        "safe": true,
+        "tex": "\\ell_o"
+      },
+      {
+        "line": 319,
+        "display": false,
+        "safe": true,
+        "tex": "\\min(8,A-1)"
+      },
+      {
+        "line": 321,
+        "display": false,
+        "safe": true,
+        "tex": "O(ON A^2)"
+      },
+      {
+        "line": 321,
+        "display": false,
+        "safe": true,
+        "tex": "O(ON|E|)"
+      },
+      {
+        "line": 321,
+        "display": false,
+        "safe": true,
+        "tex": "|E|\\leq 8A+A-1"
+      },
+      {
+        "line": 321,
+        "display": false,
+        "safe": true,
+        "tex": "A"
+      },
+      {
+        "line": 325,
+        "display": true,
+        "tex": "\\begin{aligned}\nS_o(x)&=\\kappa g^{\\top}e_o^o\n+(g^{\\top}B_o)\\bigl((e_o^o)^{\\top}C_o\\bigr)^{\\top},\\\\[4pt]\np(o\\mid x)&=\\operatorname{softmax}_o S_o(x),\\\\[4pt]\np(a\\mid o,x)&=\\operatorname{softmax}_a U_{ao}(x),\\\\[4pt]\np(a,o\\mid x)&=p(o\\mid x)p(a\\mid o,x).\n\\end{aligned}"
+      },
+      {
+        "line": 335,
+        "display": false,
+        "safe": true,
+        "tex": "\\mathcal{C}_{\\mathrm{tr}}"
+      },
+      {
+        "line": 335,
+        "display": false,
+        "safe": true,
+        "tex": "s=\\log p(a,o\\mid x)"
+      },
+      {
+        "line": 335,
+        "display": false,
+        "safe": true,
+        "tex": "y=(a,o)"
+      },
+      {
+        "line": 337,
+        "display": true,
+        "tex": "\\begin{aligned}\n\\mathcal{L}_{\\mathrm{pair}}\n&=\\mathbb{E}\\!\\left[-s(x,y)+\\log\\sum_{c\\in\\mathcal{C}_{\\mathrm{tr}}}e^{s(x,c)}\\right],\\\\[4pt]\n\\mathcal{L}_{\\mathrm{support}}\n&=-\\mathbb{E}\\log\\sum_{c\\in\\mathcal{C}_{\\mathrm{tr}}}e^{s(x,c)},\\\\[4pt]\n\\mathcal{L}\n&=1.5\\,\\mathcal{L}_{\\mathrm{pair}}\n+\\frac{9}{86}\\,\\mathcal{L}_{\\mathrm{support}}.\n\\end{aligned}"
+      },
+      {
+        "line": 349,
+        "display": false,
+        "safe": true,
+        "tex": "\\beta=0.075"
+      },
+      {
+        "line": 355,
+        "display": false,
+        "safe": true,
+        "tex": "U_{ao}=R(g,a,o)"
+      },
+      {
+        "line": 356,
+        "display": false,
+        "safe": true,
+        "tex": "\\ell_{ao}"
+      },
+      {
+        "line": 357,
+        "display": false,
+        "safe": true,
+        "tex": "\\delta\\to m\\to U"
+      },
+      {
+        "line": 363,
+        "display": false,
+        "safe": true,
+        "tex": "5\\times10^{-5}"
+      },
+      {
+        "line": 363,
+        "display": false,
+        "safe": true,
+        "tex": "10^{-3}"
+      },
+      {
+        "line": 363,
+        "display": false,
+        "safe": true,
+        "tex": "3\\times10^{-4}"
+      },
+      {
+        "line": 363,
+        "display": false,
+        "safe": true,
+        "tex": "10^{-4}"
+      },
+      {
+        "line": 363,
+        "display": false,
+        "safe": true,
+        "tex": "\\rho=0.15"
+      },
+      {
+        "line": 363,
+        "display": false,
+        "safe": true,
+        "tex": "\\beta=0.075"
+      },
+      {
+        "line": 372,
+        "display": false,
+        "safe": true,
+        "tex": "w"
+      },
+      {
+        "line": 379,
+        "display": false,
+        "safe": true,
+        "tex": "\\delta\\to m\\to Dm"
+      },
+      {
+        "line": 380,
+        "display": false,
+        "safe": true,
+        "tex": "D"
+      },
+      {
+        "line": 380,
+        "display": false,
+        "safe": true,
+        "tex": "[B,O,A,A,N]"
+      }
+    ],
+    "rendered": [
+      {
+        "display": false,
+        "tex": "$o$"
+      },
+      {
+        "display": false,
+        "tex": "$a_1,a_2$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\begin{aligned}\ns(x,a,o)&=\\log p(o\\mid x)+U(x,a,o)-\\log\\sum_{a'}\\exp U(x,a',o),\\\\[4pt]\ns(x,a_1,o)-s(x,a_2,o)&=U(x,a_1,o)-U(x,a_2,o).\n\\end{aligned}$$"
+      },
+      {
+        "display": false,
+        "tex": "$g\\in\\mathbb{R}^{d}$"
+      },
+      {
+        "display": false,
+        "tex": "$p_n\\in\\mathbb{R}^{d}$"
+      },
+      {
+        "display": false,
+        "tex": "$N=256$"
+      },
+      {
+        "display": false,
+        "tex": "$d=768$"
+      },
+      {
+        "display": false,
+        "tex": "$e_a^a,e_o^o,e_{ao}^c\\in\\mathbb{R}^{d}$"
+      },
+      {
+        "display": false,
+        "tex": "$v$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\begin{aligned}\nu_a&=A_u e_a^a,\\qquad v_o=A_v e_o^o,\\\\[4pt]\nR(v,a,o)\n&=\\kappa v^{\\top}e_{ao}^c\n+(v^{\\top}B_c)\\bigl((e_{ao}^c)^{\\top}C_c\\bigr)^{\\top}\n+\\rho\\kappa v^{\\top}W_c(u_a\\odot v_o).\n\\end{aligned}$$"
+      },
+      {
+        "display": false,
+        "tex": "$A_u,A_v\\in\\mathbb{R}^{r\\times d}$"
+      },
+      {
+        "display": false,
+        "tex": "$B_c,C_c\\in\\mathbb{R}^{d\\times q}$"
+      },
+      {
+        "display": false,
+        "tex": "$W_c\\in\\mathbb{R}^{d\\times r}$"
+      },
+      {
+        "display": false,
+        "tex": "$r=32$"
+      },
+      {
+        "display": false,
+        "tex": "$q=8$"
+      },
+      {
+        "display": false,
+        "tex": "$\\kappa=20$"
+      },
+      {
+        "display": false,
+        "tex": "$\\rho=0.15$"
+      },
+      {
+        "display": false,
+        "tex": "$r_{nao}=R(p_n,a,o)$"
+      },
+      {
+        "display": true,
+        "tex": "$$w_{no}=\\frac{\\exp\\!\\left(\\kappa p_n^{\\top}e_o^o\\right)}\n{\\sum_{k=1}^{N}\\exp\\!\\left(\\kappa p_k^{\\top}e_o^o\\right)},\n\\qquad \\sum_n w_{no}=1.$$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\ell_{ao}(x)=\\log\\sum_n w_{no}\\exp(r_{nao}),\n\\qquad m^{\\mathrm{sep}}_{ab,o}=\\ell_{ao}-\\ell_{bo}.$$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\delta_{n,ab,o}=r_{nao}-r_{nbo}.$$"
+      },
+      {
+        "display": false,
+        "tex": "$n$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\begin{aligned}\nZ^+_{ab,o}&=\\sum_n w_{no}\\exp\\!\\left(\\frac{\\delta_{n,ab,o}}{2}\\right),\\\\[4pt]\nZ^-_{ab,o}&=\\sum_n w_{no}\\exp\\!\\left(-\\frac{\\delta_{n,ab,o}}{2}\\right),\\\\[4pt]\nq(+\\mid x,a,b,o)&=\\frac{Z^+_{ab,o}}{Z^+_{ab,o}+Z^-_{ab,o}},\\\\[4pt]\nm_{ab,o}&=\\log\\frac{q(+\\mid x,a,b,o)}{1-q(+\\mid x,a,b,o)}\n=\\log Z^+_{ab,o}-\\log Z^-_{ab,o}.\n\\end{aligned}$$"
+      },
+      {
+        "display": false,
+        "tex": "$q$"
+      },
+      {
+        "display": false,
+        "tex": "$1/2$"
+      },
+      {
+        "display": false,
+        "tex": "$m_{ba,o}=-m_{ab,o}$"
+      },
+      {
+        "display": false,
+        "tex": "$m_{aa,o}=0$"
+      },
+      {
+        "display": false,
+        "tex": "$w_{no}$"
+      },
+      {
+        "display": false,
+        "tex": "$h_{no}(x)$"
+      },
+      {
+        "display": true,
+        "tex": "$$r'_{nao}=r_{nao}+h_{no}(x)\n\\quad\\Longrightarrow\\quad\n\\delta'_{n,ab,o}=\\delta_{n,ab,o}\n\\quad\\Longrightarrow\\quad\nm'_{ab,o}=m_{ab,o}.$$"
+      },
+      {
+        "display": false,
+        "tex": "$w$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\pi^{\\pm}_{n,ab,o}\n=\\frac{w_{no}\\exp(\\pm\\delta_{n,ab,o}/2)}{Z^{\\pm}_{ab,o}},\n\\qquad\n\\left.\\frac{\\partial m_{ab,o}}{\\partial\\delta_{n,ab,o}}\\right|_{w}\n=\\frac{\\pi^+_{n,ab,o}+\\pi^-_{n,ab,o}}{2}.$$"
+      },
+      {
+        "display": false,
+        "tex": "$w$"
+      },
+      {
+        "display": false,
+        "tex": "$r$"
+      },
+      {
+        "display": false,
+        "tex": "$t\\delta$"
+      },
+      {
+        "display": false,
+        "tex": "$t\\to0$"
+      },
+      {
+        "display": true,
+        "tex": "$$m(t\\delta)=t\\,\\mathbb{E}_{w}[\\delta]\n+\\frac{t^3}{24}\\operatorname{cum}_{3,w}(\\delta)+O(t^5).$$"
+      },
+      {
+        "display": false,
+        "tex": "$b_{ao}$"
+      },
+      {
+        "display": true,
+        "tex": "$$r'_{nao}=r_{nao}+b_{ao}\n\\quad\\Longrightarrow\\quad\nm'_{ab,o}=m_{ab,o}+b_{ao}-b_{bo}.$$"
+      },
+      {
+        "display": false,
+        "tex": "$r_a=(4,0,0)$"
+      },
+      {
+        "display": false,
+        "tex": "$r_b=(0,3,0)$"
+      },
+      {
+        "display": false,
+        "tex": "$h=(0,5,0)$"
+      },
+      {
+        "display": false,
+        "tex": "$a-b$"
+      },
+      {
+        "display": false,
+        "tex": "$m_{ab,o}$"
+      },
+      {
+        "display": false,
+        "tex": "$G=(\\mathcal{A},E)$"
+      },
+      {
+        "display": false,
+        "tex": "$(a,b)$"
+      },
+      {
+        "display": false,
+        "tex": "$B\\in\\mathbb{R}^{|E|\\times A}$"
+      },
+      {
+        "display": false,
+        "tex": "$a$"
+      },
+      {
+        "display": false,
+        "tex": "$+1$"
+      },
+      {
+        "display": false,
+        "tex": "$b$"
+      },
+      {
+        "display": false,
+        "tex": "$-1$"
+      },
+      {
+        "display": false,
+        "tex": "$A=|\\mathcal{A}|$"
+      },
+      {
+        "display": true,
+        "tex": "$$U_o=\\underset{\\mathbf{1}^{\\top}U=0}{\\operatorname{argmin}}\n\\;\\frac12\\lVert BU-m_o\\rVert_2^2.$$"
+      },
+      {
+        "display": false,
+        "tex": "$L=B^{\\top}B$"
+      },
+      {
+        "display": false,
+        "tex": "$\\operatorname{null}(L)=\\operatorname{span}(\\mathbf{1})$"
+      },
+      {
+        "display": true,
+        "tex": "$$U_o=Dm_o,\n\\qquad\nD=\\left(L+\\frac{\\mathbf{1}\\mathbf{1}^{\\top}}{A}\\right)^{-1}B^{\\top}.$$"
+      },
+      {
+        "display": false,
+        "tex": "$D$"
+      },
+      {
+        "display": true,
+        "tex": "$$U_{ao}=\\frac1A\\sum_{b\\in\\mathcal{A}}m_{ab,o}.$$"
+      },
+      {
+        "display": false,
+        "tex": "$m_o^{\\mathrm{sep}}=B\\ell_o$"
+      },
+      {
+        "display": false,
+        "tex": "$U_o=\\ell_o-\\overline{\\ell}_o\\mathbf{1}$"
+      },
+      {
+        "display": false,
+        "tex": "$\\ell_o$"
+      },
+      {
+        "display": false,
+        "tex": "$\\min(8,A-1)$"
+      },
+      {
+        "display": false,
+        "tex": "$O(ON A^2)$"
+      },
+      {
+        "display": false,
+        "tex": "$O(ON|E|)$"
+      },
+      {
+        "display": false,
+        "tex": "$|E|\\leq 8A+A-1$"
+      },
+      {
+        "display": false,
+        "tex": "$A$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\begin{aligned}\nS_o(x)&=\\kappa g^{\\top}e_o^o\n+(g^{\\top}B_o)\\bigl((e_o^o)^{\\top}C_o\\bigr)^{\\top},\\\\[4pt]\np(o\\mid x)&=\\operatorname{softmax}_o S_o(x),\\\\[4pt]\np(a\\mid o,x)&=\\operatorname{softmax}_a U_{ao}(x),\\\\[4pt]\np(a,o\\mid x)&=p(o\\mid x)p(a\\mid o,x).\n\\end{aligned}$$"
+      },
+      {
+        "display": false,
+        "tex": "$\\mathcal{C}_{\\mathrm{tr}}$"
+      },
+      {
+        "display": false,
+        "tex": "$s=\\log p(a,o\\mid x)$"
+      },
+      {
+        "display": false,
+        "tex": "$y=(a,o)$"
+      },
+      {
+        "display": true,
+        "tex": "$$\\begin{aligned}\n\\mathcal{L}_{\\mathrm{pair}}\n&=\\mathbb{E}\\!\\left[-s(x,y)+\\log\\sum_{c\\in\\mathcal{C}_{\\mathrm{tr}}}e^{s(x,c)}\\right],\\\\[4pt]\n\\mathcal{L}_{\\mathrm{support}}\n&=-\\mathbb{E}\\log\\sum_{c\\in\\mathcal{C}_{\\mathrm{tr}}}e^{s(x,c)},\\\\[4pt]\n\\mathcal{L}\n&=1.5\\,\\mathcal{L}_{\\mathrm{pair}}\n+\\frac{9}{86}\\,\\mathcal{L}_{\\mathrm{support}}.\n\\end{aligned}$$"
+      },
+      {
+        "display": false,
+        "tex": "$\\beta=0.075$"
+      },
+      {
+        "display": false,
+        "tex": "$U_{ao}=R(g,a,o)$"
+      },
+      {
+        "display": false,
+        "tex": "$\\ell_{ao}$"
+      },
+      {
+        "display": false,
+        "tex": "$\\delta\\to m\\to U$"
+      },
+      {
+        "display": false,
+        "tex": "$5\\times10^{-5}$"
+      },
+      {
+        "display": false,
+        "tex": "$10^{-3}$"
+      },
+      {
+        "display": false,
+        "tex": "$3\\times10^{-4}$"
+      },
+      {
+        "display": false,
+        "tex": "$10^{-4}$"
+      },
+      {
+        "display": false,
+        "tex": "$\\rho=0.15$"
+      },
+      {
+        "display": false,
+        "tex": "$\\beta=0.075$"
+      },
+      {
+        "display": false,
+        "tex": "$w$"
+      },
+      {
+        "display": false,
+        "tex": "$\\delta\\to m\\to Dm$"
+      },
+      {
+        "display": false,
+        "tex": "$D$"
+      },
+      {
+        "display": false,
+        "tex": "$[B,O,A,A,N]$"
+      }
+    ]
+  }
+]

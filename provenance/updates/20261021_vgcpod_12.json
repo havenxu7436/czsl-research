@@ -1,0 +1,51 @@
+{
+  "date": "2026-10-21",
+  "line": "VG-CPOD方案",
+  "number": "12",
+  "version": "v1",
+  "title": "动态读出学习率分组与更新尺度对照",
+  "imported_from": "K release ZIP and downloaded K server export",
+  "new_runs": [
+    {
+      "case": "K1",
+      "seed": 3351
+    },
+    {
+      "case": "K1",
+      "seed": 3352
+    },
+    {
+      "case": "K1",
+      "seed": 3353
+    },
+    {
+      "case": "K2",
+      "seed": 3351
+    },
+    {
+      "case": "K2",
+      "seed": 3352
+    },
+    {
+      "case": "K2",
+      "seed": 3353
+    }
+  ],
+  "reference_stages": [
+    "02",
+    "04",
+    "05",
+    "06",
+    "07",
+    "08",
+    "09",
+    "10",
+    "11"
+  ],
+  "formula_revision": "Forward and loss preserved from J1; AdamW groups: alpha_d=m_d*alpha_CP, m_d=.3/.1; diagnostics reconstruct actual adaptive update",
+  "trainable_parameters": 147456,
+  "added_parameters": 0,
+  "planned_only": [
+    "Trainable CLIP local discriminant evidence; R0/R1/R2 formal comparison; no training code implemented"
+  ]
+}

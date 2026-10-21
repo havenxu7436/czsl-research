@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>VG-CPOD v1 K组实验实施方案</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+  <link href="data:text/css;charset=utf-8,html%20%7B%20color%3A%20%23203043%3B%20background%3A%20%23f3f6fa%3B%20%7D%0Abody%20%7B%20max%2Dwidth%3A%201240px%3B%20margin%3A%2036px%20auto%3B%20padding%3A%2042px%2052px%3B%20background%3A%20%23fff%3B%20border%3A%201px%20solid%20%23e0e6ef%3B%20border%2Dradius%3A%2012px%3B%20font%3A%2016px%2F1%2E85%20%27Microsoft%20YaHei%27%2C%20%27Noto%20Sans%20CJK%20SC%27%2C%20sans%2Dserif%3B%20%7D%0Ah1%20%7B%20font%2Dsize%3A%202em%3B%20line%2Dheight%3A%201%2E35%3B%20color%3A%20%23173b58%3B%20%7D%0Ah2%20%7B%20margin%2Dtop%3A%202%2E3em%3B%20border%2Dbottom%3A%202px%20solid%20%23e5edf4%3B%20padding%2Dbottom%3A%20%2E3em%3B%20color%3A%20%23173b58%3B%20%7D%0Ah3%20%7B%20margin%2Dtop%3A%201%2E7em%3B%20color%3A%20%23245c78%3B%20%7D%0Ap%2C%20ul%2C%20ol%20%7B%20margin%3A%201em%200%3B%20%7D%0Atable%20%7B%20display%3A%20table%3B%20border%2Dcollapse%3A%20collapse%3B%20font%2Dsize%3A%2013px%3B%20line%2Dheight%3A%201%2E65%3B%20width%3A%20100%25%20%21important%3B%20margin%3A%201%2E4em%200%3B%20%7D%0Ath%2C%20td%20%7B%20border%3A%201px%20solid%20%23dce4ed%3B%20padding%3A%208px%2010px%3B%20text%2Dalign%3A%20left%3B%20vertical%2Dalign%3A%20top%3B%20%7D%0Ath%20%7B%20background%3A%20%23eaf1f7%3B%20font%2Dweight%3A%20600%3B%20white%2Dspace%3A%20nowrap%3B%20%7D%0Atbody%20tr%3Anth%2Dchild%28even%29%20%7B%20background%3A%20%23f7f9fc%3B%20%7D%0Aimg%20%7B%20max%2Dwidth%3A%20100%25%3B%20height%3A%20auto%3B%20%7D%0Afigure%20%7B%20margin%3A%201%2E5em%200%3B%20%7D%0Afigcaption%20%7B%20color%3A%20%23657185%3B%20font%2Dsize%3A%2013px%3B%20%7D%0Acode%20%7B%20background%3A%20%23edf2f7%3B%20border%2Dradius%3A%203px%3B%20padding%3A%201px%204px%3B%20overflow%2Dwrap%3A%20anywhere%3B%20%7D%0Apre%20%7B%20padding%3A%2015px%3B%20background%3A%20%23edf2f7%3B%20overflow%2Dx%3A%20auto%3B%20%7D%0Aa%20%7B%20color%3A%20%2317658a%3B%20text%2Dunderline%2Doffset%3A%203px%3B%20%7D%0Amath%5Bdisplay%3D%27block%27%5D%20%7B%20margin%3A%201%2E4em%200%3B%20overflow%2Dx%3A%20auto%3B%20%7D%0A%40media%20%28max%2Dwidth%3A%20800px%29%20%7B%20body%20%7B%20padding%3A%2020px%3B%20margin%3A%200%3B%20border%3A%200%3B%20border%2Dradius%3A%200%3B%20%7D%20table%20%7B%20display%3A%20block%3B%20overflow%2Dx%3A%20auto%3B%20font%2Dsize%3A%2012px%3B%20%7D%20%7D%0A" rel="stylesheet">
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="vg-cpod-方案-v1k1k2-动态读出学习率实验">VG-CPOD 方案 v1：K1/K2 动态读出学习率实验</h1>
+<p>日期：2026-10-21。框架：冻结 OpenAI CLIP ViT-L/14。数据：UT-Zappos。版本：v1。</p>
+<p><strong>本轮完成 K1/K2 各三个 seed、每个模型 10 epochs，共 6 次训练；随后完成 12 项 native/exact TRAIN 均值门控评估。</strong> GPU1/2/3 各负责一个 seed，卡内顺序训练 K1→K2。沿用 J1 的静态／动态独立读出，对动态读出 <code>Wd</code> 分别设置 0.3 和 0.1 倍 CP 学习率。</p>
+<h2 id="实验依据与配置">1. 实验依据与配置</h2>
+<p>J1 相对 I2 的三 seed TEST CW AUC 增加 0.448 点，OW 降低 0.328 点。选中 checkpoint 中，动态／静态一阶矩范数比约为 2%–3%，Adam 自适应更新范数比却达到 95%–100%。本轮直接调节 Wd 的更新速度，检验两路学习速度对 CW/OW 和未见组合排序的影响。</p>
+<table>
+<thead>
+<tr class="header">
+<th>实验</th>
+<th>Wd 学习率倍率</th>
+<th>Wd 首步学习率</th>
+<th>Wd 末步学习率</th>
+<th>状态</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>J1</td>
+<td>1</td>
+<td>3e-4</td>
+<td>3e-6</td>
+<td>复用已完成结果</td>
+</tr>
+<tr class="even">
+<td>K1</td>
+<td>0.3</td>
+<td>9e-5</td>
+<td>9e-7</td>
+<td>本轮训练</td>
+</tr>
+<tr class="odd">
+<td>K2</td>
+<td>0.1</td>
+<td>3e-5</td>
+<td>3e-7</td>
+<td>本轮训练</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr class="header">
+<th>固定项</th>
+<th>设置</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>CLIP／特征</td>
+<td>冻结 OpenAI ViT-L/14，768 维，复用现有图像／文本缓存</td>
+</tr>
+<tr class="even">
+<td>静态／动态读出</td>
+<td>Wc／Wd；共享 Au、Av；separate 模式</td>
+</tr>
+<tr class="odd">
+<td>CP rank／adapter rank</td>
+<td>32／8</td>
+</tr>
+<tr class="even">
+<td>κ／ρ／β</td>
+<td>20／0.15／0.075</td>
+</tr>
+<tr class="odd">
+<td>gate_input／τγ／η</td>
+<td>train_residual／0.56／0.25</td>
+</tr>
+<tr class="even">
+<td>模式中心化／τv</td>
+<td>开启／0.07</td>
+</tr>
+<tr class="odd">
+<td>epochs／batch／eval batch／workers</td>
+<td>10／64／64／4</td>
+</tr>
+<tr class="even">
+<td>adapter 学习率</td>
+<td>1e-3 → 1e-5</td>
+</tr>
+<tr class="odd">
+<td>Au、Av、Bvis、Wc 学习率</td>
+<td>3e-4 → 3e-6</td>
+</tr>
+<tr class="even">
+<td>Adam β1／β2／ε</td>
+<td>0.9／0.999／1e-8</td>
+</tr>
+<tr class="odd">
+<td>λorth／weight decay／gradient clip</td>
+<td>0.001／1e-4／1</td>
+</tr>
+<tr class="even">
+<td>初始化</td>
+<td>对应 seed 原始初始化，Wc 和 Wd 均为零</td>
+</tr>
+<tr class="odd">
+<td>可训练参数</td>
+<td>147,456</td>
+</tr>
+<tr class="even">
+<td>seeds</td>
+<td>3351、3352、3353</td>
+</tr>
+<tr class="odd">
+<td>主要选权重依据</td>
+<td>VAL CW native AUC 首次严格达到最大值的 epoch</td>
+</tr>
+<tr class="even">
+<td>并列评估</td>
+<td>独立保存 VAL CW exact AUC 选中的权重及预测</td>
+</tr>
+</tbody>
+</table>
+<h2 id="公式与实现">2. 公式与实现</h2>
+<h3 id="固定-train-均值与残差门控">2.1 固定 TRAIN 均值与残差门控</h3>
+<p>令 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>g</mi><mi>b</mi></msub><mo>∈</mo><msup><mstyle mathvariant="double-struck"><mi>ℝ</mi></mstyle><mn>768</mn></msup></mrow><annotation encoding="application/x-tex">g_b\in\mathbb{R}^{768}</annotation></semantics></math> 为图像全局特征，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>f</mi><mrow><mi>b</mi><mi>j</mi></mrow><mi>o</mi></msubsup><annotation encoding="application/x-tex">f^o_{bj}</annotation></semantics></math> 为物体查询特征，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>=</mo><mn>32</mn></mrow><annotation encoding="application/x-tex">R=32</annotation></semantics></math>，TRAIN 图像数 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>=</mo><mn>22998</mn></mrow><annotation encoding="application/x-tex">N=22998</annotation></semantics></math>：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right"><msub><mi>μ</mi><mi>j</mi></msub></mtd><mtd columnalign="left"><mo>=</mo><mfrac><mn>1</mn><mi>N</mi></mfrac><munder><mo>∑</mo><mrow><mi>b</mi><mo>∈</mo><mstyle mathvariant="normal"><mi>T</mi><mi>R</mi><mi>A</mi><mi>I</mi><mi>N</mi></mstyle></mrow></munder><msubsup><mi>f</mi><mrow><mi>b</mi><mi>j</mi></mrow><mi>o</mi></msubsup><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><msub><mi>r</mi><mrow><mi>b</mi><mi>j</mi></mrow></msub></mtd><mtd columnalign="left"><mo>=</mo><msubsup><mi>f</mi><mrow><mi>b</mi><mi>j</mi></mrow><mi>o</mi></msubsup><mo>−</mo><msub><mi>μ</mi><mi>j</mi></msub><mo>,</mo><mspace width="2.0em"></mspace><msub><mover><mi>r</mi><mo accent="true">ˆ</mo></mover><mrow><mi>b</mi><mi>j</mi></mrow></msub><mo>=</mo><mfrac><msub><mi>r</mi><mrow><mi>b</mi><mi>j</mi></mrow></msub><mrow><mo>max</mo><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="prefix">∥</mo><msub><mi>r</mi><mrow><mi>b</mi><mi>j</mi></mrow></msub><msub><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msub><mo>,</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>12</mn></mrow></msup><mo stretchy="false" form="postfix">)</mo></mrow></mfrac><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">
+\begin{aligned}
+\mu_j&amp;=\frac{1}{N}\sum_{b\in\mathrm{TRAIN}}f^o_{bj},\\
+r_{bj}&amp;=f^o_{bj}-\mu_j,\qquad
+\widehat r_{bj}=\frac{r_{bj}}{\max(\lVert r_{bj}\rVert_2,10^{-12})}.
+\end{aligned}
+</annotation></semantics></math></p>
+<p><code>round_k.py</code> 从 J 组逐字复制与当前缓存一致的均值文件。首次生成采用 TRAIN 特征 float64 分块累计，随后转成 float32 buffer <code>gate_fo_mean</code>，随 checkpoint 保存。所有 seed 共用同一均值。</p>
+<p>设 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>B</mi><mstyle mathvariant="normal"><mi>v</mi><mi>i</mi><mi>s</mi></mstyle></msub><mo>∈</mo><msup><mstyle mathvariant="double-struck"><mi>ℝ</mi></mstyle><mrow><mi>R</mi><mo>×</mo><mn>768</mn></mrow></msup></mrow><annotation encoding="application/x-tex">B_{\mathrm{vis}}\in\mathbb{R}^{R\times768}</annotation></semantics></math> 第 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math> 行转置为 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mi>k</mi></msub><annotation encoding="application/x-tex">b_k</annotation></semantics></math>，门控为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right"><msub><mi>q</mi><mrow><mi>b</mi><mi>j</mi><mi>k</mi></mrow></msub></mtd><mtd columnalign="left"><mo>=</mo><mn>2</mn><mi>σ</mi><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mrow><msubsup><mi>b</mi><mi>k</mi><mi>⊤</mi></msubsup><msub><mover><mi>r</mi><mo accent="true">ˆ</mo></mover><mrow><mi>b</mi><mi>j</mi></mrow></msub></mrow><mn>0.56</mn></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mn>1</mn><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><msub><mi>h</mi><mrow><mi>b</mi><mi>j</mi><mi>k</mi></mrow></msub></mtd><mtd columnalign="left"><mo>=</mo><mfrac><mn>0.25</mn><mn>2</mn></mfrac><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>q</mi><mrow><mi>b</mi><mi>j</mi><mi>k</mi></mrow></msub><mo>−</mo><mfrac><mn>1</mn><mi>R</mi></mfrac><munderover><mo>∑</mo><mrow><mi>ℓ</mi><mo>=</mo><mn>1</mn></mrow><mi>R</mi></munderover><msub><mi>q</mi><mrow><mi>b</mi><mi>j</mi><mi>ℓ</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><msub><mi>γ</mi><mrow><mi>b</mi><mi>j</mi><mi>k</mi></mrow></msub></mtd><mtd columnalign="left"><mo>=</mo><mn>1</mn><mo>+</mo><msub><mi>h</mi><mrow><mi>b</mi><mi>j</mi><mi>k</mi></mrow></msub><mo>,</mo><mspace width="2.0em"></mspace><mfrac><mn>1</mn><mi>R</mi></mfrac><munder><mo>∑</mo><mi>k</mi></munder><msub><mi>γ</mi><mrow><mi>b</mi><mi>j</mi><mi>k</mi></mrow></msub><mo>=</mo><mn>1</mn><mo>,</mo><mspace width="1.0em"></mspace><mn>0.75</mn><mo>≤</mo><msub><mi>γ</mi><mrow><mi>b</mi><mi>j</mi><mi>k</mi></mrow></msub><mo>≤</mo><mn>1.25</mn><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">
+\begin{aligned}
+q_{bjk}&amp;=2\sigma\!\left(\frac{b_k^\top\widehat r_{bj}}{0.56}\right)-1,\\
+h_{bjk}&amp;=\frac{0.25}{2}\left(q_{bjk}-\frac{1}{R}\sum_{\ell=1}^{R}q_{bj\ell}\right),\\
+\gamma_{bjk}&amp;=1+h_{bjk},\qquad
+\frac{1}{R}\sum_k\gamma_{bjk}=1,\quad 0.75\le\gamma_{bjk}\le1.25.
+\end{aligned}
+</annotation></semantics></math></p>
+<h3 id="静态与动态独立读出">2.2 静态与动态独立读出</h3>
+<p>设 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>A</mi><mi>u</mi></msub><mo>,</mo><msub><mi>A</mi><mi>v</mi></msub><mo>∈</mo><msup><mstyle mathvariant="double-struck"><mi>ℝ</mi></mstyle><mrow><mi>R</mi><mo>×</mo><mn>768</mn></mrow></msup></mrow><annotation encoding="application/x-tex">A_u,A_v\in\mathbb{R}^{R\times768}</annotation></semantics></math>，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>W</mi><mi>s</mi></msub><mo>,</mo><msub><mi>W</mi><mi>d</mi></msub><mo>∈</mo><msup><mstyle mathvariant="double-struck"><mi>ℝ</mi></mstyle><mrow><mn>768</mn><mo>×</mo><mi>R</mi></mrow></msup></mrow><annotation encoding="application/x-tex">W_s,W_d\in\mathbb{R}^{768\times R}</annotation></semantics></math>。代码中 <code>Wc</code> 对应 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>W</mi><mi>s</mi></msub><annotation encoding="application/x-tex">W_s</annotation></semantics></math>，<code>Wd</code> 对应 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>W</mi><mi>d</mi></msub><annotation encoding="application/x-tex">W_d</annotation></semantics></math>：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right"><msub><mi>u</mi><mi>i</mi></msub></mtd><mtd columnalign="left"><mo>=</mo><msub><mi>A</mi><mi>u</mi></msub><msubsup><mi>e</mi><mi>i</mi><mi>a</mi></msubsup><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>v</mi><mi>j</mi></msub><mo>=</mo><msub><mi>A</mi><mi>v</mi></msub><msubsup><mi>e</mi><mi>j</mi><mi>o</mi></msubsup><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>a</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><msub><mi>u</mi><mi>i</mi></msub><mo>⊙</mo><msub><mi>v</mi><mi>j</mi></msub><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><mi>Δ</mi><msubsup><mi>U</mi><mrow><mi>b</mi><mi>j</mi><mi>i</mi></mrow><mi>s</mi></msubsup></mtd><mtd columnalign="left"><mo>=</mo><mi>ρ</mi><mi>κ</mi><msubsup><mi>g</mi><mi>b</mi><mi>⊤</mi></msubsup><msub><mi>W</mi><mi>s</mi></msub><msub><mi>a</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><mi>Δ</mi><msubsup><mi>U</mi><mrow><mi>b</mi><mi>j</mi><mi>i</mi></mrow><mi>d</mi></msubsup></mtd><mtd columnalign="left"><mo>=</mo><mi>ρ</mi><mi>κ</mi><msubsup><mi>g</mi><mi>b</mi><mi>⊤</mi></msubsup><msub><mi>W</mi><mi>d</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>a</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>⊙</mo><msub><mi>h</mi><mrow><mi>b</mi><mi>j</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><msub><mi>U</mi><mrow><mi>b</mi><mi>j</mi><mi>i</mi></mrow></msub></mtd><mtd columnalign="left"><mo>=</mo><msubsup><mi>U</mi><mrow><mi>b</mi><mi>j</mi><mi>i</mi></mrow><mstyle mathvariant="normal"><mi>b</mi><mi>a</mi><mi>s</mi><mi>e</mi></mstyle></msubsup><mo>+</mo><mi>Δ</mi><msubsup><mi>U</mi><mrow><mi>b</mi><mi>j</mi><mi>i</mi></mrow><mi>s</mi></msubsup><mo>+</mo><mi>Δ</mi><msubsup><mi>U</mi><mrow><mi>b</mi><mi>j</mi><mi>i</mi></mrow><mi>d</mi></msubsup><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">
+\begin{aligned}
+u_i&amp;=A_ue_i^a,\qquad v_j=A_ve_j^o,\qquad a_{ij}=u_i\odot v_j,\\
+\Delta U^s_{bji}&amp;=\rho\kappa g_b^\top W_s a_{ij},\\
+\Delta U^d_{bji}&amp;=\rho\kappa g_b^\top W_d(a_{ij}\odot h_{bj}),\\
+U_{bji}&amp;=U^{\mathrm{base}}_{bji}+\Delta U^s_{bji}+\Delta U^d_{bji}.
+\end{aligned}
+</annotation></semantics></math></p>
+<p>两组与 J1 使用相同的前向公式。类别算子及单个分数对读出的梯度为：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right"><msub><mi>M</mi><mrow><mi>b</mi><mi>j</mi></mrow></msub></mtd><mtd columnalign="left"><mo>=</mo><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>W</mi><mi>s</mi></msub><mo>diag</mo><mo stretchy="false" form="prefix">(</mo><msub><mi>v</mi><mi>j</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>W</mi><mi>d</mi></msub><mo>diag</mo><mo stretchy="false" form="prefix">(</mo><msub><mi>v</mi><mi>j</mi></msub><mo>⊙</mo><msub><mi>h</mi><mrow><mi>b</mi><mi>j</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="true" form="postfix">]</mo></mrow><msub><mi>A</mi><mi>u</mi></msub><mo>,</mo><mspace width="2.0em"></mspace><mo>rank</mo><mo stretchy="false" form="prefix">(</mo><msub><mi>M</mi><mrow><mi>b</mi><mi>j</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo><mo>≤</mo><mi>R</mi><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><msub><mi>∇</mi><msub><mi>W</mi><mi>s</mi></msub></msub><mi>Δ</mi><msub><mi>U</mi><mrow><mi>b</mi><mi>j</mi><mi>i</mi></mrow></msub></mtd><mtd columnalign="left"><mo>=</mo><mi>ρ</mi><mi>κ</mi><msub><mi>g</mi><mi>b</mi></msub><msubsup><mi>a</mi><mrow><mi>i</mi><mi>j</mi></mrow><mi>⊤</mi></msubsup><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><msub><mi>∇</mi><msub><mi>W</mi><mi>d</mi></msub></msub><mi>Δ</mi><msub><mi>U</mi><mrow><mi>b</mi><mi>j</mi><mi>i</mi></mrow></msub></mtd><mtd columnalign="left"><mo>=</mo><mi>ρ</mi><mi>κ</mi><msub><mi>g</mi><mi>b</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>a</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>⊙</mo><msub><mi>h</mi><mrow><mi>b</mi><mi>j</mi></mrow></msub><msup><mo stretchy="false" form="postfix">)</mo><mi>⊤</mi></msup><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">
+\begin{aligned}
+M_{bj}&amp;=\left[W_s\operatorname{diag}(v_j)
++W_d\operatorname{diag}(v_j\odot h_{bj})\right]A_u,
+\qquad\operatorname{rank}(M_{bj})\le R,\\
+\nabla_{W_s}\Delta U_{bji}&amp;=\rho\kappa g_ba_{ij}^{\top},\\
+\nabla_{W_d}\Delta U_{bji}&amp;=\rho\kappa g_b(a_{ij}\odot h_{bj})^{\top}.
+\end{aligned}
+</annotation></semantics></math></p>
+<p>两路共享 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>A</mi><mi>u</mi></msub><annotation encoding="application/x-tex">A_u</annotation></semantics></math>，算子秩上界为 32。首步任务梯度进入两个读出矩阵，后续经非零读出传播到属性／物体因子及门控。K1/K2 改变 Wd 的优化器学习率，梯度公式由上述前向直接计算。</p>
+<h3 id="联合概率与损失">2.3 联合概率与损失</h3>
+<p>沿用 CLIP 特征上的物体分支 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>S</mi><mi>b</mi></msub><annotation encoding="application/x-tex">S_b</annotation></semantics></math> 和组合适配器基底 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>U</mi><mstyle mathvariant="normal"><mi>b</mi><mi>a</mi><mi>s</mi><mi>e</mi></mstyle></msup><annotation encoding="application/x-tex">U^{\mathrm{base}}</annotation></semantics></math>：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mrow><mi>b</mi><mi>j</mi><mi>i</mi></mrow></msub><mo>=</mo><mo>log</mo><mo>softmax</mo><mo stretchy="false" form="prefix">(</mo><msub><mi>S</mi><mi>b</mi></msub><msub><mo stretchy="false" form="postfix">)</mo><mi>j</mi></msub><mo>+</mo><mo>log</mo><mo>softmax</mo><mo stretchy="false" form="prefix">(</mo><msub><mi>U</mi><mrow><mi>b</mi><mi>j</mi><mo>:</mo></mrow></msub><msub><mo stretchy="false" form="postfix">)</mo><mi>i</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+s_{bji}=\log\operatorname{softmax}(S_b)_j
++\log\operatorname{softmax}(U_{bj:})_i.
+</annotation></semantics></math></p>
+<p>设 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mstyle mathvariant="script"><mi>𝒮</mi></mstyle><annotation encoding="application/x-tex">\mathcal{S}</annotation></semantics></math> 为 TRAIN 组合集合，批量大小为 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math>，样本真实标签为 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>i</mi><mi>b</mi></msub><mo>,</mo><msub><mi>j</mi><mi>b</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(i_b,j_b)</annotation></semantics></math>：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right"><msub><mi>Z</mi><mi>b</mi></msub></mtd><mtd columnalign="left"><mo>=</mo><munder><mo>∑</mo><mrow><mo stretchy="false" form="prefix">(</mo><mi>i</mi><mo>,</mo><mi>j</mi><mo stretchy="false" form="postfix">)</mo><mo>∈</mo><mstyle mathvariant="script"><mi>𝒮</mi></mstyle></mrow></munder><mo>exp</mo><mo stretchy="false" form="prefix">(</mo><msub><mi>s</mi><mrow><mi>b</mi><mi>j</mi><mi>i</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><msub><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mstyle mathvariant="normal"><mi>p</mi><mi>a</mi><mi>i</mi><mi>r</mi></mstyle></msub></mtd><mtd columnalign="left"><mo>=</mo><mfrac><mn>1</mn><mi>B</mi></mfrac><munder><mo>∑</mo><mi>b</mi></munder><mo stretchy="false" form="prefix">[</mo><mo>−</mo><msub><mi>s</mi><mrow><mi>b</mi><msub><mi>j</mi><mi>b</mi></msub><msub><mi>i</mi><mi>b</mi></msub></mrow></msub><mo>+</mo><mo>log</mo><msub><mi>Z</mi><mi>b</mi></msub><mo stretchy="false" form="postfix">]</mo><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><msub><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mstyle mathvariant="normal"><mi>s</mi><mi>u</mi><mi>p</mi><mi>p</mi><mi>o</mi><mi>r</mi><mi>t</mi></mstyle></msub></mtd><mtd columnalign="left"><mo>=</mo><mo>−</mo><mfrac><mn>1</mn><mi>B</mi></mfrac><munder><mo>∑</mo><mi>b</mi></munder><mo>log</mo><msub><mi>Z</mi><mi>b</mi></msub><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><msub><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mi>a</mi></msub><mo>+</mo><msub><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mi>o</mi></msub></mtd><mtd columnalign="left"><mo>=</mo><msub><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mstyle mathvariant="normal"><mi>p</mi><mi>a</mi><mi>i</mi><mi>r</mi></mstyle></msub><mo>+</mo><msub><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mstyle mathvariant="normal"><mi>s</mi><mi>u</mi><mi>p</mi><mi>p</mi><mi>o</mi><mi>r</mi><mi>t</mi></mstyle></msub><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><msub><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mstyle mathvariant="normal"><mi>t</mi><mi>a</mi><mi>s</mi><mi>k</mi></mstyle></msub></mtd><mtd columnalign="left"><mo>=</mo><mfrac><mn>1.5</mn><mrow><mn>1</mn><mo>+</mo><mn>0.075</mn></mrow></mfrac><mrow><mo stretchy="true" form="prefix">[</mo><msub><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mstyle mathvariant="normal"><mi>p</mi><mi>a</mi><mi>i</mi><mi>r</mi></mstyle></msub><mo>+</mo><mn>0.075</mn><mo stretchy="false" form="prefix">(</mo><msub><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mi>a</mi></msub><mo>+</mo><msub><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mi>o</mi></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="true" form="postfix">]</mo></mrow></mtd></mtr><mtr><mtd columnalign="right"></mtd><mtd columnalign="left"><mo>=</mo><mfrac><mn>3</mn><mn>2</mn></mfrac><msub><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mstyle mathvariant="normal"><mi>p</mi><mi>a</mi><mi>i</mi><mi>r</mi></mstyle></msub><mo>+</mo><mfrac><mn>9</mn><mn>86</mn></mfrac><msub><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mstyle mathvariant="normal"><mi>s</mi><mi>u</mi><mi>p</mi><mi>p</mi><mi>o</mi><mi>r</mi><mi>t</mi></mstyle></msub><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><mstyle mathvariant="script"><mi>ℒ</mi></mstyle></mtd><mtd columnalign="left"><mo>=</mo><msub><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mstyle mathvariant="normal"><mi>t</mi><mi>a</mi><mi>s</mi><mi>k</mi></mstyle></msub><mo>+</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>3</mn></mrow></msup><mfrac><mrow><mo stretchy="false" form="prefix">∥</mo><msub><mi>B</mi><mstyle mathvariant="normal"><mi>v</mi><mi>i</mi><mi>s</mi></mstyle></msub><msubsup><mi>B</mi><mstyle mathvariant="normal"><mi>v</mi><mi>i</mi><mi>s</mi></mstyle><mi>⊤</mi></msubsup><mo>−</mo><msub><mi>I</mi><mi>R</mi></msub><msubsup><mo stretchy="false" form="postfix">∥</mo><mi>F</mi><mn>2</mn></msubsup></mrow><msup><mi>R</mi><mn>2</mn></msup></mfrac><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">
+\begin{aligned}
+Z_b&amp;=\sum_{(i,j)\in\mathcal{S}}\exp(s_{bji}),\\
+\mathcal{L}_{\mathrm{pair}}&amp;=\frac{1}{B}\sum_b[-s_{bj_bi_b}+\log Z_b],\\
+\mathcal{L}_{\mathrm{support}}&amp;=-\frac{1}{B}\sum_b\log Z_b,\\
+\mathcal{L}_a+\mathcal{L}_o&amp;=\mathcal{L}_{\mathrm{pair}}+\mathcal{L}_{\mathrm{support}},\\
+\mathcal{L}_{\mathrm{task}}&amp;=\frac{1.5}{1+0.075}
+\left[\mathcal{L}_{\mathrm{pair}}+0.075(\mathcal{L}_a+\mathcal{L}_o)\right]\\
+&amp;=\frac{3}{2}\mathcal{L}_{\mathrm{pair}}+\frac{9}{86}\mathcal{L}_{\mathrm{support}},\\
+\mathcal{L}&amp;=\mathcal{L}_{\mathrm{task}}
++10^{-3}\frac{\lVert B_{\mathrm{vis}}B_{\mathrm{vis}}^{\top}-I_R\rVert_F^2}{R^2}.
+\end{aligned}
+</annotation></semantics></math></p>
+<p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mi>a</mi></msub><annotation encoding="application/x-tex">\mathcal{L}_a</annotation></semantics></math> 为真实物体条件下的属性负对数似然，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mstyle mathvariant="script"><mi>ℒ</mi></mstyle><mi>o</mi></msub><annotation encoding="application/x-tex">\mathcal{L}_o</annotation></semantics></math> 为物体负对数似然。<code>V1</code> 配置开启残差门控；primitive/cent 项为零。</p>
+<h3 id="动态学习率和-adamw-更新">2.4 动态学习率和 AdamW 更新</h3>
+<p>令总更新数 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo>=</mo><mn>10</mn><mo stretchy="false" form="prefix">⌈</mo><mi>N</mi><mi>/</mi><mn>64</mn><mo stretchy="false" form="postfix">⌉</mo><mo>=</mo><mn>3600</mn></mrow><annotation encoding="application/x-tex">T=10\lceil N/64\rceil=3600</annotation></semantics></math>，更新编号 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>T</mi></mrow><annotation encoding="application/x-tex">t=1,\ldots,T</annotation></semantics></math>。代码日程索引为 <code>step=t-1</code>：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right"><msub><mi>α</mi><mi>t</mi></msub></mtd><mtd columnalign="left"><mo>=</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>5</mn></mrow></msup><mo>+</mo><mfrac><mrow><msup><mn>10</mn><mrow><mo>−</mo><mn>3</mn></mrow></msup><mo>−</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>5</mn></mrow></msup></mrow><mn>2</mn></mfrac><mrow><mo stretchy="true" form="prefix">[</mo><mn>1</mn><mo>+</mo><mo>cos</mo><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mrow><mi>π</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo>−</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow><mrow><mi>T</mi><mo>−</mo><mn>1</mn></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><msub><mi>α</mi><mrow><mstyle mathvariant="normal"><mi>a</mi><mi>d</mi><mi>a</mi><mi>p</mi><mi>t</mi><mi>e</mi><mi>r</mi></mstyle><mo>,</mo><mi>t</mi></mrow></msub></mtd><mtd columnalign="left"><mo>=</mo><msub><mi>α</mi><mi>t</mi></msub><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>α</mi><mrow><mstyle mathvariant="normal"><mi>C</mi><mi>P</mi></mstyle><mo>,</mo><mi>t</mi></mrow></msub><mo>=</mo><mn>0.3</mn><msub><mi>α</mi><mi>t</mi></msub><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><msub><mi>α</mi><mrow><mi>s</mi><mo>,</mo><mi>t</mi></mrow></msub></mtd><mtd columnalign="left"><mo>=</mo><msub><mi>α</mi><mrow><mstyle mathvariant="normal"><mi>C</mi><mi>P</mi></mstyle><mo>,</mo><mi>t</mi></mrow></msub><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>α</mi><mrow><mi>d</mi><mo>,</mo><mi>t</mi></mrow></msub><mo>=</mo><msub><mi>m</mi><mi>d</mi></msub><msub><mi>α</mi><mrow><mstyle mathvariant="normal"><mi>C</mi><mi>P</mi></mstyle><mo>,</mo><mi>t</mi></mrow></msub><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>m</mi><mi>d</mi></msub><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>0.3</mn><mo>,</mo><mn>0.1</mn><mo stretchy="false" form="postfix">}</mo><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">
+\begin{aligned}
+\alpha_t&amp;=10^{-5}+\frac{10^{-3}-10^{-5}}{2}
+\left[1+\cos\!\left(\frac{\pi(t-1)}{T-1}\right)\right],\\
+\alpha_{\mathrm{adapter},t}&amp;=\alpha_t,\qquad
+\alpha_{\mathrm{CP},t}=0.3\alpha_t,\\
+\alpha_{s,t}&amp;=\alpha_{\mathrm{CP},t},\qquad
+\alpha_{d,t}=m_d\alpha_{\mathrm{CP},t},\qquad
+m_d\in\{0.3,0.1\}.
+\end{aligned}
+</annotation></semantics></math></p>
+<p><code>make_optimizer</code> 建立三个参数组，每个可训练参数属于一个组：</p>
+<table>
+<thead>
+<tr class="header">
+<th>参数组</th>
+<th>参数</th>
+<th>lr_scale</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>adapter</td>
+<td>Bo、Co、Bc、Cc</td>
+<td>1</td>
+</tr>
+<tr class="even">
+<td>cp</td>
+<td>Au、Av、Bvis、Wc</td>
+<td>0.3</td>
+</tr>
+<tr class="odd">
+<td>dynamic_cp</td>
+<td>Wd</td>
+<td>K1 为 0.09，K2 为 0.03</td>
+</tr>
+</tbody>
+</table>
+<p>对全模型梯度按原实现做全局范数裁剪。设 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mstyle mathvariant="bold"><mi>𝐆</mi></mstyle><mi>t</mi><mstyle mathvariant="normal"><mi>r</mi><mi>a</mi><mi>w</mi></mstyle></msubsup><annotation encoding="application/x-tex">\mathbf{G}_t^{\mathrm{raw}}</annotation></semantics></math> 为所有参数梯度的拼接，参数 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math> 的原始梯度为 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>G</mi><mrow><mi>p</mi><mo>,</mo><mi>t</mi></mrow><mstyle mathvariant="normal"><mi>r</mi><mi>a</mi><mi>w</mi></mstyle></msubsup><annotation encoding="application/x-tex">G_{p,t}^{\mathrm{raw}}</annotation></semantics></math>：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>c</mi><mi>t</mi></msub><mo>=</mo><mo>min</mo><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>,</mo><mfrac><mn>1</mn><mrow><mo stretchy="false" form="prefix">∥</mo><msubsup><mstyle mathvariant="bold"><mi>𝐆</mi></mstyle><mi>t</mi><mstyle mathvariant="normal"><mi>r</mi><mi>a</mi><mi>w</mi></mstyle></msubsup><msub><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msub><mo>+</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>12</mn></mrow></msup></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>G</mi><mrow><mi>p</mi><mo>,</mo><mi>t</mi></mrow></msub><mo>=</mo><msub><mi>c</mi><mi>t</mi></msub><msubsup><mi>G</mi><mrow><mi>p</mi><mo>,</mo><mi>t</mi></mrow><mstyle mathvariant="normal"><mi>r</mi><mi>a</mi><mi>w</mi></mstyle></msubsup><mi>.</mi></mrow><annotation encoding="application/x-tex">
+c_t=\min\!\left(1,\frac{1}{\lVert\mathbf{G}_t^{\mathrm{raw}}\rVert_2+10^{-12}}\right),
+\qquad G_{p,t}=c_tG_{p,t}^{\mathrm{raw}}.
+</annotation></semantics></math></p>
+<p>各参数按所属组的学习率 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mrow><mi>p</mi><mo>,</mo><mi>t</mi></mrow></msub><annotation encoding="application/x-tex">\alpha_{p,t}</annotation></semantics></math> 进行 AdamW 更新。以下矩状态对应同一个参数 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>，初始化 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>m</mi><mn>0</mn></msub><mo>=</mo><msub><mi>v</mi><mn>0</mn></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">m_0=v_0=0</annotation></semantics></math>：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right"><msub><mi>m</mi><mi>t</mi></msub></mtd><mtd columnalign="left"><mo>=</mo><mn>0.9</mn><msub><mi>m</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>+</mo><mn>0.1</mn><msub><mi>G</mi><mrow><mi>p</mi><mo>,</mo><mi>t</mi></mrow></msub><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><msub><mi>v</mi><mi>t</mi></msub></mtd><mtd columnalign="left"><mo>=</mo><mn>0.999</mn><msub><mi>v</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>+</mo><mn>0.001</mn><msubsup><mi>G</mi><mrow><mi>p</mi><mo>,</mo><mi>t</mi></mrow><mrow><mo>⊙</mo><mn>2</mn></mrow></msubsup><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><msub><mover><mi>m</mi><mo accent="true">ˆ</mo></mover><mi>t</mi></msub></mtd><mtd columnalign="left"><mo>=</mo><mfrac><msub><mi>m</mi><mi>t</mi></msub><mrow><mn>1</mn><mo>−</mo><msup><mn>0.9</mn><mi>t</mi></msup></mrow></mfrac><mo>,</mo><mspace width="2.0em"></mspace><msub><mover><mi>v</mi><mo accent="true">ˆ</mo></mover><mi>t</mi></msub><mo>=</mo><mfrac><msub><mi>v</mi><mi>t</mi></msub><mrow><mn>1</mn><mo>−</mo><msup><mn>0.999</mn><mi>t</mi></msup></mrow></mfrac><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><msub><mi>D</mi><mi>t</mi></msub></mtd><mtd columnalign="left"><mo>=</mo><mfrac><msub><mover><mi>m</mi><mo accent="true">ˆ</mo></mover><mi>t</mi></msub><mrow><msqrt><msub><mover><mi>v</mi><mo accent="true">ˆ</mo></mover><mi>t</mi></msub></msqrt><mo>+</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>8</mn></mrow></msup></mrow></mfrac><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><msub><mi>θ</mi><mi>t</mi></msub></mtd><mtd columnalign="left"><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><msub><mi>α</mi><mrow><mi>p</mi><mo>,</mo><mi>t</mi></mrow></msub><msup><mn>10</mn><mrow><mo>−</mo><mn>4</mn></mrow></msup><mo stretchy="false" form="postfix">)</mo><msub><mi>θ</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>−</mo><msub><mi>α</mi><mrow><mi>p</mi><mo>,</mo><mi>t</mi></mrow></msub><msub><mi>D</mi><mi>t</mi></msub><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">
+\begin{aligned}
+m_t&amp;=0.9m_{t-1}+0.1G_{p,t},\\
+v_t&amp;=0.999v_{t-1}+0.001G_{p,t}^{\odot2},\\
+\widehat m_t&amp;=\frac{m_t}{1-0.9^t},\qquad
+\widehat v_t=\frac{v_t}{1-0.999^t},\\
+D_t&amp;=\frac{\widehat m_t}{\sqrt{\widehat v_t}+10^{-8}},\\
+\theta_t&amp;=(1-\alpha_{p,t}10^{-4})\theta_{t-1}-\alpha_{p,t}D_t.
+\end{aligned}
+</annotation></semantics></math></p>
+<p>开方、平方与除法逐元素执行。组学习率同时缩放自适应更新和 AdamW 的解耦衰减，weight decay 系数继续为 1e-4。未配置新倍率的历史模型沿用原参数组和参数顺序。</p>
+<p><code>readout_diagnostics.py</code> 从选中与末轮 checkpoint 的 AdamW 状态重建 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">∥</mo><msub><mi>m</mi><mi>t</mi></msub><msub><mo stretchy="false" form="postfix">∥</mo><mi>F</mi></msub></mrow><annotation encoding="application/x-tex">\lVert m_t\rVert_F</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">∥</mo><msub><mi>v</mi><mi>t</mi></msub><msub><mo stretchy="false" form="postfix">∥</mo><mi>F</mi></msub></mrow><annotation encoding="application/x-tex">\lVert v_t\rVert_F</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">∥</mo><msub><mi>D</mi><mi>t</mi></msub><msub><mo stretchy="false" form="postfix">∥</mo><mi>F</mi></msub></mrow><annotation encoding="application/x-tex">\lVert D_t\rVert_F</annotation></semantics></math>、<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mrow><mi>p</mi><mo>,</mo><mi>t</mi></mrow></msub><mo stretchy="false" form="prefix">∥</mo><msub><mi>D</mi><mi>t</mi></msub><msub><mo stretchy="false" form="postfix">∥</mo><mi>F</mi></msub></mrow><annotation encoding="application/x-tex">\alpha_{p,t}\lVert D_t\rVert_F</annotation></semantics></math>，以及动态／静态比值。最后一项对应该 checkpoint 最后一步的自适应更新范数。矩阵范数来自更新后的参数，AdamW 衰减单独执行。</p>
+<h3 id="train-均值门控与幅值诊断">2.5 TRAIN 均值门控与幅值诊断</h3>
+<p>在 native/exact 各自选中的权重下，对全部 TRAIN 图像统计门控均值，再评估：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right"><msub><mover><mi>h</mi><mo accent="true">‾</mo></mover><mi>j</mi></msub></mtd><mtd columnalign="left"><mo>=</mo><mfrac><mn>1</mn><mi>N</mi></mfrac><munder><mo>∑</mo><mrow><mi>b</mi><mo>∈</mo><mstyle mathvariant="normal"><mi>T</mi><mi>R</mi><mi>A</mi><mi>I</mi><mi>N</mi></mstyle></mrow></munder><msub><mi>γ</mi><mrow><mi>b</mi><mi>j</mi></mrow></msub><mo>−</mo><mstyle mathvariant="bold"><mn>1</mn></mstyle><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><msubsup><mi>U</mi><mrow><mi>b</mi><mi>j</mi><mi>i</mi></mrow><mstyle mathvariant="normal"><mi>m</mi><mi>e</mi><mi>a</mi><mi>n</mi></mstyle></msubsup></mtd><mtd columnalign="left"><mo>=</mo><msubsup><mi>U</mi><mrow><mi>b</mi><mi>j</mi><mi>i</mi></mrow><mstyle mathvariant="normal"><mi>b</mi><mi>a</mi><mi>s</mi><mi>e</mi></mstyle></msubsup><mo>+</mo><mi>ρ</mi><mi>κ</mi><msubsup><mi>g</mi><mi>b</mi><mi>⊤</mi></msubsup><msub><mi>W</mi><mi>s</mi></msub><msub><mi>a</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>+</mo><mi>ρ</mi><mi>κ</mi><msubsup><mi>g</mi><mi>b</mi><mi>⊤</mi></msubsup><msub><mi>W</mi><mi>d</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>a</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>⊙</mo><msub><mover><mi>h</mi><mo accent="true">‾</mo></mover><mi>j</mi></msub><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">
+\begin{aligned}
+\bar h_j&amp;=\frac{1}{N}\sum_{b\in\mathrm{TRAIN}}\gamma_{bj}-\mathbf{1},\\
+U^{\mathrm{mean}}_{bji}&amp;=U^{\mathrm{base}}_{bji}
++\rho\kappa g_b^\top W_s a_{ij}
++\rho\kappa g_b^\top W_d(a_{ij}\odot\bar h_j).
+\end{aligned}
+</annotation></semantics></math></p>
+<p>dynamic/mean 分别重算条件 softmax、联合概率和 CW/OW 曲线，并各自在 VAL 上选择 bias，用对应 bias 评价 TEST。每项均值评估优化步数为零。</p>
+<p>训练日志保留两路修正的原始和属性中心化 RMS。令 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi><mo>,</mo><mi>O</mi></mrow><annotation encoding="application/x-tex">A,O</annotation></semantics></math> 为属性数和物体数，对 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>z</mi><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mi>s</mi><mo>,</mo><mi>d</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">z\in\{s,d\}</annotation></semantics></math>：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right"><msubsup><mover><mrow><mi>Δ</mi><mi>U</mi></mrow><mo accent="true">˜</mo></mover><mrow><mi>b</mi><mi>j</mi><mi>i</mi></mrow><mi>z</mi></msubsup></mtd><mtd columnalign="left"><mo>=</mo><mi>Δ</mi><msubsup><mi>U</mi><mrow><mi>b</mi><mi>j</mi><mi>i</mi></mrow><mi>z</mi></msubsup><mo>−</mo><mfrac><mn>1</mn><mi>A</mi></mfrac><munderover><mo>∑</mo><mrow><mi>i</mi><mi>′</mi><mo>=</mo><mn>1</mn></mrow><mi>A</mi></munderover><mi>Δ</mi><msubsup><mi>U</mi><mrow><mi>b</mi><mi>j</mi><mi>i</mi><mi>′</mi></mrow><mi>z</mi></msubsup><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right"><msub><mo>RMS</mo><mrow><mi>z</mi><mo>,</mo><mstyle mathvariant="normal"><mi>c</mi><mi>e</mi><mi>n</mi><mi>t</mi><mi>e</mi><mi>r</mi><mi>e</mi><mi>d</mi></mstyle></mrow></msub></mtd><mtd columnalign="left"><mo>=</mo><msqrt><mrow><mfrac><mn>1</mn><mrow><mi>N</mi><mi>O</mi><mi>A</mi></mrow></mfrac><munder><mo>∑</mo><mrow><mi>b</mi><mo>,</mo><mi>j</mi><mo>,</mo><mi>i</mi></mrow></munder><mo stretchy="false" form="prefix">(</mo><msubsup><mover><mrow><mi>Δ</mi><mi>U</mi></mrow><mo accent="true">˜</mo></mover><mrow><mi>b</mi><mi>j</mi><mi>i</mi></mrow><mi>z</mi></msubsup><msup><mo stretchy="false" form="postfix">)</mo><mn>2</mn></msup></mrow></msqrt><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">
+\begin{aligned}
+\widetilde{\Delta U}^{z}_{bji}&amp;=\Delta U^{z}_{bji}
+-\frac{1}{A}\sum_{i'=1}^{A}\Delta U^{z}_{bji'},\\
+\operatorname{RMS}_{z,\mathrm{centered}}&amp;=
+\sqrt{\frac{1}{NOA}\sum_{b,j,i}(\widetilde{\Delta U}^{z}_{bji})^2}.
+\end{aligned}
+</annotation></semantics></math></p>
+<p>每个 epoch 的统计来自各 batch 前向时的权重，均方值按图像数加权汇总后再开平方。<code>history.json</code> 同时记录三组学习率。</p>
+<h2 id="修改文件">3. 修改文件</h2>
+<table>
+<thead>
+<tr class="header">
+<th>文件</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>vgcpod/engine.py</code></td>
+<td>显式配置倍率时将 Wd 移入独立 dynamic_cp 参数组</td>
+</tr>
+<tr class="even">
+<td><code>configs/round_k/K1.json</code>、<code>K2.json</code></td>
+<td>新增 dynamic_readout_lr_multiplier=0.3／0.1</td>
+</tr>
+<tr class="odd">
+<td><code>readout_diagnostics.py</code></td>
+<td>依据参数组顺序映射 AdamW 状态，汇总读出矩阵及自适应更新范数</td>
+</tr>
+<tr class="even">
+<td><code>round_k.py</code></td>
+<td>三卡六次训练、十二项评估、复用 J 均值、配对汇总</td>
+</tr>
+<tr class="odd">
+<td><code>ranking_diagnostics.py</code></td>
+<td>K1/K2−J1/I2/G0/G1、K1−K2、各自 dynamic−mean</td>
+</tr>
+<tr class="even">
+<td><code>references/pre_k_complete.json</code></td>
+<td>38 条历史 native/exact 指标快照</td>
+</tr>
+<tr class="odd">
+<td><code>scripts/start_round_k_tmux.sh</code></td>
+<td>tmux 启动、总日志和退出码</td>
+</tr>
+<tr class="even">
+<td><code>tests/test_round_k.py</code></td>
+<td>学习率日程、参数分组、首步更新、倍率 1 等价性、诊断复算、两组续训</td>
+</tr>
+</tbody>
+</table>
+<h2 id="windows-上传">4. Windows 上传</h2>
+<p>在本机 PowerShell 执行，将服务器地址替换为实际 IP：</p>
+<pre class="powershell"><code>$vgServer = &quot;xhw@你的服务器IP&quot;
+scp &quot;C:\Users\llenovo\Documents\ChatGPT\VG-CPOD\vgcpod_v1_roundK_20261021.zip&quot; &quot;${vgServer}:/data/xhw/vgcpod_project/&quot;</code></pre>
+<h2 id="服务器训练与进度">5. 服务器训练与进度</h2>
+<h3 id="三张-gpu在-tmux-内运行">5.1 三张 GPU，在 tmux 内运行</h3>
+<p>在服务器执行：</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">conda</span> activate vgcpod_v1
+<span class="bu">cd</span> /data/xhw/vgcpod_project
+<span class="fu">unzip</span> -o vgcpod_v1_roundK_20261021.zip
+<span class="bu">cd</span> /data/xhw/vgcpod_project/vgcpod_v1_roundK
+<span class="fu">bash</span> scripts/start_round_k_tmux.sh --gpus 1 2 3
+<span class="ex">tmux</span> attach -t vgcpod_K</code></pre></div>
+<p>启动器记录当前 conda Python 的绝对路径。每张卡运行独立模型进程，进程内部使用可见设备 <code>cuda:0</code>。按 <strong>Ctrl+b，松开后按 d</strong> 离开查看，tmux 中继续执行。</p>
+<table>
+<thead>
+<tr class="header">
+<th>物理 GPU</th>
+<th>seed</th>
+<th>顺序</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>3351</td>
+<td>K1 → K2 → 两组 native/exact 均值评估</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>3352</td>
+<td>K1 → K2 → 两组 native/exact 均值评估</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>3353</td>
+<td>K1 → K2 → 两组 native/exact 均值评估</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr class="header">
+<th>用途</th>
+<th>默认服务器路径</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>CLIP 特征缓存</td>
+<td><code>/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14</code></td>
+</tr>
+<tr class="even">
+<td>K 组输出</td>
+<td><code>/data/xhw/vgcpod_v1_runs/roundK_20261021</code></td>
+</tr>
+<tr class="odd">
+<td>J 组均值／直接对照</td>
+<td><code>/data/xhw/vgcpod_v1_runs/roundJ_20261021</code></td>
+</tr>
+<tr class="even">
+<td>I 组对照</td>
+<td><code>/data/xhw/vgcpod_v1_runs/roundI_20261021</code></td>
+</tr>
+<tr class="odd">
+<td>G／H 对照</td>
+<td><code>/data/xhw/vgcpod_v1_runs/roundG_20261020</code>、<code>roundH_20261020</code></td>
+</tr>
+</tbody>
+</table>
+<p>其他历史组使用已有 A/C/D/E/F 目录及包内指标快照。K1/K2 从对应 seed 原始初始化训练。</p>
+<h3 id="查看进度与结束状态">5.2 查看进度与结束状态</h3>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="fu">tail</span> -f /data/xhw/vgcpod_v1_runs/roundK_20261021/launcher.log</code></pre></div>
+<p>退出日志查看使用 Ctrl+C。检查完整结束状态：</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="fu">tail</span> -n 20 /data/xhw/vgcpod_v1_runs/roundK_20261021/launcher.log
+<span class="fu">cat</span> /data/xhw/vgcpod_v1_runs/roundK_20261021/launcher.exitcode</code></pre></div>
+<p><strong>退出码为 <code>0</code>，主日志出现 <code>ROUND_K_COMPLETE ... training_jobs 6 mean_gate_jobs 12</code>，表示整轮训练、评估与汇总完成。</strong> <code>TRAIN_COMPLETE</code> 表示一个模型完成，<code>RUNNING</code> 表示整轮仍在执行。三卡状态记录在 <code>round_k_status.json</code>。</p>
+<p>单个模型日志示例：</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="fu">tail</span> -n 8 /data/xhw/vgcpod_v1_runs/roundK_20261021/logs/K1_seed3351.log
+<span class="fu">tail</span> -n 8 /data/xhw/vgcpod_v1_runs/roundK_20261021/logs/K2_seed3351.log</code></pre></div>
+<h3 id="中断续训与独立汇总">5.3 中断续训与独立汇总</h3>
+<p>原训练进程退出后执行：</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">conda</span> activate vgcpod_v1
+<span class="bu">cd</span> /data/xhw/vgcpod_project/vgcpod_v1_roundK
+<span class="va">VG_K_SESSION=</span>vgcpod_K_resume <span class="fu">bash</span> scripts/start_round_k_tmux.sh --gpus 1 2 3
+<span class="ex">tmux</span> attach -t vgcpod_K_resume</code></pre></div>
+<p>已完成任务自动复用，未完成训练从最后完整 epoch 恢复参数、三个 AdamW 参数组、学习率进度和随机状态，继续原 10 epochs 日程。均值评估也根据已保存身份复用结果。</p>
+<p>独立重建汇总：</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">conda</span> activate vgcpod_v1
+<span class="bu">cd</span> /data/xhw/vgcpod_project/vgcpod_v1_roundK
+<span class="ex">python</span> -u round_k.py summarize</code></pre></div>
+<h2 id="输出与结果阅读顺序">6. 输出与结果阅读顺序</h2>
+<p>训练路径为 <code>K1/ut-zap50k/V1/seed3351/</code>；其余组和 seed 同理。<code>best.pt</code> 与 <code>best_native.pt</code> 对应主要选权重，<code>best_exact.pt</code> 对应独立 exact 选权重。</p>
+<table style="width:11%;">
+<colgroup>
+<col style="width: 5%"></col>
+<col style="width: 5%"></col>
+</colgroup>
+<thead>
+<tr class="header">
+<th>文件</th>
+<th>重点内容</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>round_k_summary.json</code>、<code>round_k_mean_sd.csv</code></td>
+<td>两组各三 seed 结果、均值与样本标准差</td>
+</tr>
+<tr class="even">
+<td><code>round_k_paired_deltas.csv</code>、<code>round_k_paired_mean_sd.csv</code></td>
+<td>K1/K2−J1/I2/G0/G1 和 K1−K2 的同 seed 差值</td>
+</tr>
+<tr class="odd">
+<td><code>exact_reference_deltas.csv</code></td>
+<td>相同 exact 选权重规则下的对应比较</td>
+</tr>
+<tr class="even">
+<td><code>matched_native_summary.csv</code></td>
+<td>相同 ρ／β 的历史及本轮结果</td>
+</tr>
+<tr class="odd">
+<td><code>readout_optimizer_summary.csv</code></td>
+<td>J1/K1/K2 选中及末轮的矩阵范数、Adam 矩、自适应更新及动态／静态比值</td>
+</tr>
+<tr class="even">
+<td><code>readout_training_summary.csv</code></td>
+<td>K1/K2 静态／动态原始及属性中心化 RMS</td>
+</tr>
+<tr class="odd">
+<td><code>mean_gate_effects.csv</code></td>
+<td>每组 native/exact 的 dynamic−mean</td>
+</tr>
+<tr class="even">
+<td><code>ranking_diagnostic_paired_mean_sd.csv</code></td>
+<td>条件属性、物体、未见候选排序、集合外候选占优比例</td>
+</tr>
+<tr class="odd">
+<td><code>support_training_summary.csv</code></td>
+<td>支持概率和损失分解</td>
+</tr>
+<tr class="even">
+<td><code>mean_gate/K*/seed*/</code>、<code>mean_gate_exact/K*/seed*/</code></td>
+<td>门控统计、两种条件预测和曲线</td>
+</tr>
+</tbody>
+</table>
+<p>阅读顺序：先比较 K1/K2−J1 的 CW/OW AUC、固定 VAL bias 的 HM，再比较 I2/G0/G1。随后结合动态更新范数、中心化 RMS 与 dynamic−mean 解释变化。逐 seed 检查，重点观察 seed3351 的物体预测与未见候选排序，同时保留其余两个 seed 的配对结果。D1 继续作为已有性能参照。</p>
+<h2 id="完成后下载到本地">7. 完成后下载到本地</h2>
+<p>在服务器打包 K 组结果与代码：</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="fu">tar</span> -czf /data/xhw/vgcpod_project/vgcpod_roundK_results_20261021.tar.gz \
+  -C /data/xhw/vgcpod_v1_runs roundK_20261021 \
+  -C /data/xhw/vgcpod_project vgcpod_v1_roundK</code></pre></div>
+<p>在本机 PowerShell 下载并解压：</p>
+<pre class="powershell"><code>$vgServer = &quot;xhw@你的服务器IP&quot;
+$vgLocal = &quot;C:\Users\llenovo\Documents\ChatGPT\VG-CPOD&quot;
+scp &quot;${vgServer}:/data/xhw/vgcpod_project/vgcpod_roundK_results_20261021.tar.gz&quot; &quot;$vgLocal\&quot;
+$vgExtract = Join-Path $vgLocal &quot;server_results_roundK_20261021&quot;
+New-Item -ItemType Directory -Force -Path $vgExtract | Out-Null
+tar -xzf &quot;$vgLocal\vgcpod_roundK_results_20261021.tar.gz&quot; -C &quot;$vgExtract&quot;</code></pre>
+<h2 id="交付验证">8. 交付验证</h2>
+<ul>
+<li>61 项测试通过，覆盖公式恒等式、有限差分、TRAIN 均值评估、学习率日程、参数组完整性、Adam 更新量和断点续训。</li>
+<li>K1/K2 中断恢复后的模型参数、AdamW 状态与 Torch 随机状态和连续训练逐元素一致。</li>
+<li>CPU 合成 CLIP 缓存完成 6 次训练、12 项均值评估；重复启动复用全部已完成任务。</li>
+<li>原 J1 在新旧训练器中的模型参数、AdamW 状态与 Torch 随机状态逐元素一致。</li>
+<li>三卡任务映射、共享 TRAIN 均值、native/exact 选权重、独立 VAL bias 和历史配对汇总通过核验。</li>
+<li>Python 3.8 语法、Bash／PowerShell 命令及 Markdown／HTML 公式排版已检查。</li>
+</ul>
+<p>验证记录随包保存在 <code>validation/</code>。上述运行验证使用本地 CPU 合成缓存，服务器完整数据训练使用第 5 节命令。</p>
+</body>
+</html>

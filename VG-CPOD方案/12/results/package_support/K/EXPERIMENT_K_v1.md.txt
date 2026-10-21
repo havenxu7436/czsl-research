@@ -1,0 +1,340 @@
+# VG-CPOD 方案 v1：K1/K2 动态读出学习率实验
+
+日期：2026-10-21。框架：冻结 OpenAI CLIP ViT-L/14。数据：UT-Zappos。版本：v1。
+
+**本轮完成 K1/K2 各三个 seed、每个模型 10 epochs，共 6 次训练；随后完成 12 项 native/exact TRAIN 均值门控评估。** GPU1/2/3 各负责一个 seed，卡内顺序训练 K1→K2。沿用 J1 的静态／动态独立读出，对动态读出 `Wd` 分别设置 0.3 和 0.1 倍 CP 学习率。
+
+## 1. 实验依据与配置
+
+J1 相对 I2 的三 seed TEST CW AUC 增加 0.448 点，OW 降低 0.328 点。选中 checkpoint 中，动态／静态一阶矩范数比约为 2%–3%，Adam 自适应更新范数比却达到 95%–100%。本轮直接调节 Wd 的更新速度，检验两路学习速度对 CW/OW 和未见组合排序的影响。
+
+| 实验 | Wd 学习率倍率 | Wd 首步学习率 | Wd 末步学习率 | 状态 |
+|---|---|---|---|---|
+| J1 | 1 | 3e-4 | 3e-6 | 复用已完成结果 |
+| K1 | 0.3 | 9e-5 | 9e-7 | 本轮训练 |
+| K2 | 0.1 | 3e-5 | 3e-7 | 本轮训练 |
+
+| 固定项 | 设置 |
+|---|---|
+| CLIP／特征 | 冻结 OpenAI ViT-L/14，768 维，复用现有图像／文本缓存 |
+| 静态／动态读出 | Wc／Wd；共享 Au、Av；separate 模式 |
+| CP rank／adapter rank | 32／8 |
+| κ／ρ／β | 20／0.15／0.075 |
+| gate_input／τγ／η | train_residual／0.56／0.25 |
+| 模式中心化／τv | 开启／0.07 |
+| epochs／batch／eval batch／workers | 10／64／64／4 |
+| adapter 学习率 | 1e-3 → 1e-5 |
+| Au、Av、Bvis、Wc 学习率 | 3e-4 → 3e-6 |
+| Adam β1／β2／ε | 0.9／0.999／1e-8 |
+| λorth／weight decay／gradient clip | 0.001／1e-4／1 |
+| 初始化 | 对应 seed 原始初始化，Wc 和 Wd 均为零 |
+| 可训练参数 | 147,456 |
+| seeds | 3351、3352、3353 |
+| 主要选权重依据 | VAL CW native AUC 首次严格达到最大值的 epoch |
+| 并列评估 | 独立保存 VAL CW exact AUC 选中的权重及预测 |
+
+## 2. 公式与实现
+
+### 2.1 固定 TRAIN 均值与残差门控
+
+令 $g_b\in\mathbb{R}^{768}$ 为图像全局特征，$f^o_{bj}$ 为物体查询特征，$R=32$，TRAIN 图像数 $N=22998$：
+
+$$
+\begin{aligned}
+\mu_j&=\frac{1}{N}\sum_{b\in\mathrm{TRAIN}}f^o_{bj},\\
+r_{bj}&=f^o_{bj}-\mu_j,\qquad
+\widehat r_{bj}=\frac{r_{bj}}{\max(\lVert r_{bj}\rVert_2,10^{-12})}.
+\end{aligned}
+$$
+
+`round_k.py` 从 J 组逐字复制与当前缓存一致的均值文件。首次生成采用 TRAIN 特征 float64 分块累计，随后转成 float32 buffer `gate_fo_mean`，随 checkpoint 保存。所有 seed 共用同一均值。
+
+设 $B_{\mathrm{vis}}\in\mathbb{R}^{R\times768}$ 第 $k$ 行转置为 $b_k$，门控为：
+
+$$
+\begin{aligned}
+q_{bjk}&=2\sigma\!\left(\frac{b_k^\top\widehat r_{bj}}{0.56}\right)-1,\\
+h_{bjk}&=\frac{0.25}{2}\left(q_{bjk}-\frac{1}{R}\sum_{\ell=1}^{R}q_{bj\ell}\right),\\
+\gamma_{bjk}&=1+h_{bjk},\qquad
+\frac{1}{R}\sum_k\gamma_{bjk}=1,\quad 0.75\le\gamma_{bjk}\le1.25.
+\end{aligned}
+$$
+
+### 2.2 静态与动态独立读出
+
+设 $A_u,A_v\in\mathbb{R}^{R\times768}$，$W_s,W_d\in\mathbb{R}^{768\times R}$。代码中 `Wc` 对应 $W_s$，`Wd` 对应 $W_d$：
+
+$$
+\begin{aligned}
+u_i&=A_ue_i^a,\qquad v_j=A_ve_j^o,\qquad a_{ij}=u_i\odot v_j,\\
+\Delta U^s_{bji}&=\rho\kappa g_b^\top W_s a_{ij},\\
+\Delta U^d_{bji}&=\rho\kappa g_b^\top W_d(a_{ij}\odot h_{bj}),\\
+U_{bji}&=U^{\mathrm{base}}_{bji}+\Delta U^s_{bji}+\Delta U^d_{bji}.
+\end{aligned}
+$$
+
+两组与 J1 使用相同的前向公式。类别算子及单个分数对读出的梯度为：
+
+$$
+\begin{aligned}
+M_{bj}&=\left[W_s\operatorname{diag}(v_j)
++W_d\operatorname{diag}(v_j\odot h_{bj})\right]A_u,
+\qquad\operatorname{rank}(M_{bj})\le R,\\
+\nabla_{W_s}\Delta U_{bji}&=\rho\kappa g_ba_{ij}^{\top},\\
+\nabla_{W_d}\Delta U_{bji}&=\rho\kappa g_b(a_{ij}\odot h_{bj})^{\top}.
+\end{aligned}
+$$
+
+两路共享 $A_u$，算子秩上界为 32。首步任务梯度进入两个读出矩阵，后续经非零读出传播到属性／物体因子及门控。K1/K2 改变 Wd 的优化器学习率，梯度公式由上述前向直接计算。
+
+### 2.3 联合概率与损失
+
+沿用 CLIP 特征上的物体分支 $S_b$ 和组合适配器基底 $U^{\mathrm{base}}$：
+
+$$
+s_{bji}=\log\operatorname{softmax}(S_b)_j
++\log\operatorname{softmax}(U_{bj:})_i.
+$$
+
+设 $\mathcal{S}$ 为 TRAIN 组合集合，批量大小为 $B$，样本真实标签为 $(i_b,j_b)$：
+
+$$
+\begin{aligned}
+Z_b&=\sum_{(i,j)\in\mathcal{S}}\exp(s_{bji}),\\
+\mathcal{L}_{\mathrm{pair}}&=\frac{1}{B}\sum_b[-s_{bj_bi_b}+\log Z_b],\\
+\mathcal{L}_{\mathrm{support}}&=-\frac{1}{B}\sum_b\log Z_b,\\
+\mathcal{L}_a+\mathcal{L}_o&=\mathcal{L}_{\mathrm{pair}}+\mathcal{L}_{\mathrm{support}},\\
+\mathcal{L}_{\mathrm{task}}&=\frac{1.5}{1+0.075}
+\left[\mathcal{L}_{\mathrm{pair}}+0.075(\mathcal{L}_a+\mathcal{L}_o)\right]\\
+&=\frac{3}{2}\mathcal{L}_{\mathrm{pair}}+\frac{9}{86}\mathcal{L}_{\mathrm{support}},\\
+\mathcal{L}&=\mathcal{L}_{\mathrm{task}}
++10^{-3}\frac{\lVert B_{\mathrm{vis}}B_{\mathrm{vis}}^{\top}-I_R\rVert_F^2}{R^2}.
+\end{aligned}
+$$
+
+$\mathcal{L}_a$ 为真实物体条件下的属性负对数似然，$\mathcal{L}_o$ 为物体负对数似然。`V1` 配置开启残差门控；primitive/cent 项为零。
+
+### 2.4 动态学习率和 AdamW 更新
+
+令总更新数 $T=10\lceil N/64\rceil=3600$，更新编号 $t=1,\ldots,T$。代码日程索引为 `step=t-1`：
+
+$$
+\begin{aligned}
+\alpha_t&=10^{-5}+\frac{10^{-3}-10^{-5}}{2}
+\left[1+\cos\!\left(\frac{\pi(t-1)}{T-1}\right)\right],\\
+\alpha_{\mathrm{adapter},t}&=\alpha_t,\qquad
+\alpha_{\mathrm{CP},t}=0.3\alpha_t,\\
+\alpha_{s,t}&=\alpha_{\mathrm{CP},t},\qquad
+\alpha_{d,t}=m_d\alpha_{\mathrm{CP},t},\qquad
+m_d\in\{0.3,0.1\}.
+\end{aligned}
+$$
+
+`make_optimizer` 建立三个参数组，每个可训练参数属于一个组：
+
+| 参数组 | 参数 | lr_scale |
+|---|---|---|
+| adapter | Bo、Co、Bc、Cc | 1 |
+| cp | Au、Av、Bvis、Wc | 0.3 |
+| dynamic_cp | Wd | K1 为 0.09，K2 为 0.03 |
+
+对全模型梯度按原实现做全局范数裁剪。设 $\mathbf{G}_t^{\mathrm{raw}}$ 为所有参数梯度的拼接，参数 $p$ 的原始梯度为 $G_{p,t}^{\mathrm{raw}}$：
+
+$$
+c_t=\min\!\left(1,\frac{1}{\lVert\mathbf{G}_t^{\mathrm{raw}}\rVert_2+10^{-12}}\right),
+\qquad G_{p,t}=c_tG_{p,t}^{\mathrm{raw}}.
+$$
+
+各参数按所属组的学习率 $\alpha_{p,t}$ 进行 AdamW 更新。以下矩状态对应同一个参数 $p$，初始化 $m_0=v_0=0$：
+
+$$
+\begin{aligned}
+m_t&=0.9m_{t-1}+0.1G_{p,t},\\
+v_t&=0.999v_{t-1}+0.001G_{p,t}^{\odot2},\\
+\widehat m_t&=\frac{m_t}{1-0.9^t},\qquad
+\widehat v_t=\frac{v_t}{1-0.999^t},\\
+D_t&=\frac{\widehat m_t}{\sqrt{\widehat v_t}+10^{-8}},\\
+\theta_t&=(1-\alpha_{p,t}10^{-4})\theta_{t-1}-\alpha_{p,t}D_t.
+\end{aligned}
+$$
+
+开方、平方与除法逐元素执行。组学习率同时缩放自适应更新和 AdamW 的解耦衰减，weight decay 系数继续为 1e-4。未配置新倍率的历史模型沿用原参数组和参数顺序。
+
+`readout_diagnostics.py` 从选中与末轮 checkpoint 的 AdamW 状态重建 $\lVert m_t\rVert_F$、$\lVert v_t\rVert_F$、$\lVert D_t\rVert_F$、$\alpha_{p,t}\lVert D_t\rVert_F$，以及动态／静态比值。最后一项对应该 checkpoint 最后一步的自适应更新范数。矩阵范数来自更新后的参数，AdamW 衰减单独执行。
+
+### 2.5 TRAIN 均值门控与幅值诊断
+
+在 native/exact 各自选中的权重下，对全部 TRAIN 图像统计门控均值，再评估：
+
+$$
+\begin{aligned}
+\bar h_j&=\frac{1}{N}\sum_{b\in\mathrm{TRAIN}}\gamma_{bj}-\mathbf{1},\\
+U^{\mathrm{mean}}_{bji}&=U^{\mathrm{base}}_{bji}
++\rho\kappa g_b^\top W_s a_{ij}
++\rho\kappa g_b^\top W_d(a_{ij}\odot\bar h_j).
+\end{aligned}
+$$
+
+dynamic/mean 分别重算条件 softmax、联合概率和 CW/OW 曲线，并各自在 VAL 上选择 bias，用对应 bias 评价 TEST。每项均值评估优化步数为零。
+
+训练日志保留两路修正的原始和属性中心化 RMS。令 $A,O$ 为属性数和物体数，对 $z\in\{s,d\}$：
+
+$$
+\begin{aligned}
+\widetilde{\Delta U}^{z}_{bji}&=\Delta U^{z}_{bji}
+-\frac{1}{A}\sum_{i'=1}^{A}\Delta U^{z}_{bji'},\\
+\operatorname{RMS}_{z,\mathrm{centered}}&=
+\sqrt{\frac{1}{NOA}\sum_{b,j,i}(\widetilde{\Delta U}^{z}_{bji})^2}.
+\end{aligned}
+$$
+
+每个 epoch 的统计来自各 batch 前向时的权重，均方值按图像数加权汇总后再开平方。`history.json` 同时记录三组学习率。
+
+## 3. 修改文件
+
+| 文件 | 内容 |
+|---|---|
+| `vgcpod/engine.py` | 显式配置倍率时将 Wd 移入独立 dynamic_cp 参数组 |
+| `configs/round_k/K1.json`、`K2.json` | 新增 dynamic_readout_lr_multiplier=0.3／0.1 |
+| `readout_diagnostics.py` | 依据参数组顺序映射 AdamW 状态，汇总读出矩阵及自适应更新范数 |
+| `round_k.py` | 三卡六次训练、十二项评估、复用 J 均值、配对汇总 |
+| `ranking_diagnostics.py` | K1/K2−J1/I2/G0/G1、K1−K2、各自 dynamic−mean |
+| `references/pre_k_complete.json` | 38 条历史 native/exact 指标快照 |
+| `scripts/start_round_k_tmux.sh` | tmux 启动、总日志和退出码 |
+| `tests/test_round_k.py` | 学习率日程、参数分组、首步更新、倍率 1 等价性、诊断复算、两组续训 |
+
+## 4. Windows 上传
+
+在本机 PowerShell 执行，将服务器地址替换为实际 IP：
+
+```powershell
+$vgServer = "xhw@你的服务器IP"
+scp "C:\Users\llenovo\Documents\ChatGPT\VG-CPOD\vgcpod_v1_roundK_20261021.zip" "${vgServer}:/data/xhw/vgcpod_project/"
+```
+
+## 5. 服务器训练与进度
+
+### 5.1 三张 GPU，在 tmux 内运行
+
+在服务器执行：
+
+```bash
+conda activate vgcpod_v1
+cd /data/xhw/vgcpod_project
+unzip -o vgcpod_v1_roundK_20261021.zip
+cd /data/xhw/vgcpod_project/vgcpod_v1_roundK
+bash scripts/start_round_k_tmux.sh --gpus 1 2 3
+tmux attach -t vgcpod_K
+```
+
+启动器记录当前 conda Python 的绝对路径。每张卡运行独立模型进程，进程内部使用可见设备 `cuda:0`。按 **Ctrl+b，松开后按 d** 离开查看，tmux 中继续执行。
+
+| 物理 GPU | seed | 顺序 |
+|---|---|---|
+| 1 | 3351 | K1 → K2 → 两组 native/exact 均值评估 |
+| 2 | 3352 | K1 → K2 → 两组 native/exact 均值评估 |
+| 3 | 3353 | K1 → K2 → 两组 native/exact 均值评估 |
+
+| 用途 | 默认服务器路径 |
+|---|---|
+| CLIP 特征缓存 | `/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14` |
+| K 组输出 | `/data/xhw/vgcpod_v1_runs/roundK_20261021` |
+| J 组均值／直接对照 | `/data/xhw/vgcpod_v1_runs/roundJ_20261021` |
+| I 组对照 | `/data/xhw/vgcpod_v1_runs/roundI_20261021` |
+| G／H 对照 | `/data/xhw/vgcpod_v1_runs/roundG_20261020`、`roundH_20261020` |
+
+其他历史组使用已有 A/C/D/E/F 目录及包内指标快照。K1/K2 从对应 seed 原始初始化训练。
+
+### 5.2 查看进度与结束状态
+
+```bash
+tail -f /data/xhw/vgcpod_v1_runs/roundK_20261021/launcher.log
+```
+
+退出日志查看使用 Ctrl+C。检查完整结束状态：
+
+```bash
+tail -n 20 /data/xhw/vgcpod_v1_runs/roundK_20261021/launcher.log
+cat /data/xhw/vgcpod_v1_runs/roundK_20261021/launcher.exitcode
+```
+
+**退出码为 `0`，主日志出现 `ROUND_K_COMPLETE ... training_jobs 6 mean_gate_jobs 12`，表示整轮训练、评估与汇总完成。** `TRAIN_COMPLETE` 表示一个模型完成，`RUNNING` 表示整轮仍在执行。三卡状态记录在 `round_k_status.json`。
+
+单个模型日志示例：
+
+```bash
+tail -n 8 /data/xhw/vgcpod_v1_runs/roundK_20261021/logs/K1_seed3351.log
+tail -n 8 /data/xhw/vgcpod_v1_runs/roundK_20261021/logs/K2_seed3351.log
+```
+
+### 5.3 中断续训与独立汇总
+
+原训练进程退出后执行：
+
+```bash
+conda activate vgcpod_v1
+cd /data/xhw/vgcpod_project/vgcpod_v1_roundK
+VG_K_SESSION=vgcpod_K_resume bash scripts/start_round_k_tmux.sh --gpus 1 2 3
+tmux attach -t vgcpod_K_resume
+```
+
+已完成任务自动复用，未完成训练从最后完整 epoch 恢复参数、三个 AdamW 参数组、学习率进度和随机状态，继续原 10 epochs 日程。均值评估也根据已保存身份复用结果。
+
+独立重建汇总：
+
+```bash
+conda activate vgcpod_v1
+cd /data/xhw/vgcpod_project/vgcpod_v1_roundK
+python -u round_k.py summarize
+```
+
+## 6. 输出与结果阅读顺序
+
+训练路径为 `K1/ut-zap50k/V1/seed3351/`；其余组和 seed 同理。`best.pt` 与 `best_native.pt` 对应主要选权重，`best_exact.pt` 对应独立 exact 选权重。
+
+| 文件 | 重点内容 |
+|---|---|
+| `round_k_summary.json`、`round_k_mean_sd.csv` | 两组各三 seed 结果、均值与样本标准差 |
+| `round_k_paired_deltas.csv`、`round_k_paired_mean_sd.csv` | K1/K2−J1/I2/G0/G1 和 K1−K2 的同 seed 差值 |
+| `exact_reference_deltas.csv` | 相同 exact 选权重规则下的对应比较 |
+| `matched_native_summary.csv` | 相同 ρ／β 的历史及本轮结果 |
+| `readout_optimizer_summary.csv` | J1/K1/K2 选中及末轮的矩阵范数、Adam 矩、自适应更新及动态／静态比值 |
+| `readout_training_summary.csv` | K1/K2 静态／动态原始及属性中心化 RMS |
+| `mean_gate_effects.csv` | 每组 native/exact 的 dynamic−mean |
+| `ranking_diagnostic_paired_mean_sd.csv` | 条件属性、物体、未见候选排序、集合外候选占优比例 |
+| `support_training_summary.csv` | 支持概率和损失分解 |
+| `mean_gate/K*/seed*/`、`mean_gate_exact/K*/seed*/` | 门控统计、两种条件预测和曲线 |
+
+阅读顺序：先比较 K1/K2−J1 的 CW/OW AUC、固定 VAL bias 的 HM，再比较 I2/G0/G1。随后结合动态更新范数、中心化 RMS 与 dynamic−mean 解释变化。逐 seed 检查，重点观察 seed3351 的物体预测与未见候选排序，同时保留其余两个 seed 的配对结果。D1 继续作为已有性能参照。
+
+## 7. 完成后下载到本地
+
+在服务器打包 K 组结果与代码：
+
+```bash
+tar -czf /data/xhw/vgcpod_project/vgcpod_roundK_results_20261021.tar.gz \
+  -C /data/xhw/vgcpod_v1_runs roundK_20261021 \
+  -C /data/xhw/vgcpod_project vgcpod_v1_roundK
+```
+
+在本机 PowerShell 下载并解压：
+
+```powershell
+$vgServer = "xhw@你的服务器IP"
+$vgLocal = "C:\Users\llenovo\Documents\ChatGPT\VG-CPOD"
+scp "${vgServer}:/data/xhw/vgcpod_project/vgcpod_roundK_results_20261021.tar.gz" "$vgLocal\"
+$vgExtract = Join-Path $vgLocal "server_results_roundK_20261021"
+New-Item -ItemType Directory -Force -Path $vgExtract | Out-Null
+tar -xzf "$vgLocal\vgcpod_roundK_results_20261021.tar.gz" -C "$vgExtract"
+```
+
+## 8. 交付验证
+
+- 61 项测试通过，覆盖公式恒等式、有限差分、TRAIN 均值评估、学习率日程、参数组完整性、Adam 更新量和断点续训。
+- K1/K2 中断恢复后的模型参数、AdamW 状态与 Torch 随机状态和连续训练逐元素一致。
+- CPU 合成 CLIP 缓存完成 6 次训练、12 项均值评估；重复启动复用全部已完成任务。
+- 原 J1 在新旧训练器中的模型参数、AdamW 状态与 Torch 随机状态逐元素一致。
+- 三卡任务映射、共享 TRAIN 均值、native/exact 选权重、独立 VAL bias 和历史配对汇总通过核验。
+- Python 3.8 语法、Bash／PowerShell 命令及 Markdown／HTML 公式排版已检查。
+
+验证记录随包保存在 `validation/`。上述运行验证使用本地 CPU 合成缓存，服务器完整数据训练使用第 5 节命令。

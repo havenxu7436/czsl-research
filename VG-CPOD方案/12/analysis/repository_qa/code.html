@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>12 code</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+  <link href="data:text/css;charset=utf-8,html%20%7B%20color%3A%20%23203043%3B%20background%3A%20%23f3f6fa%3B%20%7D%0Abody%20%7B%20max%2Dwidth%3A%201240px%3B%20margin%3A%2036px%20auto%3B%20padding%3A%2042px%2052px%3B%20background%3A%20%23fff%3B%20border%3A%201px%20solid%20%23e0e6ef%3B%20border%2Dradius%3A%2012px%3B%20font%3A%2016px%2F1%2E85%20%27Microsoft%20YaHei%27%2C%20%27Noto%20Sans%20CJK%20SC%27%2C%20sans%2Dserif%3B%20%7D%0Ah1%20%7B%20font%2Dsize%3A%202em%3B%20line%2Dheight%3A%201%2E35%3B%20color%3A%20%23173b58%3B%20%7D%0Ah2%20%7B%20margin%2Dtop%3A%202%2E3em%3B%20border%2Dbottom%3A%202px%20solid%20%23e5edf4%3B%20padding%2Dbottom%3A%20%2E3em%3B%20color%3A%20%23173b58%3B%20%7D%0Ah3%20%7B%20margin%2Dtop%3A%201%2E7em%3B%20color%3A%20%23245c78%3B%20%7D%0Ap%2C%20ul%2C%20ol%20%7B%20margin%3A%201em%200%3B%20%7D%0Atable%20%7B%20display%3A%20table%3B%20border%2Dcollapse%3A%20collapse%3B%20font%2Dsize%3A%2013px%3B%20line%2Dheight%3A%201%2E65%3B%20width%3A%20100%25%20%21important%3B%20margin%3A%201%2E4em%200%3B%20%7D%0Ath%2C%20td%20%7B%20border%3A%201px%20solid%20%23dce4ed%3B%20padding%3A%208px%2010px%3B%20text%2Dalign%3A%20left%3B%20vertical%2Dalign%3A%20top%3B%20%7D%0Ath%20%7B%20background%3A%20%23eaf1f7%3B%20font%2Dweight%3A%20600%3B%20white%2Dspace%3A%20nowrap%3B%20%7D%0Atbody%20tr%3Anth%2Dchild%28even%29%20%7B%20background%3A%20%23f7f9fc%3B%20%7D%0Aimg%20%7B%20max%2Dwidth%3A%20100%25%3B%20height%3A%20auto%3B%20%7D%0Afigure%20%7B%20margin%3A%201%2E5em%200%3B%20%7D%0Afigcaption%20%7B%20color%3A%20%23657185%3B%20font%2Dsize%3A%2013px%3B%20%7D%0Acode%20%7B%20background%3A%20%23edf2f7%3B%20border%2Dradius%3A%203px%3B%20padding%3A%201px%204px%3B%20overflow%2Dwrap%3A%20anywhere%3B%20%7D%0Apre%20%7B%20padding%3A%2015px%3B%20background%3A%20%23edf2f7%3B%20overflow%2Dx%3A%20auto%3B%20%7D%0Aa%20%7B%20color%3A%20%2317658a%3B%20text%2Dunderline%2Doffset%3A%203px%3B%20%7D%0Amath%5Bdisplay%3D%27block%27%5D%20%7B%20margin%3A%201%2E4em%200%3B%20overflow%2Dx%3A%20auto%3B%20%7D%0A%40media%20%28max%2Dwidth%3A%20800px%29%20%7B%20body%20%7B%20padding%3A%2020px%3B%20margin%3A%200%3B%20border%3A%200%3B%20border%2Dradius%3A%200%3B%20%7D%20table%20%7B%20display%3A%20block%3B%20overflow%2Dx%3A%20auto%3B%20font%2Dsize%3A%2012px%3B%20%7D%20%7D%0A" rel="stylesheet">
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="代码与修订">12 · 代码与修订</h1>
+<p>原运行源码位于<a href="vgcpod_v1_roundK/">vgcpod_v1_roundK</a>。配置、资产和验证按平行目录保存，<a href="../package_members.json">成员映射</a>供materialize恢复原包。相对<a href="../../11/code/README.md">11 J组</a>的完整差异见<a href="source_changes.patch" class="uri">source_changes.patch</a>。</p>
+<h2 id="wd独立学习率组">1. Wd独立学习率组</h2>
+<p><a href="vgcpod_v1_roundK/vgcpod/engine.py">engine.py</a>的<code>make_optimizer</code>在配置含<code>dynamic_readout_lr_multiplier</code>时，将Wd从普通CP组移出：</p>
+<div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="cf">if</span> separate_dynamic:
+    scale <span class="op">=</span> cp_scale <span class="op">*</span> multiplier
+    groups.append({<span class="st">'params'</span>: [model.Wd], <span class="st">'name'</span>: <span class="st">'dynamic_cp'</span>,
+                   <span class="st">'lr_scale'</span>: scale, <span class="st">'lr'</span>: cfg[<span class="st">'lr'</span>] <span class="op">*</span> scale})</code></pre></div>
+<p>adapter组为Bo/Co/Bc/Cc，CP组为Au/Av/Bvis/Wc，dynamic_cp只含Wd。三个组的lr_scale分别为1、0.3、0.09或0.03。<code>set_learning_rates</code>将同一余弦日程乘组倍率。无新配置键时保持原J1参数分组与顺序。</p>
+<p>本轮<a href="vgcpod_v1_roundK/vgcpod/model.py">model.py</a>与<a href="vgcpod_v1_roundK/mean_gate_eval.py">mean_gate_eval.py</a>和J组逐字一致，继续使用separate读出、原损失及TRAIN均值评估。可训练参数147,456，新增参数为0。</p>
+<h2 id="从真实adam状态核验更新">2. 从真实Adam状态核验更新</h2>
+<p>新增<a href="vgcpod_v1_roundK/readout_diagnostics.py">readout_diagnostics.py</a>：</p>
+<ol type="1">
+<li>按模型与优化器参数顺序，将checkpoint中的参数ID映射为Wc/Wd。</li>
+<li>读取step、exp_avg、exp_avg_sq、β₁/β₂、ε、lr及lr_scale，做Adam偏差修正。</li>
+<li>分别输出矩阵范数、一阶／二阶矩、归一化方向和学习率乘自适应方向的范数。</li>
+<li>对native选中、exact选中和末轮checkpoint分别记录，并报告动态／静态比值。</li>
+</ol>
+<p>该诊断中的更新范数对应最后一步自适应项；weight decay单独执行。诊断模型初始化保留调用方Torch RNG。</p>
+<h2 id="调度与输出">3. 调度与输出</h2>
+<table>
+<thead>
+<tr class="header">
+<th>文件</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a href="vgcpod_v1_roundK/round_k.py">round_k.py</a></td>
+<td>每卡K1→K2；复制J组TRAIN均值；完成十二项均值评估和历史配对</td>
+</tr>
+<tr class="even">
+<td><a href="vgcpod_v1_roundK/scripts/start_round_k_tmux.sh">tmux脚本</a></td>
+<td>当前Python、会话、日志与退出码；从完整epoch续训</td>
+</tr>
+<tr class="odd">
+<td><a href="../configs/round_k/">K1/K2模板</a></td>
+<td>Wd倍率0.3/0.1</td>
+</tr>
+<tr class="even">
+<td><a href="../configs/references/pre_k_complete.json">历史参考</a></td>
+<td>38项已有运行快照，含J1</td>
+</tr>
+<tr class="odd">
+<td><a href="vgcpod_v1_roundK/ranking_diagnostics.py">ranking_diagnostics.py</a></td>
+<td>K1/K2−J1及K1−K2等逐图配对</td>
+</tr>
+<tr class="even">
+<td><a href="../results/raw_export/roundK_20261021/readout_optimizer_summary.csv">优化器总表</a></td>
+<td>J1/K1/K2实际更新量</td>
+</tr>
+</tbody>
+</table>
+<h2 id="验证与结果复算">4. 验证与结果复算</h2>
+<ul>
+<li><a href="../results/package_validation/K/validation/unit_tests.txt">61项发布测试</a>、<a href="../results/package_validation/K/validation/unit_test_summary.json">摘要</a>、<a href="../results/package_validation/K/validation/result.json">CPU六训练十二评估</a>。</li>
+<li><a href="vgcpod_v1_roundK/tests/test_round_k.py">test_round_k.py</a>：分组成员与倍率、首末学习率、相同梯度下的AdamW更新、配置合法性及J1兼容性。</li>
+<li>原J1配置在新旧训练器中的参数、AdamW和Torch RNG逐元素相同；CPU流程重复启动跳过已完成训练和评估。</li>
+<li><a href="../analysis/recompute.py">正式结果复算</a>、<a href="original_analysis/">原分析脚本</a>、<a href="../analysis/repository_validation.json">仓库验证</a>、<a href="../results/server_source_identity.json">服务器源码身份</a>。</li>
+</ul>
+<p>CLIP许可见<a href="vgcpod_v1_roundK/vendor/CLIP_LICENSE">CLIP_LICENSE</a>。发布验证与正式服务器训练分别记录；公式及超参数见<a href="../README.md">主说明</a>，结果解释见<a href="../analysis/README.md">末项数据分析</a>。</p>
+</body>
+</html>

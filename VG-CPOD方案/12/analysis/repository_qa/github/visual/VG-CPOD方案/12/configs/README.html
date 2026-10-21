@@ -1,0 +1,106 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>VG-CPOD方案/12/configs/README.md</title>
+    <base href="file:///C:/Users/llenovo/Documents/ChatGPT/CZSL/VG-CPOD%E6%96%B9%E6%A1%88/12/configs/">
+    <style>body {margin:0;background:#fff;color:#1f2328;font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}
+.markdown-body{max-width:940px;margin:auto;padding:32px;box-sizing:border-box}h1,h2,h3{line-height:1.3;margin:24px 0 16px}
+h1,h2{border-bottom:1px solid #d1d9e0;padding-bottom:.3em}a{color:#0969da;text-decoration:none}
+p{margin:0 0 16px}code,pre{font:13px/1.5 Consolas,monospace}pre{padding:16px;background:#f6f8fa;overflow:auto}code{background:#f6f8fa}
+table{display:block;max-width:100%;overflow:auto;border-collapse:collapse;margin-bottom:16px}td,th{border:1px solid #d1d9e0;padding:6px 13px}tr:nth-child(even){background:#f6f8fa}
+img{max-width:100%}math-renderer.js-display-math{display:block;margin:20px 0;overflow-x:auto;overflow-y:hidden;padding:5px 0}
+math-renderer.js-inline-math{display:inline-block}mjx-container{margin:0!important}mjx-container[display="true"]{text-align:center}</style><script>window.MathJax={startup:{typeset:false},svg:{fontCache:'none'},options:{enableMenu:false}};</script>
+    <script src="file:///C:/Users/llenovo/Documents/ChatGPT/CZSL/VG-CPOD%E6%96%B9%E6%A1%88/12/analysis/repository_qa/github/tex-svg.js"></script><body><article class="markdown-body"><h1>12 · 配置与超参数策略</h1>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>实验</th>
+<th>Wd倍率</th>
+<th>Wd首步→末步LR</th>
+<th>native最佳epoch</th>
+<th>exact最佳epoch</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>J1历史对照</td>
+<td>1</td>
+<td>3e-4→3e-6</td>
+<td>5/6/6</td>
+<td>5/6/6</td>
+</tr>
+<tr>
+<td><a href="round_k/K1.json">K1</a></td>
+<td>0.3</td>
+<td>9e-5→9e-7</td>
+<td>5/8/6</td>
+<td>5/6/6</td>
+</tr>
+<tr>
+<td><a href="round_k/K2.json">K2</a></td>
+<td>0.1</td>
+<td>3e-5→3e-7</td>
+<td>5/8/6</td>
+<td>5/6/6</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p>轮次按seed3351/3352/3353顺序。六训练各十轮、3600次更新，实际配置和两套结果见<a href="experiment_inventory.json">experiment_inventory.json</a>。</p>
+<h2>1. 选择依据</h2>
+<p>J1中动态梯度的一阶矩较小，但Adam归一化后实际步长接近静态读出。K组固定两档倍率，直接改变Wd的更新速度；其余表示、目标、初始化及训练预算沿用J1，三seed完整比较。</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="22932d267dcdf5d45f7863dea72f1d91">$$\alpha_{d,t}=m_d\alpha_{\mathrm{CP},t},\qquad
+\alpha_{\mathrm{CP},t}=0.3\alpha_t,\qquad
+m_d\in\{0.3,0.1\}.$$</math-renderer>
+<p>学习率同时作用于自适应项和AdamW解耦衰减，weight decay系数保持1e-4。K1的dynamic_cp lr_scale为0.09，K2为0.03。</p>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>固定项</th>
+<th>设置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CLIP／输入</td>
+<td>冻结OpenAI ViT-L/14，224px、768维</td>
+</tr>
+<tr>
+<td>rank／adapter rank／κ／τv</td>
+<td>32 / 8 / 20 / 0.07</td>
+</tr>
+<tr>
+<td>ρ／β／η／τγ</td>
+<td>0.15 / 0.075 / 0.25 / 0.56</td>
+</tr>
+<tr>
+<td>gate_input／读出模式</td>
+<td>train_residual / separate</td>
+</tr>
+<tr>
+<td>epochs／batch／每轮更新</td>
+<td>10 / 64 / 360</td>
+</tr>
+<tr>
+<td>后编码适配矩阵LR／普通CP LR</td>
+<td>1e-3→1e-5 / 3e-4→3e-6</td>
+</tr>
+<tr>
+<td>AdamW β₁、β₂／ε／weight decay</td>
+<td>0.9、0.999 / 1e-8 / 1e-4</td>
+</tr>
+<tr>
+<td>总梯度裁剪／λorth／eval batch／workers</td>
+<td>1 / 0.001 / 64 / 4</td>
+</tr>
+<tr>
+<td>模式中心化／残差ε／可训练参数</td>
+<td>开启 / 1e-12 / 147,456</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h2>2. 模板、运行配置与数据身份</h2>
+<ul>
+<li><a href="round_k/">round_k模板</a>、<a href="runtime/">服务器runtime</a>、<a href="experiment_inventory.json">六训练清单</a>、<a href="intervention_inventory.json">十二项均值评估</a>。</li>
+<li><a href="../results/raw_export/roundK_20261021/feature_statistics/">TRAIN查询均值</a>来自全部22,998张TRAIN图像，形状[12,768]，与J组逐字相同。</li>
+<li><a href="references/pre_k_complete.json">38项历史运行</a>、<a href="assets/">文本资产</a>、<a href="../external_inputs.json">外部输入</a>。</li>
+<li>对照模板：<a href="round_j/J1.json">J1</a>、<a href="round_g/G0.json">G0</a>、<a href="round_i/I2.json">I2</a>。缓存manifest SHA256：<code class="notranslate">bb8b7a8eb8c4e77a14ef65dd5c626aac559880d7c8d642dcc1e9a2a843831d2a</code>。</li>
+</ul>
+<h2>3. 根据结果作出的决策</h2>
+<p>两档倍率实现了预期的更新缩放，TEST整体水平未超过G0。下一步结束Wd学习率插值，转向CLIP局部判别证据学习；后续正式矩阵的固定配方、算子与创新定位见<a href="../analysis/README.md">数据分析</a>。本目录保存本轮已执行配置。</p></article></body></html>

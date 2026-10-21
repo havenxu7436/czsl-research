@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>12 results</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link href="data:text/css;charset=utf-8,html%20%7B%20color%3A%20%23203043%3B%20background%3A%20%23f3f6fa%3B%20%7D%0Abody%20%7B%20max%2Dwidth%3A%201240px%3B%20margin%3A%2036px%20auto%3B%20padding%3A%2042px%2052px%3B%20background%3A%20%23fff%3B%20border%3A%201px%20solid%20%23e0e6ef%3B%20border%2Dradius%3A%2012px%3B%20font%3A%2016px%2F1%2E85%20%27Microsoft%20YaHei%27%2C%20%27Noto%20Sans%20CJK%20SC%27%2C%20sans%2Dserif%3B%20%7D%0Ah1%20%7B%20font%2Dsize%3A%202em%3B%20line%2Dheight%3A%201%2E35%3B%20color%3A%20%23173b58%3B%20%7D%0Ah2%20%7B%20margin%2Dtop%3A%202%2E3em%3B%20border%2Dbottom%3A%202px%20solid%20%23e5edf4%3B%20padding%2Dbottom%3A%20%2E3em%3B%20color%3A%20%23173b58%3B%20%7D%0Ah3%20%7B%20margin%2Dtop%3A%201%2E7em%3B%20color%3A%20%23245c78%3B%20%7D%0Ap%2C%20ul%2C%20ol%20%7B%20margin%3A%201em%200%3B%20%7D%0Atable%20%7B%20display%3A%20table%3B%20border%2Dcollapse%3A%20collapse%3B%20font%2Dsize%3A%2013px%3B%20line%2Dheight%3A%201%2E65%3B%20width%3A%20100%25%20%21important%3B%20margin%3A%201%2E4em%200%3B%20%7D%0Ath%2C%20td%20%7B%20border%3A%201px%20solid%20%23dce4ed%3B%20padding%3A%208px%2010px%3B%20text%2Dalign%3A%20left%3B%20vertical%2Dalign%3A%20top%3B%20%7D%0Ath%20%7B%20background%3A%20%23eaf1f7%3B%20font%2Dweight%3A%20600%3B%20white%2Dspace%3A%20nowrap%3B%20%7D%0Atbody%20tr%3Anth%2Dchild%28even%29%20%7B%20background%3A%20%23f7f9fc%3B%20%7D%0Aimg%20%7B%20max%2Dwidth%3A%20100%25%3B%20height%3A%20auto%3B%20%7D%0Afigure%20%7B%20margin%3A%201%2E5em%200%3B%20%7D%0Afigcaption%20%7B%20color%3A%20%23657185%3B%20font%2Dsize%3A%2013px%3B%20%7D%0Acode%20%7B%20background%3A%20%23edf2f7%3B%20border%2Dradius%3A%203px%3B%20padding%3A%201px%204px%3B%20overflow%2Dwrap%3A%20anywhere%3B%20%7D%0Apre%20%7B%20padding%3A%2015px%3B%20background%3A%20%23edf2f7%3B%20overflow%2Dx%3A%20auto%3B%20%7D%0Aa%20%7B%20color%3A%20%2317658a%3B%20text%2Dunderline%2Doffset%3A%203px%3B%20%7D%0Amath%5Bdisplay%3D%27block%27%5D%20%7B%20margin%3A%201%2E4em%200%3B%20overflow%2Dx%3A%20auto%3B%20%7D%0A%40media%20%28max%2Dwidth%3A%20800px%29%20%7B%20body%20%7B%20padding%3A%2020px%3B%20margin%3A%200%3B%20border%3A%200%3B%20border%2Dradius%3A%200%3B%20%7D%20table%20%7B%20display%3A%20block%3B%20overflow%2Dx%3A%20auto%3B%20font%2Dsize%3A%2012px%3B%20%7D%20%7D%0A" rel="stylesheet">
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="k组训练结果">12 · K组训练结果</h1>
+<p>K1/K2各三seed，共六次训练、60个模型epoch。native/exact分别保存24份预测；十二项均值评估包含24个条件、96份预测。合计 <strong>144份预测文件、24份checkpoint文件</strong>，另保存共享TRAIN查询均值与十二套门控矩。</p>
+<h2 id="native选择主结果">1. native选择主结果</h2>
+<table>
+<thead>
+<tr class="header">
+<th>实验</th>
+<th>seed</th>
+<th>native／exact最佳epoch</th>
+<th>VAL CW</th>
+<th>VAL OW</th>
+<th>TEST CW</th>
+<th>TEST OW</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>K1</td>
+<td>3351</td>
+<td>5／5</td>
+<td>44.3233</td>
+<td>31.1919</td>
+<td>33.4992</td>
+<td>24.3035</td>
+</tr>
+<tr class="even">
+<td>K1</td>
+<td>3352</td>
+<td>8／6</td>
+<td>41.6102</td>
+<td>30.0067</td>
+<td>35.3735</td>
+<td>23.9467</td>
+</tr>
+<tr class="odd">
+<td>K1</td>
+<td>3353</td>
+<td>6／6</td>
+<td>45.0030</td>
+<td>34.1870</td>
+<td>34.0870</td>
+<td>25.4192</td>
+</tr>
+<tr class="even">
+<td>K2</td>
+<td>3351</td>
+<td>5／5</td>
+<td>43.9091</td>
+<td>30.9288</td>
+<td>33.6030</td>
+<td>24.5263</td>
+</tr>
+<tr class="odd">
+<td>K2</td>
+<td>3352</td>
+<td>8／6</td>
+<td>41.5693</td>
+<td>29.8716</td>
+<td>35.3351</td>
+<td>23.9131</td>
+</tr>
+<tr class="even">
+<td>K2</td>
+<td>3353</td>
+<td>6／6</td>
+<td>44.8551</td>
+<td>34.2888</td>
+<td>33.8095</td>
+<td>25.0468</td>
+</tr>
+</tbody>
+</table>
+<p>每次完成十轮、3600次更新。AUC单位为点；各运行还保存seen/unseen、HM、物体／条件属性准确率及NLL。</p>
+<h2 id="exact选择结果">2. exact选择结果</h2>
+<table>
+<thead>
+<tr class="header">
+<th>实验</th>
+<th>seed</th>
+<th>exact最佳epoch</th>
+<th>VAL CW native</th>
+<th>VAL CW exact</th>
+<th>TEST CW native</th>
+<th>TEST OW native</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>K1</td>
+<td>3351</td>
+<td>5</td>
+<td>44.3233</td>
+<td>44.4750</td>
+<td>33.4992</td>
+<td>24.3035</td>
+</tr>
+<tr class="even">
+<td>K1</td>
+<td>3352</td>
+<td>6</td>
+<td>41.2625</td>
+<td>41.8439</td>
+<td>35.5217</td>
+<td>24.3444</td>
+</tr>
+<tr class="odd">
+<td>K1</td>
+<td>3353</td>
+<td>6</td>
+<td>45.0030</td>
+<td>45.1977</td>
+<td>34.0870</td>
+<td>25.4192</td>
+</tr>
+<tr class="even">
+<td>K2</td>
+<td>3351</td>
+<td>5</td>
+<td>43.9091</td>
+<td>44.0249</td>
+<td>33.6030</td>
+<td>24.5263</td>
+</tr>
+<tr class="odd">
+<td>K2</td>
+<td>3352</td>
+<td>6</td>
+<td>41.4512</td>
+<td>42.0681</td>
+<td>35.5648</td>
+<td>24.3963</td>
+</tr>
+<tr class="even">
+<td>K2</td>
+<td>3353</td>
+<td>6</td>
+<td>44.8551</td>
+<td>45.1697</td>
+<td>33.8095</td>
+<td>25.0468</td>
+</tr>
+</tbody>
+</table>
+<p>两组native均选中5/8/6轮，exact均为5/6/6。seed3352选择不同模型；其余四次训练的两套预测逐元素一致。<code>best.pt</code>与<code>best_native.pt</code>为字节相同的别名，<code>best_exact.pt</code>独立保存，<code>last.pt</code>保存末轮模型、AdamW与随机状态。</p>
+<h2 id="原始训练与汇总">3. 原始训练与汇总</h2>
+<ul>
+<li><a href="raw_export/roundK_20261021/K1/ut-zap50k/V1/">K1完整运行</a>、<a href="raw_export/roundK_20261021/K2/ut-zap50k/V1/">K2完整运行</a>：protocol、history、metrics、曲线、预测、checkpoint、exact_selection。</li>
+<li><a href="raw_export/roundK_20261021/feature_statistics/">TRAIN均值</a>、<a href="raw_export/roundK_20261021/configs/">运行配置</a>、<a href="raw_export/roundK_20261021/logs/">全部任务日志</a>。</li>
+<li><a href="raw_export/roundK_20261021/round_k_status.json">三卡状态</a>、<a href="raw_export/roundK_20261021/round_k_jobs.json">任务表</a>、<a href="raw_export/roundK_20261021/launcher.log">主日志</a>、<a href="raw_export/roundK_20261021/launcher.exitcode">退出码0</a>。</li>
+<li><a href="raw_export/roundK_20261021/round_k_summary.json">结果总表</a>、<a href="raw_export/roundK_20261021/round_k_mean_sd.csv">均值与SD</a>、<a href="raw_export/roundK_20261021/round_k_paired_deltas.csv">配对增量</a>、<a href="raw_export/roundK_20261021/round_k_paired_mean_sd.csv">配对汇总</a>。</li>
+<li><a href="raw_export/roundK_20261021/readout_optimizer_summary.csv">实际Adam更新量</a>、<a href="raw_export/roundK_20261021/readout_training_summary.csv">训练修正幅值</a>、<a href="raw_export/roundK_20261021/support_training_summary.csv">支持损失</a>。</li>
+<li><a href="raw_export/roundK_20261021/exact_selection_summary.csv">exact结果</a>、<a href="raw_export/roundK_20261021/exact_reference_paired_mean_sd.csv">exact配对</a>、<a href="raw_export/roundK_20261021/exact_selection_effects.csv">选权重规则差异</a>。</li>
+<li><a href="raw_export/roundK_20261021/ranking_diagnostics.json">排序诊断</a>、<a href="raw_export/roundK_20261021/per_pair_gains.csv">逐组合增量</a>、<a href="raw_export/roundK_20261021/pair_probability_diagnostics.csv">组合概率</a>。</li>
+</ul>
+<h2 id="动态与train均值评估">4. 动态与TRAIN均值评估</h2>
+<table>
+<thead>
+<tr class="header">
+<th>实验</th>
+<th>seed</th>
+<th>TEST CW dynamic−mean</th>
+<th>TEST OW dynamic−mean</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>K1</td>
+<td>3351</td>
+<td>+3.0896</td>
+<td>+1.2690</td>
+</tr>
+<tr class="even">
+<td>K1</td>
+<td>3352</td>
+<td>+3.5313</td>
+<td>+1.1468</td>
+</tr>
+<tr class="odd">
+<td>K1</td>
+<td>3353</td>
+<td>+3.9086</td>
+<td>+1.8217</td>
+</tr>
+<tr class="even">
+<td>K2</td>
+<td>3351</td>
+<td>+1.4292</td>
+<td>+0.6647</td>
+</tr>
+<tr class="odd">
+<td>K2</td>
+<td>3352</td>
+<td>+1.6509</td>
+<td>+0.5019</td>
+</tr>
+<tr class="even">
+<td>K2</td>
+<td>3353</td>
+<td>+0.9704</td>
+<td>+0.2953</td>
+</tr>
+</tbody>
+</table>
+<p><a href="raw_export/roundK_20261021/mean_gate/">native评估</a>与<a href="raw_export/roundK_20261021/mean_gate_exact/">exact评估</a>均按实验／seed保存。每项包含dynamic/train_mean两条件、四种设置的预测与曲线、[12,32]门控均值和图像方差，优化步数为零。</p>
+<p>96份预测逐项重算指标，另48份dynamic复评与原预测逐元素核对，覆盖全部144份文件。四个native/exact同权重训练对应16份重复预测也已验证；重复文件按原归档保留。</p>
+<h2 id="原包来源与数据分析">5. 原包、来源与数据分析</h2>
+<ul>
+<li><a href="archives/vgcpod_roundK_results_20261021.tar.gz">服务器TAR</a>、<a href="archives/vgcpod_v1_roundK_20261021.zip">发布ZIP</a>，均附SHA256；二进制按仓库原规则使用Git LFS。</li>
+<li><a href="package_validation/K/">原发布验证</a>、<a href="package_support/K/">原说明字节</a>、<a href="package_support/original_reports/">原实施与分析报告</a>。</li>
+<li><a href="../package_members.json">99个成员映射</a>、<a href="raw_export_members.json">结果哈希</a>、<a href="server_source_identity.json">服务器源码身份</a>、<a href="reused_reference_members.json">历史引用</a>、<a href="../file_manifest.json">阶段清单</a>。</li>
+<li>历史对照使用<a href="../../11/results/README.md">11 J组</a>、<a href="../../10/results/README.md">10 I组</a>、<a href="../../08/results/README.md">08 G组</a>及其前序引用。</li>
+<li><a href="../analysis/repository_validation.json">仓库复核</a>、<a href="../analysis/README.md">完整数据分析</a>。</li>
+</ul>
+<p>K1/K2缩小了Wd实际更新和动态分数幅值，整体结果仍低于静态G0。误差交集、候选内排序与下一阶段视觉判别研究集中放在最后的数据分析中。</p>
+</body>
+</html>

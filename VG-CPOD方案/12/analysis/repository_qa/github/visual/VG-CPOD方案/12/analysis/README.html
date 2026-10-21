@@ -1,0 +1,610 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>VG-CPOD方案/12/analysis/README.md</title>
+    <base href="file:///C:/Users/llenovo/Documents/ChatGPT/CZSL/VG-CPOD%E6%96%B9%E6%A1%88/12/analysis/">
+    <style>body {margin:0;background:#fff;color:#1f2328;font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}
+.markdown-body{max-width:940px;margin:auto;padding:32px;box-sizing:border-box}h1,h2,h3{line-height:1.3;margin:24px 0 16px}
+h1,h2{border-bottom:1px solid #d1d9e0;padding-bottom:.3em}a{color:#0969da;text-decoration:none}
+p{margin:0 0 16px}code,pre{font:13px/1.5 Consolas,monospace}pre{padding:16px;background:#f6f8fa;overflow:auto}code{background:#f6f8fa}
+table{display:block;max-width:100%;overflow:auto;border-collapse:collapse;margin-bottom:16px}td,th{border:1px solid #d1d9e0;padding:6px 13px}tr:nth-child(even){background:#f6f8fa}
+img{max-width:100%}math-renderer.js-display-math{display:block;margin:20px 0;overflow-x:auto;overflow-y:hidden;padding:5px 0}
+math-renderer.js-inline-math{display:inline-block}mjx-container{margin:0!important}mjx-container[display="true"]{text-align:center}</style><script>window.MathJax={startup:{typeset:false},svg:{fontCache:'none'},options:{enableMenu:false}};</script>
+    <script src="file:///C:/Users/llenovo/Documents/ChatGPT/CZSL/VG-CPOD%E6%96%B9%E6%A1%88/12/analysis/repository_qa/github/tex-svg.js"></script><body><article class="markdown-body"><h1>12 · 数据分析与后续主线</h1>
+<p>日期：2026-10-21。数据：已下载 K1/K2 全部结果及历轮归档。当前框架：冻结 OpenAI CLIP ViT-L/14，UT-Zappos。</p>
+<p><strong>建议结束现有冻结缓存头上的门控与学习率搜索。下一阶段集中研究“物体条件的局部判别证据”：先在同一 patch 比较两个属性假设，再汇聚证据形成组合分数。</strong> CLIP 视觉 Adapter 和静态 CP 作为共同基座；创新集中在判别算子及其可证明性质。G0 保留为静态对照，D1 保留为历史性能参照。正式计划为两数据集、三种读取、三 seed，共 18 次完整训练。</p>
+<p>上一轮提出降低 Wd 学习率，是基于 J1 的 Adam 状态。K 组证实这个改动有效控制了更新量，却没有改善整体结果。因此，继续细分 Wd 学习率已失去优先级。更大的问题在于：多轮模型反复保留了同一批组合排序错误，而特征提取和局部查询始终无法接受任务梯度。</p>
+<p>本报告完成现有预测、checkpoint 与代码的复算分析；训练代码沿用已交付 K 版。</p>
+<h2>1. K 组结果：更新速度变了，泛化水平没有上移</h2>
+<p>6 次训练、12 项均值门控评估全部完成，主程序退出码为 0。下表是三 seed 均值，CW/OW 列为 native AUC，单位为点；同一行使用 VAL CW native AUC 选出的同一组权重。</p>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>模型</th>
+<th>VAL CW</th>
+<th>VAL OW</th>
+<th>TEST CW</th>
+<th>TEST OW</th>
+<th>TEST OW HM@VAL-bias</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>D1</td>
+<td>43.301</td>
+<td>31.564</td>
+<td>34.791</td>
+<td>25.453</td>
+<td>39.976</td>
+</tr>
+<tr>
+<td>G0</td>
+<td>43.343</td>
+<td>31.615</td>
+<td>34.512</td>
+<td>25.184</td>
+<td>39.840</td>
+</tr>
+<tr>
+<td>G1</td>
+<td>43.544</td>
+<td>31.675</td>
+<td>34.531</td>
+<td>25.057</td>
+<td>39.535</td>
+</tr>
+<tr>
+<td>I2</td>
+<td>43.433</td>
+<td>31.787</td>
+<td>34.205</td>
+<td>24.853</td>
+<td>40.032</td>
+</tr>
+<tr>
+<td>J1</td>
+<td>43.329</td>
+<td>31.542</td>
+<td>34.653</td>
+<td>24.526</td>
+<td>39.506</td>
+</tr>
+<tr>
+<td>K1</td>
+<td>43.645</td>
+<td>31.795</td>
+<td>34.320</td>
+<td>24.556</td>
+<td>38.501</td>
+</tr>
+<tr>
+<td>K2</td>
+<td>43.445</td>
+<td>31.696</td>
+<td>34.249</td>
+<td>24.495</td>
+<td>38.226</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p>K1 相对 J1 的 CW 下降 0.333 点，OW 增加 0.031 点；K2 相对 J1 的 CW/OW 都下降。K1/K2 均低于静态 G0，也低于 D1。K1 的 VAL CW 最高，但 TEST 未形成对应提升。D1 的 β=0.1；G0/G1/I2/J1/K1/K2 的 β=0.075，因而 G0 是本轮更直接的静态对照。</p>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>同 seed 比较</th>
+<th>TEST CW AUC 增量 ± SD</th>
+<th>TEST OW AUC 增量 ± SD</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>K1-J1</td>
+<td>-0.333 ± 0.210</td>
+<td>+0.031 ± 0.504</td>
+</tr>
+<tr>
+<td>K2-J1</td>
+<td>-0.403 ± 0.189</td>
+<td>-0.030 ± 0.706</td>
+</tr>
+<tr>
+<td>K1-G0</td>
+<td>-0.192 ± 0.436</td>
+<td>-0.627 ± 1.120</td>
+</tr>
+<tr>
+<td>K2-G0</td>
+<td>-0.263 ± 0.358</td>
+<td>-0.688 ± 0.920</td>
+</tr>
+<tr>
+<td>K1-D1</td>
+<td>-0.472 ± 0.698</td>
+<td>-0.896 ± 1.331</td>
+</tr>
+<tr>
+<td>K2-D1</td>
+<td>-0.542 ± 0.577</td>
+<td>-0.957 ± 1.057</td>
+</tr>
+<tr>
+<td>K1-K2</td>
+<td>+0.071 ± 0.193</td>
+<td>+0.061 ± 0.298</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p>SD 为三个同 seed 差值的样本标准差。K1−K2 的 CW/OW 仅约 +0.071/+0.061 点，这两档构成近似相同的性能区间。继续在 0.1 与 0.3 之间插值，投入价值较低。</p>
+<p><a target="_blank" rel="noopener noreferrer" href="confirmed/figures/01_history_plateau.png"><img src="confirmed/figures/01_history_plateau.png" alt="历轮模型与三 seed 结果" style="max-width: 100%;"></a></p>
+<h3>1.1 双选权重规则也没有改变方向判断</h3>
+<p>K1/K2 的 seed3352 在 native 规则下选中 epoch8，在 exact 规则下选中 epoch6；其余两个 seed 分别为 epoch5/6，两条规则一致。下表在两种选权重规则下统一展示 native AUC，比较的是选中权重的影响。</p>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>选权重规则</th>
+<th>G0 CW/OW</th>
+<th>J1 CW/OW</th>
+<th>K1 CW/OW</th>
+<th>K2 CW/OW</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>VAL native 选中</td>
+<td>34.512 / 25.184</td>
+<td>34.653 / 24.526</td>
+<td>34.320 / 24.556</td>
+<td>34.249 / 24.495</td>
+</tr>
+<tr>
+<td>VAL exact 选中</td>
+<td>34.389 / 25.028</td>
+<td>34.653 / 24.526</td>
+<td>34.369 / 24.689</td>
+<td>34.326 / 24.656</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p>exact 选权重后，K1/K2 的 OW 有小幅回升，仍低于对应的静态 G0。当前结论可以归于训练后的模型表现，而非单个选模分支异常。</p>
+<h2>2. K 组回答了什么：缩小动态更新有效，但没有改善组合排序</h2>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>模型</th>
+<th>Wd 范数</th>
+<th>Wd/Ws 实际自适应步长</th>
+<th>门控图像标准差</th>
+<th>动态条件 logit RMS</th>
+<th>CW dynamic−mean</th>
+<th>OW dynamic−mean</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>J1</td>
+<td>20.894</td>
+<td>0.971</td>
+<td>0.0269</td>
+<td>0.648</td>
+<td>+8.645</td>
+<td>+3.592</td>
+</tr>
+<tr>
+<td>K1</td>
+<td>7.708</td>
+<td>0.307</td>
+<td>0.0282</td>
+<td>0.300</td>
+<td>+3.510</td>
+<td>+1.412</td>
+</tr>
+<tr>
+<td>K2</td>
+<td>2.850</td>
+<td>0.111</td>
+<td>0.0263</td>
+<td>0.111</td>
+<td>+1.350</td>
+<td>+0.487</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p>实际自适应步长指选中 checkpoint 最后一次 AdamW 更新中，自适应项的范数比；weight decay 单独执行。动态条件 logit RMS 在 TEST 未见图像的真实物体条件下，计算 dynamic 与 TRAIN 均值门控的 logits 差，再沿属性维去均值。</p>
+<p>Wd 范数从 20.894 降到 7.708、2.850；自适应步长比从 0.971 降到 0.307、0.111。门控图像标准差仍在约 0.027 附近，动态分数 RMS 已从 0.648 降到 0.300、0.111。配置、优化器和前向响应都按设计发生了变化。</p>
+<p>与此同时，TEST OW AUC 仍集中在 24.50 左右；动态分数变小没有把模型带到 G0 的 25.184。J1、K1、K2 的 dynamic−mean 随动态分支变弱而下降，这反映各模型对自身动态分支的依赖程度。它与相对独立训练 G0 的收益是两种比较。</p>
+<p><a target="_blank" rel="noopener noreferrer" href="confirmed/figures/02_update_scale.png"><img src="confirmed/figures/02_update_scale.png" alt="动态更新与输出尺度" style="max-width: 100%;"></a></p>
+<p>由此应收束三条支线：Wd 学习率细分、门控温度／幅度细分、通过新增缩放系数重新平衡静态与动态分支。这些量已能控制模型作用幅度，当前缺少的是改善组合排序的新信息处理方式。</p>
+<h2>3. 大路径的依据：共同错误和候选内排序</h2>
+<h3>3.1 后续模型反复保留 G0 的同一批错误</h3>
+<p>在每个 seed 的 1,891 张 TEST 未见组合图像上，只在全部 OW 未见组合候选内取 top-1。以 G0 为参照，统计 I2、J1、K1、K2 也同时预测错误的图像：</p>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>seed</th>
+<th>G0 排错且后续四组也全部排错</th>
+<th>占 G0 原有错误比例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3351</td>
+<td>859</td>
+<td>91.97%</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>902</td>
+<td>89.57%</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>809</td>
+<td>88.32%</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p>也就是说，G0 原有组合排序错误的 88.3%–92.0%，在后续四组中始终没有被任何一组纠正。这比单看均值相差 0.1–0.5 点更能说明现有路线的状态：改变门控输入、读出绑定和优化速度，主要移动了一小部分决策边界。</p>
+<p>这里统计的是各 seed 内相同图像的预测交集，三个 seed 的图像不作为独立样本重复计入。</p>
+<h3>3.2 属性与物体两侧都有实际排序空间</h3>
+<p>将每张未见图像分成三个互斥情况：</p>
+<ol>
+<li>真实组合在全部未见候选中为 top-1。</li>
+<li>即使给定真实物体，真实属性仍输给该物体的其他未见属性。</li>
+<li>真实组合在其物体内为 top-1，但输给另一个物体的组合。</li>
+</ol>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>模型</th>
+<th>全部未见候选 top-1</th>
+<th>真实物体内未见属性 top-1</th>
+<th>同物体内排错</th>
+<th>跨物体竞争排错</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>D1</td>
+<td>50.26%</td>
+<td>69.54%</td>
+<td>30.46%</td>
+<td>19.28%</td>
+</tr>
+<tr>
+<td>G0</td>
+<td>49.64%</td>
+<td>69.28%</td>
+<td>30.72%</td>
+<td>19.64%</td>
+</tr>
+<tr>
+<td>I2</td>
+<td>49.29%</td>
+<td>68.83%</td>
+<td>31.17%</td>
+<td>19.55%</td>
+</tr>
+<tr>
+<td>J1</td>
+<td>48.76%</td>
+<td>68.59%</td>
+<td>31.41%</td>
+<td>19.83%</td>
+</tr>
+<tr>
+<td>K1</td>
+<td>48.79%</td>
+<td>68.45%</td>
+<td>31.55%</td>
+<td>19.65%</td>
+</tr>
+<tr>
+<td>K2</td>
+<td>48.44%</td>
+<td>67.81%</td>
+<td>32.19%</td>
+<td>19.37%</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p>三列“全部未见候选 top-1／同物体内排错／跨物体竞争排错”相加为 100%。G0 的错误由约 30.72% 的同物体属性排序错误和 19.64% 的跨物体竞争错误构成；K1/K2 没有改善这两个部分的整体水平。</p>
+<p><a target="_blank" rel="noopener noreferrer" href="confirmed/figures/03_error_decomposition.png"><img src="confirmed/figures/03_error_decomposition.png" alt="未见候选内的错误分解" style="max-width: 100%;"></a></p>
+<p><strong>下一阶段把主要投入放在可训练的局部属性判别，并继续衡量跨物体竞争。</strong> 只改变组合先验、统一 seen/unseen 偏置或动态分支幅度，无法直接解决同物体内的未见属性排序。</p>
+<p>对固定物体 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$o$</math-renderer> 和两个未见组合属性 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$a_1,a_2$</math-renderer>，当前联合对数概率满足：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$$\begin{aligned}
+s(x,a,o)&amp;=\log p(o\mid x)+U(x,a,o)-\log\sum_{a'}\exp U(x,a',o),\\[4pt]
+s(x,a_1,o)-s(x,a_2,o)&amp;=U(x,a_1,o)-U(x,a_2,o).
+\end{aligned}$$</math-renderer>
+<p>物体概率和条件归一化项在差值中消去；给所有未见组合添加同一偏置也会消去。因此，同物体内约 31% 的排错需要改变属性证据及其打分顺序。这个结论直接来自当前评分公式和已有预测。</p>
+<h3>3.3 重新解释“未见条件属性准确率约 24%”</h3>
+<p>原报告的条件属性准确率在真实物体下比较全部 16 个属性，采用零 bias。G0 中约 66.86% 的未见图像被预测为该物体的 TRAIN 属性组合；采用已有 VAL bias 后，其条件属性准确率为 57.29%，只在该物体的未见属性中比较则为 69.28%。</p>
+<p>因此，24% 同时包含训练组合偏好，不能作为 CLIP 视觉表征的能力上限。候选内排序及共同错误提供了更有针对性的方向依据。本次的判断是：<strong>当前冻结特征与末端读出的组合已出现明显收益停滞，值得把学习能力移入视觉证据提取过程。</strong></p>
+<h2>4. 当前结构在哪里限制了下一步收益</h2>
+<p>核查 <code class="notranslate">vgcpod/features.py</code> 与 <code class="notranslate">model.py</code> 后，可以把当前实际计算路径概括为：</p>
+<blockquote>
+<p>固定 CLIP 最末层 patch → 固定文本查询与 softmax 池化 → 固定物体查询向量 → 32 维动态模式系数；组合主读出使用固定全局 CLS 向量。</p>
+</blockquote>
+<p>在 J/K 配置中：</p>
+<ul>
+<li>CLIP 全部冻结，图像和文本向量在训练前生成。</li>
+<li>局部 patch 经过固定查询池化后保存为 <code class="notranslate">fo</code>，空间位置与逐 patch 信息没有进入头部训练。</li>
+<li><code class="notranslate">readout_feature=global</code>，静态和动态 CP 都由全局向量读取。</li>
+<li><code class="notranslate">fo</code> 经残差处理进入 <code class="notranslate">Bvis</code>，作用是改变模式权重；任务梯度不能回到 patch，也不能调整查询池化。</li>
+<li>属性查询缓存 <code class="notranslate">fa</code> 在当前 V1 主模型中不参与输出。</li>
+</ul>
+<p>这一结构能学习组合分类器及其输入相关系数，但无法让材质／状态监督改变视觉编码器的关注区域。早期固定局部向量替换全局读出没有收益，也不等于“训练局部视觉证据”这条路径已经被实验覆盖。</p>
+<h2>5. 大路径决策与创新定位</h2>
+<p><strong>下一阶段的主问题：让模型学习“哪些局部视觉证据能区分两个属性在同一物体上的组合”。方法核心是改变比较与汇聚的顺序。</strong> CLIP 视觉适配负责让 token 接受任务梯度，静态 CP 提供已有组合参数化；研究贡献集中在局部判别算子。</p>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>路径</th>
+<th>当前依据</th>
+<th>下一步安排</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>继续调整 Wd、门控幅度、温度、rank</td>
+<td>更新量已成功改变，组合排序与共同错误没有整体改善</td>
+<td>结束这条参数搜索线</td>
+</tr>
+<tr>
+<td>多层 CLIP＋Adapter＋条件注意力</td>
+<td>工程可行，相关工作已充分覆盖</td>
+<td>作为已有技术；不作为新方法的核心</td>
+</tr>
+<tr>
+<td><strong>同位置属性比较，再汇聚判别证据</strong></td>
+<td>当前约 31% 未见图像在真实物体内排错；现有主读出看不到可训练 patch</td>
+<td><strong>下一阶段研究主线</strong></td>
+</tr>
+<tr>
+<td>AKTR／知识精化</td>
+<td>适合改变语义关系与组合先验</td>
+<td>待视觉判别主线形成后，再针对剩余语义错误展开</td>
+</tr>
+<tr>
+<td>EU-VLRF／Trust／GFlow</td>
+<td>增加随机性、置信度或关系选择</td>
+<td>本轮不扩展这些机制</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p>数据已经确立的是“现有路线停滞、同物体内属性排序仍有空间”。进一步提出的研究假设是：<strong>分别为每个属性寻找高响应区域，容易把共同响应当成区分证据；先在同一位置比较属性假设，可以使组合监督更直接地训练差异证据。</strong> 这是下一阶段要回答的机制问题，现有缓存结果没有记录逐 patch 响应。</p>
+<h3>5.1 与近邻工作的实质差别</h3>
+<p>本次按公开原文核查至 2026-10-21。文献差异界定了可主张的研究内容；新方法的性能与跨数据集作用由正式实验给出。</p>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>已有工作／思想</th>
+<th>已有内容</th>
+<th>本方案具体研究什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="../results/package_support/original_reports/VG-CPOD%E4%B8%8EFACT_%E5%88%9B%E6%96%B0%E6%80%A7%E5%A4%8D%E6%A0%B8_%E5%90%ABD%E7%BB%84_20261020.md.txt">FACT 本地复核</a></td>
+<td>CP 交互及低秩算子解释</td>
+<td>CP 作为共同评分器；改变其 patch 级输出如何成为属性判别分数</td>
+</tr>
+<tr>
+<td><a href="https://openaccess.thecvf.com/content/CVPR2023/html/Wang_Learning_Conditional_Attributes_for_Compositional_Zero-Shot_Learning_CVPR_2023_paper.html" rel="nofollow">CANet</a>、<a href="https://arxiv.org/html/2507.17377v1" rel="nofollow">CPF</a></td>
+<td>物体条件属性学习、条件概率及条件视觉提取</td>
+<td>在同一物体条件下，以属性对的逐位置差值作为证据单位</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/html/2505.10289v1" rel="nofollow">MSCI</a></td>
+<td>多层 CLIP 特征、跨模态交互与适配</td>
+<td>首版只读最后一层，研究比较算子；视觉适配本身计入共同基座</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/abs/2111.07783" rel="nofollow">FILIP</a></td>
+<td>视觉／文本 token 的细粒度晚交互</td>
+<td>将两个属性假设放在同一 patch 上比较，再边缘化局部位置</td>
+</tr>
+<tr>
+<td><a href="https://www.ijcai.org/proceedings/2025/0624.pdf" rel="nofollow">TsCA</a></td>
+<td>patch、primitive、composition 之间的条件传输与一致性</td>
+<td>学习有符号的属性对证据；不以跨集合传输距离为目标</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/html/2610.21937v1" rel="nofollow">Flow-CLIP</a></td>
+<td>图像条件局部修正；跨图像比较同一文本对的 margin</td>
+<td>本方案在单张图像内部、汇聚之前比较属性；不把跨图像 margin 换名作为创新</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/abs/2410.05258" rel="nofollow">Differential Transformer</a></td>
+<td>两张 softmax 注意力图相减</td>
+<td>本方案先相减未汇聚响应，再计算两个对称位置配分函数的对数比</td>
+</tr>
+<tr>
+<td><a href="https://link.springer.com/article/10.1007/s10107-010-0419-x" rel="nofollow">HodgeRank</a></td>
+<td>将成对比较投影为一致的全局分数</td>
+<td>用作已知的概率接口，不作为原创数学贡献</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p>因此，“新增 Adapter”“换成 patch”“使用图”“加入对比损失”都不是本方案的贡献表述。<strong>贡献候选是：物体条件下，先逐位置比较、再边缘化的组合判别算子，以及它对未见组合内部排序的作用。</strong> 与上述已核查工作的差异落实在公式和对照模型上；现阶段将其称为有明确差异的研究方案。</p>
+<h2>6. 新机制的数学定义与正式实验</h2>
+<h3>6.1 共同基座：同一个 CLIP、同一个局部评分器</h3>
+<p>继续使用 OpenAI CLIP ViT-L/14。冻结其预训练主权重，在视觉 Transformer 中训练 bottleneck64 的 Adapter。最后一层经 <code class="notranslate">ln_post</code>、视觉投影和 L2 归一化后，得到 CLS 向量 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$g\in\mathbb{R}^{d}$</math-renderer> 与 patch 向量 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$p_n\in\mathbb{R}^{d}$</math-renderer>；224 输入下 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$N=256$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$d=768$</math-renderer>。首版直接使用最后一层，集中研究判别机制。</p>
+<p>设属性、物体、组合的固定文本向量分别为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$e_a^a,e_o^o,e_{ao}^c\in\mathbb{R}^{d}$</math-renderer>。沿用 G0 的静态评分器，只将输入写成任意视觉向量 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$v$</math-renderer>：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$$\begin{aligned}
+u_a&amp;=A_u e_a^a,\qquad v_o=A_v e_o^o,\\[4pt]
+R(v,a,o)
+&amp;=\kappa v^{\top}e_{ao}^c
++(v^{\top}B_c)\bigl((e_{ao}^c)^{\top}C_c\bigr)^{\top}
++\rho\kappa v^{\top}W_c(u_a\odot v_o).
+\end{aligned}$$</math-renderer>
+<p>维度为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$A_u,A_v\in\mathbb{R}^{r\times d}$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$B_c,C_c\in\mathbb{R}^{d\times q}$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$W_c\in\mathbb{R}^{d\times r}$</math-renderer>。固定 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$r=32$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$q=8$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$\kappa=20$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$\rho=0.15$</math-renderer>，与当前静态头一致。记局部响应为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$r_{nao}=R(p_n,a,o)$</math-renderer>。</p>
+<p>所有属性共用物体条件的位置权重：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$$w_{no}=\frac{\exp\!\left(\kappa p_n^{\top}e_o^o\right)}
+{\sum_{k=1}^{N}\exp\!\left(\kappa p_k^{\top}e_o^o\right)},
+\qquad \sum_n w_{no}=1.$$</math-renderer>
+<p>位置权重随视觉 Adapter 训练而变化。它只依赖图像和候选物体；推理逐候选物体计算。R1/R2 完全共用这一评分器、权重定义和可训练参数，差别只有下面的计算顺序。</p>
+<h3>6.2 现有形式对照：分别汇聚，再比较</h3>
+<p>每个属性单独得到局部汇聚分数：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$$\ell_{ao}(x)=\log\sum_n w_{no}\exp(r_{nao}),
+\qquad m^{\mathrm{sep}}_{ab,o}=\ell_{ao}-\ell_{bo}.$$</math-renderer>
+<p>这个分数可以利用局部高响应，但两个属性的高响应可能来自不同位置。这是正式对照 R1，具有与新方法相同的可训练局部视觉能力。</p>
+<h3>6.3 核心改变：逐位置比较，再边缘化</h3>
+<p>首先在每个位置比较两个属性假设：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$$\delta_{n,ab,o}=r_{nao}-r_{nbo}.$$</math-renderer>
+<p>将局部位置 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$n$</math-renderer> 看成需要边缘化的隐变量，给两个相反假设定义对称能量：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$$\begin{aligned}
+Z^+_{ab,o}&amp;=\sum_n w_{no}\exp\!\left(\frac{\delta_{n,ab,o}}{2}\right),\\[4pt]
+Z^-_{ab,o}&amp;=\sum_n w_{no}\exp\!\left(-\frac{\delta_{n,ab,o}}{2}\right),\\[4pt]
+q(+\mid x,a,b,o)&amp;=\frac{Z^+_{ab,o}}{Z^+_{ab,o}+Z^-_{ab,o}},\\[4pt]
+m_{ab,o}&amp;=\log\frac{q(+\mid x,a,b,o)}{1-q(+\mid x,a,b,o)}
+=\log Z^+_{ab,o}-\log Z^-_{ab,o}.
+\end{aligned}$$</math-renderer>
+<p>这里的 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$q$</math-renderer> 是所定义二元能量模型的概率；全属性预测使用下一节的一致分数。<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$1/2$</math-renderer> 使单 patch 情形严格恢复原始响应差。实现用 <code class="notranslate">logsumexp(log_w ± delta/2)</code>，指数尺度直接沿用已有 logits 单位。</p>
+<p>该定义满足四个可直接验证的性质。</p>
+<p><strong>（一）方向一致。</strong> 交换属性次序得到 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$m_{ba,o}=-m_{ab,o}$</math-renderer>；<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$m_{aa,o}=0$</math-renderer>。</p>
+<p><strong>（二）消除逐位置的共同响应。</strong> 固定 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$w_{no}$</math-renderer>，若给该物体所有属性响应加上同一位置项 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$h_{no}(x)$</math-renderer>，则</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$$r'_{nao}=r_{nao}+h_{no}(x)
+\quad\Longrightarrow\quad
+\delta'_{n,ab,o}=\delta_{n,ab,o}
+\quad\Longrightarrow\quad
+m'_{ab,o}=m_{ab,o}.$$</math-renderer>
+<p>共同项可以随位置变化。分别做非线性汇聚再相减，一般没有这一性质。这是<strong>响应层面、位置权重固定时</strong>的不变性；图像变化也会改变 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$w$</math-renderer>，需要通过完整模型测量。</p>
+<p><strong>（三）区分证据可以反向训练视觉 token。</strong> 定义</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$$\pi^{\pm}_{n,ab,o}
+=\frac{w_{no}\exp(\pm\delta_{n,ab,o}/2)}{Z^{\pm}_{ab,o}},
+\qquad
+\left.\frac{\partial m_{ab,o}}{\partial\delta_{n,ab,o}}\right|_{w}
+=\frac{\pi^+_{n,ab,o}+\pi^-_{n,ab,o}}{2}.$$</math-renderer>
+<p>该偏导非负且对位置求和等于 1，支持和反对某一属性的强差异位置都会接收梯度。完整反向传播同时经过 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$w$</math-renderer> 和 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$r$</math-renderer>。</p>
+<p><strong>（四）小响应极限回到普通线性读取。</strong> 对整体缩放后的局部差 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$t\delta$</math-renderer>，令 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$t\to0$</math-renderer>：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$$m(t\delta)=t\,\mathbb{E}_{w}[\delta]
++\frac{t^3}{24}\operatorname{cum}_{3,w}(\delta)+O(t^5).$$</math-renderer>
+<p>首项是普通位置加权平均，非线性项来自局部差异分布的高阶奇数累积量。一般情况下，新算子与“先汇聚再比较”不等价；单位置或某些对称差异分布下会退化为平均差。这给出明确的等价边界。</p>
+<p>另一个边界也能写成公式：若加入的是属性特有、位置无关的偏置 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$b_{ao}$</math-renderer>，则</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$$r'_{nao}=r_{nao}+b_{ao}
+\quad\Longrightarrow\quad
+m'_{ab,o}=m_{ab,o}+b_{ao}-b_{bo}.$$</math-renderer>
+<p>因此，此机制针对的是共同局部响应；seen/unseen 类别偏好仍由原有训练目标与 VAL 校准处理。</p>
+<p>一个只说明代数差异的三位置例子：<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$r_a=(4,0,0)$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$r_b=(0,3,0)$</math-renderer>，位置权重均匀；共同项 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$h=(0,5,0)$</math-renderer>。</p>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>算法</th>
+<th align="right">添加共同项前的 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$a-b$</math-renderer> 分数</th>
+<th align="right">添加共同项后</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>分别汇聚后相减</td>
+<td align="right">+0.9411</td>
+<td align="right">−2.6825</td>
+</tr>
+<tr>
+<td>先比较再边缘化</td>
+<td align="right">+0.4274</td>
+<td align="right">+0.4274</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p>这是构造数组上的公式核验，作用是说明两个函数确实不同。</p>
+<h3>6.4 将成对证据还原为条件概率</h3>
+<p>一般的 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$m_{ab,o}$</math-renderer> 不保证三角一致性，不能直接把每条边都当成同一个多类概率的 log-odds。对固定、连通的属性比较图 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$G=(\mathcal{A},E)$</math-renderer>，给边 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$(a,b)$</math-renderer> 约定方向。关联矩阵 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$B\in\mathbb{R}^{|E|\times A}$</math-renderer> 的对应行在 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$a$</math-renderer> 列为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$+1$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$b$</math-renderer> 列为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$-1$</math-renderer>，其中 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$A=|\mathcal{A}|$</math-renderer>。</p>
+<p>按最小二乘得到统一条件 logits：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$$U_o=\underset{\mathbf{1}^{\top}U=0}{\operatorname{argmin}}
+\;\frac12\lVert BU-m_o\rVert_2^2.$$</math-renderer>
+<p>令 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$L=B^{\top}B$</math-renderer>。连通性给出 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$\operatorname{null}(L)=\operatorname{span}(\mathbf{1})$</math-renderer>，从而有唯一解：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$$U_o=Dm_o,
+\qquad
+D=\left(L+\frac{\mathbf{1}\mathbf{1}^{\top}}{A}\right)^{-1}B^{\top}.$$</math-renderer>
+<p><math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$D$</math-renderer> 在训练前一次计算，并检查零和与正规方程。它不含可学习参数。完整图时进一步简化为</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$$U_{ao}=\frac1A\sum_{b\in\mathcal{A}}m_{ab,o}.$$</math-renderer>
+<p>这一步采用已有的最小二乘排序思想。对 R1，若输入 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$m_o^{\mathrm{sep}}=B\ell_o$</math-renderer>，同一映射精确恢复 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$U_o=\ell_o-\overline{\ell}_o\mathbf{1}$</math-renderer>，softmax 与直接使用 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$\ell_o$</math-renderer> 完全相同。因此，R1/R2 的差别可严格归于边证据的计算，而非额外图模型。</p>
+<p>为使 MIT-States 上的计算量可控，首版统一采用固定图：按冻结属性文本向量的余弦距离，取每个属性最近的 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$\min(8,A-1)$</math-renderer> 个邻居，做无向并集，再并入同一距离上的最小生成树。距离相同时按标签索引排序。图只使用属性词表，跨 seed、物体、TRAIN/VAL/TEST、CW/OW 共用。8 为首版计算规格，当前不安排邻居数搜索。</p>
+<p>完整图的成对局部运算量为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$O(ON A^2)$</math-renderer>；上述稀疏图为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$O(ON|E|)$</math-renderer>，且 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$|E|\leq 8A+A-1$</math-renderer>。属性分数仍覆盖全部 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$A$</math-renderer> 个词。候选组合只在最终评价时筛选，比较图不随 CW/OW 候选变化。</p>
+<p>联合概率沿用现有框架：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$$\begin{aligned}
+S_o(x)&amp;=\kappa g^{\top}e_o^o
++(g^{\top}B_o)\bigl((e_o^o)^{\top}C_o\bigr)^{\top},\\[4pt]
+p(o\mid x)&amp;=\operatorname{softmax}_o S_o(x),\\[4pt]
+p(a\mid o,x)&amp;=\operatorname{softmax}_a U_{ao}(x),\\[4pt]
+p(a,o\mid x)&amp;=p(o\mid x)p(a\mid o,x).
+\end{aligned}$$</math-renderer>
+<p>沿用当前 TRAIN 支持集 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$\mathcal{C}_{\mathrm{tr}}$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$s=\log p(a,o\mid x)$</math-renderer>，对真实组合 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$y=(a,o)$</math-renderer>：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$$\begin{aligned}
+\mathcal{L}_{\mathrm{pair}}
+&amp;=\mathbb{E}\!\left[-s(x,y)+\log\sum_{c\in\mathcal{C}_{\mathrm{tr}}}e^{s(x,c)}\right],\\[4pt]
+\mathcal{L}_{\mathrm{support}}
+&amp;=-\mathbb{E}\log\sum_{c\in\mathcal{C}_{\mathrm{tr}}}e^{s(x,c)},\\[4pt]
+\mathcal{L}
+&amp;=1.5\,\mathcal{L}_{\mathrm{pair}}
++\frac{9}{86}\,\mathcal{L}_{\mathrm{support}}.
+\end{aligned}$$</math-renderer>
+<p>最后一式就是 G0 在 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$\beta=0.075$</math-renderer> 时的任务损失恒等式。新模型通过同一分类目标训练证据算子；预测保存格式、VAL 选模和 native/exact 评价继续复用。</p>
+<h3>6.5 一套完整的机制比较</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>模型</th>
+<th>共同 CLIP／静态头之外的区别</th>
+<th>回答的问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R0</td>
+<td>可训练视觉 Adapter；<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$U_{ao}=R(g,a,o)$</math-renderer>，全局读取</td>
+<td>将梯度接入 CLIP 后，普通静态头的表现</td>
+</tr>
+<tr>
+<td>R1</td>
+<td>相同 Adapter；最后层局部响应分别汇聚为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$\ell_{ao}$</math-renderer>
+</td>
+<td>普通局部视觉证据学习的收益</td>
+</tr>
+<tr>
+<td><strong>R2</strong></td>
+<td>相同 Adapter、局部响应、物体权重；使用 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$\delta\to m\to U$</math-renderer>
+</td>
+<td><strong>先比较后汇聚是否改善未见组合判别</strong></td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p>R1/R2 参数量相同，训练图像、增强、初始化、优化器、训练步数和选模规则相同。R2 的额外代价是成对响应与固定线性映射，需在结果中同时报告实际耗时和峰值显存。</p>
+<p>安排 <strong>UT-Zappos、MIT-States × R0/R1/R2 × seed3351/3352/3353，共 18 次完整训练</strong>。每张 GPU 负责一个 seed，依次执行两数据集的三个模型。UT 与现有 G0/D1 建立联系；MIT 检查状态词和更多物体下的迁移。每次训练固定 10 epochs、有效 batch64；显存通过 microbatch 和梯度累积处理。</p>
+<p>固定首版配方：视觉 Adapter 学习率 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$5\times10^{-5}$</math-renderer>，现有后编码适配矩阵 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$10^{-3}$</math-renderer>，静态 CP 参数 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$3\times10^{-4}$</math-renderer>；使用余弦衰减至各自初始值的 1%，AdamW weight decay <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$10^{-4}$</math-renderer>。三个模型共用此配方。<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$\rho=0.15$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$\beta=0.075$</math-renderer>、rank32 和图邻居数8 全部固定。这份配方是正式比较的起点，不把上一轮冻结特征头的学习率原样用于 CLIP 内部。</p>
+<p>UT 使用现有文本模板；MIT 使用适合状态—物体组合的模板，三个模型共用。数据集以已有标准训练／验证／测试划分接入，不按 TEST 错误选图、选边或选择负例。</p>
+<p><strong>主比较为 R2−R1。</strong> R2 相对旧 G0 的收益同时包含“视觉适配、局部特征和新算子”，应与 R2−R1 分开解释。结果同时给出：</p>
+<ol>
+<li>三 seed CW/OW AUC 与固定 VAL bias 的 HM。</li>
+<li>真实物体内的未见属性排序、跨物体竞争，以及共同错误的纠正量和新增错误量。</li>
+<li>R1/R2 的边 margin、投影后的最终 margin、位置梯度分布；报告投影残差，判断有效判别信息是否保留下来。</li>
+<li>正常图像上的差异证据可视化，以及固定 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$w$</math-renderer> 的响应共同项不变性检查。后者用于核验实现，前者用于解释真实学习结果。</li>
+</ol>
+<p>其中 1–3 来自这 18 次完整训练及保存的预测；无需继续串行追加温度、幅度或学习率小网格。论文定位还应与 CPF/MSCI 等已有方法按相同骨干和候选协议比较；本轮 R0/R1/R2 首先把新机制的贡献与工程适配收益明确分开。</p>
+<h3>6.6 下一次代码工作的明确范围</h3>
+<ol>
+<li>
+<strong>在线视觉训练路径。</strong> 复用本机 <code class="notranslate">CZSL/src/LOGICZSL_repro/model/troika.py</code> 中视觉 Adapter 与 CLIP 前向接口，输出 CLS 和最后层 patch；旧 <code class="notranslate">g/fa/fo</code> 缓存保留用于历史结果读取。</li>
+<li>
+<strong>统一评分器与三种读取。</strong> 同一个静态 CP 参数集合实现 R0、R1、R2；将 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$\delta\to m\to Dm$</math-renderer> 写成独立、可微的算子，不引入新的动态门控。</li>
+<li>
+<strong>固定比较图与分块计算。</strong> 保存词表、文本向量、边方向和 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$D$</math-renderer>；按候选物体、边和 microbatch 分块计算，避免物化完整 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="8a801d1e65ea4eb7565b0be58d7c338c">$[B,O,A,A,N]$</math-renderer> 张量。累积训练梯度时使用重计算控制激活内存，<code class="notranslate">logsumexp</code> 和图投影采用 FP32。</li>
+<li>
+<strong>保留评价体系，补充机制记录。</strong> 继续保存图像身份、候选顺序、完整 logits、checkpoint、优化器状态和三 seed 汇总；增加 TRAIN/VAL 固定样本的 patch 响应及最终模型的边证据诊断。</li>
+<li>
+<strong>一次提交上述正式矩阵。</strong> 三张 GPU 独立运行 seed 队列，用 tmux 管理、独立目录保存，全部完成后统一比较。</li>
+</ol>
+<p>本次已完成公式性质和非等价性的数值核验，明细见 <a href="confirmed/proposed_math_checks.json">proposed_math_checks.json</a>。这部分运行的是代数检查；训练代码尚未改动。下一次实现以这里的一套机制和正式比较为范围。</p>
+<h2>7. 本次复核与交付</h2>
+<ul>
+<li>核对 98 个交付文件哈希和 60 项训练源码指纹。</li>
+<li>独立复算 96 份预测，native AUC 和固定 VAL bias HM 与归档一致；exact AUC 最大差异为浮点舍入量级。</li>
+<li>48 份 dynamic 复评预测与原预测逐元素一致，复算 414 行排序诊断。</li>
+<li>检查两组全部 epoch 的学习率倍率、checkpoint 中 TRAIN 均值、损失恒等式、RMS 和 native/exact 选权重。</li>
+<li>逐图计算共同错误、真实物体内未见属性排序和跨物体竞争分解；从真实 checkpoint 重建 J1/K1/K2 的 Adam 更新量。</li>
+</ul>
+<p>数据明细：<a href="confirmed/analysis.json">analysis.json</a>、<a href="confirmed/audit.json">audit.json</a>、<a href="confirmed/supplement.json">supplement.json</a>、<a href="confirmed/tables/">tables/</a>、<a href="confirmed/figures/">figures/</a>。本报告给出结果判断、近邻文献差异、核心算子推导与正式比较矩阵。训练代码未改动；下一次实现以第 6 节为规格。</p>
+<h2>8. 仓库复算与网页Markdown核对</h2>
+<p><a href="../README.md">主说明</a>汇总本轮公式、优化器分组和超参数策略；<a href="confirmed/analysis.json">分析JSON</a>、<a href="confirmed/audit.json">预测审计</a>、<a href="confirmed/supplement.json">逐图／候选／优化器补充</a>、<a href="repository_validation.json">仓库验证</a>和<a href="../code/source_changes.patch">源码补丁</a>按平行结构保存。</p>
+<div class="highlight highlight-source-shell"><pre class="notranslate">python VG-CPOD方案/12/analysis/recompute.py
+python tools/reproduce.py verify</pre></div>
+<p>复算从本轮预测、checkpoint、门控矩重建指标、配对差值、更新幅值和共同错误；历史模型读取已有归档。输出至<code class="notranslate">recomputed/</code>，与<code class="notranslate">confirmed/</code>中的JSON及CSV逐项比较。已完成K实验与第6节后续研究提案分别记录，原训练包保持字节一致。</p>
+<p>五份README使用GitHub数学围栏和兼容行内数学；提交前核对GFM提取的TeX与源文，发布后在GitHub网页检查公式、表格、图像与链接。</p></article></body></html>
