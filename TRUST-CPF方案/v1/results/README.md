@@ -14,3 +14,5 @@
 当前正式UT训练完成数为0。这里保存实现和合成验证记录；正式识别指标及权重由服务器实验追加。
 
 仓库新增的[文档检查器](../code/audits/check_repository_docs.py)复核链接、Python3.8语法、原始代码摘录与等价公式；[数学渲染检查器](../code/audits/check_github_math.cjs)使用KaTeX复核全部数学表达式。全仓库校验已通过，全仓库6787个规范文件的哈希检查通过。
+
+GitHub网页排版已复核：[网页布局记录](repository-validation-20261021/github_layout.json)与[实际截图](repository-validation-20261021/github_layout_fixed.png)。修订方案的21个公式采用外置Markdown编号，避免浏览器MathML不支持的编号表格元素；53个行内公式、表格、数学内容及源码对应关系均已检查。
