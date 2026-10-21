@@ -1,0 +1,102 @@
+{
+  "line": "TRUST-CPF方案",
+  "stage": "v1",
+  "archive_stage": "32",
+  "primary_package": "trustcpf_clip_v1",
+  "commands": [
+    {
+      "source": "TRUST-CPF方案/v1/README.md",
+      "language": "bash",
+      "text": "git lfs pull\npython tools/register_trustcpf_v1.py --check\nREPLAY=\"$HOME/experiments/trustcpf-replay-v1\"\npython tools/reproduce.py materialize --line TRUST-CPF方案 --stage v1 --dest \"$REPLAY\"\nTRUST_PKG=\"$REPLAY/trustcpf_clip_v1\"\ncd \"$TRUST_PKG\"\nexport CPF_PY=\"$(command -v python)\"\nexport DATA_ROOT=/srv/czsl-project/data/ut-zap50k\nexport CLIP_CKPT=\"$HOME/.cache/clip/ViT-L-14.pt\"\nexport CACHE=\"$HOME/experiments/trustcpf_clip_v1/cache/ut-zap50k\"\nexport WORK_ROOT=\"$HOME/experiments/trustcpf_clip_v1/work\"\nsource scripts/env.sh\n\"$CPF_PY\" -m pip install -r requirements.txt\n\"$CPF_PY\" -m unittest discover -s tests -v\nCUDA_VISIBLE_DEVICES=0 bash scripts/prepare.sh\nCUDA_VISIBLE_DEVICES=0 bash scripts/train_seed.sh 3351",
+      "template_paths": true
+    },
+    {
+      "source": "TRUST-CPF方案/v1/README.md",
+      "language": "bash",
+      "text": "python tools/register_trustcpf_v1.py --check\npython tools/register_trustcpf_v1.py --restore-check\npython tools/reproduce.py verify",
+      "template_paths": true
+    },
+    {
+      "source": "TRUST-CPF方案/v1/服务器实践命令.md",
+      "language": "bash",
+      "text": "git lfs pull\npython tools/register_trustcpf_v1.py --check\nexport REPLAY=\"$HOME/experiments/trustcpf-replay-v1\"\npython tools/reproduce.py materialize --line TRUST-CPF方案 --stage v1 --dest \"$REPLAY\"\nexport TRUST_PKG=\"$REPLAY/trustcpf_clip_v1\"\ncd \"$TRUST_PKG\"\nexport CPF_PY=\"$(command -v python)\"\nexport DATA_ROOT=/srv/czsl-project/data/ut-zap50k\nexport CLIP_CKPT=\"$HOME/.cache/clip/ViT-L-14.pt\"\nexport CACHE=\"$HOME/experiments/trustcpf_clip_v1/cache/ut-zap50k\"\nexport WORK_ROOT=\"$HOME/experiments/trustcpf_clip_v1/work\"\nsource scripts/env.sh\n\"$CPF_PY\" -c 'import torch; print(torch.__version__,torch.cuda.get_device_name(0))'\n\"$CPF_PY\" -m pip install -r requirements.txt\n\"$CPF_PY\" -m unittest discover -s tests -v",
+      "template_paths": true
+    },
+    {
+      "source": "TRUST-CPF方案/v1/服务器实践命令.md",
+      "language": "bash",
+      "text": "CUDA_VISIBLE_DEVICES=0 bash scripts/prepare.sh",
+      "template_paths": true
+    },
+    {
+      "source": "TRUST-CPF方案/v1/服务器实践命令.md",
+      "language": "bash",
+      "text": "export CACHE=/srv/czsl-runs/vgcpod/cache/ut-zap50k\nCUDA_VISIBLE_DEVICES=0 \"$CPF_PY\" run.py graph --cache \"$CACHE\" --checkpoint \"$CLIP_CKPT\"",
+      "template_paths": true
+    },
+    {
+      "source": "TRUST-CPF方案/v1/服务器实践命令.md",
+      "language": "bash",
+      "text": "mkdir -p \"$WORK_ROOT\" logs\nCUDA_VISIBLE_DEVICES=0 nohup bash scripts/train_seed.sh 3351 > logs/seed3351.log 2>&1 &\ntail -f logs/seed3351.log",
+      "template_paths": true
+    },
+    {
+      "source": "TRUST-CPF方案/v1/服务器实践命令.md",
+      "language": "bash",
+      "text": "CUDA_VISIBLE_DEVICES=0 nohup bash scripts/train_seed.sh 3351 > logs/seed3351.log 2>&1 &\nCUDA_VISIBLE_DEVICES=1 nohup bash scripts/train_seed.sh 3352 > logs/seed3352.log 2>&1 &\nCUDA_VISIBLE_DEVICES=2 nohup bash scripts/train_seed.sh 3353 > logs/seed3353.log 2>&1 &",
+      "template_paths": true
+    },
+    {
+      "source": "TRUST-CPF方案/v1/服务器实践命令.md",
+      "language": "bash",
+      "text": "export WORK=\"$WORK_ROOT/seed3351\"\nCUDA_VISIBLE_DEVICES=0 \"$CPF_PY\" run.py teachers --cache \"$CACHE\" --work \"$WORK\" --seed 3351 --fold all\nCUDA_VISIBLE_DEVICES=0 \"$CPF_PY\" run.py measure --cache \"$CACHE\" --work \"$WORK\" --seed 3351 --fold all\nCUDA_VISIBLE_DEVICES=0 \"$CPF_PY\" run.py fit --cache \"$CACHE\" --work \"$WORK\" --seed 3351\nCUDA_VISIBLE_DEVICES=0 \"$CPF_PY\" run.py audit --cache \"$CACHE\" --work \"$WORK\" --seed 3351\nCUDA_VISIBLE_DEVICES=0 \"$CPF_PY\" run.py tune --cache \"$CACHE\" --work \"$WORK\" --seed 3351\nCUDA_VISIBLE_DEVICES=0 \"$CPF_PY\" run.py fit --cache \"$CACHE\" --work \"$WORK\" --seed 3351 --fit-all\nCUDA_VISIBLE_DEVICES=0 \"$CPF_PY\" run.py reference --cache \"$CACHE\" --work \"$WORK\" --seed 3351\nCUDA_VISIBLE_DEVICES=0 \"$CPF_PY\" run.py structure --cache \"$CACHE\" --work \"$WORK\" --seed 3351\nfor VARIANT in r0 capacity dense drop free mean robust; do\n  CUDA_VISIBLE_DEVICES=0 \"$CPF_PY\" run.py adapt --cache \"$CACHE\" --work \"$WORK\" --seed 3351 --variant \"$VARIANT\"\ndone\n\"$CPF_PY\" run.py report --cache \"$CACHE\" --work \"$WORK\"",
+      "template_paths": true
+    },
+    {
+      "source": "TRUST-CPF方案/v1/服务器实践命令.md",
+      "language": "bash",
+      "text": "CUDA_VISIBLE_DEVICES=0 \"$CPF_PY\" run.py pipeline --cache \"$CACHE\" --work \"$WORK_ROOT/shuffled3351\" --seed 3351 --variant shuffled\nCUDA_VISIBLE_DEVICES=0 bash scripts/noise.sh 3351",
+      "template_paths": true
+    },
+    {
+      "source": "TRUST-CPF方案/v1/服务器实践命令.md",
+      "language": "bash",
+      "text": "CUDA_VISIBLE_DEVICES=0 \"$CPF_PY\" run.py noise --cache \"$CACHE\" --work \"$WORK_ROOT/seed3351\" --seed 3351 --variant robust --noise-seeds 7101 --rates 0 0.1 0.3 0.5",
+      "template_paths": true
+    },
+    {
+      "source": "TRUST-CPF方案/v1/服务器实践命令.md",
+      "language": "bash",
+      "text": "for ABLATION in semantic unmeasured; do\n  export ABLATION_WORK=\"$WORK_ROOT/${ABLATION}3351\"\n  mkdir -p \"$ABLATION_WORK\"\n  ln -s \"$WORK_ROOT/seed3351/measurements\" \"$ABLATION_WORK/measurements\"\n  CUDA_VISIBLE_DEVICES=0 \"$CPF_PY\" run.py fit --cache \"$CACHE\" --work \"$ABLATION_WORK\" --seed 3351 --config \"configs/$ABLATION.json\"\n  CUDA_VISIBLE_DEVICES=0 \"$CPF_PY\" run.py audit --cache \"$CACHE\" --work \"$ABLATION_WORK\" --seed 3351 --config \"configs/$ABLATION.json\"\ndone",
+      "template_paths": true
+    },
+    {
+      "source": "TRUST-CPF方案/v1/服务器实践命令.md",
+      "language": "bash",
+      "text": "\"$CPF_PY\" run.py report --cache \"$CACHE\" --work \"$WORK_ROOT\"\ncat \"$WORK_ROOT/seed3351/utility/audit.json\"\ncat \"$WORK_ROOT/seed3351/tuning.json\"\ncat \"$WORK_ROOT/seed3351/runs/robust/metrics.json\"\ncat \"$WORK_ROOT/paired_comparisons.json\"",
+      "template_paths": true
+    }
+  ],
+  "variables": {
+    "REPLAY": "new absolute materialization directory",
+    "CPF_PY": "activated CZSL Python",
+    "DATA_ROOT": "UT-Zappos dataset root",
+    "CLIP_CKPT": "official ViT-L/14 checkpoint",
+    "CACHE": "frozen image/text cache",
+    "WORK_ROOT": "per-seed runs root"
+  },
+  "execution_order": [
+    "features",
+    "graph",
+    "teachers",
+    "measure",
+    "fit",
+    "audit",
+    "tune",
+    "fit --fit-all",
+    "reference",
+    "structure",
+    "adapt",
+    "report"
+  ]
+}

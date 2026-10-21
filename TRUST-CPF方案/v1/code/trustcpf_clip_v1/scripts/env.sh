@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+export CPF_PY="${CPF_PY:-python}"
+export DATA_ROOT="${DATA_ROOT:-/srv/czsl-project/data/ut-zap50k}"
+export CLIP_CKPT="${CLIP_CKPT:-$HOME/.cache/clip/ViT-L-14.pt}"
+export CACHE="${CACHE:-$HOME/experiments/trustcpf_clip_v1/cache/ut-zap50k}"
+export WORK_ROOT="${WORK_ROOT:-$HOME/experiments/trustcpf_clip_v1/work}"
+export OMP_NUM_THREADS="${OMP_NUM_THREADS:-4}"
+export MKL_NUM_THREADS="${MKL_NUM_THREADS:-4}"
+export PYTHONUNBUFFERED=1

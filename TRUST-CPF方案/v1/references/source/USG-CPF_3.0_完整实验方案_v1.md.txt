@@ -1,0 +1,1149 @@
+---
+title: "USG-CPF 3.0 完整实验方案"
+subtitle: "可迁移语义关系效用：数学定义、逐步推导与执行协议 · 第一版"
+author: "CZSL 研究方案"
+date: "2026-10-14"
+lang: zh-CN
+---
+
+# 1. 研究目标与第一版范围
+
+本方案将原 idea 发展为 TRUST-CPF：用组合隔离任务测量语义关系的预测增益，训练只读取语义与训练视觉证据的效用预测器，再根据均值、跨任务波动和结构预算选择 OI/OE/AE 关系。最终检验这种选择能否改善组合零样本识别、含噪知识利用和推理稳定性。
+
+第一版交付完整数学与实验规范，不实现实验代码，不产生训练结果。以下默认值用于启动实验；候选参数的选择顺序、允许使用的数据和最终评价规则在本文中固定。
+
+三个研究问题对应三个主要比较：
+
+1. **效用可迁移性**：只看关系语义和 Inner 证据，能否预测从未用于拟合效用预测器的组合上的边增益？比较效用预测器与类型常数、边查表和纯语义预测器。
+2. **识别增益**：反事实效用监督是否优于等预算的分类监督结构学习？比较完整方法、自由边概率和 LDS 式双层对照。
+3. **稳健选择**：跨任务风险惩罚是否改善错误知识条件下的表现？比较均值选择与均值减标准差选择，并匹配期望边数。
+
+本文把“预测有效性”作为学习目标。边的语义真伪在独立知识审查中记录，不以识别损失代替语义真值。
+
+## 1.1 与原 idea 相比的公式优化
+
+| 原 idea 的开放项 | 第一版采用的完整定义 |
+|---|---|
+| 伪未见 episode 如何隔离历史监督 | 组合分块、每块独立教师、效用拟合/选择/审计三种任务角色 |
+| 图怎样进入 CPF | 单层有类型残差消息；对象分支残差与图像—对象—属性三线性残差 |
+| 标准差的含义 | 任务效用方差、Monte Carlo 测量方差、预测器集成方差分别建模 |
+| 稀疏边效用的统计 | 配对差分、分层采样、Horvitz–Thompson 权重、类型收缩与覆盖计数 |
+| 边包含概率为何采用 sigmoid | 从线性效用、Bernoulli KL 和期望边预算的凸目标推导闭式解 |
+| 训练随机图的梯度 | 主版本采用阶段分离；扩展版给出精确 score-function 与双层超梯度 |
+| 推理怎样平均 | 在同一候选集内先条件化每张图的概率，再平均；用 log-sum-exp 实现 |
+| 新旧 CPF 评价怎样对齐 | 原生加法分数与规范化概率基底分设对照；保留阶段特定 CW mask |
+
+# 2. 本机资产、历史证据与复用边界
+
+## 2.1 已核对的本地依据
+
+下列文件是本方案的事实依据；其内部执行建议按历史版本理解，本文采用本次用户要求的“公式完整、先不写代码”交付范围。
+
+| 编号 | 文件与用途 |
+|---|---|
+| L0 | `C:/Users/llenovo/Desktop/USG/USG-CPF_3.0_可迁移语义关系效用_研究方案.md`：原始 idea |
+| L1 | `C:/Users/llenovo/Documents/ChatGPT/My Computer/week-report/week6工作1完整分析/CZSL已做实验总档案.md`：实验时间线、失败机制、候选集与接口 |
+| L2 | 同目录 `知识处理汇总.md`：知识来源、版本、GloVe 编码、旧兼容性掩码的含义 |
+| L3 | 同目录 `数据分析汇总.md`：历史配对结果与统计口径 |
+| L4 | `C:/Users/llenovo/Documents/ChatGPT/CZSL/knowledge/README.md` 和 `registry.json`：知识资产注册与哈希 |
+| L5 | `C:/Users/llenovo/Documents/ChatGPT/CZSL/0601方案/v2/README.md`：统一概率修订版的执行状态 |
+| L6 | `C:/Users/llenovo/Documents/ChatGPT/CZSL/revisions/0601_probabilistic_20261013/release/复现公式及代码_统一修订版.md`：联合概率、三元交互与条件损失修订 |
+| L7 | `C:/Users/llenovo/Documents/ChatGPT/CZSL/src/CPF_repro/models/cot.py`：原生 CPF 的视觉输出和三项相加评分 |
+| L8 | `C:/Users/llenovo/Documents/ChatGPT/CZSL/environment/README.md`：历史服务器软件、外部输入与环境记录 |
+
+`CZSL/knowledge` 当前链接至 `D:/CodexData/CZSL/structured-20261011-v2/knowledge`。正式实现以 registry 的资产身份和 SHA256 为准，路径映射与内容身份分别记录。
+
+## 2.2 历史结果如何决定新方案
+
+UT 静态 v2 中，C_text 相对 A_unit 的三 seed 平均 CW/OW AUC 增量为 3.0670/4.1315 个百分点；正确文本相对错配控制的收益尚未稳定。固定 template prior 的后处理网格在既有 A/C 权重上选择了零强度。Generic 加固定 25% 混合存在共同性能收益，正确知识的独有作用没有相应确立。[L1–L3]
+
+因此，新实验必须同时控制文本输入、额外容量、读出变化、训练预算和正确知识对应关系。已有 EKR、视觉参与和条件 head 是工程基础，不列为本方案新贡献。
+
+截至已核对的 0601 v2 说明，统一修订版已经归档代码、配置与 34 项 CPU 检查，尚无正式 CUDA 训练准确率。本文借用其数学接口，不把该版本作为已有强性能结果。[L5–L6]
+
+## 2.3 源知识选择
+
+UT 主版本固定采用以下三个文件组成一个 corpus：
+
+- `CZSL/knowledge/ut-zap50k/definitions/reviewed-v2/ae_dict.json`；
+- 同目录 `oe_dict.json`；
+- 同目录 `oi_dict.json`，读取后核对父类与成员是否等于 manifest 声明。
+
+当前 UT 有 16 属性、12 对象、48 AE 句和 36 OE 句。早期四父类 OI 为 boot、casual shoe、dress shoe、open or indoor footwear，每个对象恰属一个父类，对应 12 条 OI 成员关系。按此实例化时，可选择边数为 96，节点数为 116：28 原语、4 父类、84 描述节点。节点身份按“类型、所属原语、描述槽位”定义，即使句子相同也保持独立槽位；实际数量由冻结文件核算。[L2、L4]
+
+UT-v2 描述来自 TRAIN 图像审查后的修订；为了检验严格组合隔离，再增设未使用 TRAIN 图像修订的 legacy-v1 corpus 对照。它隔离“知识人工式修订是否看过留出组合的 TRAIN 图像”这一信息来源。v2 主实验称“固定知识条件下的组合监督隔离”，v1 对照提供外部知识构建过程也独立于这些图像的结果。
+
+MIT-States、C-GQA 首轮使用各自 `definitions/legacy-v1` 的 OI/OE/AE。现有记录分别为 115/245 和 413/674 属性/对象，主要由 WordNet 首义及规则模板重建。只在版本审计表中保留来源与词义状态，不将它们视作专家真值图。
+
+旧 `compatibility.csv` 来源于 split pair 并集，只用于复核候选集，不进入边先验、效用特征或知识评分。第一版关闭 template pair prior 和新增逻辑损失，以直接识别关系选择的贡献。
+
+# 3. 统一符号、张量和数据协议
+
+## 3.1 符号表
+
+| 符号 | 定义/维度 |
+|---|---|
+| $\mathcal A,\mathcal O$ | 属性、对象词表，大小 $A,O$ |
+| $\mathcal C_s$ | 官方 TRAIN 已见组合，元组写作 $(a,o)$ |
+| $\mathcal C$ | 当前评价阶段允许的候选组合 |
+| $D_{\mathrm{tr}},D_{\mathrm{val}},D_{\mathrm{te}}$ | 官方图像划分 |
+| $E_c,E_\rho$ | 可选择边及关系类型子集，$\rho\in\{\mathrm{OI,OE,AE}\}$ |
+| $b_e,\pi_e,p_e^0$ | 二值边、学习包含概率、来源先验 |
+| $\theta,\psi,\phi$ | CPF 参数、图融合参数、效用预测器参数 |
+| $U_e^{(t)},y_e^{(t)}$ | 任务真实期望效用、配对测量值 |
+| $\nu_e^{(t)},v_\phi(z)$ | 测量方差、条件任务效用方差 |
+| $\mu_e,\sigma_e^2$ | 目标任务分布上的总体效用均值、任务方差 |
+| $R_e$ | 使用效用、波动和预测器不确定性构成的边收益 |
+| $d,r$ | GloVe/图概念维度 300；三线性秩默认 64 |
+
+张量按 `[batch, object, attribute]` 排列，完整概率维度为 $B\times O\times A$。dataset 元组依旧是 $(a,o)$；实现时用显式索引映射转换。所有均值先说明抽样单位，所有方差使用原始损失单位，不转换成百分数。
+
+定义安全归一化和余弦：
+
+$$
+\mathcal N(v)=\frac{v}{\max(\|v\|_2,\epsilon)},\qquad
+\operatorname{cos}(u,v)=\mathcal N(u)^\top\mathcal N(v),\quad\epsilon=10^{-8}.
+\tag{1}
+$$
+
+源语义向量要求非零；视觉/学习投影若为零，式 (1) 返回零且记录计数。
+
+## 3.2 官方评价与机制评价分开
+
+官方 TRAIN 标签可训练最终模型；VAL 选择 epoch、预算和超参数；TEST 在方案冻结后执行最终评价。公开 primitive 词表和候选组合元数据用于接口与评价，组合 membership 不作为语义特征。
+
+历史 UT 数据记录为 TRAIN 22998 图/83 pair，VAL 3214 图/30 pair，TEST 2914 图/36 pair。VAL 含 877 seen 图和 2337 unseen 图。历史分数表 CW 有 116 列，而当时 VAL closed mask 实际只允许 98 个组合；OW 为 192 组合。[L1]
+
+设 $\mathcal C_{\mathrm{val}}$、$\mathcal C_{\mathrm{te}}$ 是阶段 pair 文件中的组合，阶段候选为 $\mathcal C^{\mathrm{CW}}_{\mathrm{val}}=\mathcal C_s\cup\mathcal C_{\mathrm{val}}$、$\mathcal C^{\mathrm{CW}}_{\mathrm{te}}=\mathcal C_s\cup\mathcal C_{\mathrm{te}}$、$\mathcal C^{\mathrm{OW}}=\mathcal A\times\mathcal O$。第一步保存原生 evaluator 对每个阶段输出的布尔 mask、列顺序和哈希。历史回放使用历史 mask；新主实验使用冻结 split 对应的原生 mask。两种评价有差异时分别命名，不直接比较数值。UT 的 98 是历史 VAL mask 记录，不硬编码为所有阶段的 CW 候选数。
+
+## 3.3 严格机制任务：分块教师
+
+把官方训练组合划为五个互不相交的块：
+
+$$
+\mathcal C_s=C_0\sqcup\bigsqcup_{j=1}^{5}Q_j,\qquad
+I_j=\mathcal C_s\setminus Q_j.
+\tag{2}
+$$
+
+通常 $C_0=\varnothing$，UT 优先形成 17/17/17/16/16 个组合的五块；若存在不可留出的稀有原语组合，则 $C_0$ 为所有任务共享的 Inner 组合，五块仅划分其余组合。对每块要求：
+
+$$
+\forall a\in\mathcal A(Q_j),\ \exists o:(a,o)\in I_j;\qquad
+\forall o\in\mathcal O(Q_j),\ \exists a:(a,o)\in I_j.
+\tag{3}
+$$
+
+划分过程先给每个原语选一条覆盖组合放入各块的补集约束，再按组合样本数和原语频次平衡分配，违反式 (3) 时交换组合修复。若某原语只出现于一个 TRAIN 组合，该组合不进入 Query，放入所有任务的公共 Inner 集；随后对其余组合分块，并记录不覆盖的原语。块数量仍保留五，实际大小可不同。
+
+任务角色固定：$Q_1,Q_2,Q_3$ 用于效用拟合；$Q_4$ 用于效用模型与风险参数选择；$Q_5$ 用于一次性机制审计。每个 $j$ 从同一通用 ViT/GloVe 初始化独立训练教师 $\Theta_j=(\theta_j,\psi_j)$，训练图像只能属于 $I_j$。教师不继承其他折的参数、optimizer、BatchNorm 统计或监督缓存。
+
+同一折的 episode $t$：Inner 为 $I_j$ 的允许训练数据，Query 是 $Q_j$ 上按组合均衡抽样的图像子集。支持摘要从 Inner 每个原语最多 16 张图像抽样构造；教师参数始终固定。Query 组合可重复出现在该折不同测量任务，但 $Q_5$ 的标签从不用于效用预测器拟合或选择。
+
+其他教师可以在自己的 Inner 中见到 $Q_5$ 组合，故效用拟合间接继承的迁移训练信息属于学习过程。审计要求是：**产生 $Q_5$ 效用标签的教师本身没见过 $Q_5$ 的组合监督，效用预测器没拟合过 $Q_5$ 的效用标签**。这定义任务迁移实验的可核验信息边界。
+
+机制审计完成后冻结设计。正式最终模型使用全部官方 TRAIN；将五折产生的效用标签用于固定配置的最终效用拟合。另保留审计前的三折预测器结果作为机制证据，两阶段结果分表。
+
+历史全 TRAIN CPF checkpoint 只用于低成本工程 pilot 与历史回放；其 Query 组合已参与监督，不作为严格伪未见教师。
+
+# 4. 从 OI/OE/AE 到可干预语义图
+
+## 4.1 文本向量
+
+GloVe 维度固定为 300，名称遵循 CPF 原别名映射，描述遵循冻结构建器的英文分词和已知 token 规则。对概念或句子 $c$：
+
+$$
+h_c^0=\mathcal N\left(\frac{1}{|T_c|}\sum_{w\in T_c}g(w)\right).
+\tag{4}
+$$
+
+$T_c$ 是有 GloVe 向量的 token 集合；记录总词数、有效词数及 OOV。整句无有效 token 时该源资产需修订或明确屏蔽，并在所有对照中采用同一有效槽位。
+
+不预先把名称和三描述平均为一个向量。名称作为锚点，描述保留为独立节点，便于只删除一条关系而不同时改写其他关系。
+
+## 4.2 节点、方向和干预单位
+
+$$
+V=\mathcal A\sqcup\mathcal O\sqcup\mathcal H
+\sqcup\mathcal D_{\mathrm{AE}}\sqcup\mathcal D_{\mathrm{OE}}.
+\tag{5}
+$$
+
+三种边的消息方向：父类 $h\to o$ 为 OI；对象描述 $d_{ok}\to o$ 为 OE；属性描述 $d_{ak}\to a$ 为 AE。这里 OI 成员表示“对象属于父类”，采用父概念向对象传递语义信息的消息方向。每条成员/描述附着关系有且只有一个 $b_e$。名字锚点不随机删除。
+
+第一版不引入逆向边、组合节点或传递闭包。这样一条源知识关系与一个可干预变量完全对应。后续增加双向传播时，两个方向绑定同一个 $b_e$ 并共同开关。
+
+## 4.3 有类型残差消息
+
+对 $e=(u\to c,\rho)$ 定义固定源语义残差及消息：
+
+$$
+d_e=h_u^0-h_c^0,\qquad
+m_e=W_\rho d_e,\qquad W_\rho\in\mathbb R^{300\times300}.
+\tag{6}
+$$
+
+令 $N_\rho(c)$ 为候选边全集中指向 $c$ 的该类型边，$n_\rho(c)=|N_\rho(c)|$。
+
+$$
+M_c(G)=\sum_\rho\frac{1}{\max(1,n_\rho(c))}
+\sum_{e\in N_\rho(c)}b_e m_e,\qquad
+Z_c(G)=\mathcal N\bigl(h_c^0+\eta M_c(G)\bigr).
+\tag{7}
+$$
+
+分母使用候选图度数，干预一条边时不重算分母；因此消息变化为该边残差的显式贡献。若使用激活度数归一化，删除一条边还会重标度其他消息，效用定义会对应另一种图算子，应作为独立消融。
+
+默认 $W_\rho=I$ 初始化，$\eta=0.1$ 固定，训练 $W_\rho$ 使用与 CPF head 同一训练数据。定义 $\mathcal R_W=\sum_\rho\|W_\rho-I\|_F^2/300^2$，在教师目标中加入 $\lambda_W\mathcal R_W$，$\lambda_W=10^{-3}$。冻结教师后停止更新这些矩阵。
+
+式 (7) 保证 $G=\varnothing$ 或 $\eta=0$ 时 $Z_c=h_c^0$。所有图结构对照使用同样的 $W_\rho$ 参数规模和同样的消息归一化。
+
+# 5. 图增强 CPF 的完整概率与损失
+
+## 5.1 原生分数与共同基底
+
+原生 CPF 的现有实现输出：
+
+$$
+S_{\mathrm{native}}(x,a,o)=s_{\mathrm{comp}}(x,a,o)
++s_{\mathrm{attr}}(x,a)+s_{\mathrm{obj}}(x,o).
+\tag{8}
+$$
+
+保留原生模型 B0 及其原生训练/评价接口。图方法共同使用概率基底 R0：
+
+$$
+z_o^0(x)=s_{\mathrm{obj}}(x,o)/T_0,\qquad
+U_{oa}^0(x)=[s_{\mathrm{comp}}(x,a,o)+s_{\mathrm{attr}}(x,a)]/T_0.
+\tag{9}
+$$
+
+这里三种 $s$ 均读取原生推理分支的未缩放余弦分数，R0 固定 $T_0=0.07$，训练与推理使用同一尺度。R0 用下文式 (14)–(17) 训练与评价。R0 相对 B0 包含读出、温度和训练目标变化，二者的差值单独报告；图方法收益主要相对 R0、等容量无图和确定图对照计算。
+
+本地 CPF 可提供 $v_o(x)\in\mathbb R^{300}$、$v_a(x)\in\mathbb R^{300}$ 以及组合分数；$v=[v_o;v_a]\in\mathbb R^{600}$。$v_o$ 与 $v_a$ 是原模型投影输出，不与 GloVe 描述直接宣称具有视觉语义校准。
+
+## 5.2 对象残差与三元条件残差
+
+对象分支加入语义相似度变化：
+
+$$
+\delta z_o(x,G)=\frac{\operatorname{cos}(v_o,Z_o(G))
+-\operatorname{cos}(v_o,h_o^0)}{T_g}.
+\tag{10}
+$$
+
+为使属性图消息与图像及候选对象发生交互，定义秩 $r=64$ 的投影：
+
+$$
+q_x=\mathcal N(P_vv),\quad
+q_o(G)=\mathcal N(P_oZ_o(G)),\quad
+q_a(G)=\mathcal N(P_aZ_a(G)),
+\tag{11}
+$$
+
+其中 $P_v\in\mathbb R^{r\times600}$，$P_o,P_a\in\mathbb R^{r\times300}$。
+
+$$
+T(x,o,a;G)=\sum_{k=1}^{r}q_{x,k}q_{o,k}(G)q_{a,k}(G),\quad
+\delta U_{oa}(x,G)=\frac{T(x,o,a;G)-T(x,o,a;\varnothing)}{T_g}.
+\tag{12}
+$$
+
+三个投影归一化后 $|T|\le1$，不再另除 $\sqrt r$。对相同 $a$ 和不同 $o$，图像项的系数随 $q_o$ 改变；对相同 $(o,a)$ 和不同图像，残差随 $q_x$ 改变，产生真正的三元交互。默认 $T_g=0.1$。
+
+最终分数：
+
+$$
+z_o(x,G)=z_o^0(x)+\alpha_g\delta z_o(x,G),\qquad
+U_{oa}(x,G)=U_{oa}^0(x)+\alpha_g\delta U_{oa}(x,G),\quad\alpha_g=0.1.
+\tag{13}
+$$
+
+式 (7) 的 $Z_c$ 为概念向量，式 (13) 的 $z_o(x,G)$ 为对象 logit；大写概念表示与小写评分明确分开。关闭图消息时式 (13) 精确回到 R0。$P_v,P_o,P_a$ 属于 $\psi$，教师训练后冻结。
+
+## 5.3 联合分布与候选条件化
+
+$$
+\ell_o(x,G)=z_o(x,G)-\log\sum_{o'}e^{z_{o'}(x,G)},
+\tag{14}
+$$
+
+$$
+\ell_{a\mid o}(x,G)=U_{oa}(x,G)-\log\sum_{a'}e^{U_{oa'}(x,G)},\qquad
+\ell_{oa}=\ell_o+\ell_{a\mid o}.
+\tag{15}
+$$
+
+由 $\sum_a e^{\ell_{a|o}}=1$ 和 $\sum_o e^{\ell_o}=1$，可得 $\sum_{oa}e^{\ell_{oa}}=1$，以及 $\sum_a e^{\ell_{oa}}=e^{\ell_o}$。属性条件归一化项依赖对象，不能从联合排名中省略。
+
+对任一固定候选集 $\mathcal C$：
+
+$$
+p_{\mathcal C}(a,o\mid x,G)=
+\frac{\mathbf1[(a,o)\in\mathcal C]e^{\ell_{oa}(x,G)}}
+{\sum_{(a',o')\in\mathcal C}e^{\ell_{o'a'}(x,G)}}.
+\tag{16}
+$$
+
+共同基底训练：pair CE 在当前教师 Inner 组合 $I_j$ 内条件化；对象与属性辅助损失读取完整未屏蔽概率：
+
+$$
+\begin{aligned}
+\mathcal L_{\mathrm{pair}}&=-\ell_{o^*a^*}
++\log\sum_{(a,o)\in I_j}e^{\ell_{oa}},\\
+\mathcal L_{\mathrm{obj}}&=-\ell_{o^*},\qquad
+\mathcal L_{\mathrm{attr}}=-\ell_{a^*\mid o^*},\\
+\mathcal L_I&=\mathbb E_{(x,a^*,o^*)\sim D_{I_j}}
+\left[\mathcal L_{\mathrm{pair}}+0.4\mathcal L_{\mathrm{obj}}
++0.6\mathcal L_{\mathrm{attr}}\right]+\lambda_W\mathcal R_W.
+\end{aligned}
+\tag{17}
+$$
+
+最终模型把 $I_j$ 换为 $\mathcal C_s$。属性损失在 GT-object 条件下，未引入测试 Support。原生 B0 的 mix loss 与式 (17) 的差异由 R0 对照承担；若主实验保留 mix loss，则所有 R0 衍生组同时保留并冻结定义。
+
+教师训练采用 $b_e\sim\mathrm{Bernoulli}(0.5)$ 的统一结构增强，目标是 $\mathbb E_G\mathcal L_I$。每 batch 一张共享图；Query 不参与教师参数更新。增设全开教师检验干预标签是否依赖教师的 EdgeDrop 训练。
+
+# 6. 配对反事实效用：测量目标、抽样与误差
+
+## 6.1 固定候选集的 Query 损失
+
+每折机制候选集合固定为 $\mathcal C_s$，同时含 Inner 和伪未见 Query 组合。Query 损失按组合等权：
+
+$$
+\ell_Q^{(t)}(\Theta_j,G)=\frac1{|C_Q^{(t)}|}
+\sum_{c\in C_Q^{(t)}}\frac1{|D_{Q,c}^{(t)}|}
+\sum_{(x,c)\in D_{Q,c}^{(t)}}-\log p_{\mathcal C_s}(c\mid x,G).
+\tag{18}
+$$
+
+其中 $C_Q^{(t)}\subseteq Q_j$，默认每任务选 8 个组合，每组合 8 图；组合不足 8 时取全部，图像不足时全取且保持组合等权。只用 Query 候选归一化会简化成“已知答案属于 Query”的任务，因此这里保留 Inner 竞争候选。
+
+## 6.2 干预定义与配对估计
+
+固定教师、图像及其他边，构造 $G_e^+=(G_{-e},1)$、$G_e^-=(G_{-e},0)$。定义：
+
+$$
+\Delta_e^{(t)}(G_{-e})=\ell_Q^{(t)}(\Theta_j,G_e^-)
+-\ell_Q^{(t)}(\Theta_j,G_e^+),\quad
+U_e^{(t)}=\mathbb E_{G_{-e}\sim q_{\mathrm{ref},-e}}
+\Delta_e^{(t)}(G_{-e}).
+\tag{19}
+$$
+
+正值表示保留边降低当前固定模型的 Query NLL。第一轮 $q_{\mathrm{ref}}=\prod_e\mathrm{Bernoulli}(0.5)$，与教师结构增强一致。后续只在完成第一轮比较后，考察冻结已学习结构作为参考分布。
+
+用 $M$ 个共同背景图：
+
+$$
+d_{e,m}^{(t)}=\Delta_e^{(t)}(G_{-e}^{(m)}),\qquad
+y_e^{(t)}=\frac1M\sum_{m=1}^M d_{e,m}^{(t)},
+\quad\mathbb E[y_e^{(t)}\mid t]=U_e^{(t)}.
+\tag{20}
+$$
+
+每对干预保持图像变换、dropout 状态和背景图一致。主测量在 eval 模式下关闭 dropout；视觉特征一次缓存。背景图抽样独立，开边/关边分别前向图消息与评分，不重新训练教师。
+
+若开/关损失分别为 $L^+,L^-$，配对差分方差为：
+
+$$
+\operatorname{Var}(L^--L^+)=\operatorname{Var}(L^-)
++\operatorname{Var}(L^+)-2\operatorname{Cov}(L^-,L^+).
+\tag{21}
+$$
+
+共同随机数在协方差为正时减少差分方差；同样配置的独立背景抽样作为对应消融，实测验证方差变化。
+
+## 6.3 测量方差
+
+主版本定义 episode 的有限 Query batch 为任务本身，任务间的 batch 变化进入任务方差；在同一任务内只估计背景图 Monte Carlo 误差：
+
+$$
+\widehat\nu_e^{(t)}=\frac{1}{M(M-1)}
+\sum_{m=1}^{M}\bigl(d_{e,m}^{(t)}-y_e^{(t)}\bigr)^2,\qquad M\ge2.
+\tag{22}
+$$
+
+默认 $M=4$，审计 $M=16$；pilot 比较 $M\in\{2,4,8,16\}$。$M=1$ 不估计该方差，若做效率对照则用独立校准任务得到的类型噪声估计。若另定义全 Query 分布效用，需增加按组合/图像的重抽样误差；该估计作为敏感性分析，不与主式 (22) 混用。
+
+## 6.4 分层边抽样和覆盖
+
+每任务从三个类型均匀无放回抽取 $b_\rho$ 条边，$b_\rho=\min(8,|E_\rho|)$，边的包含概率为：
+
+$$
+\kappa_e=\frac{b_{\rho(e)}}{|E_{\rho(e)}|}.
+\tag{23}
+$$
+
+所有边均有正包含概率，不只测高收益边。若希望优化全边均匀平均的损失 $|E_c|^{-1}\sum_e L_e$，无偏估计为：
+
+$$
+\widehat L=\frac1{|E_c|}\sum_{e\in B_t}\frac{L_e}{\kappa_e},
+\quad\mathbb E_{B_t}\widehat L=\frac1{|E_c|}\sum_eL_e.
+\tag{24}
+$$
+
+主效用损失采用式 (24)，同时报告每类型均值。若改为三类型等权，权重为 $1/(3|E_\rho|\kappa_e)$，实验名中注明目标分布变化。
+
+每个拟合折固定 512 个测量任务；UT 每任务最多 24 条边、每边 4 个背景，共 192 次图头前向。按 12/36/48 类型边数，单折期望覆盖次数约为 OI 341、OE 114、AE 85；三拟合折累计分别约为 1024、341、256。有效覆盖计数以实际记录为准。
+
+## 6.5 稀疏统计用于诊断，不混合教师版本
+
+固定教师版本和参考图分布下，对一条边的 $n_e$ 个测量记录：
+
+$$
+\bar y_e=\frac1{n_e}\sum_ty_e^{(t)},\qquad
+\widehat s_{\mathrm{obs},e}^2=\frac1{n_e-1}
+\sum_t(y_e^{(t)}-\bar y_e)^2,
+\tag{25}
+$$
+
+$$
+\widehat\sigma_{\mathrm{task},e}^2=
+\max\left(0,\widehat s_{\mathrm{obs},e}^2
+-\frac1{n_e}\sum_t\widehat\nu_e^{(t)}\right).
+\tag{26}
+$$
+
+式 (26) 来自独立零均值测量误差的方差分解，截断只用于给出非负统计量。按关系类型收缩均值：
+
+$$
+\widetilde\mu_e=\frac{n_e\bar y_e+\alpha_\rho\bar y_\rho}{n_e+\alpha_\rho},
+\quad\alpha_\rho=10.
+\tag{27}
+$$
+
+$n_e<20$ 的边不参与边查表强结论，仍可由共享预测器输出。完整测量记录是训练监督；EMA 只作在线监控，不把 EMA 的原始二阶矩当成无偏任务方差。教师、候选集、Query 权重、知识 corpus 或参考图分布任一改变都创建新缓存版本。
+
+# 7. 效用预测器：可迁移证据与概率目标
+
+## 7.1 语义特征
+
+边的语义输入为：
+
+$$
+k_e=[h_u^0;h_c^0;h_u^0\odot h_c^0;
+|h_u^0-h_c^0|;\operatorname{onehot}(\rho);s_e^{\mathrm{src}}],
+\tag{28}
+$$
+
+前四项各 300 维，类型 3 维，来源元数据 4 维（manual、WordNet、TRAIN 修订、OOV 率），总 1207 维。描述槽位、原语整数 ID、seen/unseen 标记不进入主预测器；边 ID 只用于记录与查表对照。
+
+## 7.2 Inner 视觉证据：均衡对象上下文
+
+使用同一通用预训练且未做 CZSL 监督微调的 ViT 提取 $g(x)\in\mathbb R^{768}$，单位化。它与各折教师的已学习视觉投影分离，避免不同教师投影坐标漂移。
+
+对象摘要由其每个 Inner 组合等权聚合，属性摘要由不同对象上下文等权聚合：
+
+$$
+\begin{aligned}
+\bar g_{oa}^{I}&=\frac1{n_{oa}}\sum_{x\in D_{I,oa}}\mathcal N(g(x)),\\
+\bar g_o^{I}&=\frac1{|A_I(o)|}\sum_{a\in A_I(o)}\bar g_{oa}^{I},\\
+\bar g_a^{I}&=\frac1{|O_I(a)|}\sum_{o\in O_I(a)}\bar g_{oa}^{I}.
+\end{aligned}
+\tag{29}
+$$
+
+式 (29) 每个原语最多采 16 张允许图像，先在组合内抽样再组合等权。若子组合无图，则不参与分母。附加有效图像数、上下文数、缺失标记；缺失原语摘要为零，类型 prior 提供默认。
+
+图文相似度需要学习可对齐的投影：
+
+$$
+r_c^I=\mathcal N(P_g\bar g_c^I),\quad
+t_c=\mathcal N(P_th_c^0),\quad
+P_g\in\mathbb R^{128\times768},\ P_t\in\mathbb R^{128\times300}.
+\tag{30}
+$$
+
+投影只用拟合折 Inner primitive 标签训练对比分类：
+
+$$
+\mathcal L_{\mathrm{align}}=-\frac1{|D_I|}\sum_{(x,a,o)\in D_I}
+\left[\log\frac{e^{\operatorname{cos}(P_gg(x),P_th_o^0)/T_h}}
+{\sum_{o'}e^{\operatorname{cos}(P_gg(x),P_th_{o'}^0)/T_h}}
++\log\frac{e^{\operatorname{cos}(P_gg(x),P_th_a^0)/T_h}}
+{\sum_{a'}e^{\operatorname{cos}(P_gg(x),P_th_{a'}^0)/T_h}}\right].
+\tag{31}
+$$
+
+$T_h=0.1$；只训练三个拟合折允许 Inner 的联合输入，随后冻结 $P_g,P_t$。效用拟合和审计都用同一投影坐标。投影训练的信息范围列入任务审计，Query batch 和标签不进入摘要。
+
+对 OE/AE，$r_e=r_c^I$；对 OI 再用父类成员 Inner 摘要 $r_h^I$，没有成员时设零并标缺失。统一视觉特征：
+
+$$
+h_e^I=[r_c^I;r_u^I;t_u;t_c;
+\operatorname{cos}(r_c^I,t_u);\operatorname{cos}(r_c^I,t_c);
+\log(1+n_c);\log(1+k_c);m_c;m_u].
+\tag{32}
+$$
+
+描述节点的 $r_u^I$ 固定为零、$m_u=1$；OI 父类可用 $r_h^I$。四向量合计 512 维，六标量合计 6 维，总 518 维。$k_c$ 是不同组合上下文数。原语图像计数同时提供是否仅有单一上下文的证据。
+
+输入 $z_e^{(t)}=[k_e;h_e^I]$ 共 1725 维，连续标量仅用效用拟合记录计算标准化均值/方差，类型与缺失标记不标准化。
+
+## 7.3 均值和条件任务方差
+
+两层 MLP：1725→256→128，GELU，输出均值和方差：
+
+$$
+m_\phi(z)=w_m^\top H_\phi(z)+b_m,\qquad
+v_\phi(z)=\operatorname{softplus}(w_v^\top H_\phi(z)+b_v)+v_{\min}.
+\tag{33}
+$$
+
+先仅在拟合折测量记录上估计类型尺度 $s_\rho=\max(\operatorname{std}_\rho(y),10^{-4})$。训练使用 $\widetilde y=y/s_\rho$、$\widetilde\nu=\nu/s_\rho^2$；模型输出在该尺度下，$v_{\min}=10^{-4}$。预测后还原 $m=s_\rho\widetilde m$、$v=s_\rho^2\widetilde v$，风险与 KL 温度均使用还原单位。
+
+观测模型为：
+
+$$
+U_e^{(t)}\mid z\sim\mathcal N(m_\phi(z),v_\phi(z)),\qquad
+y_e^{(t)}=U_e^{(t)}+\varepsilon_e^{(t)},\quad
+\varepsilon_e^{(t)}\sim\mathcal N(0,\widehat\nu_e^{(t)}).
+\tag{34}
+$$
+
+正态观测是第一版用于均值/方差拟合的工作模型；残差分位图与校准误差用于检验适配性。独立误差的卷积给出总观测方差 $v+\nu$，因此负对数似然去除常数后为：
+
+$$
+L_e^{(t)}=\frac12\left[
+\log(v_\phi+\widehat\nu_e^{(t)})+
+\frac{(\operatorname{sg}[y_e^{(t)}]-m_\phi)^2}
+{v_\phi+\widehat\nu_e^{(t)}}\right].
+\tag{35}
+$$
+
+式 (35) 实际在类型标准化尺度计算；$\widehat\nu$ 与 $y$ 同时停止梯度。全训练目标为式 (24) 的 $L_e^{(t)}$ 均值加 $10^{-4}\|\phi\|_2^2$。高测量噪声通过分母自然降低对均值的约束，无需再人为乘覆盖次数以重复加权。
+
+令 $V=v+\nu$、残差 $r=m-y$，可核验梯度：
+
+$$
+\frac{\partial L}{\partial m}=\frac rV,\qquad
+\frac{\partial L}{\partial v}=\frac{1}{2V}-\frac{r^2}{2V^2}.
+\tag{36}
+$$
+
+均值趋向条件期望，方差拟合剩余任务波动；测量误差在 $\nu$ 中单独进入。均值 MSE 对照仍保留相同 MLP，并固定风险项为零。
+
+## 7.4 三种不确定性与部署汇总
+
+对不同初始化独立拟合 $L=3$ 个效用预测器。在一份支持摘要 $z$ 上：
+
+$$
+\bar m(z)=\frac1L\sum_{l=1}^Lm_l(z),\quad
+\bar v(z)=\frac1L\sum_{l=1}^Lv_l(z),\quad
+v_{\mathrm{ens}}(z)=\frac1L\sum_l(m_l(z)-\bar m(z))^2.
+\tag{37}
+$$
+
+$\bar v$ 表示任务条件波动，$v_{\mathrm{ens}}$ 表示模型间分歧；$\nu$ 是测量误差。集成分歧作为认知不确定性的代理，单独报告其覆盖率。
+
+最终训练集生成 $R=16$ 个同样抽样规则的支持摘要 $z_e^{(r)}$，且只使用 TRAIN 图像。利用全方差公式：
+
+$$
+\widehat\mu_e=\frac1R\sum_r\bar m(z_e^{(r)}),
+\tag{38}
+$$
+
+$$
+\begin{aligned}
+\widehat\sigma_{\mathrm{task},e}^{2}
+&=\frac1R\sum_r\bar v(z_e^{(r)})
++\frac1R\sum_r(\bar m(z_e^{(r)})-\widehat\mu_e)^2,\\
+\widehat v_{\mathrm{ens},e}&=\frac1R\sum_r v_{\mathrm{ens}}(z_e^{(r)}).
+\end{aligned}
+\tag{39}
+$$
+
+式 (39) 来自 $\operatorname{Var}(U)=\mathbb E_z\operatorname{Var}(U|z)+\operatorname{Var}_z\mathbb E(U|z)$，不会把测量方差加入部署风险。部署固定该汇总和图分布，逐测试图像无需任何有标注 Support。
+
+跨折教师与最终教师的训练规模存在差异。通过不同 Inner 组合数量的迁移诊断，报告效用符号、尺度和风险的漂移；主版本使用与最终模型相同的冻结主干、训练轮数和 head 配方，使效用在同一模型家族内迁移。
+
+# 8. 从风险效用推导边包含概率
+
+## 8.1 风险收益
+
+$$
+R_e=\widehat\mu_e-\lambda_{\mathrm{var}}
+\sqrt{\widehat\sigma_{\mathrm{task},e}^2}
+-\lambda_{\mathrm{ens}}\sqrt{\widehat v_{\mathrm{ens},e}}.
+\tag{40}
+$$
+
+默认 $\lambda_{\mathrm{var}}=0.5$，$\lambda_{\mathrm{ens}}=0.25$；仅均值版两者均为零。波动惩罚表达任务风险偏好，而样本不足造成的估计分歧另由集成项处理。
+
+若 $U\sim\mathcal N(\mu,\sigma^2)$，$\mu-z_{1-\alpha}\sigma$ 是下侧分位点；因此式 (40) 的任务项在正态工作模型下有分位数解释。没有正态假设时，Cantelli 给出 $\Pr(U<\mu-\lambda\sigma)\le1/(1+\lambda^2)$，该界通常较宽；第一版主要通过经验噪声曲线选择风险偏好。
+
+## 8.2 结构优化目标
+
+设先验 $p_e^0\in[\epsilon_p,1-\epsilon_p]$，默认 $p_e^0=0.5$、$\epsilon_p=10^{-3}$。独立 Bernoulli 结构：
+
+$$
+q_\pi(G)=\prod_{e\in E_c}\pi_e^{b_e}(1-\pi_e)^{1-b_e}.
+\tag{41}
+$$
+
+为了最大化边收益并控制结构偏离与消息成本，优化：
+
+$$
+\begin{aligned}
+J(\pi)=&-\sum_e\pi_e R_e
++\tau\sum_e\left[\pi_e\log\frac{\pi_e}{p_e^0}
++(1-\pi_e)\log\frac{1-\pi_e}{1-p_e^0}\right],\\
+\text{约束： }&\sum_{e\in E_\rho}d_e^{\mathrm{cost}}\pi_e\le B_\rho.
+\end{aligned}
+\tag{42}
+$$
+
+第一版 $d_e^{\mathrm{cost}}=1$，$B_\rho=0.5|E_\rho|$。$\tau$ 与效用同为 NLL 增益单位；使用 $\tau=0.5s_*$，$s_*$ 是所有拟合折效用的全局标准差，最小为 $10^{-4}$。类型标准化只服务预测器训练，结构收益还原到统一 NLL 单位。
+
+式 (42) 是相对于参考图的局部加性效用代理。真实图损失中存在边交互，§9 给出关系与诊断，主实验另外匹配图预算检验选择质量。
+
+## 8.3 闭式解和预算乘子
+
+引入非负乘子 $\gamma_\rho$，令：
+
+$$
+\mathcal J=J(\pi)+\sum_\rho\gamma_\rho
+\left(\sum_{e\in E_\rho}d_e^{\mathrm{cost}}\pi_e-B_\rho\right).
+\tag{43}
+$$
+
+对 $\pi_e$ 求导：
+
+$$
+\frac{\partial\mathcal J}{\partial\pi_e}
+=-R_e+\tau\left[\log\frac{\pi_e}{1-\pi_e}
+-\log\frac{p_e^0}{1-p_e^0}\right]
++\gamma_{\rho(e)}d_e^{\mathrm{cost}}.
+\tag{44}
+$$
+
+令导数为零，得到：
+
+$$
+\boxed{\pi_e=
+\operatorname{sigmoid}\left(\operatorname{logit}(p_e^0)
++\frac{R_e-\gamma_{\rho(e)}d_e^{\mathrm{cost}}}{\tau}\right).}
+\tag{45}
+$$
+
+二阶导为 $\tau/[\pi_e(1-\pi_e)]>0$，目标在开区间严格凸。预算可行且 $B_\rho>0$ 时解满足唯一的结构最优点以及 KKT 条件：
+
+$$
+\gamma_\rho\ge0,\quad
+\sum_{e\in E_\rho}d_e^{\mathrm{cost}}\pi_e\le B_\rho,\quad
+\gamma_\rho\left(\sum_{e\in E_\rho}d_e^{\mathrm{cost}}\pi_e-B_\rho\right)=0.
+\tag{46}
+$$
+
+先取 $\gamma_\rho=0$。超预算时逐次加倍正上界，直至边数不超过预算，再二分 40 次或达到 $10^{-6}$ 的相对边数误差。边数随 $\gamma_\rho$ 单调下降，故该过程确定。
+
+原 idea 的关系成本 $c_\rho$ 在这里替换为由预算确定的乘子；如采用真正的人工固定成本，则加入 $c_\rho\pi_e$，式 (45) 分子再减 $c_\rho$。主版本避免同时调任意成本和预算两套稀疏度参数。
+
+工程采样前可夹紧 $\pi_e$ 至 $[10^{-6},1-10^{-6}]$，报告夹紧后预算误差。极端 $B_\rho=0$ 直接令该类所有边为零，按单独无图消融处理。
+
+## 8.4 相同结构预算下的对照
+
+EdgeDrop 按类型设常数概率达到同一期望边数。纯均值版通过同样的预算求解。Top-k 使用按类型固定边数及确定性选择；它与 Bernoulli 模型的边数方差不同，属于推理结构对照。
+
+固定全开图的预算更大，除主全开结果外增加“固定均匀子图”以匹配边数。报告每类型期望边数、实际采样边数、边熵和孤立原语比例。
+
+# 9. 边效用与真实图损失的数学关系
+
+## 9.1 效用是期望图损失对边概率的精确局部导数
+
+固定教师和任务，令 $F_t(\pi)=\mathbb E_{G\sim q_\pi}\ell_Q^{(t)}(G)$。将 $e$ 单独展开：
+
+$$
+F_t(\pi)=\mathbb E_{G_{-e}}\left[
+\pi_e\ell_Q^{(t)}(G_e^+)+(1-\pi_e)\ell_Q^{(t)}(G_e^-)\right].
+\tag{47}
+$$
+
+因为 $q_{\pi,-e}$ 与 $\pi_e$ 无关：
+
+$$
+\frac{\partial F_t}{\partial\pi_e}
+=\mathbb E_{G_{-e}}[\ell_Q^{(t)}(G_e^+)-\ell_Q^{(t)}(G_e^-)]
+=-U_e^{(t)}(\pi_{-e}).
+\tag{48}
+$$
+
+因此参考分布下的效用提供沿边概率方向改善 Query 损失的一阶信号。式 (42) 把该导数在参考分布固定，并加风险和结构正则得到可迁移代理。
+
+## 9.2 两边交互和重测条件
+
+对一对边，保持其余图不变：
+
+$$
+I_{ef}=L(1,1)-L(1,0)-L(0,1)+L(0,0).
+\tag{49}
+$$
+
+该量是 $\partial^2 F/\partial\pi_e\partial\pi_f$ 对背景图的期望。$I_{ef}\ne0$ 表示效用随另一条边的状态改变；正值对应损失的正交互，可能表现为收益冗余，负值可能表现为互补。
+
+pilot 在每类型内及跨类型均匀抽取 32 对边，比较一阶代理与实际 NLL 变化。若候选新结构与参考结构的 $\|\pi-\pi_{\mathrm{ref}}\|_1$ 很大，且代理排序与实际变化相关较低，增加一次**冻结最终教师/新参考图后的重测轮次**；该轮统一用于所有效用组，不用 TEST 决定是否重测。
+
+## 9.3 可选连续筛选代理
+
+把一条边临时放松为 $w_e\in[0,1]$，在固定其余边下令 $L(w_e)$ 可微。基本定理给出：
+
+$$
+\Delta_e=L(0)-L(1)=-\int_0^1\frac{\partial L(w)}{\partial w_e}\,dw.
+\tag{50}
+$$
+
+在 $w_e=1/2$ 取 $-\partial L/\partial w_e$ 是中点近似，不等同于二值配对效用。梯度仅用于效率扩展筛选；至少 50% 测量预算仍为分层均匀覆盖，并记录实际包含概率以修正式 (24)。第一版主结果使用真正二值差分。
+
+# 10. 分阶段训练和可选联合优化
+
+## 10.1 主版本采用教师—效用—最终模型顺序
+
+**P0：冻结资产。** 固定 split、候选 mask、corpus、GloVe、ViT 初始化和配置，保存哈希与张量轴。原生 B0 与关闭图的 R0 分别复核。
+
+**P1：组合隔离教师。** 五折从同一通用初始化训练式 (17)，冻结 ViT，训练 CPF 投影/head、$W_\rho$ 与三线性投影。每折 10 epoch，batch 64，AdamW head 学习率 $10^{-4}$，图头 $3\times10^{-4}$，weight decay $10^{-4}$，cosine schedule，前 1 epoch warmup。教师选第 10 epoch，不用本折 Query 或官方 VAL 选择教师。
+
+**P2：冻结教师测量。** 拟合折各 512 任务，开发与审计折各 128 任务。主审计保留每任务8组合、每组合8图的同一任务定义，只提高背景样本至 $M=16$；另外用每组合最多48图做大Query批量的均值诊断，单独报告，因为其任务方差与主任务不同。边抽样按式 (23)。保存式 (20)–(22) 和全部配对设置。
+
+**P3：拟合效用。** 先训练式 (31) 20 epoch，再冻结投影。式 (35) 用三个初始化，每次最多 50 epoch，batch 256 条边记录，AdamW $10^{-3}$、weight decay $10^{-4}$；每 5 epoch 在 $Q_4$ 计算均值 RMSE、方向指标和预测区间覆盖。按 $Q_4$ NLL 最小选择 epoch，同分选早期。风险参数另按 $Q_4$ 固定教师上的图识别 NLL/符号指标选择，见 §13。
+
+**P4：一次性审计。** 冻结配置，在 $Q_5$ 报告效用迁移和结构选择的实际 NLL 增益。后续正式模型阶段不把这里重新拟合后的成绩替换为审计前结果。
+
+**P5：最终训练。** 固定方法后，用全部 TRAIN 训练一个同配方参考教师 10 epoch；最终效用预测器在五折标签上按已选择 epoch 数拟合。用全部 TRAIN 的支持摘要构造式 (38)–(45)，固定图分布。复制参考教师进行 3 epoch 结构适配，只训练图头和 CPF 顶层投影，ViT 保持冻结。所有结构选择组从同一参考权重、相同 optimizer 重置状态出发，接受相同 3 epoch 适配预算。
+
+**P6：正式评价。** 3 个配对训练 seed：3351、3352、3353；同一 seed 的参考教师供各结构组复用。选模仅官方 VAL CW AUC，首次严格最大，OW 读取同一 checkpoint。epoch 0 参考教师作为候选之一；早停选择仍记录实际完整训练预算。
+
+最终教师相对折教师的迁移误差，由 §7.4 的 Inner 大小诊断和 §9.2 的一次参考图重测进行评估。若执行重测，统一重测后冻结所有效用组，再各自适配；相应开销单列。
+
+## 10.2 统一研究目标的含义
+
+主版本各阶段分别最小化：
+
+$$
+\mathcal L_{\mathrm{teacher}}=\mathbb E_{G\sim q_{\mathrm{ref}}}\mathcal L_I,
+\quad
+\mathcal L_{\mathrm{utility}}=\mathbb E_t\widehat L_{\mathrm{NLL}}^{(t)},
+\quad
+\mathcal L_{\mathrm{structure}}=J(\pi),
+\quad
+\mathcal L_{\mathrm{adapt}}=\mathbb E_{G\sim q_\pi}\mathcal L_{\mathrm{tr}}.
+\tag{51}
+$$
+
+式 (51) 是阶段式求解规范。原 idea 中把 Query loss、utility loss、KL 和 budget 相加的统一目标可作联合版本，但第一版不把分阶段算法称为该联合目标的精确最优解。
+
+## 10.3 可选联合版：离散结构的精确梯度
+
+令效用预测器诱导 $\pi_\phi$，冻结测量标签与教师版本。联合目标为：
+
+$$
+\mathcal L_{\mathrm{joint}}=\mathbb E_t\mathbb E_{G\sim q_{\pi_\phi}}
+\ell_Q^{(t)}(\Theta,G)+\lambda_u\mathcal L_{\mathrm{utility}}
++\tau\operatorname{KL}(q_{\pi_\phi}\|p_0)
++\sum_\rho\gamma_\rho(\mathbb E|E_\rho(G)|-B_\rho).
+\tag{52}
+$$
+
+对 $\Theta$，结构固定抽样后正常反传。对结构 logit $a_e=\operatorname{logit}(\pi_e)$：
+
+$$
+\frac{\partial}{\partial a_e}\mathbb E_GL(G)
+=\mathbb E_G[(L(G)-b_t)(b_e-\pi_e)].
+\tag{53}
+$$
+
+$b_t$ 是不依赖当前抽样边状态的基线，例如上一批次 EMA loss；不能使用与本次 $b_e$ 相关但未校正的基线。由式 (48) 还可得：
+
+$$
+\frac{\partial}{\partial a_e}\mathbb E_GL(G)
+=-\pi_e(1-\pi_e)U_e(\pi_{-e}).
+\tag{54}
+$$
+
+抽样边子集后用式 (24) 修正配对梯度，并经 $\partial a_e/\partial\phi$ 回传。硬 Bernoulli 直接反传不存在路径导数；straight-through 是另一个有偏近似消融。主版本不需要该近似。
+
+## 10.4 LDS 式双层对照与超梯度
+
+采用软边权的确定性松弛，$\theta'=\theta-\alpha\nabla_\theta L_I(\theta,\phi)$，外层损失 $L_Q(\theta',\phi)$。链式法则：
+
+$$
+\frac{dL_Q}{d\phi}=\partial_\phi L_Q
+-\alpha\left(\nabla^2_{\phi\theta}L_I\right)
+\nabla_{\theta'}L_Q.
+\tag{55}
+$$
+
+多步时令 $A_k=d\theta_k/d\phi$：
+
+$$
+A_{k+1}=(I-\alpha_kH_{\theta\theta,k})A_k
+-\alpha_kH_{\theta\phi,k},\qquad
+\frac{dL_Q}{d\phi}=\partial_\phi L_Q+A_K^\top\nabla_{\theta_K}L_Q.
+\tag{56}
+$$
+
+一阶版本丢弃二阶项并明确命名。离散 LDS 对照采用其公开算法与 Bernoulli 梯度近似，并复核原文；式 (55)–(56) 是本模型软边双层对照的数学定义，二者分列。双层 Inner 参数从通用初始化/独立折教师起步，Query 留出组合不进入 Inner 更新。
+
+# 11. 推理、校准与结构稳定性
+
+## 11.1 同候选集的概率平均
+
+最终 $q_\pi$ 根据 TRAIN 摘要固定。采样 $K=16$ 张共享图，所有测试图像使用同一组图：
+
+$$
+\bar p_{\mathcal C}(c\mid x)=\frac1K\sum_{k=1}^{K}
+p_{\mathcal C}(c\mid x,G^{(k)}),\quad G^{(k)}\sim q_\pi.
+\tag{57}
+$$
+
+在 log 域实现：
+
+$$
+\log\bar p_{\mathcal C}(c\mid x)=
+\operatorname{LSE}_{k=1}^{K}\bigl(\log p_{\mathcal C}(c\mid x,G^{(k)})\bigr)-\log K.
+\tag{58}
+$$
+
+每图先按同一 $\mathcal C$ 条件化再平均，结果对 $\mathcal C$ 归一。另一个“先平均完整 joint 再条件化”会按各图的候选概率质量重新加权，通常不同；第一版选式 (57) 以保持固定候选评价契约。mean-logit、mean-graph $b_e=\pi_e$ 分别作为单前向效率对照。
+
+图消息与原型可以对 $K$ 张图预先缓存。视觉主干每图像仅一次前向，$K$ 次的是图相关评分头。记录视觉与图头分离的耗时。
+
+## 11.2 Seen/unseen bias 和温度
+
+用 $s_c=\log\bar p_{\mathcal C}(c|x)$ 作候选分数：
+
+$$
+s_c^{(b)}=s_c+b\mathbf1[c\notin\mathcal C_s],\qquad
+\widehat c_b(x)=\arg\max_{c\in\mathcal C}s_c^{(b)}.
+\tag{59}
+$$
+
+在 VAL 上固定单工作点 bias $b^*$；TEST 仅应用该值报告实际 Seen/Unseen/HM。标准 benchmark 的 TEST bias 扫描 AUC 和 best-HM 另行报告，best-HM 明确标注为曲线最优诊断值。
+
+NLL/ECE 用 VAL 选好的 $b^*$ 与温度 $T_{\mathrm{cal}}>0$：
+
+$$
+p_{\mathrm{cal}}(c|x)=\operatorname{softmax}_{c\in\mathcal C}
+\left(\frac{s_c^{(b^*)}}{T_{\mathrm{cal}}}\right),\quad
+T_{\mathrm{cal}}^*=\arg\min_{T>0}\operatorname{NLL}_{\mathrm{val}}(T).
+\tag{60}
+$$
+
+CW/OW 分别拟合，采用相同 VAL 校准预算；同时报告未经温度校准的概率 NLL。温度不能改变排序，bias 可以改变 seen/unseen 的排序。AUC 主表采用式 (59) 的未校准分数，避免混淆。
+
+## 11.3 图波动与损失 Jensen 差距
+
+把当前候选上的联合 log 概率向量作为 logits $F(x,G)$，softmax 后等于式 (16)。独立 Bernoulli 边满足向量 Efron–Stein：
+
+$$
+\mathbb E\|F-\mathbb EF\|_2^2
+\le\sum_e\pi_e(1-\pi_e)
+\mathbb E_{G_{-e}}\|F(G_e^+)-F(G_e^-)\|_2^2.
+\tag{61}
+$$
+
+证明：用独立边拷贝 $b_e'$ 替换第 $e$ 个变量，Efron–Stein 右端含 $1/2$；两 Bernoulli 状态不同概率为 $2\pi_e(1-\pi_e)$，其余情况下差为零，得到式 (61)。向量版通过逐坐标求和成立。
+
+交叉熵 Hessian 为 $H=\operatorname{diag}(p)-pp^\top$。第 $i$ 行绝对行和为 $2p_i(1-p_i)\le1/2$，对称矩阵谱范数因此不超过 $1/2$。由二阶平滑上界与 Jensen：
+
+$$
+0\le\mathbb E\ell_y(F)-\ell_y(\mathbb EF)
+\le\frac14\sum_e\pi_e(1-\pi_e)
+\mathbb E\|F(G_e^+)-F(G_e^-)\|_2^2.
+\tag{62}
+$$
+
+式 (62) 控制随机 logits 损失和均值 logits 损失的差距。对概率平均，由 $-\log$ 的凸性另外有：
+
+$$
+-\log\mathbb E_Gp_{\mathcal C}(y|x,G)
+\le\mathbb E_G[-\log p_{\mathcal C}(y|x,G)].
+\tag{63}
+$$
+
+有限 $K$ 的式 (57) 同样满足平均概率 NLL 不超过同一组图的平均 NLL。式 (61)–(63) 用于波动诊断与实现核验，识别准确率和 AUC 由实验测量。
+
+# 12. 实验矩阵与归因消融
+
+## 12.1 正式识别主表
+
+| 编号 | 模型 | 核心设置与比较 |
+|---|---|---|
+| B0 | 原生 CPF | 原生训练与加法分数，历史接口基线 |
+| B1 | R0 | 式 (9)、(14)–(17)，无图共同概率基底 |
+| B2 | R0 + 等容量无图模块 | $r=64$ 三元 head，同容量名称变换与视觉残差，按下文定义训练 |
+| B3 | 确定图 | 全部 OI/OE/AE 开启，相同消息/图头 |
+| B4 | EdgeDrop | 类型常数概率，匹配 B9 期望边数 |
+| B5 | 自由 Bernoulli | 每边一个 logit，仅分类监督、KL 和同预算，无效用标签 |
+| B6 | Episodic R0 | 无图，但使用相同任务与续训预算 |
+| B7 | 双层结构学习 | LDS 式离散对照及式 (55) 软边对照分列 |
+| B8 | 仅均值效用 | 反事实监督，$\lambda_{\mathrm{var}}=\lambda_{\mathrm{ens}}=0$ |
+| B9 | 完整 TRUST-CPF | 式 (35)、(39)–(45)、(57) |
+| B10 | 完整方法 + 描述错配 | 全流程重训，保留名称，OE/AE 类型内错配 |
+
+原 idea 的“原 USG”没有在当前记录中核对到独立已训练的完整随机图系统。B5 明确定义为此次自由 Bernoulli 基线；若另有旧 USG checkpoint，单独登记其图算子、预算与标签历史后作历史参考。
+
+等容量无图 B2 具体为：$\delta U=\alpha_g\langle\mathcal N(P_vv),\mathcal N(P_oh_o^0)\odot\mathcal N(P_ah_a^0)\rangle/T_g$；对象残差由同容量名称投影得到。补齐与 $W_\rho$ 相同参数规模的名称变换矩阵，不添加无用途参数充数。B2 保留相同 head 宽度和优化步数；名称条件结构不同之处在记录中列明。
+
+语义内容归因以 B9 对 B10 为主，并补相同输入的“固定均匀子图”对照；纯容量归因以 B2 对 B1 为主，二者提供互补证据。
+
+## 12.2 机制预测器对照
+
+| 组 | 输入/监督 | 检验 |
+|---|---|---|
+| U0 | 每类型均值、类型方差 | 最弱可迁移常数 |
+| U1 | 边查表 + 式 (27) | 边记忆能否解释收益 |
+| U2 | 仅 $k_e$ | 语义信息贡献 |
+| U3 | $k_e+h_e^I$，MSE | Inner 证据、均值目标 |
+| U4 | $k_e+h_e^I$，式 (35) | 任务方差贡献 |
+| U5 | U4 + 三模型集成 | 预测器分歧贡献 |
+
+每组都在三拟合折拟合、开发折选模、审计折报告。同一边可跨任务出现，因此另外做“未测边迁移”：在拟合折按类型固定留出 20% 边不生成效用监督，在开发/审计中测量这些边。边查表对未测边只能回退类型统计。
+
+## 12.3 必做拆解
+
+1. 风险项依次关闭：仅均值、加任务方差、再加集成；每组重新求解相同类型预算。
+2. 去 Inner 视觉证据；只用语义；边 ID 查表；打乱效用监督与边对应，保留标签分布。
+3. 配对背景与独立背景；每边 $M=2/4/8/16$；报告效用误差和成本。
+4. OI/OE/AE 单类型及逐类型删除，匹配可用类型预算。
+5. 候选度数与激活度数归一化；全开教师与随机图教师。
+6. 先概率平均、mean-logit、mean-graph；$K=1/4/8/16/32$。
+7. corpus：reviewed-v2 与 legacy-v1；新增统一修订版 corpus 作为独立版本，不合并多个 bank。
+8. 一次模型图开关回放与从头重训错配分别报告，前者测固定模型响应，后者测内容归因。
+
+# 13. 参数选择、预算和执行清单
+
+## 13.1 启动参数与有限搜索
+
+| 项 | 默认 | 开发候选/选择来源 |
+|---|---:|---|
+| 图维度/秩 | 300/64 | 秩 32/64/128，效用开发折 |
+| $\eta,\alpha_g,T_g$ | 0.1/0.1/0.1 | 先固定；仅 pilot 失败时各一个三点敏感性分析 |
+| 类型边预算 | 50% | 25%/50%/75%，开发折图 NLL |
+| $\tau/s_*$ | 0.5 | 0.25/0.5/1，开发折 |
+| $\lambda_{\mathrm{var}}$ | 0.5 | 0/0.5/1，开发折 |
+| $\lambda_{\mathrm{ens}}$ | 0.25 | 0/0.25/0.5，开发折 |
+| 干预背景图 $M$ | 4 | pilot 2/4/8/16；审计16 |
+| 每类型每任务测量边 | 8 | pilot 4/8/16，保持全部边可抽样 |
+| 拟合/开发/审计任务数 | 1536/128/128 | 固定，不按审计成绩增删 |
+| 支持摘要图像上限 | 16/primitive | 8/16/32 敏感性分析 |
+| 效用模型数/部署摘要数 | 3/16 | 固定 |
+| 图推理样本 $K$ | 16 | VAL 1/4/8/16/32 成本曲线 |
+| 最终参考/适配 epoch | 10/3 | 主比较保持一致 |
+| 主种子 | 3351/3352/3353 | 配对；关键比较可扩为5 seed |
+
+选择顺序固定：先确定图头 pilot；然后效用预测器；再单独搜索风险项（固定预算50%、$\tau/s_*=0.5$）；随后搜索预算；最后搜索温度。按开发折图 NLL 最低选择，同值优先较小复杂度。该逐项搜索是有限预算策略，并未声称找到联合网格最优。官方 VAL 只选择最终识别 checkpoint 与部署 $K$；其余参数沿用机制开发选择，跨数据集先复用再报告必要的独立选择。
+
+## 13.2 按顺序执行的实验任务
+
+| 步骤 | 输入 | 数学操作 | 输出/核验 |
+|---|---|---|---|
+| 01 | registry、split、源 JSON | 标签双射、哈希与阶段 mask | corpus manifest、候选索引 |
+| 02 | 名称/句子/GloVe | 式 (4)–(7) | 源向量、96边（UT示例）、类型邻接 |
+| 03 | 原生 CPF 输出 | 式 (8)–(17) | R0与图增强概率、关闭图恒等 |
+| 04 | TRAIN 组合 | 式 (2)–(3) | 五折角色、primitive coverage |
+| 05 | 每折 Inner 图像 | 式 (17)、随机参考图 | 五个独立冻结教师、监督历史 |
+| 06 | 冻结教师/Query batch | 式 (18)–(24) | 配对效用、测量方差、抽样概率 |
+| 07 | Inner/通用ViT | 式 (29)–(32) | 共享证据投影和1725维输入 |
+| 08 | 拟合折记录 | 式 (33)–(36) | 均值/方差预测器、停止梯度边界 |
+| 09 | 开发/审计折 | §14机制指标 | 选模结果、一次性迁移审计 |
+| 10 | 全TRAIN摘要 | 式 (37)–(46) | 全局风险收益、期望预算、边概率 |
+| 11 | 全TRAIN与参考模型 | 式 (51) | 同预算3epoch适配 |
+| 12 | VAL、冻结mask | 式 (57)–(60) | epoch、bias、温度、$K$ |
+| 13 | TEST、固定协议 | §14 | CW/OW、校准、噪声、效率表 |
+
+## 13.3 成本模型
+
+设 $T$ 为测量任务数、$b=\sum_\rho b_\rho$，$M$ 为背景图数。测量额外图头前向次数为：
+
+$$
+N_{\mathrm{head}}=2TbM.
+\tag{64}
+$$
+
+UT 拟合折 $T=1536,b=24,M=4$，得到 294912 次图头前向；开发/审计单独计数。视觉特征每图像/教师版本只编码一次。该数是图头计算次数，不等于完整 ViT 前向次数。
+
+总耗时拆分为五折教师、通用特征编码、反事实图头、效用 MLP、全 TRAIN 参考教师、3epoch适配和评价。历史服务器为 Linux/Python3.8/PyTorch1.13.1+cu117/RTX3090；这是既有实验记录，当前 Windows 本机只作为方案与资产工作站。正式实现先测一个 UT fold 与 32 个测量任务，按实测速率估算，不直接移用旧模型分钟数。
+
+主表有两个预算口径：相同下游训练 epoch 与额外机制成本全计入的 GPU 小时。分类结构学习对照在第二口径获得等量额外更新预算；两张表分别展示算法收益与成本收益。
+
+# 14. 评价指标、知识扰动与统计
+
+## 14.1 广义 CZSL
+
+$$
+S(b)=\frac1{N_s}\sum_{i:y_i\in\mathcal C_s}\mathbf1[\widehat c_b(x_i)=y_i],\quad
+U(b)=\frac1{N_u}\sum_{i:y_i\notin\mathcal C_s}\mathbf1[\widehat c_b(x_i)=y_i],
+\tag{65}
+$$
+
+$$
+\mathrm{HM}(b)=\begin{cases}\frac{2S(b)U(b)}{S(b)+U(b)},&S+U>0,\\0,&S+U=0.\end{cases}
+\tag{66}
+$$
+
+原生 evaluator 的偏置曲线、排序与积分实现冻结为主 AUC 口径。已查看的 `CZSL/src/CPF_fixed/evaluator_ge.py` 按阶段用 TRAIN+VAL 或 TRAIN+TEST 构造 CW mask，OW 全开；从正确未见样本的分数差抽取约20个偏置点，最后以 `numpy.trapz(seen_accuracy, unseen_accuracy)` 积分。正式实现核对训练队列实际读取的 evaluator 是否为该版本。另给可核算定义：按 $U$ 升序排列曲线点，重复 $U$ 取最大 $S$，使用梯形积分：
+
+$$
+\operatorname{AUC}=\sum_{i=1}^{m-1}
+\frac{S_i+S_{i+1}}2(U_{i+1}-U_i).
+\tag{67}
+$$
+
+曲线点可由有限 bias 网格或所有排名切换点获得。对单图像，只需最佳 seen 分数 $s_s$ 与最佳 unseen 分数 $s_u$，其切换点为 $b=s_s-s_u$；加入两端极限并统一 tie-break 即可形成精确曲线。若此定义与历史 evaluator 的离散化/排序不同，分别输出 native-AUC 与 exact-AUC，主表不混用。
+
+所有准确率内部用 $[0,1]$，展示乘 100；AUC 也按积分结果乘 100。例如百分比坐标积分后必须除以100才对应常用 AUC% 展示。报告 best-HM、同工作点 $S/U$ 与独立 best-seen/best-unseen；不能把后两个重算 HM。
+
+主表为 UT-Zappos、MIT-States、C-GQA 的 CW/OW：AUC、best-HM、$b^*$ 工作点 Seen/Unseen/HM、bias0 top1。第一轮完成 UT，随后沿同公式完成另外两集；若原语数使 $O\times A$ 评分耗内存，按候选块计算 logits 与 log-sum-exp，保证归一化与完整网格等价。
+
+## 14.2 效用迁移
+
+审计参考标签使用 $M=16$ 的配对测量，报告：
+
+- 均值 RMSE/MAE，Spearman（平均秩处理 ties）及 Pearson；先每折/类型计算，再汇总。
+- 方向 balanced accuracy 和 AUROC，按审计边定义正/负。
+- 预测区间 $m\pm1.645\sqrt{v+\nu}$ 的90%覆盖率；同时报告分类型残差和区间宽度。
+- 未测边子集、低覆盖原语、不同对象上下文数的分层表现。
+
+边的可靠方向只对 $|y|>1.96\sqrt{\nu}$ 的记录统计，另报告被排除的近零边比例；全体记录的符号指标也同时给出。由高精度参考得到的阈值只用于评价标签可靠度，不进入测试推断特征。
+
+排序使用推荐概率 $\pi_e$，在同预算下对冻结审计教师真实前向，比较得到的 Query NLL，而不只以预测器回归误差宣布结构选择成功。
+
+## 14.3 预测校准与错误分解
+
+$$
+\operatorname{NLL}=-\frac1N\sum_i\log p_{\mathrm{cal}}(y_i|x_i),\quad
+\operatorname{ECE}=\sum_{b=1}^{15}\frac{|B_b|}{N}
+|\operatorname{acc}(B_b)-\operatorname{conf}(B_b)|.
+\tag{68}
+$$
+
+ECE 用15个等宽置信度区间，空桶贡献零；另报 seen/unseen NLL 和 ECE。错误分为对象错/属性对、对象对/属性错、两者都错，GT-object 属性准确率单列。图预测方差为 $K^{-1}\sum_k\|p_k-\bar p\|_2^2$；另报式 (61) 近似上界与预测方差的相关性。
+
+## 14.4 知识噪声设计
+
+每类型独立生成 5 个固定扰动 seed：7101–7105。噪声率 $r_n\in\{0,0.1,0.2,0.3,0.5\}$，使用固定随机排序前缀，保证不同噪声率嵌套。
+
+OE/AE **错配**：在同类型选定的边中，将描述来源置换到其他原语，不让目标保留自己的原语描述，保持目标入度、描述槽位数与句子集合。仅1条可扰动边时增加到2条并报告实际比例。OI **错误成员**：替换父类为另一父类，保持每对象一个父关系、边数不变，记录父类入度变化；可增设保持父类大小的交换对照。
+
+**删除**：删除选定关系，名称锚点保留。**增添错误关系**：每类型增加 $\lfloor r_n|E_\rho|\rfloor$ 条新的错误附着关系，排除已有边；同时重建候选度数，并提供只增添合法同义句的数量控制。三种扰动分别运行，不合为一个噪声率。
+
+两种协议分别报：训练前扰动并按该知识从头测量/训练，用于学习噪声鲁棒性；训练后替换知识、不使用新标签测量，只重新计算合法语义特征与图概率，用于知识变化迁移。部署新增边只有语义和 Inner 证据，由预测器推断，边查表回退类型统计。
+
+知识变化后复用原已选 $\tau$、预算率和风险参数，不重新用测试结果选择。语义真值审核另设盲于效用的文本标签：正确/错误/模糊/视觉弱相关；注入错配只保证对应关系被破坏，未自动保证句子语义必假，保留人工审查子集。
+
+归一噪声曲线面积：
+
+$$
+\operatorname{RAUC}=\frac1{0.5}\int_0^{0.5}\operatorname{AUC}(r_n)\,dr_n,
+\quad\text{按给定五个噪声率梯形积分。}
+\tag{69}
+$$
+
+同时报告干净 AUC 和每级下降，避免单一面积遮蔽干净模型差异。
+
+## 14.5 配对统计
+
+相同 seed、split、corpus 和初始化构成一对，差值 $d_s=M_{B9,s}-M_{\mathrm{control},s}$：
+
+$$
+\bar d=\frac1n\sum_sd_s,\quad
+s_d^2=\frac1{n-1}\sum_s(d_s-\bar d)^2,\quad
+\mathrm{CI}_{95}=\bar d\pm t_{n-1,0.975}\frac{s_d}{\sqrt n}.
+\tag{70}
+$$
+
+主表给每 seed 原始数、均值、样本标准差及配对差。3 seed 的区间较宽，关键结论扩展5 seed；训练 seed 是模型重复，5个噪声 seed 是扰动重复，二者不当成15个独立训练模型。
+
+效用标签嵌套于边/任务/教师；相关性区间按 Query 组合和边分层重抽样，并报告五折教师作为固定设计的限制。只有三个拟合折不能估计广泛任务族上的精确不确定性，主证据由独立审计折和三数据集共同构成。
+
+# 15. 研究判据、实现核验与结果文件规范
+
+## 15.1 预注册的主要终点
+
+主要识别终点为 CW AUC，次要为 OW AUC、固定 VAL bias 的 unseen/HM；稳健终点为分类型错配的 RAUC；机制终点为独立审计折的效用 Spearman、方向 balanced accuracy 和真实 Query NLL 改善。
+
+计划继续深入的实用门槛：B9 相对 B5/B7 的平均 CW AUC 至少 +0.5 pp，且三 seed 至少两次同方向；B9 相对 B8 的噪声 RAUC 至少 +0.5 pp；机制符号 balanced accuracy 超过0.55且 Spearman为正。它们是资源决策阈值，最终表照常报告全部结果及区间。
+
+若 B3 与匹配子图均无结构价值，优先分析 corpus 和图残差响应；若效用回归可泛化但识别无收益，检查 §9 的边交互与教师到最终模型迁移；若收益与 B2/B10 相同，归因于容量或读出，并据此缩小方法贡献。各阶段按预定预算完成，不以单次负结果删改实验组。
+
+## 15.2 第一版给后续实现的数学校验清单
+
+| 项 | 应满足的关系 |
+|---|---|
+| 概念关闭图 | $Z_c(\varnothing)=h_c^0$ |
+| 评分关闭图 | $\delta z=0,\delta U=0$，图模型概率等于 R0 |
+| 联合分布 | $\sum_{oa}p=1$；$\sum_ap_{oa}=p_o$ |
+| 候选条件化 | 正确标签在候选中，$\sum_{c\in\mathcal C}p_{\mathcal C}=1$ |
+| 配对差分 | 空效应边 $y=0$；正值对应 $L^- > L^+$ |
+| 局部梯度 | 数值差分符合式 (48)、(54) |
+| 方差 | 观测方差 $v+\nu$，部署任务方差不含 $\nu$ |
+| 抽样损失 | 全边枚举与式 (24) 重复抽样均值一致 |
+| 概率选择 | 式 (44) 导数为零，满足式 (46) |
+| 平均概率 | 和为1，式 (58) 与显式概率平均一致 |
+| Jensen | 同样本组满足式 (63) |
+| 三元交互 | 属性相对 logits 的图像变化随对象改变 |
+| 任务隔离 | 每教师监督 pair 与自己的 Query 交集为空 |
+| 效用输入 | 输入无Query图像/标签/效用缓存查表/组合membership |
+| 评价接口 | stage mask、列轴、分数与原生索引一一对齐 |
+
+数值核验建议用 float64 小实例，概率和误差 $<10^{-8}$；真实 float32 推理容忍 $10^{-5}$。这是后续实现验收定义，本文未执行实验代码测试。
+
+## 15.3 应保存的结果记录
+
+资产表：文件路径、内容哈希、知识来源、原语顺序、节点/边ID、候选mask、词表/OOV。教师表：初始化哈希、训练pair、seed、epoch、参数和监督历史。测量表：teacher_id、episode_id、Query组合与图像ID、edge_id、$\kappa_e$、$M$、每对loss、$y$、$\nu$、参考图seed。
+
+效用表：拟合/开发/审计角色、特征配置、标准化尺度、模型seed、$m/v$、集成分歧、选择epoch。结构表：$\widehat\mu$、两类风险、$R$、$p^0$、$\tau$、预算、$\gamma$、$\pi$。识别表：dataset、seed、corpus、模型组、checkpoint、CW/OW、AUC/HM、固定bias指标、校准指标、训练/推理成本。
+
+最终文件应包含主结果表、机制结果表、噪声曲线数据、效率数据、所有seed原始值、选模记录和失败案例。失败案例按图像呈现边的开/关响应、预测效用与真实效用，并保留具体语义来源，避免只展示成功例。
+
+# 16. 小实例与公式审计附录
+
+## 16.1 手算一条边
+
+对一条 OE 边，固定 Query batch 后，四个背景下的 $(L^-,L^+)$ 为 $(1.20,1.12)$、$(1.18,1.14)$、$(1.25,1.15)$、$(1.17,1.11)$。差分为 $0.08,0.04,0.10,0.06$：
+
+$$
+y=0.07,\quad \sum_m(d_m-y)^2=0.002,\quad
+\widehat\nu=0.002/(4\times3)=0.0001667.
+\tag{71}
+$$
+
+假设预测部署均值 $\mu=0.06$、任务标准差0.02、集成标准差0.01，风险系数为0.5/0.25：
+
+$$
+R=0.06-0.5\times0.02-0.25\times0.01=0.0475.
+\tag{72}
+$$
+
+取 $p^0=0.5,\tau=0.02,\gamma_\rho=0.03,d^{\mathrm{cost}}=1$：
+
+$$
+\pi=\operatorname{sigmoid}((0.0475-0.03)/0.02)
+=\operatorname{sigmoid}(0.875)\approx0.706.
+\tag{73}
+$$
+
+这里的0.706是结构选择概率。式 (71) 的测量标准误约0.0129，没有加到任务标准差0.02上。
+
+## 16.2 因子归一化为何不能省
+
+假设两个对象基础对象概率均为0.5，两个属性条件 logits 分别为对象1的 $(2,0)$、对象2的 $(4,3)$。忽略属性归一化会偏好对象2的属性1；真实联合为对象1属性1约 $0.5\times0.881=0.4405$，对象2属性1约 $0.5\times0.731=0.3655$。对象相关的行归一化改变跨对象比较，因此式 (15) 必须保留。
+
+## 16.3 排版规范与交付检查
+
+正文行内公式统一 `$...$`，独立公式统一 `$$...$$`；公式有连续编号，不使用反引号包裹数学。多行推导使用 `aligned`，条件分支使用 `cases`，所有上下标、期望分布和求和轴明确定义。长式拆行，不靠缩小整页字号容纳。
+
+本版只交付 Markdown 文件。内部排版验证将同一源文件转换为 LaTeX/PDF，检查公式编号、字符、表格与页边界，再将修正同步回本文件。Markdown 阅读器需支持 MathJax/KaTeX；公式保持可编辑文本，不以图片替代。
+
+# 17. 相关工作与来源
+
+CPF 的对象概率与条件属性思想参考 Wu 等的 [A Conditional Probability Framework for Compositional Zero-shot Learning](https://arxiv.org/abs/2507.17377)。本文保留本地原生接口对照，并单独定义图残差和概率训练。[P1]
+
+离散结构双层学习对照参考 Franceschi 等的 [Learning Discrete Structures for Graph Neural Networks, ICML 2019](https://proceedings.mlr.press/v97/franceschi19a.html)。其结构优化构件作为历史对照，效用监督的跨组合迁移是本文检验对象。[P2]
+
+任务式组合图学习参考 Huang 等的 [Reference-Limited Compositional Zero-Shot Learning / MetaCGL, ICMR 2023](https://arxiv.org/abs/2208.10046)。该工作的参考受限任务背景与本文官方 CZSL 最终无Support推断分开记录。[P3]
+
+OI/OE/AE 知识类型及既有资产构建依据为 [LOGICZSL, CVPR 2025](https://openaccess.thecvf.com/content/CVPR2025/html/Wu_LOGICZSL_Exploring_Logic-induced_Representation_for_Compositional_Zero-shot_Learning_CVPR_2025_paper.html)，本地论文原件位于 `C:/Users/llenovo/Desktop/CZSL/Wu_LOGICZSL_Exploring_Logic-induced_Representation_for_Compositional_Zero-shot_Learning_CVPR_2025_paper.pdf`。本方案读取的 JSON 来源与处理过程按 L2、L4 记录。[P4]
+
+可主张的方法贡献需要由三项结果支持：独立任务和未测边上的关系效用预测；相对分类监督/双层图选择的组合识别改善；风险选择在同结构预算下的噪声鲁棒性。公式 (48) 提供效用信号与图损失梯度的直接联系，公式 (45) 提供带KL和预算的结构解；二者与固定知识资产和严格任务协议共同构成可执行的第一版。

@@ -1,0 +1,436 @@
+---
+title: "USG-CPF 3.0：面向组合泛化的可迁移语义关系效用学习"
+subtitle: "研究方案、数学模型、分阶段实现与创新性论证"
+date: "2026-10-13"
+lang: zh-CN
+---
+
+> **文档定位**：在 USG-CPF 2.0 方案一（伪未见组合驱动的图后验）之上进一步优化。重点是**机制创新、可辨识的研究问题、实验可归因和现有 CPF 代码可实施性**。以下是待验证的研究假设与实施方案，不是已完成的实验结果。
+>
+>
+> **公式兼容**：行内使用 `$...$`，独立公式使用 `$$...$$`；普通 Markdown 阅读器需启用 MathJax/KaTeX。PDF 版本已经渲染公式。
+
+## 摘要与推荐结论
+
+USG-CPF 2.0 原方案以模拟未见组合的 episodic/bilevel training 优化随机语义图。这一思路合理，却与 **MetaCGL 的组合元学习**、**LDS 的 Bernoulli 图结构双层优化**较为接近。简单叠加二者，并不足以支持突出的独立方法创新。
+
+建议将论文主问题改为：
+
+> **当外部语义图包含正确、错误和冗余关系时，如何从已见组合构造的模拟迁移任务中估计每条关系的跨组合预测效用，并把这种效用推广到训练中未充分验证的关系，从而改善未见组合识别与知识噪声鲁棒性？**
+
+暂定方法名 **TRUST-CPF**：*Transferable Relation Utility for Semantic-graph-guided CPF*（可迁移关系效用驱动的条件概率框架）；也可沿用版本名 **USG-CPF 3.0**。核心贡献仅保留两项：
+
+1. **反事实边效用监督**：通过配对的“保留/移除一条边”实验，在伪未见组合 Query 上构造边的预测增益信号；再由只使用 Inner/语义信息的预测器学习这种效用。
+2. **跨任务稳健结构选择**：综合边的平均增益与跨 episode 波动，构造用于随机图分布的关系选择分数，并在 CPF 的候选组合预测中检验其价值。
+
+第三项“图扰动稳定性上界”仅作为**支持性分析**，不宜夸大为新定理。先证明前两项确有实证价值，再考虑加入实例动态门控、图补全或复杂结构化图后验。
+
+---
+
+## 1. 创新边界：哪些已经被前人做过？
+
+| 已有工作 | 与本方案直接重叠之处 | 必须保留的区别 |
+|---|---|---|
+| MetaCGL，ICMR 2023 | Support/Query episode，组合图，面向未见组合的元学习 | **不是**再发明 episode，而是学习外部语义**单条关系的跨组合效用** |
+| LDS，ICML 2019 | Bernoulli 概率边、图结构学习、双层优化 | **不是**再发明图后验，而是提供可迁移的关系级效用监督与任务专用评价 |
+| Bayesian GCN，AAAI 2019 | 图结构不确定性/概率图预测 | 不以“随机边”和采样平均为主创新 |
+| LOGICZSL，CVPR 2025 | 使用外部语义关系帮助 CZSL | 研究哪些关系应使用、何时应舍弃，而非默认知识有效 |
+| CPF，ICCV 2025 | 对象条件下的属性识别 | 尽量保持既有视觉主干，将新机制放在可归因的语义图模块 |
+| 图反事实解释研究 | 删除边测量模型预测变化 | 反事实边影响本身并非首次；差异在**跨组合可迁移效用的训练与验证** |
+| I2CD，AAAI 2026 | CZSL 中也有“反事实”构造 | 它偏向原语表征与因果解耦；本文干预的是**语义知识边**，不可混称同一种反事实 |
+
+**保守新颖性判断**：尚未确认有公开论文与下文的完整机制完全相同，但上述技术构件分别有先例。最终创新性取决于：对相关工作进一步核查、关系效用机制的实质区别，以及与强对照的实验差异。不能宣称首次提出“图反事实”“元学习”或“随机图”。
+
+## 2. 研究问题、记号与数据可用性
+
+设属性集合为 $\mathcal A$，对象集合为 $\mathcal O$，候选组合 $\mathcal C\subseteq\mathcal A\times\mathcal O$。训练组合 $\mathcal C_s$ 与真正未见测试组合 $\mathcal C_u$ 不相交。
+
+外部知识 $\mathcal K$ 构造候选异质关系集合：
+
+$$
+E_c=E_{\mathrm{OI}}\cup E_{\mathrm{OE}}\cup E_{\mathrm{AE}},
+\qquad G=(V,\{E_e\}_{e\in E_c}).
+$$
+
+其中 OI 是对象层级关系，OE 是对象描述，AE 是属性描述。三类边**语义不同**，不应对全部关系使用相同的传递性或互斥性假设。
+
+对训练期间的第 $t$ 个 episode，将已见训练组合拆分为不交的：
+
+$$
+\mathcal C_s=\mathcal C_{I}^{(t)}\sqcup\mathcal C_{Q}^{(t)}.
+$$
+
+要求 Query 中出现的每个属性和对象在 Inner 中至少出现一次；Inner 和 Query 不共享组合身份。用 $D_I^{(t)}$ 与 $D_Q^{(t)}$ 表示相应图像样本。
+
+**严格的信息规则**：
+
+- **Inner 标签、图像及事先冻结的外部语义**可用于该 episode 的模型适应与效用预测特征。
+- **Query 标签**仅用于训练期外层目标和构造边效用监督，不允许进入效用预测器的输入特征。
+- 正式测试的未见组合标签与测试图像，绝不能用于训练、模型选择或构造知识置信分数。
+- 若 Inner/Query 划分前已经用全部训练组合监督预训练了 CPF，实验只能称为“迁移式消融试验”，不能宣称严格的伪未见零样本模拟。严格主实验应从同一个通用初始化做 episode 训练，或明确隔离每个任务对应组合的监督历史。
+
+测试时没有新任务的标注 Support 集，因此应使用训练阶段学到的**全局关系效用**（依据完整允许训练集聚合），不能要求测试 Query 标签或额外标注进行适应。
+
+## 3. 创新核心一：反事实边的跨组合效用
+
+### 3.1 先明确效用的含义
+
+在固定预测器 $\theta_t'$ 和固定其他边 $G_{-e}$ 的情况下，对边 $e$ 做两种**模型内部干预**：
+
+$$
+G_e^+=(G_{-e},E_e=1),\qquad
+G_e^-=(G_{-e},E_e=0).
+$$
+
+令 $\ell_Q(\theta,G)$ 为该 episode 的 Query 平均交叉熵，定义
+
+$$
+\boxed{
+\Delta_e^{(t)}(G_{-e})=
+\ell_Q(\theta_t',G_e^-)
+-\ell_Q(\theta_t',G_e^+).
+}
+$$
+
+于是 $\Delta_e^{(t)}>0$ 说明**对固定模型，保留边能降低当前 Query 损失**；负值则说明该边目前有害。这里测的是**预测效用**，并不证明知识在客观世界中为真，也不等于删除边并重新训练整套模型后的因果效果。
+
+为削弱其他边随机性，进一步平均：
+
+$$
+U_e^{(t)}=
+\mathbb E_{G_{-e}\sim q_{\phi,-e}}
+[\Delta_e^{(t)}(G_{-e})].
+$$
+
+优先使用**成对采样**：比较 $G_e^+$ 与 $G_e^-$ 时保持图、图像批次和预测器参数的其余部分完全一致。这样更有利于减少蒙特卡洛差分噪声。
+
+### 3.2 跨组合效用与波动
+
+跨不同的模拟未见任务定义：
+
+$$
+\mu_e=\mathbb E_{t\sim\mathcal T}[U_e^{(t)}],\qquad
+\sigma_e^2=\operatorname{Var}_{t\sim\mathcal T}(U_e^{(t)}).
+$$
+
+- 高 $\mu_e$：该边总体上有助于跨组合预测。
+- 高 $\sigma_e$：这种好处依赖特定组合任务，可能缺乏稳定迁移性。
+- 低 $\mu_e$ 或显著负值：该边可能冗余或有害，应进一步核查。
+
+尝试风险敏感评分：
+
+$$
+\boxed{S_e=\mu_e-\lambda_{\mathrm{var}}\sigma_e-c_{\rho(e)},}
+$$
+
+其中 $c_{\rho(e)}$ 是依关系类型 $\rho(e)\in\{\mathrm{OI,OE,AE}\}$ 设定的使用成本/阈值。**均值减标准差不是新的数学公式**；是否应该使用它必须用消融来回答，也可能单用均值更好。
+
+**关键限制**：若某边只出现在极少数有效 episode 中，$\mu_e,\sigma_e$ 的估计可能极其不稳定。应记录有效任务数 $n_e$，使用最少样本门槛或向关系类型均值收缩；不能把稀疏估计直接当精确的效用分数。
+
+### 3.3 如何以可接受的算力估计效用？
+
+精确计算所有 $|E_c|$ 条边在每个 episode 中的反事实差分，成本约为每轮额外 $2|E_c|$ 次图前向，不现实。建议：
+
+1. **随机覆盖采样**：每个 episode 从 OI/OE/AE 分层随机选取小批边 $B_t$，而非只选当前高分边，避免选择偏差。
+2. **配对图评估**：每条边最多在同一小批 Query 图像上做“边保留/边移除”的配对评估；缓存视觉特征与无关部分。
+3. **延迟更新效用缓存**：对每条边维护训练期 EMA 的均值、方差和有效覆盖次数，而不是每次从头统计。
+4. **可选便宜代理**：用连续软边权的一阶梯度 $-\partial\ell_Q/\partial w_e$ 作为候选边筛选信号，但最终对照要使用真正的二值配对差分，避免将一阶近似冒充离散反事实结果。
+
+起始实验可令每个 episode 随机评估 8–32 条边、每条 1–2 个共同背景图；这些只是**算力起点建议，不是已调好的超参数**。先对小图或 UT 数据子集测试 Monte Carlo 估计误差与耗时。
+
+## 4. 创新核心二：训练“效用预测器”，而非记住边的 Query 标签
+
+仅把 $\Delta_e^{(t)}$ 缓存后直接在测试时查询，既不能应对训练阶段未充分覆盖的关系，也容易因训练任务偶然性而过拟合。
+
+因此新增只接收**推断时可用证据**的关系效用预测器：
+
+$$
+\boxed{
+(\widehat\mu_e^{(t)},\widehat s_e^{(t)})
+=f_\phi\bigl(k_e,\;h_e(D_I^{(t)})\bigr).
+}
+$$
+
+其中：
+
+- $k_e$：两端概念的 GloVe/描述表示、关系类型、外部知识来源信息；
+- $h_e(D_I^{(t)})$：基于 Inner 图像提取的原语视觉证据汇总；
+- $\widehat\mu_e^{(t)}$：预测该关系对其他组合的增益；
+- $\widehat s_e^{(t)}>0$：预测效用的不确定/波动程度（可用 `softplus` 保证非负）。
+
+对于 OE，可以用 Inner 中对象图像的平均视觉表示与描述向量的相似性；AE 使用属性相关视觉特征聚合；OI 使用对象视觉证据和其父类表示。对缺乏足够样本的原语应采用缺失标记与类型先验。**不要在不同关系类型之间强行共享未经校准的相似性数值。**
+
+用训练期 Query 构造的配对效用作为监督：
+
+$$
+\mathcal L_{\mathrm{utility}}
+=\frac1{|B_t|}\sum_{e\in B_t}
+\omega_e
+\left(\widehat\mu_e^{(t)}
+-\operatorname{sg}[\widehat U_e^{(t)}]\right)^2.
+$$
+
+$\operatorname{sg}$ 为停止梯度：不允许效用标签的计算图回传至预测器造成自我追逐。$\omega_e$ 可反映反事实估计方差、覆盖次数或关系类型采样概率。波动分支可以在积累多个 episode 后回归统计目标，也可以第一版先不训练。
+
+**建议先冻结 CPF 与确定图融合器，学习效用预测器**，测试其在新的伪未见 episode 上能否预测边的效用方向。通过之后再联合训练。这一阶段可显著缩小反事实估计、分类网络更新相互纠缠带来的归因风险。
+
+## 5. 将效用转化为随机图结构并进入 CPF
+
+### 5.1 后验变量的语义应准确
+
+建议称下式 $q_\phi$ 为**任务驱动的结构包含分布**，而非严格意义上经过贝叶斯校准的知识真伪后验：
+
+$$
+q_\phi(G\mid\mathcal K,D_I^{(t)})
+=\prod_{e\in E_c}\mathrm{Bernoulli}(E_e;\pi_e^{(t)}),
+$$
+
+$$
+\boxed{
+\pi_e^{(t)}
+=\sigma\!\left(
+\operatorname{logit}(p_e^0)
++\frac{\widehat\mu_e^{(t)}
+-\lambda_{\mathrm{var}}\widehat s_e^{(t)}
+-c_{\rho(e)}}{\tau}
+\right).
+}
+$$
+
+$p_e^0$ 是由来源/人工审核给定的关系先验（应限制在 $[\varepsilon,1-\varepsilon]$ 内）；若无来源置信信息，可先取共享常数，仅作为控制变量。$\tau>0$ 控制结构选择的陡峭程度。
+
+不要把 $\pi_e$ 解释为“语义正确率”：它混合了来源先验、跨组合效用和选择成本。在正式稿中应报告边类型统计、与独立人工审查真值的相关性，并区分“语义准确性”与“预测有效性”。
+
+### 5.2 与 CPF 结合的两级实现
+
+**最小版本（推荐先做）**：不修改 CPF 的特征提取逻辑，构造图增强概念原型 $Z(G)$，得到同一候选集 $\mathcal C$ 上的组合分数 $S_\theta(x,a,o;G)$：
+
+$$
+p_\theta(a,o\mid x,G)
+=\frac{\exp S_\theta(x,a,o;G)}
+{\sum_{(a',o')\in\mathcal C}\exp S_\theta(x,a',o';G)}.
+$$
+
+然后按**概率平均**得到：
+
+$$
+\boxed{
+\bar p(a,o\mid x)
+\approx\frac1K\sum_{k=1}^K
+p_\theta(a,o\mid x,G^{(k)}),
+\quad G^{(k)}\sim q_\phi.
+}
+$$
+
+注意 $\mathrm{softmax}(\mathbb E[S])$ 一般**不等于** $\mathbb E[\mathrm{softmax}(S)]$，必须区分 mean-logit、mean-graph 和真正的模型平均。
+
+**扩展版本（基线证明有效后）**：让图消息进入 CPF 的对象条件属性预测：
+
+$$
+p_\theta(a,o\mid x,G)
+=p_\theta(o\mid x,G)\,p_\theta(a\mid o,x,G).
+$$
+
+必须真实实现 $x,o,a$ 三元交互，不能简单把对象 logit、属性 logit 与固定 $H(o,a)$ 相加后就宣称得到条件属性模型。
+
+### 5.3 统一训练目标与两阶段训练顺序
+
+在有足够效用标签后，研究目标可写为：
+
+$$
+\boxed{
+\mathcal L=
+\underbrace{\mathbb E_t\mathcal L_Q^{(t)}}_{\text{伪未见组合识别}}
++\lambda_u\mathcal L_{\mathrm{utility}}
++\lambda_0 D_{\mathrm{KL}}(q_\phi\|p_0)
++\lambda_b\mathcal L_{\mathrm{budget}}.
+}
+$$
+
+其中 $\mathcal L_{\mathrm{budget}}$ 约束期望边数、各类关系比例或有效消息总量，防止全部边被激活；KL 是正则而不是证明“后验正确”。
+
+推荐顺序：
+
+1. 冻结 CPF，建立有用的固定图模型与反事实效用测量；
+2. 冻结视觉预测器，训练效用预测器，先检验它对未见 episode 的效用预测；
+3. 解冻图增强模块做轻量联合训练；
+4. 只有当 1–3 显著成功时，才尝试严格双层 Inner 更新和全量 CPF 微调。
+
+这里刻意不把严格双层优化作为启动必需条件，以免把训练预算花在缺乏新颖性的元学习算子上。若使用一阶近似，论文必须如实说明，而不能宣称完整的精确超梯度优化。
+
+## 6. 为什么本版比 USG 2.0 方案一更强？
+
+| 问题 | USG 2.0 方案一 | 改进后 USG 3.0 |
+|---|---|---|
+| 学习目标 | Query 监督更新图后验 | 学习**边级跨组合预测效用**及其跨任务稳定性 |
+| 核心技术 | 伪未见 + bilevel + Bernoulli | 配对边干预 + 迁移式效用预测 + 稳健结构选择 |
+| 输出的可解释量 | 一条边的包含概率 | 边增益预测、波动估计与最终包含概率 |
+| 标签泄漏风险 | Query 进入外层梯度，易被误写成“后验的输入” | 显式区分 Query 监督标签与只使用 Inner 证据的预测器输入 |
+| 主要创新性威胁 | MetaCGL、LDS | 图反事实重要性与稳健选择仍有先例，但**任务级迁移目标更清晰** |
+| 实现成本 | 严格 bilevel 可能重 | 可以先做冻结 CPF 的小规模配对反事实实验 |
+| 容易被证伪的假设 | 泛化驱动学习比普通学习更好 | 效用预测能预测新 episode 中边的正负贡献，且优于强对照 |
+
+**边界**：这不是已经证明新颖的算法。即使通过实验，也不能仅靠一个“反事实”词汇就提升论文档次；需要完整对照和可复现的稳定结论。
+
+## 7. 理论分析：把结构不确定性与预测波动联系起来
+
+本节为**现有 Efron–Stein 不等式与平滑损失性质的直接应用**，用于解释训练目标的合理性，而不应宣称新数学定理。
+
+令 $F(x,G)\in\mathbb R^{|\mathcal C|}$ 表示固定图下的候选组合 **logit 向量**，独立边 $E_e\sim\mathrm{Bernoulli}(\pi_e)$，定义
+
+$$
+\Delta_e F(x,G_{-e})
+=F(x,G_{-e},1)-F(x,G_{-e},0).
+$$
+
+向量版 Efron–Stein 不等式给出：
+
+$$
+\boxed{
+\mathbb E_G\left\|F(x,G)-\mathbb E_GF(x,G)\right\|^2
+\le\sum_e\pi_e(1-\pi_e)
+\mathbb E_{G_{-e}}\|\Delta_eF(x,G_{-e})\|^2.
+}
+$$
+
+证明思路：对每条边换成一份独立拷贝 $E_e'$；两份 Bernoulli 不相等的概率为 $2\pi_e(1-\pi_e)$。将其代入向量 Efron–Stein 的 $\tfrac12$ 因子，就得到上式。
+
+再令 $\ell_y(f)=-f_y+\log\sum_c e^{f_c}$ 为 softmax 交叉熵。其 Hessian 为 $\mathrm{diag}(p)-pp^\top$，谱范数不超过 $1/2$，因此
+
+$$
+0\le
+\mathbb E_G\ell_y(F(x,G))
+-\ell_y(\mathbb E_GF(x,G))
+\le\frac14\sum_e\pi_e(1-\pi_e)
+\mathbb E_{G_{-e}}\|\Delta_eF(x,G_{-e})\|^2.
+$$
+
+**解释边界**：这个上界控制的是**随机 logit 交叉熵的 Jensen 差距**，不是直接证明分类错误率、CW/OW AUC 或概率平均后的 NLL 必然改善。它说明边的“结构不确定性 $\times$ 预测敏感性”是值得监控的量，但不能被未经验证地作为主要收益定理。
+
+可以在实验中报告该上界的近似值，与随机图输出波动及未见组合错误率的实证相关性；若没有相关性，就不应为了理论形式强行加入正则项。
+
+## 8. 实验设计：哪些对照决定论文能否成立？
+
+### 8.1 最小且关键的模型组
+
+| 编号 | 模型 | 检验什么 |
+|---|---|---|
+| B0 | 原 CPF | 完全相同代码与数据协议下的基线 |
+| B1 | CPF + 等参数无图模块 | 排除单纯增加参数/续训 |
+| B2 | CPF + 确定性语义图 | 检查知识信息本身是否有效 |
+| B3 | CPF + EdgeDrop / 随机图均值 | 排除普通随机正则化收益 |
+| B4 | CPF + LDS 式双层图学习 | 最强的结构优化历史方法对照 |
+| B5 | CPF + 仅 episodic 训练（无图） | 排除 MetaCGL 式训练策略本身带来的收益 |
+| B6 | 原 USG（学习随机边） | 直接检验相对先前方案的提升 |
+| B7 | USG + 边效用均值（不考虑方差） | 判断反事实增益监督是否有效 |
+| **B8** | **USG 3.0：效用预测 + 稳健结构选择** | 验证新增的核心机制 |
+
+尤其应加入以下**拆解消融**：
+
+- 不用 Query 反事实标签，只用普通训练分类损失学习边概率；
+- 只用边身份的可学习 lookup table，不用 Inner 视觉证据；
+- 只用语义 $k_e$，不使用 Inner 视觉证据 $h_e$；
+- 只用效用均值，不使用效用波动；
+- 用独立随机图比较边差分，替代配对采样；
+- 打乱边与知识文本的对应关系；
+- 不给出语义类型，或统一类型边阈值；
+- 把所有边固定为 $1$ 或按原始 prior 采样。
+
+### 8.2 评价顺序与指标
+
+- **基础标准评估**：UT-Zappos、MIT-States、C-GQA；分别做 CW/OW，报告 AUC、HM、Seen/Unseen，并完整说明偏置曲线协议。
+- **关系效用预测**：在训练期从未用于拟合该效用预测器的新 episode 上，比较预测效用与配对反事实测量的 Spearman 相关、方向预测准确率、分类型结果；采用不泄漏的 held-out episode 测试。
+- **知识噪声鲁棒性**：对 OI/OE/AE 分开注入随机错误边、互换描述、删除边；固定干净知识版本和扰动种子。
+- **校准与稳定性**：候选预测的 NLL/ECE、对不同采样图预测的方差、反事实输出变化；校准必须使用独立验证数据而非测试标签。
+- **效率**：额外显存、训练 wall-clock、效用测量次数、测试前向耗时。抽样减少算力并非免费，报告成本。
+
+统计建议：最终主实验至少 3 个随机种子（资源允许优先 5 个）；所有关键比较使用配对随机种子与相同算力预算，给出均值、标准差以及具体改善幅度。**单次 seed 的小幅 AUC 提升不足以证明创新成立。**
+
+### 8.3 成功/停止判据（研究决策，不是人为挑选结果）
+
+**继续深入**，需要同时看到：
+
+1. B2 较 B1 有稳定提升，说明语义知识结构本身有用；
+2. B7 较 B6/B4 至少在一项主要未见组合指标上有可重复提升，并在 held-out episode 上能预测边效用方向；
+3. B8 在知识扰动下优于简单 EdgeDrop、固定图和 B7，且干净数据上的性能不明显恶化；
+4. 不依赖测试集调参，并且没有靠改变 CW/OW mask 偷偷提高指标。
+
+**考虑停止或转向**：B2 无效、效用预测方向接近随机、B7 与 B4 无差异，或增益完全来自基础视觉模型的额外训练。此时应优先审计知识质量和协议，而非继续加复杂模块。
+
+## 9. 实现路线（与当前 CPF 资产相容）
+
+先以既有复现代码、ViT-B/16、GloVe 300D、原 CPF checkpoint 与重建 OI/OE/AE 知识作为起点。现有 USG 资产记录里 MIT/C-GQA 词义来源待审；应冻结知识版本并人工抽查明显错误，不能将未审核知识称为真值图。
+
+| 阶段 | 最小可交付物 | 何时可推进 |
+|---|---|---|
+| P0 数据与代码锁定 | CPF 关闭新模块时与原验证分数一致；知识与 split 的 hash/索引检查 | 确保基线可复现 |
+| P1 确定图价值 | B0/B1/B2 + 知识打乱实验 | B2 确实有用才进入 P2 |
+| P2 边效用测量 | 配对干预采样器、效用缓存、分类型质量报告 | 差分稳定、算力可接受 |
+| P3 效用预测器 | 冻结 CPF，训练 $f_\phi$，做 held-out episode 效用方向检验 | 预测优于常数/lookup 基线 |
+| P4 随机图融合 | B3/B4/B5/B6/B7/B8 的相同预算比较 | 观察归因明确的改善 |
+| P5 完整条件版 | 图消息进入 $p(a\mid o,x,G)$，增加预测稳定性分析 | P4 结果明确且资源允许 |
+| P6 正式报告 | 三数据集、多 seed、噪声曲线、效率与失败案例 | 完成必要对照 |
+
+### 建议的代码组织（接口草案，并非已经存在）
+
+```text
+models/
+  cpf_baseline_adapter.py      # 保留原特征/分数契约
+  semantic_graph.py            # OI/OE/AE 到有类型的候选边
+  paired_edge_intervention.py  # 耦合的开边/关边效用测量
+  relation_utility.py          # 效用均值/波动预测
+  stochastic_graph_head.py     # 结构包含概率和图融合
+train/
+  episode_sampler.py           # 只使用训练 seen 组合划分 Inner/Query
+  utility_cache.py             # 分关系类型计数、EMA、版本号
+  train_utility.py             # 冻结 CPF 的第一个实验
+  train_joint.py               # 通过验证后联合训练
+analysis/
+  audit_and_leakage.py         # 标签与组合隔离检查
+  evaluate_utility.py         # held-out episode 的效用方向/相关性
+  robust_graph_noise.py       # 关系类型分层的错误/删除实验
+```
+
+**第一轮最重要的任务不是训练完整网络，而是证明一个可重复事实：** 在未参与效用预测器拟合的伪未见 episode 中，正确知识边的配对删除增益是否可预测，且是否与组合泛化表现相关。
+
+## 10. 风险清单与最早应做的反证实验
+
+1. **已见训练初始化污染**：已有 CPF checkpoint 可能见过 episode Query 组合；pilot 可复用，但严格伪未见实验要重新设计训练史。
+2. **关系效用无法泛化**：效用目标依赖当前模型和 Query 分布，即使训练拟合很好，也可能对其他组合失败；必须留出独立 episode。
+3. **模型自证循环**：效用预测改变图结构，图结构又改变所测得的效用。采用冻结教师、停止梯度、分阶段训练与版本化缓存，并监控迭代稳定性。
+4. **错误先验占优**：外部知识重建错误时 $p_e^0$ 会误导选择；先做知识审计和 prior ablation。
+5. **两类概率混淆**：边包含概率不是语义正确率，不应使用人工真伪标签以外的数据宣称语义校准。
+6. **不确定性惩罚退化**：$\lambda_{\mathrm{var}}$ 过大可能全部拒绝知识；对照仅均值版、固定预算版，并看实际边数。
+7. **反事实测量不是现实因果效应**：只是固定模型的局部干预，不代表对训练分布做独立随机实验。
+8. **计算预算不透明**：记录每个 epoch 的干预次数与 GPU 小时；与 LDS/EdgeDrop 基线匹配预算。
+
+## 11. 可以写进论文的贡献表述（条件成立时）
+
+只有在完成关键实验证据之后，才建议将方法贡献组织成：
+
+1. *We study the transferability of relation-level predictive utility in noisy external semantic graphs for CZSL, distinguishing predictive usefulness from semantic correctness.*
+2. *We design a paired edge-intervention signal on pseudo-unseen compositions and train an evidence-conditioned utility estimator that generalizes to held-out composition episodes.*
+3. *We use risk-aware utility estimates to learn a compact stochastic semantic graph for CPF, and evaluate compositional recognition, knowledge-noise robustness, calibration, and computational cost.*
+
+不能声称的内容：首次提出元学习、首次随机语义图、首次进行图反事实干预、理论证明提升未见组合准确率、边概率等于知识真值概率。
+
+## 12. 与导师讨论时的三个关键问题
+
+1. **方法核心**：导师更重视组合泛化的准确率，还是研究含噪知识的可靠利用？两者最好有主次，而非都当同等贡献。
+2. **训练设置**：是否有资源从通用初始化执行严格组合隔离的 episode 实验？还是先做冻结 CPF 的机制验证，明确其局限？
+3. **研究分叉**：如果边效用预测在 held-out episode 失败，是否直接停止该路线，转向知识审计或结构化关系建模？
+
+---
+
+## 参考文献与核验入口
+
+1. Huang, S., Wei, Q., Wang, D. **Reference-Limited Compositional Zero-Shot Learning**. ICMR 2023. [arXiv](https://arxiv.org/abs/2208.10046) · [作者代码](https://github.com/bighuang624/RL-CZSL)。
+2. Franceschi, L., Niepert, M., Pontil, M., He, X. **Learning Discrete Structures for Graph Neural Networks**. ICML 2019. [PMLR](https://proceedings.mlr.press/v97/franceschi19a.html)。
+3. Wu, P. et al. **LOGICZSL: Exploring Logic-induced Representation for Compositional Zero-shot Learning**. CVPR 2025. [CVF Open Access](https://openaccess.thecvf.com/content/CVPR2025/html/Wu_LOGICZSL_Exploring_Logic-induced_Representation_for_Compositional_Zero-shot_Learning_CVPR_2025_paper.html)。
+4. Wu, P. et al. **A Conditional Probability Framework for Compositional Zero-shot Learning**. ICCV 2025. [CVF Open Access](https://openaccess.thecvf.com/content/ICCV2025/html/Wu_A_Conditional_Probability_Framework_for_Compositional_Zero-shot_Learning_ICCV_2025_paper.html)。
+5. Guo, Z. et al. **Counterfactual Learning on Graphs: A Survey**. *Machine Intelligence Research*, 2025. [Springer](https://link.springer.com/article/10.1007/s11633-024-1519-z)。
+6. Yuan, Z. et al. **I2CD: An Invertible Causal Framework for Compositional Zero-Shot Learning via Disentangle-Compose-Disentangle**. AAAI 2026. [AAAI](https://ojs.aaai.org/index.php/AAAI/article/view/38221)。
+7. **USG-CPF 随机语义图实验设计方案**，2026-10-03（原本地研究设计文件，保留资产、基线和数据契约信息）。
+8. **USG-CPF 2.0：创新性提升与研究设计**，2026-10-13（本方案的前一版本）。
+
+**最终判断**：本版的研究主线比 USG 2.0 方案一更清楚，也更容易通过强消融证明或者证伪。但“反事实效用 + 稳健选择”仍然借用了已有技术思想；它能否达到高水平论文所需的新颖性，取决于**跨组合迁移机制和可重复实证证据**，而非新的名称或公式数量。

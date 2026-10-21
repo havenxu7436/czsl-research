@@ -1,0 +1,59 @@
+test_average_graphs_and_jensen (test_trustcpf.FormulaTests.test_average_graphs_and_jensen) ... ok
+test_budget_and_derivative (test_trustcpf.FormulaTests.test_budget_and_derivative) ... ok
+test_complete_task_logit_gradients (test_trustcpf.FormulaTests.test_complete_task_logit_gradients) ... ok
+test_exact_curve_matches_working_points (test_trustcpf.FormulaTests.test_exact_curve_matches_working_points) ... ok
+test_fold_coverage_and_noise (test_trustcpf.FormulaTests.test_fold_coverage_and_noise) ... ok
+test_gradients_and_singleton_batch (test_trustcpf.FormulaTests.test_gradients_and_singleton_batch) ... ok
+test_heteroscedastic_gradient (test_trustcpf.FormulaTests.test_heteroscedastic_gradient) ... ok
+test_native_clip_visual_interface (test_trustcpf.FormulaTests.test_native_clip_visual_interface) ... ok
+test_pair_variance_and_gradient_identity (test_trustcpf.FormulaTests.test_pair_variance_and_gradient_identity) ... ok
+test_total_variance_and_metrics (test_trustcpf.FormulaTests.test_total_variance_and_metrics) ... ok
+test_unmeasured_record_filter_and_semantic_features (test_trustcpf.FormulaTests.test_unmeasured_record_filter_and_semantic_features) ... ok
+test_zero_graph_and_probability (test_trustcpf.FormulaTests.test_zero_graph_and_probability) ... ok
+EPOCH 1 1 loss 16.309385299682617 val_auc None
+EPOCH 2 1 loss 15.200050830841064 val_auc None
+EPOCH 3 1 loss 16.801962852478027 val_auc None
+EPOCH 4 1 loss 17.918347358703613 val_auc None
+EPOCH 5 1 loss 15.774641513824463 val_auc None
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trustcpf_test_8hqjgx5x\work\measurements\fold1.pt
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trustcpf_test_8hqjgx5x\work\measurements\fold2.pt
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trustcpf_test_8hqjgx5x\work\measurements\fold3.pt
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trustcpf_test_8hqjgx5x\work\measurements\fold4.pt
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trustcpf_test_8hqjgx5x\work\measurements\fold5.pt
+UTILITY 0 epoch 1 dev_nll 0.09446780600561389
+UTILITY 1 epoch 1 dev_nll 0.4520782354150628
+UTILITY_AUDIT Spearman 0.5104895104895105 direction 0.6571428571428571
+TUNED {'lambda_var': 0.5, 'lambda_ens': 0.0, 'budget': 0.5, 'tau_scale': 0.5, 'tau_absolute': 0.0018548486987128854}
+UTILITY 0 epoch 1 dev_nll -4.172481178482832
+UTILITY 1 epoch 1 dev_nll -4.082152829961992
+EPOCH reference 1 loss 17.182612419128418 val_auc None
+EPOCH reference_r0 1 loss 17.17366886138916 val_auc None
+EPOCH r0 1 loss 17.39728609720866 val_auc 0.34722224291827974
+ADAPT_COMPLETE r0 epoch 0 TEST_CW_AUC 0.0 TEST_OW_AUC 0.0
+EPOCH reference_capacity 1 loss 17.34380849202474 val_auc None
+EPOCH capacity 1 loss 17.478614171346027 val_auc 0.34722224291827974
+ADAPT_COMPLETE capacity epoch 0 TEST_CW_AUC 0.0 TEST_OW_AUC 0.0
+EPOCH dense 1 loss 17.40300973256429 val_auc 0.34722224291827974
+ADAPT_COMPLETE dense epoch 0 TEST_CW_AUC 0.0 TEST_OW_AUC 0.0
+EPOCH drop 1 loss 17.398937225341797 val_auc 0.34722224291827974
+ADAPT_COMPLETE drop epoch 0 TEST_CW_AUC 0.0 TEST_OW_AUC 0.0
+EPOCH free 1 loss 17.398937225341797 val_auc 0.34722224291827974
+ADAPT_COMPLETE free epoch 0 TEST_CW_AUC 0.0 TEST_OW_AUC 0.0
+EPOCH mean 1 loss 17.39213752746582 val_auc 0.34722224291827974
+ADAPT_COMPLETE mean epoch 0 TEST_CW_AUC 0.0 TEST_OW_AUC 0.0
+EPOCH robust 1 loss 17.39620590209961 val_auc 0.34722224291827974
+ADAPT_COMPLETE robust epoch 0 TEST_CW_AUC 0.0 TEST_OW_AUC 0.0
+ADAPT_COMPLETE robust epoch 0 TEST_CW_AUC 0.0 TEST_OW_AUC 0.0
+NOISE robust 7101 0 0.0 0.0
+NOISE robust 7101 0 0.5 0.0
+NOISE robust 7101 1 0.0 0.0
+NOISE robust 7101 1 0.5 0.0
+NOISE robust 7101 2 0.0 0.0
+NOISE robust 7101 2 0.5 0.0
+REPORT C:\Users\llenovo\AppData\Local\Temp\trustcpf_test_8hqjgx5x\work\summary.csv
+test_complete_pipeline_and_resume (test_trustcpf.PipelineTests.test_complete_pipeline_and_resume) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 14.143s
+
+OK

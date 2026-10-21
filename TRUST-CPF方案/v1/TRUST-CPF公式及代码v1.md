@@ -1,0 +1,1195 @@
+# TRUST-CPF公式及代码v1：CLIP框架
+
+版本：2026-10-21。公式对应本包实际源码，代码块由AST逐段提取。对象条件属性概率、配对关系效用和风险选图均以本版CLIP实现为准。各块按标明的源码上下文阅读，类方法的self对应所属模型实例。
+
+```python
+import math
+import numpy as np
+import torch
+from torch import nn
+from torch.nn import functional as F
+```
+
+## 0. 符号、张量与单位化
+
+图文维度$`d=768`$，属性$`A=16`$，对象$`O=12`$，关系$`E=96`$，三线性秩$`r=64`$，消息秩$`q=16`$。
+图像缓存为$`g[B,d]`$、$`f^a[B,A,d]`$、$`f^o[B,O,d]`$；联合概率轴为`[batch, object, attribute]`。
+
+
+
+```math
+\mathcal N(v)=v/\max(\|v\|_2,10^{-8}).
+```
+
+
+
+[`trustcpf/common.py · unit`](code/trustcpf_clip_v1/trustcpf/common.py#L72)，源码第72行。
+
+```python
+def unit(x):
+    return x / x.norm(dim=-1, keepdim=True).clamp_min(1e-8)
+```
+
+## 1. CLIP视觉与文本编码
+
+CLIP ViT-L/14视觉末层的CLS和256个补丁同时通过`ln_post`与`visual.proj`，得到共同768维表示。
+
+
+
+```math
+g=\mathcal N(P_v^\top\mathop{\mathrm{LN}}\nolimits_{post}(H_0)),\quad p_\ell=\mathcal N(P_v^\top\mathop{\mathrm{LN}}\nolimits_{post}(H_\ell)).
+```
+
+
+
+编码FP32，缓存FP16，输入预处理为官方CLIP的Resize、CenterCrop、RGB和Normalize。
+
+[`trustcpf/features.py · visual_tokens`](code/trustcpf_clip_v1/trustcpf/features.py#L17)，源码第17行。
+
+```python
+def visual_tokens(visual, images):
+    """Return CLS and patches after ln_post and projection, in FP32 unit vectors."""
+    x = visual.conv1(images.to(visual.conv1.weight.dtype))
+    x = x.reshape(x.shape[0], x.shape[1], -1).permute(0, 2, 1)
+    cls = visual.class_embedding.to(x.dtype).expand(x.shape[0], 1, -1)
+    x = torch.cat([cls, x], dim=1)
+    x = visual.ln_pre(x + visual.positional_embedding.to(x.dtype))
+    x = visual.transformer(x.permute(1, 0, 2)).permute(1, 0, 2)
+    x = visual.ln_post(x)
+    if visual.proj is not None:
+        x = x @ visual.proj
+    x = unit(x.float())
+    return x[:, 0], x[:, 1:]
+```
+
+## 1.1 名称、组合与领域Prompt
+
+属性、对象、组合文本分别编码为$`e_a,e_o,e_{oa}`$。组合表按对象外层、属性内层reshape为`[O,A,768]`。
+
+[`trustcpf/features.py · prompts`](code/trustcpf_clip_v1/trustcpf/features.py#L37)，源码第37行。
+
+```python
+def prompts():
+    names = read_json(ROOT / 'assets' / 'names.json')
+    return {'a': ['a photo of footwear made of {}'.format(a) for a in names['a']],
+            'o': ['a photo of {}'.format(o) for o in names['o']],
+            'c': ['a photo of {} made of {}'.format(o, a) for o in names['o'] for a in names['a']]}
+```
+
+## 1.2 类别查询补丁
+
+
+
+```math
+\alpha_\ell(e)=\mathop{\mathrm{softmax}}\nolimits_{\ell}(e^\top p_\ell/0.07),\quad f(e)=\mathcal N(\sum_\ell\alpha_\ell(e)p_\ell).
+```
+
+
+
+[`trustcpf/features.py · query_patches`](code/trustcpf_clip_v1/trustcpf/features.py#L32)，源码第32行。
+
+```python
+def query_patches(patches, queries, tau):
+    alpha = torch.einsum('qd,bld->bql', queries, patches).div(tau).softmax(-1)
+    return unit(torch.einsum('bql,bld->bqd', alpha, patches))
+```
+
+## 1.3 缓存、数据轴和读取
+
+缓存中的`g/fa/fo`以FP16保存，数据集读取后转换为FP32。共享适配器首先重新单位化，训练与评价使用相同输入契约。
+
+[`trustcpf/data.py · FeatureDataset`](code/trustcpf_clip_v1/trustcpf/data.py#L99)，源码第99行。
+
+```python
+class FeatureDataset(Dataset):
+    def __init__(self, cache, phase):
+        self.root = Path(cache)
+        self.phase = phase
+        self.rows = read_json(self.root / (phase + '_records.json'))
+        self.arrays = None
+
+    def __len__(self):
+        return len(self.rows)
+
+    def __getitem__(self, index):
+        if self.arrays is None:
+            self.arrays = [np.load(self.root / self.phase / (name + '.npy'), mmap_mode='r')
+                           for name in ('g', 'fa', 'fo')]
+        row = self.rows[index]
+        return tuple(torch.from_numpy(np.array(x[index], dtype=np.float32)) for x in self.arrays) + (
+            row['attr'], row['object'])
+
+    def __getstate__(self):
+        state = dict(self.__dict__)
+        state['arrays'] = None
+        return state
+```
+
+## 2. 共享低秩适配器
+
+
+
+```math
+A_\theta(z)=\mathcal N(z+0.1U\mathop{\mathrm{GELU}}\nolimits(Dz)),\quad D\in\mathbb R^{8\times768},\ U\in\mathbb R^{768\times8}.
+```
+
+
+$`U`$零初始化。该适配器共享于全局、属性查询与对象查询特征。
+
+[`trustcpf/model.py · Adapter`](code/trustcpf_clip_v1/trustcpf/model.py#L8)，源码第8行。
+
+```python
+class Adapter(nn.Module):
+    def __init__(self, dim, rank=8):
+        super().__init__()
+        self.down = nn.Linear(dim, rank, bias=False)
+        self.up = nn.Linear(rank, dim, bias=False)
+        nn.init.zeros_(self.up.weight)
+
+    def forward(self, x):
+        return unit(x + .1 * self.up(F.gelu(self.down(x))))
+```
+
+## 2.1 CLIP对象条件属性基底
+
+
+
+```math
+\begin{aligned}
+z_o^0&=\widetilde f_o^\top e_o/T_0,\quad c_{xo}=\mathcal N(\widetilde g+0.5\widetilde f_o),\\
+U_{oa}^0&=(c_{xo}^\top e_{oa}+\widetilde f_a^\top e_a)/T_0,\quad T_0=0.07.
+\end{aligned}
+```
+
+
+对象条件作用同时来自图像上下文$`c_{xo}`$和组合文本$`e_{oa}`$。
+
+[`trustcpf/model.py · TrustCPF.base`](code/trustcpf_clip_v1/trustcpf/model.py#L60)，源码第60行。
+
+```python
+    def base(self, g, fa, fo):
+        g, fa, fo = self.adapter(g), self.adapter(fa), self.adapter(fo)
+        obj = torch.einsum('bod,od->bo', fo, self.eo) / self.cfg.get('t0', .07)
+        context = unit(g[:, None] + self.cfg.get('object_context', .5) * fo)
+        comp = torch.einsum('bod,oad->boa', context, self.ec)
+        attr = torch.einsum('bad,ad->ba', fa, self.ea)
+        cond = (comp + attr[:, None]) / self.cfg.get('t0', .07)
+        return {'g': g, 'obj': obj, 'cond': cond, 'context': context}
+```
+
+## 3. 知识关系与类型编号
+
+类型编号OI/OE/AE依次为0/1/2。属性目标节点索引`0..A-1`，对象目标节点索引`A..A+O-1`。
+OI源为父类CLIP文本；OE/AE源为描述CLIP文本。每个描述槽是独立关系。
+
+[`trustcpf/graph.py · graph_records`](code/trustcpf_clip_v1/trustcpf/graph.py#L8)，源码第8行。
+
+```python
+def graph_records(labels, knowledge):
+    attrs, objs = labels['attrs'], labels['objs']
+    rows, parents = [], sorted(knowledge['oi'])
+    # Node targets are attrs first, objects next; type indices OI/OE/AE=0/1/2.
+    for h in parents:
+        for o in knowledge['oi'][h]:
+            rows.append({'type': 0, 'target': len(attrs) + objs.index(o), 'text': h,
+                         'prompt': 'a photo of ' + h, 'owner': o, 'slot': h})
+    for kind, labels_, offset, ty in [('oe', objs, len(attrs), 1), ('ae', attrs, 0, 2)]:
+        for i, c in enumerate(labels_):
+            for k, text in enumerate(knowledge[kind][c]):
+                rows.append({'type': ty, 'target': offset+i, 'text': text,
+                             'prompt': 'a photo of footwear with ' + text, 'owner': c, 'slot': k})
+    return rows
+```
+
+## 3.1 低秩类型消息
+
+
+
+```math
+d_e=h_u-h_c,\quad W_\rho=I+L_\rho R_\rho,\quad m_e=d_e+L_\rho(R_\rho d_e).
+```
+
+
+768维下每类型消息矩阵用秩16参数化。$`R_\rho`$零初始化，对应$`W_\rho=I`$。
+
+[`trustcpf/model.py · TypedGraph.messages`](code/trustcpf_clip_v1/trustcpf/model.py#L29)，源码第29行。
+
+```python
+    def messages(self):
+        diff = self.source - self.anchors[self.target]
+        low = torch.einsum('erd,ed->er', self.right[self.types], diff)
+        return diff + torch.einsum('edr,er->ed', self.left[self.types], low)
+```
+
+## 3.2 固定候选度数的图聚合
+
+
+
+```math
+Z_c(G)=\mathcal N\left(h_c+0.1\sum_\rho\frac{\sum_{e\in N_\rho(c)}b_em_e}{\max(1,|N_\rho(c)|)}\right).
+```
+
+
+程序用关联矩阵乘法实现聚合，每次干预保持候选度数不变。
+
+[`trustcpf/model.py · TypedGraph.forward`](code/trustcpf_clip_v1/trustcpf/model.py#L34)，源码第34行。
+
+```python
+    def forward(self, edges):
+        msg = self.messages() * (edges / self.degree)[:, None]
+        # Dense incidence avoids CUDA scatter nondeterminism for this small graph.
+        incidence = F.one_hot(self.target, len(self.anchors)).to(msg.dtype).T
+        return unit(self.anchors + self.eta * (incidence @ msg))
+```
+
+## 4. 三元图残差和完整联合概率
+
+
+
+```math
+\begin{aligned}
+T(x,o,a;G)&=\langle\mathcal N(P_vc_{xo}),\mathcal N(P_oZ_o(G))\odot\mathcal N(P_aZ_a(G))\rangle,\\
+z_o&=z_o^0+\alpha_g\widetilde g^\top(Z_o-h_o)/T_g,\\
+U_{oa}&=U_{oa}^0+\alpha_g[T(G)-T(\varnothing)]/T_g,\\
+\ell_{oa}&=\log\mathop{\mathrm{softmax}}\nolimits_o(z)+\log\mathop{\mathrm{softmax}}\nolimits_a(U_{o,:}).
+\end{aligned}
+```
+
+
+$`\alpha_g=T_g=0.1`$，$`P_v,P_o,P_a\in\mathbb R^{64\times768}`$。空图时残差为零。
+
+`capacity=True`为容量对照：名称低秩变换取代关系消息，三元头直接作用于名称，不读取OE/AE来源。
+
+[`trustcpf/model.py · TrustCPF.score`](code/trustcpf_clip_v1/trustcpf/model.py#L69)，源码第69行。
+
+```python
+    def score(self, base, edges, capacity=False):
+        anchors = self.graph.anchors
+        z = self.graph(edges)
+        ao, aa = anchors[self.na:], anchors[:self.na]
+        zo, za = z[self.na:], z[:self.na]
+        qx = unit(self.pv(base['context']))
+        def tri(o, a):
+            return torch.einsum('bor,or,ar->boa', qx, unit(self.po(o)), unit(self.pa(a)))
+        delta_o = base['g'] @ (zo - ao).T
+        delta_u = tri(zo, za) - tri(ao, aa)
+        if capacity:
+            # Same effective projection matrices; no relation attachment is used.
+            o = unit(ao + .1 * ((ao @ self.graph.right[0].T) @ self.graph.left[0].T))
+            a = unit(aa + .1 * ((aa @ self.graph.right[1].T) @ self.graph.left[1].T
+                            + (aa @ self.graph.right[2].T) @ self.graph.left[2].T))
+            delta_o = base['g'] @ (o - ao).T
+            delta_u = tri(o, a)  # generic trainable three-way head
+        gain = self.cfg.get('alpha', .1) / self.cfg.get('tg', .1)
+        obj = base['obj'] + gain * delta_o
+        conditional = base['cond'] + gain * delta_u
+        lo, lc = obj.log_softmax(-1), conditional.log_softmax(-1)
+        return lo[:, :, None] + lc, lo, lc
+```
+
+## 4.1 分类目标
+
+
+
+```math
+\mathcal L_{task}=-\ell_{o^*a^*}+\mathop{\mathrm{LSE}}\nolimits_{c\in I_j}\ell_c-0.4\ell_{o^*}-0.6\ell_{a^*|o^*}.
+```
+
+
+训练候选为自己的Inner，最终适配为官方TRAIN。辅助属性损失读取完整未屏蔽条件概率。
+
+[`trustcpf/model.py · task_loss`](code/trustcpf_clip_v1/trustcpf/model.py#L96)，源码第96行。
+
+```python
+def task_loss(joint, lo, lc, attrs, objs, candidates):
+    flat = joint.flatten(1)
+    target = objs * joint.shape[2] + attrs
+    lp = -flat.gather(1, target[:, None]).mean() + flat[:, candidates].logsumexp(-1).mean()
+    rows = torch.arange(len(attrs), device=attrs.device)
+    return lp + .4 * F.nll_loss(lo, objs) + .6 * F.nll_loss(lc[rows, objs], attrs)
+```
+
+## 4.2 图消息正则
+
+
+
+```math
+\mathcal R_W=768^{-2}\sum_\rho\|L_\rho R_\rho\|_F^2,\quad\mathcal L=\mathcal L_{task}+10^{-3}\mathcal R_W.
+```
+
+
+
+[`trustcpf/model.py · TypedGraph.regularizer`](code/trustcpf_clip_v1/trustcpf/model.py#L40)，源码第40行。
+
+```python
+    def regularizer(self):
+        delta = self.left @ self.right
+        return delta.square().sum() / self.anchors.shape[1] ** 2
+```
+
+## 5. 五折组合任务
+
+
+
+```math
+\mathcal C_s=C_0\sqcup\bigsqcup_{j=1}^5Q_j,\quad I_j=\mathcal C_s\setminus Q_j.
+```
+
+
+分块种子2026，稀有原语对应组合放公共Inner；检查每折Query的属性、对象均在该折Inner出现。
+
+[`trustcpf/folds.py · make_folds`](code/trustcpf_clip_v1/trustcpf/folds.py#L4)，源码第4行。
+
+```python
+def make_folds(pairs, seed=2026, count=5):
+    pairs = sorted(map(tuple, pairs))
+    primitive = lambda c: {('a',c[0]),('o',c[1])}
+    counts = {v:sum(v in primitive(p) for p in pairs) for c in pairs for v in primitive(c)}
+    common = [p for p in pairs if any(counts[v]==1 for v in primitive(p))]
+    rest = [p for p in pairs if p not in common]
+    rng = np.random.RandomState(seed)
+    for _ in range(10000):
+        perm = rng.permutation(len(rest))
+        blocks = [[rest[i] for i in ids] for ids in np.array_split(perm,count)]
+        if all(all(primitive(c) <= set.union(*(primitive(p) for p in pairs if p not in q)) for c in q) for q in blocks):
+            return {'seed':seed,'common':common,'query':blocks,'roles':['fit','fit','fit','dev','audit']}
+    raise ValueError('No coverage-preserving composition partition found')
+```
+
+## 5.1 配对边干预
+
+
+
+```math
+\Delta_e=L_Q(G_{-e},0)-L_Q(G_{-e},1),\quad
+y_e=M^{-1}\sum_m\Delta_{e,m},\quad\nu_e=\mathop{\mathrm{Var}}\nolimits_{sample}(\Delta_{e,m})/M.
+```
+
+
+每对共享背景图和Query；正值表示打开边降低NLL。`weights`先组合内均分，再组合等权。
+
+
+
+```math
+\frac{\partial\mathbb E_{q_\pi}L_Q}{\partial\pi_e}=-\mathbb E_{G_{-e}}\Delta_e.
+```
+
+
+
+[`trustcpf/utility.py · paired_utility`](code/trustcpf_clip_v1/trustcpf/utility.py#L10)，源码第10行。
+
+```python
+@torch.no_grad()
+def paired_utility(model, base, target_local, candidates, edge_ids, weights, backgrounds, generator):
+    ecount = len(model.graph.types)
+    ys, vs, differences = [], [], []
+    for e in edge_ids.tolist():
+        diffs = []
+        for _ in range(backgrounds):
+            b = (torch.rand(ecount,device=weights.device,generator=generator)<.5).float()
+            b[e]=0
+            minus=candidate_logprob(model.score(base,b)[0],candidates)
+            b[e]=1
+            plus=candidate_logprob(model.score(base,b)[0],candidates)
+            rows=torch.arange(len(weights),device=weights.device)
+            diff=((minus[rows,target_local]-plus[rows,target_local]) * -weights).sum()
+            diffs.append(diff)
+        ds=torch.stack(diffs)
+        ys.append(ds.mean()); vs.append(ds.var(unbiased=True)/backgrounds)
+        differences.append(ds)
+    return torch.stack(ys), torch.stack(vs), torch.stack(differences)
+```
+
+## 5.2 测量队列与包含概率
+
+每任务最多8个Query组合、每组合8图、每类型8条边。$`\kappa_e=b_\rho/|E_\rho|`$，背景图$`M=4`$；第5折$`M=16`$。
+拟合三折各512任务，开发和审计各128任务。配对差分、边ID、Query图像ID和抽样概率写入测量文件。
+
+[`trustcpf/stages.py · measure`](code/trustcpf_clip_v1/trustcpf/stages.py#L19)，源码第19行。
+
+```python
+def measure(args):
+    cfg,manifest,text,bank,folds,work=setup(args)
+    gs,rows=globals_and_rows(args.cache); na=len(manifest['labels']['attrs']); no=len(manifest['labels']['objs'])
+    wanted=list(range(5)) if args.fold=='all' else [int(args.fold)-1]
+    for j in wanted:
+        started=time.perf_counter()
+        dest=work/'measurements'/('fold%d.pt'%(j+1))
+        if dest.exists(): print('REUSE',dest,flush=True); continue
+        model=new_model(text,bank,cfg,args.device)
+        model.load_state_dict(load_torch(work/'teachers'/str(j+1)/'last.pt')['model']); model.eval()
+        query=folds['query'][j]; qids=set(pair_ids(manifest['labels'],query))
+        inner=[i for i,r in enumerate(rows) if r['object']*na+r['attr'] not in qids]
+        groups={p:[i for i,r in enumerate(rows) if r['object']*na+r['attr']==p] for p in qids}
+        candidates=torch.tensor(pair_ids(manifest['labels'],manifest['pairs']['train']),device=args.device)
+        index={int(p):i for i,p in enumerate(candidates.tolist())}
+        rng=np.random.RandomState(cfg['seed']+100*(j+1))
+        gen=torch.Generator(device=args.device).manual_seed(cfg['seed']+100*(j+1))
+        count=cfg['fit_episodes'] if j<3 else cfg['eval_episodes']
+        backgrounds=cfg['backgrounds'] if j<4 else cfg['audit_backgrounds']
+        from .data import FeatureDataset
+        ds=FeatureDataset(args.cache,'train')
+        X,Y,V,E,K,T,D,query_log=[],[],[],[],[],[],[],[]
+        for t in range(count):
+            chosen=rng.choice(sorted(qids),min(cfg['query_pairs'],len(qids)),replace=False)
+            indices=[]; weights=[]
+            for p in chosen:
+                idx=rng.choice(groups[p],min(cfg['query_images'],len(groups[p])),replace=False)
+                indices.extend(idx.tolist()); weights.extend([1/(len(chosen)*len(idx))]*len(idx))
+            sample=[ds[i] for i in indices]
+            batch=[torch.stack([s[k] for s in sample]).to(args.device) for k in range(3)]
+            local=torch.tensor([index[rows[i]['object']*na+rows[i]['attr']] for i in indices],device=args.device)
+            edge_ids=[]; kappas=[]
+            for ty in range(3):
+                ids=torch.where(bank['types']==ty)[0].numpy(); size=min(cfg['edges_per_type'],len(ids))
+                selected=rng.choice(ids,size,replace=False); edge_ids.extend(selected.tolist()); kappas.extend([size/len(ids)]*size)
+            e=torch.tensor(edge_ids,device=args.device)
+            with torch.no_grad():
+                base=model.base(*batch)
+                y,v,d=paired_utility(model,base,local,candidates,e,torch.tensor(weights,device=args.device),backgrounds,gen)
+            summary=support_summary(gs,rows,inner,na,no,cfg['support_images'],rng)
+            x=utility_features(bank,summary)
+            X.append(x[edge_ids].half()); Y.append(y.cpu()); V.append(v.cpu()); D.append(d.cpu())
+            E.append(e.cpu()); K.append(torch.tensor(kappas)); T.append(torch.full((len(e),),t,dtype=torch.long))
+            query_log.append({'episode':t,'query_indices':indices,'query_pair_ids':chosen.tolist()})
+            if (t+1)%32==0: print('MEASURE',j+1,t+1,'/',count,flush=True)
+        save_torch(dest,{'x':torch.cat(X),'y':torch.cat(Y),'noise':torch.cat(V), 'differences':torch.cat(D),
+            'edge':torch.cat(E),'inclusion':torch.cat(K),'episode':torch.cat(T),'queries':query_log,
+            'sampled':len(edge_ids),'total':len(bank['types']),'fold':j+1,'wall_seconds':time.perf_counter()-started,
+            'head_forwards':2*count*len(edge_ids)*backgrounds,'teacher':str(work/'teachers'/str(j+1)/'last.pt')})
+        print('MEASUREMENT_COMPLETE',dest,flush=True)
+```
+
+## 6. Inner视觉证据摘要
+
+每个原语最多16张Inner图像，按组合均值再按上下文等权；对象和属性分别聚合。$`r_c`$为最终单位摘要，$`n_c,k_c`$为图像数、上下文数。
+
+[`trustcpf/utility.py · support_summary`](code/trustcpf_clip_v1/trustcpf/utility.py#L31)，源码第31行。
+
+```python
+def support_summary(globals_, rows, allowed_ids, na, no, maximum, rng):
+    """Per-composition means followed by equal context averaging; cap per primitive."""
+    groups={}
+    for i in allowed_ids:
+        r=rows[i]; groups.setdefault((r['attr'],r['object']),[]).append(i)
+    means=torch.zeros(na+no,globals_.shape[1]); counts=torch.zeros(na+no); contexts=torch.zeros(na+no)
+    for c in range(na+no):
+        keys=[p for p in groups if (p[0]==c if c<na else p[1]==c-na)]
+        pools=[list(rng.permutation(groups[p])) for p in keys]
+        selected={p:[] for p in keys}
+        total=0
+        while total<maximum and any(pools):
+            for k in rng.permutation(len(keys)):
+                if pools[k] and total<maximum:
+                    selected[keys[k]].append(pools[k].pop()); total+=1
+        vals=[unit(globals_[idx].float()).mean(0) for idx in selected.values() if idx]
+        if vals:
+            means[c]=torch.stack(vals).mean(0); counts[c]=total; contexts[c]=len(vals)
+    return unit(means),counts,contexts
+```
+
+## 6.1 6157维关系输入
+
+
+
+```math
+\begin{aligned}
+k_e&=[h_u;h_c;h_u\odot h_c;|h_u-h_c|;t_\rho;s_{src}]\in\mathbb R^{3079},\\
+h_e^I&=[r_c;r_u;h_u;h_c;r_c^\top h_u;r_c^\top h_c;\log(1+n_c);\log(1+k_c);m_c;m_u]\in\mathbb R^{3078}.
+\end{aligned}
+```
+
+
+$`z=[k_e;h_e^I]\in\mathbb R^{6157}`$。OI父类的$`r_u`$使用成员Inner证据；描述节点置零并附缺失标记。
+
+[`trustcpf/utility.py · utility_features`](code/trustcpf_clip_v1/trustcpf/utility.py#L52)，源码第52行。
+
+```python
+def utility_features(bank, summary, semantic_only=False):
+    mean,count,contexts=summary
+    src=bank['source']; dst=bank['anchors'][bank['target']]
+    semantic=torch.cat([src,dst,src*dst,(src-dst).abs(),
+                        F.one_hot(bank['types'],3).float(),bank['metadata']],-1)
+    rc=mean[bank['target']]; ru=torch.zeros_like(rc); mu=torch.ones(len(rc))
+    for e,row in enumerate(bank['rows']):
+        if row['type']==0:
+            children=sorted({r['target'] for r in bank['rows'] if r['type']==0 and r['slot']==row['slot']})
+            valid=[c for c in children if count[c]>0]
+            if valid: ru[e]=unit(mean[valid].mean(0)); mu[e]=0
+    scalars=torch.stack([(rc*src).sum(-1),(rc*dst).sum(-1),
+        count[bank['target']].log1p(), contexts[bank['target']].log1p(),
+        (count[bank['target']]==0).float(),mu],-1)
+    visual=torch.cat([rc,ru,src,dst,scalars],-1)
+    if semantic_only: visual=torch.zeros_like(visual)
+    return torch.cat([semantic,visual],-1)
+```
+
+## 6.2 异方差效用预测器
+
+MLP为6157→256→128→2，隐藏层GELU；均值直接输出，方差$`\mathop{\mathrm{softplus}}\nolimits(v_{raw})+10^{-4}`$。
+输入均值和尺度仅由拟合记录计算。
+
+[`trustcpf/utility.py · UtilityNet`](code/trustcpf_clip_v1/trustcpf/utility.py#L71)，源码第71行。
+
+```python
+class UtilityNet(nn.Module):
+    def __init__(self, dim, center, spread):
+        super().__init__()
+        self.register_buffer('center',center)
+        self.register_buffer('spread',spread)
+        self.net=nn.Sequential(nn.Linear(dim,256),nn.GELU(),nn.Linear(256,128),nn.GELU(),nn.Linear(128,2))
+
+    def forward(self,x):
+        v=self.net((x-self.center)/self.spread)
+        return v[:,0], F.softplus(v[:,1])+1e-4
+```
+
+## 6.3 测量噪声与HT加权NLL
+
+
+
+```math
+L_e=\tfrac12[\log(v_e+\nu_e)+(y_e-m_e)^2/(v_e+\nu_e)],\quad
+\widehat L=|E|^{-1}\sum_{e\in B_t}L_e/\kappa_e.
+```
+
+
+代码使用均匀记录batch，故将`mean(L/kappa)`乘以`sampled/total`。类型标准差在外层用于$`y/s_\rho`$、$`\nu/s_\rho^2`$。
+
+
+
+```math
+\partial_mL=(m-y)/(v+\nu),\quad\partial_vL=\tfrac1{2(v+\nu)}-\tfrac{(m-y)^2}{2(v+\nu)^2}.
+```
+
+
+
+[`trustcpf/utility.py · utility_nll`](code/trustcpf_clip_v1/trustcpf/utility.py#L83)，源码第83行。
+
+```python
+def utility_nll(mean, variance, target, noise, inclusion, edges):
+    v=variance+noise.detach()
+    loss=.5*(v.log()+(mean-target.detach()).square()/v)
+    # Records sample uniformly within the fixed-size stratified subsets B_t.
+    # Multiplying by |B_t|/|E| implements the full-edge HT objective.
+    return (loss/inclusion).mean()*edges['sampled']/edges['total']
+```
+
+## 6.4 三模型与epoch选择
+
+三模型独立种子，以Q4观测NLL选epoch；Q5审计使用选择前的三拟合折模型。最终模型使用五折标签按已选epoch数重新拟合。
+
+[`trustcpf/stages.py · fit_utility`](code/trustcpf_clip_v1/trustcpf/stages.py#L97)，源码第97行。
+
+```python
+def fit_utility(args):
+    cfg,manifest,text,bank,folds,work=setup(args)
+    train=combine_measurements(work,[1,2,3,4,5] if args.fit_all else [1,2,3])
+    held=heldout_edges(bank,cfg); train=remove_heldout(train,held)
+    dev=remove_heldout(combine_measurements(work,[4]),held)
+    dim=bank['anchors'].shape[1]
+    train['x']=feature_mode(train['x'],cfg,dim); dev['x']=feature_mode(dev['x'],cfg,dim)
+    center=train['x'].mean(0); spread=train['x'].std(0,unbiased=False).clamp_min(.01)
+    types=bank['types']; scales=torch.stack([train['y'][types[train['edge']]==ty].std(unbiased=False).clamp_min(1e-4) for ty in range(3)])
+    out=work/('utility_all' if args.fit_all else 'utility'); out.mkdir(exist_ok=True)
+    if args.fit_all:
+        recipe=read_json(work/'utility/selection.json'); epochs=recipe['epochs']
+    else: epochs=[cfg['utility_epochs']]*cfg['utility_models']
+    selected=[]; timing=[]
+    for m in range(cfg['utility_models']):
+        started=time.perf_counter()
+        seed_all(cfg['seed']+10000+m)
+        net=UtilityNet(train['x'].shape[1],center,spread).to(args.device)
+        opt=torch.optim.AdamW(net.parameters(),lr=cfg['utility_lr'],weight_decay=cfg['weight_decay'])
+        best=float('inf'); best_state=None; best_epoch=0; history=[]
+        for epoch in range(epochs[m]):
+            net.train()
+            for ids in torch.randperm(len(train['y'])).split(cfg['utility_batch']):
+                ty=types[train['edge'][ids]]; s=scales[ty].to(args.device)
+                mean,var=net(train['x'][ids].to(args.device))
+                loss=utility_nll(mean,var,train['y'][ids].to(args.device)/s,
+                    train['noise'][ids].to(args.device)/s.square(),train['inclusion'][ids].to(args.device),train)
+                opt.zero_grad(); loss.backward(); opt.step()
+            net.eval()
+            with torch.no_grad():
+                means=[]; vars_=[]
+                for x in dev['x'].split(cfg['utility_batch']):
+                    mm,vv=net(x.to(args.device)); means.append(mm.cpu()); vars_.append(vv.cpu())
+                s=scales[types[dev['edge']]]
+                metrics=regression_metrics(torch.cat(means)*s,torch.cat(vars_)*s.square(),dev['y'],dev['noise'])
+            history.append({'epoch':epoch+1,**metrics})
+            if (epoch+1)%5==0: print('UTILITY_EPOCH',m,epoch+1,'dev_nll',metrics['nll'],flush=True)
+            if args.fit_all or metrics['nll']<best:
+                best=metrics['nll']; best_state=copy.deepcopy(net.cpu().state_dict()); net.to(args.device); best_epoch=epoch+1
+        save_torch(out/('model%d.pt'%m),{'model':best_state,'scales':scales,'cfg':cfg,'epoch':best_epoch,'dimension':len(center)})
+        write_json(out/('history%d.json'%m),history); selected.append(best_epoch)
+        timing.append(time.perf_counter()-started)
+        print('UTILITY',m,'epoch',best_epoch,'dev_nll',best,flush=True)
+    write_json(out/'selection.json',{'epochs':selected,'folds':[1,2,3,4,5] if args.fit_all else [1,2,3],
+                                  'heldout_edges':held,'model_seconds':timing})
+```
+
+## 7. 集成分歧
+
+
+
+```math
+\bar m=L^{-1}\sum_lm_l,\quad\bar v=L^{-1}\sum_lv_l,\quad e=L^{-1}\sum_l(m_l-\bar m)^2.
+```
+
+
+方差和均值还原至原始NLL增益单位。
+
+[`trustcpf/utility.py · ensemble_moments`](code/trustcpf_clip_v1/trustcpf/utility.py#L91)，源码第91行。
+
+```python
+@torch.no_grad()
+def ensemble_moments(models, x, scales, types):
+    pred=[net(x) for net in models]
+    ms=torch.stack([p[0]*scales[types] for p in pred])
+    vs=torch.stack([p[1]*scales[types].square() for p in pred])
+    return ms.mean(0),vs.mean(0),ms.var(0,unbiased=False)
+```
+
+## 7.1 支持摘要的全方差汇总
+
+
+
+```math
+\widehat\mu=R^{-1}\sum_r\bar m_r,\quad
+\widehat\sigma_{task}^2=R^{-1}\sum_r\bar v_r+\mathop{\mathrm{Var}}\nolimits_r(\bar m_r),\quad
+\widehat v_{ens}=R^{-1}\sum_re_r.
+```
+
+
+所有有限集合上的方差采用分母$`L`$或$`R`$，与程序`unbiased=False`一致。测量噪声$`\nu`$不加入部署风险。
+
+[`trustcpf/utility.py · aggregate_moments`](code/trustcpf_clip_v1/trustcpf/utility.py#L99)，源码第99行。
+
+```python
+def aggregate_moments(means, variances, ensemble_vars):
+    return means.mean(0),variances.mean(0)+means.var(0,unbiased=False),ensemble_vars.mean(0)
+```
+
+## 7.2 风险收益与结构分布
+
+
+
+```math
+R_e=\widehat\mu_e-\lambda_{var}\sqrt{\widehat\sigma^2_{task,e}}-\lambda_{ens}\sqrt{\widehat v_{ens,e}}.
+```
+
+
+`mean`将两个风险权重置零，其余步骤与robust一致。
+
+[`trustcpf/stages.py · make_structure`](code/trustcpf_clip_v1/trustcpf/stages.py#L202)，源码第202行。
+
+```python
+def make_structure(cfg,bank,moments):
+    m,v,e=moments
+    lv=0. if cfg['variant']=='mean' else cfg['lambda_var']
+    le=0. if cfg['variant']=='mean' else cfg['lambda_ens']
+    reward=m-lv*v.sqrt()-le*e.sqrt()
+    pi,gamma=solve_budget(reward,bank['types'],cfg['tau_absolute'],cfg['budget'])
+    if 'availability' in bank: pi=pi*bank['availability']
+    return {'pi':pi,'mean':m,'task_variance':v,'ensemble_variance':e,'reward':reward,'multipliers':gamma}
+```
+
+## 7.3 KL和预算的闭式解
+
+
+
+```math
+\begin{aligned}
+J(\pi)&=-\sum_e\pi_eR_e+\tau\sum_e[\pi_e\log(\pi_e/p_e^0)+(1-\pi_e)\log((1-\pi_e)/(1-p_e^0))],\\
+\partial_{\pi_e}\mathscr L&=-R_e+\tau[\mathop{\mathrm{logit}}\nolimits(\pi_e)-\mathop{\mathrm{logit}}\nolimits(p_e^0)]+\gamma_\rho,\\
+\pi_e&=\mathop{\mathrm{sigmoid}}\nolimits(\mathop{\mathrm{logit}}\nolimits(p_e^0)+(R_e-\gamma_\rho)/\tau).
+\end{aligned}
+```
+
+
+约束$`\sum_{e\in E_\rho}\pi_e\le B_\rho`$。$`\tau/[\pi_e(1-\pi_e)]>0`$保证严格凸；未超预算时乘子为0，超限时二分60次。
+
+[`trustcpf/graph.py · solve_budget`](code/trustcpf_clip_v1/trustcpf/graph.py#L59)，源码第59行。
+
+```python
+def solve_budget(reward, types, tau, fraction=.5, prior=.5):
+    """Unique convex optimum; multipliers are nonnegative, per-type upper budgets."""
+    pi, multipliers = torch.zeros_like(reward), {}
+    tau = max(float(tau), 1e-8)
+    prior = torch.as_tensor(prior, device=reward.device, dtype=reward.dtype).clamp(1e-6,1-1e-6)
+    prior_logit = torch.logit(prior).expand_as(reward)
+    for ty in types.unique().tolist():
+        mask = types == ty
+        budget = fraction * int(mask.sum())
+        def value(gamma): return torch.sigmoid(prior_logit[mask] + (reward[mask]-gamma)/tau)
+        if fraction == 0:
+            multipliers[str(ty)] = 0.; continue
+        if value(0).sum() <= budget:
+            gamma = 0.
+        else:
+            low, high = 0., max(1., float(reward[mask].abs().max()))
+            while value(high).sum() > budget: high *= 2
+            for _ in range(60):
+                mid = (low+high)/2
+                if value(mid).sum() > budget: low=mid
+                else: high=mid
+            gamma=high
+        pi[mask] = value(gamma)
+        multipliers[str(ty)] = gamma
+    return pi, multipliers
+```
+
+## 7.4 Q4结构参数选择
+
+顺序选择风险9组、预算3组、温度3组。每个配置真实运行第4折冻结教师，按Query组合等权NLL选择。
+
+[`trustcpf/stages.py · tune`](code/trustcpf_clip_v1/trustcpf/stages.py#L212)，源码第212行。
+
+```python
+@torch.no_grad()
+def tune(args):
+    cfg,manifest,text,bank,folds,work=setup(args)
+    inner_pairs=[p for p in manifest['pairs']['train'] if tuple(p) not in set(map(tuple,folds['query'][3]))]
+    inner=row_ids(args.cache,inner_pairs,manifest['labels'])
+    moments=deployment_moments(args,cfg,manifest,bank,work,work/'utility',inner)
+    fit=remove_heldout(combine_measurements(work,[1,2,3]),heldout_edges(bank,cfg))
+    scale=max(float(fit['y'].std(unbiased=False)),1e-4)
+    model=new_model(text,bank,cfg,args.device); model.load_state_dict(load_torch(work/'teachers/4/last.pt')['model']); model.eval()
+    from .data import FeatureDataset
+    from torch.utils.data import Subset,DataLoader
+    ds=FeatureDataset(args.cache,'train'); qids=row_ids(args.cache,folds['query'][3],manifest['labels'])
+    loader=DataLoader(Subset(ds,qids),batch_size=cfg['batch_size'])
+    candidates=torch.tensor(pair_ids(manifest['labels'],manifest['pairs']['train']),device=args.device)
+    index={int(p):i for i,p in enumerate(candidates.tolist())}; history=[]
+    def objective(c):
+        c=dict(c,tau_absolute=c['tau_scale']*scale)
+        structure=make_structure(c,bank,moments); values={}
+        for data in loader:
+            batch=[v.to(args.device) for v in data[:3]]
+            lp,_=average_graphs(model,batch,structure['pi'].to(args.device),candidates,min(4,cfg['graphs']),1701)
+            targets=(data[4]*len(manifest['labels']['attrs'])+data[3]).tolist()
+            for i,p in enumerate(targets): values.setdefault(p,[]).append(float(-lp[i,index[p]]))
+        score=float(np.mean([np.mean(v) for v in values.values()]))
+        history.append({'lambda_var':c['lambda_var'],'lambda_ens':c['lambda_ens'],'budget':c['budget'],'tau_scale':c['tau_scale'],'query_nll':score})
+        return score
+    # Coordinate search fixed in the research protocol; Q4 alone supplies selection labels.
+    for keys,choices in [ (('lambda_var','lambda_ens'),[(a,b) for a in (0.,.5,1.) for b in (0.,.25,.5)]),
+                          (('budget',),[(a,) for a in (.25,.5,.75)]),
+                          (('tau_scale',),[(a,) for a in (.25,.5,1.)]) ]:
+        trials=[]
+        for vals in choices:
+            trial=dict(cfg,**dict(zip(keys,vals))); trials.append((objective(trial),vals))
+        _,winner=min(trials,key=lambda p:p[0]); cfg.update(dict(zip(keys,winner)))
+    cfg['tau_absolute']=cfg['tau_scale']*scale
+    write_json(work/'tuning.json',{'selected':{k:cfg[k] for k in ('lambda_var','lambda_ens','budget','tau_scale','tau_absolute')},'trials':history})
+    print('TUNED',read_json(work/'tuning.json')['selected'],flush=True)
+```
+
+## 8. 单批优化、步长与恢复
+
+
+
+```math
+\theta_{t+1}=\mathop{\mathrm{AdamW}}\nolimits(\theta_t,\nabla_\theta\mathcal L_t;\eta_t,\beta_1=.9,\beta_2=.999,\epsilon=10^{-8},\lambda=10^{-4}).
+```
+
+
+代码以一个epoch更新数作warmup，随后按总更新步数余弦衰减。教师/最终参考10epoch，适配3epoch；每epoch保存模型、optimizer和RNG。
+
+free结构对照采用score-function：$`\partial_{a_e}\mathbb E L=\mathbb E[(L-b)(b_e-\pi_e)]`$；$`b`$为上一批次EMA，额外KL均值权重0.01、各类型超预算概率均值的平方惩罚权重1。
+
+[`trustcpf/engine.py · train_model`](code/trustcpf_clip_v1/trustcpf/engine.py#L56)，源码第56行。
+
+```python
+def train_model(args,cfg,text,bank,manifest,train_pairs,output,pi=None,initial=None,select=False):
+    device=args.device
+    model=new_model(text,bank,cfg,device)
+    if initial:
+        model.load_state_dict(load_torch(initial)['model'])
+        for key in ('anchors','source','target','types','degree'):
+            getattr(model.graph,key).copy_(bank[key].to(device))
+    opt=optimizer(model,cfg)
+    candidates=torch.tensor(pair_ids(manifest['labels'],train_pairs),device=device)
+    ids=row_ids(args.cache,train_pairs,manifest['labels'])
+    loader=batches(args.cache,'train',cfg,ids,True)
+    epochs=cfg['adapt_epochs'] if select else cfg['teacher_epochs']
+    out=Path(output); out.mkdir(parents=True,exist_ok=True)
+    pi=torch.full((len(bank['types']),),.5,device=device) if pi is None else pi.to(device)
+    edge_logits=torch.nn.Parameter(torch.logit(pi.clamp(.001,.999)))
+    free=cfg.get('variant')=='free' and select
+    if free: opt.add_param_group({'params':[edge_logits],'lr':cfg['graph_lr']})
+    history=[]; start=0; best=-float('inf'); baseline=0.
+    if (out/'last.pt').exists():
+        state=load_torch(out/'last.pt'); model.load_state_dict(state['model']); opt.load_state_dict(state['optimizer'])
+        start=state['epoch']; history=state['history']; best=state['best']; baseline=state.get('baseline',0.)
+        pi=state['pi'].to(device)
+        with torch.no_grad(): edge_logits.copy_(torch.logit(pi.clamp(.001,.999)))
+        torch.set_rng_state(state['torch_rng'])
+        np.random.set_state(state['numpy_rng'])
+        if torch.cuda.is_available() and state.get('cuda_rng') is not None: torch.cuda.set_rng_state_all(state['cuda_rng'])
+    if select and not (out/'best.pt').exists():
+        metrics=evaluate_model(model,args.cache,cfg,manifest,pi,'val')
+        best=metrics['cw']['AUC_native']
+        save_torch(out/'best.pt',{'model':model.state_dict(),'pi':pi.cpu(),'epoch':0,'cfg':cfg,'val':metrics})
+    total_steps=max(1,epochs*len(loader)); warmup=max(1,len(loader))
+    for epoch in range(start,epochs):
+        model.train(); losses=[]; tic=time.time()
+        for bi,data in enumerate(loader):
+            step=epoch*len(loader)+bi
+            factor=min((step+1)/warmup,1.)*.5*(1+math.cos(math.pi*max(0,step-warmup)/max(1,total_steps-warmup)))
+            for gi,group in enumerate(opt.param_groups): group['lr']=(cfg['lr'] if gi==0 else cfg['graph_lr'])*factor
+            g,fa,fo,a,o=[t.to(device) for t in data]
+            prob=edge_logits.sigmoid() if free else pi
+            mask=torch.bernoulli(prob.detach())
+            if cfg.get('variant') in ('r0','capacity'): mask.zero_()
+            joint,lo,lc=model(g,fa,fo,mask,capacity=(cfg.get('variant')=='capacity'))
+            loss=task_loss(joint,lo,lc,a,o,candidates)+cfg['lambda_w']*model.graph.regularizer()
+            objective=loss
+            if free:
+                logq=(mask*prob.log()+(1-mask)*(1-prob).log()).sum()
+                kl=(prob*torch.log(2*prob)+(1-prob)*torch.log(2*(1-prob))).mean()
+                budget=sum(torch.relu(prob[model.graph.types==ty].mean()-cfg['budget']).square() for ty in range(3))
+                objective=loss+(loss.detach()-baseline)*logq+.01*kl+budget
+                baseline=.95*baseline+.05*float(loss.detach())
+            opt.zero_grad(); objective.backward(); opt.step(); losses.append(float(loss.detach()))
+        if free: pi=edge_logits.sigmoid().detach()
+        metrics=evaluate_model(model,args.cache,cfg,manifest,pi,'val') if select else None
+        if select and metrics['cw']['AUC_native']>best:
+            best=metrics['cw']['AUC_native']
+            save_torch(out/'best.pt',{'model':model.state_dict(),'pi':pi.cpu(),'epoch':epoch+1,'cfg':cfg,'val':metrics})
+        record={'epoch':epoch+1,'loss':float(np.mean(losses)),'seconds':time.time()-tic,'val':metrics}
+        history.append(record); write_json(out/'history.json',history)
+        save_torch(out/'last.pt',{'model':model.state_dict(),'optimizer':opt.state_dict(),'pi':pi.cpu(),
+            'epoch':epoch+1,'cfg':cfg,'history':history,'best':best,'baseline':baseline,
+            'torch_rng':torch.get_rng_state(),'numpy_rng':np.random.get_state(),
+            'cuda_rng':torch.cuda.get_rng_state_all() if torch.cuda.is_available() else None,
+            'train_pairs':train_pairs})
+        print('EPOCH',out.name,epoch+1,'loss',record['loss'],'val_auc',None if metrics is None else best,flush=True)
+    write_json(out/'training.json',{'pairs':train_pairs,'epochs':epochs,'seed':cfg['seed'],'checkpoint':sha(out/'last.pt')})
+    return out/('best.pt' if select else 'last.pt')
+```
+
+## 8.1 完整条件任务损失的解析梯度
+
+令候选概率$`p_{\mathcal C}`$在候选集外取0，$`h_{oa}=p_{\mathcal C}(a,o)-\mathbf1[(a,o)=(a^*,o^*)]`$，$`g_o=\sum_ah_{oa}`$。单图像损失导数为：
+
+
+
+```math
+\begin{aligned}
+\frac{\partial L}{\partial z_o}&=g_o+0.4[p_o-\mathbf1(o=o^*)],\\
+\frac{\partial L}{\partial U_{oa}}&=h_{oa}-p_{a|o}g_o+0.6\mathbf1(o=o^*)[p_{a|o}-\mathbf1(a=a^*)].
+\end{aligned}
+```
+
+
+以下函数给batch均值的导数，测试逐项比对实际任务损失的autograd。
+
+对单位化输入$`z=v/\|v\|`$，$`J_{\mathcal N}(v)=(I-zz^\top)/\|v\|`$（$`\|v\|>10^{-8}`$）。图消息的低秩矩阵梯度为：
+
+
+
+```math
+\partial_{L_\rho}L=\sum_{e:\rho(e)=\rho}g_e(R_\rho d_e)^\top,\quad
+\partial_{R_\rho}L=\sum_{e:\rho(e)=\rho}(L_\rho^\top g_e)d_e^\top,
+```
+
+
+其中$`g_e=\partial L/\partial m_e`$包含固定度数、边开关、概念单位化及三元残差的链式导数。训练使用同一计算图自动回传，并叠加消息正则梯度。
+
+[`trustcpf/model.py · task_logit_gradients`](code/trustcpf_clip_v1/trustcpf/model.py#L109)，源码第109行。
+
+```python
+def task_logit_gradients(obj_logits, conditional_logits, attrs, objs, candidates):
+    """Analytic task-loss derivatives; used to verify the autograd implementation."""
+    po,pc=obj_logits.softmax(-1),conditional_logits.softmax(-1)
+    joint=obj_logits.log_softmax(-1)[:,:,None]+conditional_logits.log_softmax(-1)
+    h=torch.zeros_like(joint).flatten(1)
+    h[:,candidates]=candidate_logprob(joint,candidates).exp()
+    row=torch.arange(len(attrs),device=attrs.device)
+    h[row,objs*joint.shape[2]+attrs]-=1
+    h=h.reshape_as(joint); by_object=h.sum(-1)
+    go=by_object+.4*po
+    go[row,objs]-=.4
+    gu=h-pc*by_object[:,:,None]
+    gu[row,objs]+=.6*pc[row,objs]
+    gu[row,objs,attrs]-=.6
+    return go/len(attrs),gu/len(attrs)
+```
+
+## 9. 概率平均与跨图方差
+
+
+
+```math
+\log\bar p_{\mathcal C}(c|x)=\mathop{\mathrm{LSE}}\nolimits_k\log p_{\mathcal C}(c|x,G^{(k)})-\log K.
+```
+
+
+固定图种子使所有batch用同一组图。`mean_logit`、`mean_graph`是额外读出配置。
+
+
+
+```math
+V(x)=K^{-1}\sum_k\|p_k-\bar p\|_2^2,\qquad -\log\bar p(y)\le K^{-1}\sum_k[-\log p_k(y)].
+```
+
+
+
+[`trustcpf/model.py · average_graphs`](code/trustcpf_clip_v1/trustcpf/model.py#L126)，源码第126行。
+
+```python
+def average_graphs(model, batch, pi, candidates, count=16, seed=1701, mode='probability', capacity=False, return_joint=False):
+    base = model.base(*batch)
+    gen = torch.Generator(device=pi.device).manual_seed(seed)
+    outputs = []
+    for _ in range(count):
+        edges = pi if mode == 'mean_graph' else (torch.rand(pi.shape, generator=gen, device=pi.device) < pi).float()
+        outputs.append(model.score(base, edges, capacity)[0])
+    stack = torch.stack(outputs)
+    if mode in ('mean_graph', 'mean_logit'):
+        logs = candidate_logprob(stack.mean(0), candidates)
+    else:
+        logs = torch.stack([candidate_logprob(j, candidates) for j in outputs]).logsumexp(0) - torch.log(pi.new_tensor(count))
+    probs = torch.stack([candidate_logprob(j, candidates).exp() for j in outputs])
+    variance = (probs - probs.mean(0)).square().sum(-1).mean(0)
+    if return_joint:
+        full = stack.mean(0) if mode in ('mean_graph','mean_logit') else stack.logsumexp(0)-torch.log(pi.new_tensor(count))
+        return logs, variance, full
+    return logs, variance
+```
+
+## 9.1 Seen/unseen工作点与校准
+
+
+
+```math
+s_c^{(b)}=\log\bar p(c|x)+b\mathbf1[c\notin\mathcal C_s],\quad
+p_{cal}=\mathop{\mathrm{softmax}}\nolimits(s^{(b)}/T).
+```
+
+
+VAL选择工作点bias和温度，TEST直接应用。ECE采用15个等宽区间。
+
+[`trustcpf/engine.py · calibration_metrics`](code/trustcpf_clip_v1/trustcpf/engine.py#L132)，源码第132行。
+
+```python
+def calibration_metrics(logs,truth,seen,bias,temperature):
+    z=torch.as_tensor(logs,dtype=torch.float64).clone()
+    z[:,~torch.as_tensor(seen)]+=bias
+    lp=(z/temperature).log_softmax(-1); p=lp.exp(); conf,pred=p.topk(1,dim=-1)
+    conf,pred=conf[:,0],pred[:,0]
+    truth=torch.as_tensor(truth); ok=(pred==truth); sm=torch.as_tensor(seen)[truth]
+    s=float(ok[sm].double().mean()); u=float(ok[~sm].double().mean())
+    ece=0.
+    for b in range(15):
+        mask=(conf>=b/15)&(conf<(b+1)/15 if b<14 else conf<=1)
+        if mask.any(): ece+=float(mask.double().mean()*(ok[mask].double().mean()-conf[mask].mean()).abs())
+    nll=-lp[torch.arange(len(truth)),truth]
+    return {'temperature':float(temperature),'bias':float(bias),'seen':100*s,'unseen':100*u,'HM':float(hm(s,u)*100),
+        'NLL':float(nll.mean()),'NLL_seen':float(nll[sm].mean()),'NLL_unseen':float(nll[~sm].mean()),'ECE':ece*100}
+```
+
+## 9.2 原生有限偏置曲线
+
+从正确未见样本的分数差减$`10^{-4}`$后采约20个bias点，加bias1000端点；与现有CPF原生扫描保持同一口径。准确率/AUC展示单位为百分数。
+
+[`trustcpf/metrics.py · native_curve`](code/trustcpf_clip_v1/trustcpf/metrics.py#L11)，源码第11行。
+
+```python
+def native_curve(scores, truth, seen_classes):
+    # Same top-1 CPF scan: correct unseen differences -1e-4, ~20 bins, endpoint bias=1000.
+    x = torch.as_tensor(scores, dtype=torch.float32)
+    y = torch.as_tensor(truth, dtype=torch.long)
+    seen = torch.as_tensor(seen_classes, dtype=torch.bool)
+    is_seen = seen[y]
+    if not is_seen.any() or is_seen.all():
+        raise ValueError('AUC requires seen and unseen evaluation images')
+    endpoint = x.clone()
+    endpoint[:, ~seen] += 1000.0
+    pred = endpoint.topk(1, dim=1).indices[:, 0]
+    correct = pred.eq(y)
+    un = ~is_seen
+    delta = x[un][:, seen].topk(1, dim=1).values[:, 0] - x[un, y[un]]
+    diffs = torch.sort(delta[correct[un]] - 1e-4).values
+    step = max(len(diffs) // 20, 1)
+    biases = [float(b) for b in diffs[::step]] + [1000.0]
+    ss, uu = [], []
+    for bias in biases:
+        z = x.clone()
+        z[:, ~seen] += bias
+        correct = z.topk(1, dim=1).indices[:, 0].eq(y)
+        ss.append(float(correct[is_seen].float().mean()))
+        uu.append(float(correct[un].float().mean()))
+    h = hm(ss, uu)
+    best = int(np.argmax(h))
+    trapz = np.trapezoid if hasattr(np, 'trapezoid') else np.trapz
+    return {'AUC': float(trapz(ss, uu) * 100), 'best_hm': float(h[best] * 100),
+            'best_bias': biases[best], 'best_seen': max(ss) * 100, 'best_unseen': max(uu) * 100,
+            'biases': biases, 'seen': (100 * np.array(ss)).tolist(), 'unseen': (100 * np.array(uu)).tolist()}
+```
+
+## 9.3 全临界事件曲线
+
+每图像最佳seen分数$`s_s`$与最佳unseen分数$`s_u`$在$`b=s_s-s_u`$切换。汇总相同临界点后逐次更新Seen/Unseen计数，区间内部bias用于固定工作点。
+
+[`trustcpf/metrics.py · exact_curve`](code/trustcpf_clip_v1/trustcpf/metrics.py#L43)，源码第43行。
+
+```python
+def exact_curve(scores, truth, seen_classes):
+    x = np.asarray(scores, dtype=np.float64)
+    seen = np.asarray(seen_classes, dtype=bool)
+    y = np.asarray(truth)
+    si, ui = np.flatnonzero(seen), np.flatnonzero(~seen)
+    if not len(si) or not len(ui):
+        raise ValueError('Curve needs both candidate partitions')
+    # A single fixed winner within each partition; events switch seen -> unseen.
+    sp = si[x[:, si].argmax(1)]
+    up = ui[x[:, ui].argmax(1)]
+    d = x[np.arange(len(x)), sp] - x[np.arange(len(x)), up]
+    sm, um = seen[y], ~seen[y]
+    ns, nu = sm.sum(), um.sum()
+    if ns == 0 or nu == 0:
+        raise ValueError('Curve needs both sample partitions')
+    cs, cu = (sp == y) & sm, (up == y) & um
+    order = np.argsort(d, kind='stable')
+    thresholds, starts = np.unique(d[order], return_index=True)
+    loss_s = np.add.reduceat(cs[order].astype(int), starts)
+    gain_u = np.add.reduceat(cu[order].astype(int), starts)
+    ss = np.r_[cs.sum(), cs.sum() - np.cumsum(loss_s)] / ns
+    uu = np.r_[0, np.cumsum(gain_u)] / nu
+    h = hm(ss, uu)
+    # Choose interval interiors, so no prediction depends on equality at a threshold.
+    low = thresholds[0] - max(1.0, abs(thresholds[0]) * 1e-6)
+    high = thresholds[-1] + max(1.0, abs(thresholds[-1]) * 1e-6)
+    midpoints = thresholds[:-1] + (thresholds[1:] - thresholds[:-1]) * 0.5
+    biases = np.r_[low, midpoints, high]
+    best = int(np.argmax(h))
+    trapz = np.trapezoid if hasattr(np, 'trapezoid') else np.trapz
+    return {'AUC': float(trapz(ss, uu) * 100), 'best_hm': float(h[best] * 100),
+            'best_bias': float(biases[best]), 'thresholds': thresholds.tolist(),
+            'biases': biases.tolist(), 'seen': (ss * 100).tolist(), 'unseen': (uu * 100).tolist()}
+```
+
+## 9.4 效用预测与方向指标
+
+Spearman使用平均秩；方向同时报告全部样本和$`|y|>1.96\sqrt\nu`$子集，可靠子集比例另报。
+90%预测区间为$`m\pm1.645\sqrt{v+\nu}`$，这里传入的$`v`$是条件任务方差与集成分歧之和。
+
+[`trustcpf/utility.py · regression_metrics`](code/trustcpf_clip_v1/trustcpf/utility.py#L111)，源码第111行。
+
+```python
+def regression_metrics(mean,var,y,noise):
+    m,v,y,nu=[np.asarray(a,dtype=float) for a in (mean,var,y,noise)]
+    if not len(y):
+        return {'observations':0,'rmse':None,'mae':None,'spearman':None,'pearson':None,
+                'direction_balanced_accuracy':None,'reliable_direction_balanced_accuracy':None,
+                'reliable_fraction':None,'direction_auroc':None,'coverage90':None,'nll':None}
+    def corr(a,b):
+        a=a-a.mean(); b=b-b.mean(); den=np.sqrt((a*a).sum()*(b*b).sum())
+        return float((a*b).sum()/den) if den>0 else 0.
+    def balanced(mask):
+        pos=mask&(y>0); neg=mask&(y<0)
+        if not pos.any() or not neg.any(): return None
+        return float(((m[pos]>0).mean()+(m[neg]<0).mean())/2)
+    reliable=np.abs(y)>1.96*np.sqrt(nu)
+    pos=y>0; ranks=average_rank(m)
+    auc=float((ranks[pos].sum()-pos.sum()*(pos.sum()-1)/2)/(pos.sum()*(~pos).sum())) if pos.any() and (~pos).any() else None
+    return {'observations':len(y),'rmse':float(np.sqrt(np.mean((m-y)**2))),'mae':float(np.abs(m-y).mean()),
+            'spearman':corr(average_rank(m),average_rank(y)), 'pearson':corr(m,y),
+            'direction_balanced_accuracy':balanced(np.ones(len(y),bool)),
+            'reliable_direction_balanced_accuracy':balanced(reliable),'reliable_fraction':float(reliable.mean()),
+            'direction_auroc':auc,'coverage90':float((np.abs(m-y)<=1.645*np.sqrt(v+nu)).mean()),
+            'nll':float(.5*(np.log(v+nu)+(m-y)**2/(v+nu)).mean())}
+```
+
+## 10. 知识内容错配与删除
+
+每类型固定随机排序前缀。描述来源用按所属原语分组的块旋转置换，保持被选源句多重集合；OI按父类分组旋转。小样本前缀不足以跨组置换时扩展到首个可置换前缀，保存实际扰动比例。
+
+[`trustcpf/graph.py · permute_bank`](code/trustcpf_clip_v1/trustcpf/graph.py#L86)，源码第86行。
+
+```python
+def permute_bank(bank, seed=7101, rate=1., relation=None, deletion=False):
+    """Fixed random order, nested corruption prefixes, types remain separate."""
+    import copy
+    out = copy.deepcopy(bank)
+    gen = torch.Generator().manual_seed(seed)
+    for ty in range(3):
+        if relation is not None and ty != relation: continue
+        ids = torch.where(bank['types']==ty)[0]
+        ids = ids[torch.randperm(len(ids), generator=gen)]
+        n = int(round(rate*len(ids)))
+        if not n: continue
+        if deletion:
+            if 'availability' not in out: out['availability']=torch.ones(len(bank['types']))
+            out['availability'][ids[:n]]=0
+        else:
+            # A block rotation deranges owner groups and preserves the exact source multiset.
+            def owner(e):
+                return str(bank['rows'][int(e)]['slot']) if ty==0 else str(int(bank['target'][e]))
+            n=max(2,n)
+            while n<=len(ids):
+                chosen=ids[:n].tolist(); groups={owner(e) for e in chosen}
+                largest=max(sum(owner(e)==g for e in chosen) for g in groups)
+                if 2*largest<=n: break
+                n+=1
+            chosen=sorted(ids[:n].tolist(),key=lambda e:(owner(e),e))
+            donors=chosen[largest:]+chosen[:largest]
+            out['source'][chosen]=bank['source'][donors]
+    return out
+```
+
+## 11. 核心验证指标与结果文件
+
+| 目标 | 指标 | 文件 |
+|---|---|---|
+| 独立任务迁移 | Q5 Spearman、RMSE、方向balanced accuracy、AUROC、90%覆盖率 | `utility/audit.json` |
+| 组合识别 | CW/OW AUC_native、AUC_exact、oracle-HM、VAL bias的Seen/Unseen/HM | `runs/*/metrics.json` |
+| 条件属性 | GT-object属性准确率/NLL、对象/属性错误分解 | 同上 |
+| 概率稳定性 | NLL、ECE、跨图预测方差 | 同上 |
+| 结构选择 | 每类型期望边数、任务/集成方差、预算乘子 | `structure.json`、各组metrics |
+| 知识变化 | 分类型噪声曲线、实际扰动率、RAUC | `noise_*.json`、`robustness_summary.json` |
+| 随机重复 | seed配对AUC差、均值、样本std | `paired_comparisons.json` |
+
+完整训练和部署命令见[服务器实践命令](服务器实践命令.md)，方法与对照见[CLIP修订实验方案](TRUST-CPF_CLIP_修订实验方案v1.md)。
+
+## 12. 源码索引
+
+| 节 | 文件 | 函数/方法 | 行 |
+|---|---|---|---:|
+| 0. 符号、张量与单位化 | `trustcpf/common.py` | `unit` | 72 |
+| 1. CLIP视觉与文本编码 | `trustcpf/features.py` | `visual_tokens` | 17 |
+| 1.1 名称、组合与领域Prompt | `trustcpf/features.py` | `prompts` | 37 |
+| 1.2 类别查询补丁 | `trustcpf/features.py` | `query_patches` | 32 |
+| 1.3 缓存、数据轴和读取 | `trustcpf/data.py` | `FeatureDataset` | 99 |
+| 2. 共享低秩适配器 | `trustcpf/model.py` | `Adapter` | 8 |
+| 2.1 CLIP对象条件属性基底 | `trustcpf/model.py` | `TrustCPF.base` | 60 |
+| 3. 知识关系与类型编号 | `trustcpf/graph.py` | `graph_records` | 8 |
+| 3.1 低秩类型消息 | `trustcpf/model.py` | `TypedGraph.messages` | 29 |
+| 3.2 固定候选度数的图聚合 | `trustcpf/model.py` | `TypedGraph.forward` | 34 |
+| 4. 三元图残差和完整联合概率 | `trustcpf/model.py` | `TrustCPF.score` | 69 |
+| 4.1 分类目标 | `trustcpf/model.py` | `task_loss` | 96 |
+| 4.2 图消息正则 | `trustcpf/model.py` | `TypedGraph.regularizer` | 40 |
+| 5. 五折组合任务 | `trustcpf/folds.py` | `make_folds` | 4 |
+| 5.1 配对边干预 | `trustcpf/utility.py` | `paired_utility` | 10 |
+| 5.2 测量队列与包含概率 | `trustcpf/stages.py` | `measure` | 19 |
+| 6. Inner视觉证据摘要 | `trustcpf/utility.py` | `support_summary` | 31 |
+| 6.1 6157维关系输入 | `trustcpf/utility.py` | `utility_features` | 52 |
+| 6.2 异方差效用预测器 | `trustcpf/utility.py` | `UtilityNet` | 71 |
+| 6.3 测量噪声与HT加权NLL | `trustcpf/utility.py` | `utility_nll` | 83 |
+| 6.4 三模型与epoch选择 | `trustcpf/stages.py` | `fit_utility` | 97 |
+| 7. 集成分歧 | `trustcpf/utility.py` | `ensemble_moments` | 91 |
+| 7.1 支持摘要的全方差汇总 | `trustcpf/utility.py` | `aggregate_moments` | 99 |
+| 7.2 风险收益与结构分布 | `trustcpf/stages.py` | `make_structure` | 202 |
+| 7.3 KL和预算的闭式解 | `trustcpf/graph.py` | `solve_budget` | 59 |
+| 7.4 Q4结构参数选择 | `trustcpf/stages.py` | `tune` | 212 |
+| 8. 单批优化、步长与恢复 | `trustcpf/engine.py` | `train_model` | 56 |
+| 8.1 完整条件任务损失的解析梯度 | `trustcpf/model.py` | `task_logit_gradients` | 109 |
+| 9. 概率平均与跨图方差 | `trustcpf/model.py` | `average_graphs` | 126 |
+| 9.1 Seen/unseen工作点与校准 | `trustcpf/engine.py` | `calibration_metrics` | 132 |
+| 9.2 原生有限偏置曲线 | `trustcpf/metrics.py` | `native_curve` | 11 |
+| 9.3 全临界事件曲线 | `trustcpf/metrics.py` | `exact_curve` | 43 |
+| 9.4 效用预测与方向指标 | `trustcpf/utility.py` | `regression_metrics` | 111 |
+| 10. 知识内容错配与删除 | `trustcpf/graph.py` | `permute_bank` | 86 |

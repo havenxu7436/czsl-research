@@ -1,0 +1,193 @@
+{
+  "line": "TRUST-CPF方案",
+  "version": "CLIP v1",
+  "dataset": "ut-zap50k",
+  "seeds": [
+    3351,
+    3352,
+    3353
+  ],
+  "main_variants": [
+    "r0",
+    "capacity",
+    "dense",
+    "drop",
+    "free",
+    "mean",
+    "robust"
+  ],
+  "main_adaptation_runs": 21,
+  "upstream_per_seed": [
+    "5 composition-isolated teachers",
+    "paired measurements",
+    "3 utility models and Q5 audit",
+    "Q4 tuning",
+    "all-fold final utility fit",
+    "reference teachers"
+  ],
+  "runs": [
+    {
+      "seed": 3351,
+      "variant": "r0",
+      "work": "seed3351",
+      "epochs": 3
+    },
+    {
+      "seed": 3351,
+      "variant": "capacity",
+      "work": "seed3351",
+      "epochs": 3
+    },
+    {
+      "seed": 3351,
+      "variant": "dense",
+      "work": "seed3351",
+      "epochs": 3
+    },
+    {
+      "seed": 3351,
+      "variant": "drop",
+      "work": "seed3351",
+      "epochs": 3
+    },
+    {
+      "seed": 3351,
+      "variant": "free",
+      "work": "seed3351",
+      "epochs": 3
+    },
+    {
+      "seed": 3351,
+      "variant": "mean",
+      "work": "seed3351",
+      "epochs": 3
+    },
+    {
+      "seed": 3351,
+      "variant": "robust",
+      "work": "seed3351",
+      "epochs": 3
+    },
+    {
+      "seed": 3352,
+      "variant": "r0",
+      "work": "seed3352",
+      "epochs": 3
+    },
+    {
+      "seed": 3352,
+      "variant": "capacity",
+      "work": "seed3352",
+      "epochs": 3
+    },
+    {
+      "seed": 3352,
+      "variant": "dense",
+      "work": "seed3352",
+      "epochs": 3
+    },
+    {
+      "seed": 3352,
+      "variant": "drop",
+      "work": "seed3352",
+      "epochs": 3
+    },
+    {
+      "seed": 3352,
+      "variant": "free",
+      "work": "seed3352",
+      "epochs": 3
+    },
+    {
+      "seed": 3352,
+      "variant": "mean",
+      "work": "seed3352",
+      "epochs": 3
+    },
+    {
+      "seed": 3352,
+      "variant": "robust",
+      "work": "seed3352",
+      "epochs": 3
+    },
+    {
+      "seed": 3353,
+      "variant": "r0",
+      "work": "seed3353",
+      "epochs": 3
+    },
+    {
+      "seed": 3353,
+      "variant": "capacity",
+      "work": "seed3353",
+      "epochs": 3
+    },
+    {
+      "seed": 3353,
+      "variant": "dense",
+      "work": "seed3353",
+      "epochs": 3
+    },
+    {
+      "seed": 3353,
+      "variant": "drop",
+      "work": "seed3353",
+      "epochs": 3
+    },
+    {
+      "seed": 3353,
+      "variant": "free",
+      "work": "seed3353",
+      "epochs": 3
+    },
+    {
+      "seed": 3353,
+      "variant": "mean",
+      "work": "seed3353",
+      "epochs": 3
+    },
+    {
+      "seed": 3353,
+      "variant": "robust",
+      "work": "seed3353",
+      "epochs": 3
+    }
+  ],
+  "additional": {
+    "shuffled": "independent full pipeline",
+    "utility_ablations": [
+      "semantic",
+      "unmeasured"
+    ],
+    "noise_variants": [
+      "dense",
+      "drop",
+      "mean",
+      "robust"
+    ],
+    "noise_seeds": [
+      7101,
+      7102,
+      7103,
+      7104,
+      7105
+    ],
+    "noise_types": [
+      "OI",
+      "OE",
+      "AE"
+    ],
+    "noise_rates": [
+      0,
+      0.1,
+      0.2,
+      0.3,
+      0.5
+    ],
+    "noise_modes": [
+      "mismatch",
+      "deletion"
+    ]
+  },
+  "selection": "first strict maximum VAL CW AUC_native; TEST uses VAL bias/temperature"
+}
