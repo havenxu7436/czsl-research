@@ -59,3 +59,7 @@ python tools/reproduce.py doctor --line 0601方案 --stage 02 --project /srv/czs
 ## VG-CPOD独立路线
 
 [VG-CPOD v1](../VG-CPOD方案/v1/README.md)使用冻结CLIP ViT-L/14双编码器，运行输入为UT原图/split与CLIP权重；不需要GloVe或CPF checkpoint。`VG_DATA`、`VG_CLIP`、`VG_WORK`、`VG_GPU`分别指定数据、权重、输出和物理GPU。版本页提供独立materialize与训练入口，现有前两条路线的恢复方式不变。
+
+## TRUST-CPF第四条路线
+
+[TRUST-CPF / CLIP v1](../TRUST-CPF方案/v1/README.md)使用冻结ViT-L/14与UT自然划分，依赖随包requirements保存。`DATA_ROOT`、`CLIP_CKPT`、`CACHE`、`WORK_ROOT`分别指定数据、CLIP权重、冻结特征缓存与seed输出根目录；`CPF_PY`固定已激活CZSL环境解释器，`CUDA_VISIBLE_DEVICES`选择物理GPU。恢复命令为`python tools/reproduce.py materialize --line TRUST-CPF方案 --stage v1 --dest /srv/trustcpf-replay-v1`，随后进入其`trustcpf_clip_v1`执行[服务器命令](../TRUST-CPF方案/v1/服务器实践命令.md)。外部输入哈希见[输入索引](../TRUST-CPF方案/v1/external_inputs.json)。
