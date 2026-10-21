@@ -1,0 +1,203 @@
+{
+  "passed": true,
+  "date": "2026-10-21",
+  "checked_commit": "5b58585611c65868d3fd6b39a1771df5f190380b",
+  "display_formulas": 27,
+  "inline_formulas": 103,
+  "source_sha256": {
+    "VG-CPOD方案/12/README.md": "a10202ff4283be0fd426369fde1d61e4bccc14d91c2e2d285394db93f44eccdd",
+    "VG-CPOD方案/12/code/README.md": "84d42f25725833fa65000dd5171f94cd145f373136d6807e7bdcf5dcf60742c0",
+    "VG-CPOD方案/12/configs/README.md": "59f58522794472b36b3f3e65874a2487e2bb8d2fd0132362f1e427de508e0be9",
+    "VG-CPOD方案/12/results/README.md": "fbd3f36d7c449a8ec7afb71b5249ae00cc017875e5c92bcce41aa59e2061bbaa",
+    "VG-CPOD方案/12/analysis/README.md": "b8a320495fc2268b6ce30f87c18dd113e7f6b0de3a9e8f53c481d712434c3440"
+  },
+  "macro_compatibility": "Replaced operatorname with mathrm in authored READMEs; original runtime package bytes preserved.",
+  "pages": [
+    {
+      "url": "https://github.com/havenxu7436/czsl-research/blob/main/VG-CPOD%E6%96%B9%E6%A1%88/12/README.md",
+      "status": 200,
+      "expected": 44,
+      "formulas": 44,
+      "errors": [],
+      "wide": [],
+      "images": [
+        {
+          "loaded": true
+        }
+      ],
+      "tables": 6,
+      "headings": [
+        "12 · 动态读出学习率分组与更新尺度对照",
+        "1. 实验目的与修订范围",
+        "2. 公式与实现",
+        "2.1 固定 TRAIN 均值与残差门控",
+        "2.2 静态与动态独立读出",
+        "2.3 联合概率与损失",
+        "2.4 动态学习率和 AdamW 更新",
+        "2.5 TRAIN 均值门控与幅值诊断",
+        "3. 具体代码修订与验证",
+        "4. 超参数选取策略与固定设置",
+        "5. 完整训练结果",
+        "6. 仓库结构与复现入口",
+        "7. 数据分析与后续主线"
+      ]
+    },
+    {
+      "url": "https://github.com/havenxu7436/czsl-research/blob/main/VG-CPOD%E6%96%B9%E6%A1%88/12/code/README.md",
+      "status": 200,
+      "expected": 0,
+      "formulas": 0,
+      "errors": [],
+      "wide": [],
+      "images": [],
+      "tables": 1,
+      "headings": [
+        "12 · 代码与修订",
+        "1. Wd独立学习率组",
+        "2. 从真实Adam状态核验更新",
+        "3. 调度与输出",
+        "4. 验证与结果复算"
+      ]
+    },
+    {
+      "url": "https://github.com/havenxu7436/czsl-research/blob/main/VG-CPOD%E6%96%B9%E6%A1%88/12/configs/README.md",
+      "status": 200,
+      "expected": 1,
+      "formulas": 1,
+      "errors": [],
+      "wide": [],
+      "images": [],
+      "tables": 2,
+      "headings": [
+        "12 · 配置与超参数策略",
+        "1. 选择依据",
+        "2. 模板、运行配置与数据身份",
+        "3. 根据结果作出的决策"
+      ]
+    },
+    {
+      "url": "https://github.com/havenxu7436/czsl-research/blob/main/VG-CPOD%E6%96%B9%E6%A1%88/12/results/README.md",
+      "status": 200,
+      "expected": 0,
+      "formulas": 0,
+      "errors": [],
+      "wide": [],
+      "images": [],
+      "tables": 3,
+      "headings": [
+        "12 · K组训练结果",
+        "1. native选择主结果",
+        "2. exact选择结果",
+        "3. 原始训练与汇总",
+        "4. 动态与TRAIN均值评估",
+        "5. 原包、来源与数据分析"
+      ]
+    },
+    {
+      "url": "https://github.com/havenxu7436/czsl-research/blob/main/VG-CPOD%E6%96%B9%E6%A1%88/12/analysis/README.md",
+      "status": 200,
+      "expected": 85,
+      "formulas": 85,
+      "errors": [],
+      "wide": [],
+      "images": [
+        {
+          "loaded": true
+        },
+        {
+          "loaded": true
+        },
+        {
+          "loaded": true
+        }
+      ],
+      "tables": 10,
+      "headings": [
+        "12 · 数据分析与后续主线",
+        "1. K 组结果：更新速度变了，泛化水平没有上移",
+        "1.1 双选权重规则也没有改变方向判断",
+        "2. K 组回答了什么：缩小动态更新有效，但没有改善组合排序",
+        "3. 大路径的依据：共同错误和候选内排序",
+        "3.1 后续模型反复保留 G0 的同一批错误",
+        "3.2 属性与物体两侧都有实际排序空间",
+        "3.3 重新解释“未见条件属性准确率约 24%”",
+        "4. 当前结构在哪里限制了下一步收益",
+        "5. 大路径决策与创新定位",
+        "5.1 与近邻工作的实质差别",
+        "6. 新机制的数学定义与正式实验",
+        "6.1 共同基座：同一个 CLIP、同一个局部评分器",
+        "6.2 现有形式对照：分别汇聚，再比较",
+        "6.3 核心改变：逐位置比较，再边缘化",
+        "6.4 将成对证据还原为条件概率",
+        "6.5 一套完整的机制比较",
+        "6.6 下一次代码工作的明确范围",
+        "7. 本次复核与交付",
+        "8. 仓库复算与网页Markdown核对"
+      ]
+    },
+    {
+      "url": "https://github.com/havenxu7436/czsl-research/blob/main/README.md",
+      "status": 200,
+      "expected": 0,
+      "formulas": 0,
+      "errors": [],
+      "wide": [],
+      "images": [],
+      "tables": 1,
+      "headings": [
+        "CZSL 研究：实验记录与复现",
+        "目录",
+        "实验路线",
+        "使用流程"
+      ]
+    },
+    {
+      "url": "https://github.com/havenxu7436/czsl-research/blob/main/VG-CPOD%E6%96%B9%E6%A1%88/README.md",
+      "status": 200,
+      "expected": 0,
+      "formulas": 0,
+      "errors": [],
+      "wide": [],
+      "images": [],
+      "tables": 1,
+      "headings": [
+        "VG-CPOD方案"
+      ]
+    }
+  ],
+  "remote_lfs_assets": {
+    "passed": true,
+    "method": "HTTP HEAD",
+    "files": [
+      {
+        "path": "VG-CPOD方案/12/results/archives/vgcpod_roundK_results_20261021.tar.gz",
+        "url": "https://media.githubusercontent.com/media/havenxu7436/czsl-research/main/VG-CPOD%E6%96%B9%E6%A1%88/12/results/archives/vgcpod_roundK_results_20261021.tar.gz",
+        "status": 200,
+        "bytes": 569432723,
+        "expected_bytes": 569432723
+      },
+      {
+        "path": "VG-CPOD方案/12/results/raw_export/roundK_20261021/K1/ut-zap50k/V1/seed3351/checkpoints/best.pt",
+        "url": "https://media.githubusercontent.com/media/havenxu7436/czsl-research/main/VG-CPOD%E6%96%B9%E6%A1%88/12/results/raw_export/roundK_20261021/K1/ut-zap50k/V1/seed3351/checkpoints/best.pt",
+        "status": 200,
+        "bytes": 2615647,
+        "expected_bytes": 2615647
+      },
+      {
+        "path": "VG-CPOD方案/12/results/raw_export/roundK_20261021/K2/ut-zap50k/V1/seed3353/predictions/test_ow.npz",
+        "url": "https://media.githubusercontent.com/media/havenxu7436/czsl-research/main/VG-CPOD%E6%96%B9%E6%A1%88/12/results/raw_export/roundK_20261021/K2/ut-zap50k/V1/seed3353/predictions/test_ow.npz",
+        "status": 200,
+        "bytes": 4293580,
+        "expected_bytes": 4293580
+      }
+    ]
+  },
+  "visual_review": [
+    "AdamW schedule, parameter groups and update equations",
+    "Local evidence, derivatives and limit formulas"
+  ],
+  "screenshots": [
+    "published_main_formula.png",
+    "published_analysis_formula.png"
+  ]
+}
