@@ -75,8 +75,8 @@ M_{bj}&=\left[W_s\mathrm{diag}(v_j)
 沿用 CLIP 特征上的物体分支 $`S_b`$ 和组合适配器基底 $`U^{\mathrm{base}}`$：
 
 ```math
-s_{bji}=\log\operatorname{softmax}(S_b)_j
-+\log\operatorname{softmax}(U_{bj:})_i.
+s_{bji}=\log\mathrm{softmax}(S_b)_j
++\log\mathrm{softmax}(U_{bj:})_i.
 ```
 
 设 $`\mathcal{S}`$ 为 TRAIN 组合集合，批量大小为 $`B`$，样本真实标签为 $`(i_b,j_b)`$：
@@ -166,7 +166,7 @@ dynamic/mean 分别重算条件 softmax、联合概率和 CW/OW 曲线，并各�
 \begin{aligned}
 \widetilde{\Delta U}^{z}_{bji}&=\Delta U^{z}_{bji}
 -\frac{1}{A}\sum_{i'=1}^{A}\Delta U^{z}_{bji'},\\[4pt]
-\operatorname{RMS}_{z,\mathrm{centered}}&=
+\mathrm{RMS}_{z,\mathrm{centered}}&=
 \sqrt{\frac{1}{NOA}\sum_{b,j,i}(\widetilde{\Delta U}^{z}_{bji})^2}.
 \end{aligned}
 ```
