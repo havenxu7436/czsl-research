@@ -1,23 +1,27 @@
-# 核心指标与分析协议
+# TRUST-CPF 分析
 
-## 识别主表
+## 2026-10-22 · 完整服务器结果
 
-七组×三seed分别整理VAL/TEST的CW/OW：`AUC_native`、`AUC_exact`、oracle-HM，以及固定VAL bias的Seen/Unseen/HM；同时记录NLL、ECE、GT-object属性准确率/NLL、三类错误数量和跨图预测方差。对三个seed计算均值与样本标准差；在相同seed下比较`robust−r0`、`robust−drop`、`robust−free`和`robust−mean`。
+**[完整分析与下一轮实验方向](server-results-20261022/README.md)** · [全部数据与权重](../results/server-results-20261022/README.md) · [重算入口](server-results-20261022/REPRODUCE.md)
 
-## 机制与成本
+覆盖 21 组主实验、知识打乱、两项效用消融审计及 600 次噪声评估。结论是结束 v1 的效用选图扩展，下一轮在强 CPF 静态 CP 基底上比较 Base、Knowledge、Shuffle，三 seed 使用 GPU **1、2、3**；下一轮尚未实现和训练。
 
-| 研究问题 | 核心指标 | 原始产物 |
-|---|---|---|
-| 配对效用可否跨组合预测 | Q5 Spearman、RMSE、balanced direction accuracy、AUROC；可靠方向子集覆盖比例 | `utility/audit.json` |
-| 预测方差是否有意义 | 90%预测区间覆盖率；任务波动、支持摘要变异与模型分歧 | `utility/audit.json`、`structure.json` |
-| 语义与视觉证据分别有何作用 | full对semantic；类型常数/边查表对照；20%未测边子集 | 各work的`utility/audit.json` |
-| 知识内容是否有效 | clean对独立`shuffled`完整队列 | `runs/*/metrics.json` |
-| 风险结构对知识变化的反应 | OI/OE/AE各5扰动seed的错配/删除曲线，RAUC | `runs/*/noise_*.json`、`robustness_summary.json` |
-| 图选择与容量 | 各类型期望边数、预算乘子、风险项；capacity组识别 | `structure.json`、`runs/*/metrics.json` |
-| 计算成本 | 五折教师、测量、效用拟合、参考教师与适配的耗时及head forwards | `history.json`、测量文件、效用选择记录 |
+| 模型 | TEST CW AUC | TEST OW AUC |
+| --- | --- | --- |
+| `r0` | 2.020 ± 2.232 | 2.010 ± 2.215 |
+| `capacity` | 13.902 ± 0.885 | 11.240 ± 1.065 |
+| `dense` | 11.169 ± 2.488 | 9.214 ± 2.309 |
+| `drop` | 10.915 ± 1.545 | 9.047 ± 1.257 |
+| `free` | 10.896 ± 1.519 | 9.011 ± 1.319 |
+| `mean` | 10.080 ± 2.102 | 8.249 ± 1.692 |
+| `robust` | 9.901 ± 1.890 | 8.172 ± 1.515 |
 
-主识别权重按VAL CW `AUC_native`选择；校准bias按VAL exact-HM选择，温度按VAL NLL选择。知识扰动沿用干净VAL工作点。`report`生成`summary.csv`与`paired_comparisons.json`。
+![主实验](server-results-20261022/confirmed/figures/01_main_auc.png)
 
-## 本次归档状态
+![完整 OW 噪声曲线](server-results-20261022/confirmed/figures/03_noise_ow_curves.png)
 
-本机数学、合成流程和CUDA验证见[results](../results/README.md)。正式UT结果由[服务器队列](../服务器实践命令.md)生成；后续结果按日期建独立批次目录，保留配置、protocol、逐epoch日志、选中权重、指标与原始导出映射。
+完整 OW 噪声记录从日志恢复，原 JSON 的覆盖情况及同样本未测边比较均在完整分析中说明。效用审计与误差分解图保存在 [figures](server-results-20261022/confirmed/figures/)，全部逐 seed 表格保存在 [confirmed](server-results-20261022/confirmed/)。
+
+## 原实验定义
+
+[核心指标与分析协议 v1](protocol-v1.md)保留训练前的指标定义；[本机与仓库验证](../results/README.md)保留既有数学、CUDA 和公式记录。

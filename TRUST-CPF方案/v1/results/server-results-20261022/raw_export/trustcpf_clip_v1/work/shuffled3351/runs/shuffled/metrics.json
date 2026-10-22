@@ -1,0 +1,217 @@
+{
+  "variant": "shuffled",
+  "seed": 3351,
+  "epoch": 3,
+  "structure": {
+    "expected_edges": {
+      "0": 1.0950027704238892,
+      "1": 10.384369850158691,
+      "2": 7.7053728103637695
+    },
+    "entropy": 40.59782409667969
+  },
+  "val": {
+    "cw": {
+      "AUC_native": 0.20528906091776172,
+      "AUC_exact": 0.20009280090400378,
+      "HM_oracle_native": 1.6836475345471755,
+      "HM_oracle_exact": 1.6998718524441132,
+      "unbiased": {
+        "temperature": 1.0,
+        "bias": 0.0,
+        "seen": 1.0262257696693273,
+        "unseen": 0.17115960633290545,
+        "HM": 0.2933865775640765,
+        "NLL": 3.766139632085084,
+        "NLL_seen": 3.0438751249556466,
+        "NLL_unseen": 4.037181982428479,
+        "ECE": 10.387698793830017
+      },
+      "at_val_bias": {
+        "temperature": 1.0,
+        "bias": 0.8190879821777344,
+        "seen": 0.9122006841505131,
+        "unseen": 12.45186136071887,
+        "HM": 1.6998718524441132,
+        "NLL": 3.2875625531516612,
+        "NLL_seen": 3.146857089254973,
+        "NLL_unseen": 3.340364731943871,
+        "ECE": 2.216848158587475
+      },
+      "calibrated": {
+        "temperature": 0.7079457843841382,
+        "bias": 0.8190879821777344,
+        "seen": 0.9122006841505131,
+        "unseen": 12.45186136071887,
+        "HM": 1.6998718524441132,
+        "NLL": 3.186185181657041,
+        "NLL_seen": 3.0152862084063927,
+        "NLL_unseen": 3.250318001315072,
+        "ECE": 7.358467693919982
+      },
+      "graph_variance": 0.0010792965767905116,
+      "candidates": 98,
+      "images": 3214,
+      "gt_object_attribute_accuracy": 30.92719268798828,
+      "gt_object_attribute_nll": 2.0159006118774414,
+      "errors": {
+        "both_correct": 13,
+        "attribute_wrong_object_correct": 1237,
+        "attribute_correct_object_wrong": 952,
+        "both_wrong": 1012
+      }
+    },
+    "ow": {
+      "AUC_native": 0.1566198150227899,
+      "AUC_exact": 0.1552536680020824,
+      "HM_oracle_native": 1.8507007382616583,
+      "HM_oracle_exact": 1.8631170369070855,
+      "unbiased": {
+        "temperature": 1.0,
+        "bias": 0.0,
+        "seen": 1.1402508551881414,
+        "unseen": 0.17115960633290545,
+        "HM": 0.2976411935411861,
+        "NLL": 4.0043941599456465,
+        "NLL_seen": 3.2604720690912607,
+        "NLL_unseen": 4.283563896222622,
+        "ECE": 8.259997821295713
+      },
+      "at_val_bias": {
+        "temperature": 1.0,
+        "bias": 0.7496713399887085,
+        "seen": 1.0262257696693273,
+        "unseen": 10.098416773641421,
+        "HM": 1.8631170369070855,
+        "NLL": 3.734153673452357,
+        "NLL_seen": 3.5141915418302223,
+        "NLL_unseen": 3.8166982987979337,
+        "ECE": 4.682299674932267
+      },
+      "calibrated": {
+        "temperature": 0.6309573444801935,
+        "bias": 0.7496713399887085,
+        "seen": 1.0262257696693273,
+        "unseen": 10.098416773641421,
+        "HM": 1.8631170369070855,
+        "NLL": 3.541729708969027,
+        "NLL_seen": 3.2469967602238445,
+        "NLL_unseen": 3.652333387210159,
+        "ECE": 7.698340233091315
+      },
+      "graph_variance": 0.0007749734213575721,
+      "candidates": 192,
+      "images": 3214,
+      "gt_object_attribute_accuracy": 30.92719268798828,
+      "gt_object_attribute_nll": 2.0159006118774414,
+      "errors": {
+        "both_correct": 14,
+        "attribute_wrong_object_correct": 1239,
+        "attribute_correct_object_wrong": 950,
+        "both_wrong": 1011
+      }
+    }
+  },
+  "test": {
+    "cw": {
+      "AUC_native": 8.587909215280987,
+      "AUC_exact": 8.636888321642932,
+      "HM_oracle_native": 26.68654342750283,
+      "HM_oracle_exact": 26.88725631977787,
+      "unbiased": {
+        "temperature": 1.0,
+        "bias": 0.0,
+        "seen": 36.36363636363637,
+        "unseen": 0.0,
+        "HM": 0.0,
+        "NLL": 3.6625025153413406,
+        "NLL_seen": 2.642317875649348,
+        "NLL_unseen": 4.214405681076355,
+        "ECE": 7.951349429466556
+      },
+      "at_val_bias": {
+        "temperature": 1.0,
+        "bias": 0.8190879821777344,
+        "seen": 35.483870967741936,
+        "unseen": 17.556848228450555,
+        "HM": 23.490817868973725,
+        "NLL": 3.2629262865709223,
+        "NLL_seen": 2.7491236226552873,
+        "NLL_unseen": 3.5408851047547905,
+        "ECE": 13.436023547103012
+      },
+      "calibrated": {
+        "temperature": 0.7079457843841382,
+        "bias": 0.8190879821777344,
+        "seen": 35.483870967741936,
+        "unseen": 17.556848228450555,
+        "HM": 23.490817868973725,
+        "NLL": 3.1619095966330373,
+        "NLL_seen": 2.5005154721628267,
+        "NLL_unseen": 3.519712975444791,
+        "ECE": 7.253237075708495
+      },
+      "graph_variance": 0.0015969527885317802,
+      "candidates": 101,
+      "images": 2914,
+      "gt_object_attribute_accuracy": 36.273162841796875,
+      "gt_object_attribute_nll": 1.9806649684906006,
+      "errors": {
+        "both_correct": 372,
+        "attribute_wrong_object_correct": 616,
+        "attribute_correct_object_wrong": 728,
+        "both_wrong": 1198
+      }
+    },
+    "ow": {
+      "AUC_native": 7.545387855347219,
+      "AUC_exact": 7.5957886640065375,
+      "HM_oracle_native": 24.61838965889389,
+      "HM_oracle_exact": 24.707389698086494,
+      "unbiased": {
+        "temperature": 1.0,
+        "bias": 0.0,
+        "seen": 36.4613880742913,
+        "unseen": 0.0,
+        "HM": 0.0,
+        "NLL": 3.896297074974532,
+        "NLL_seen": 2.8233153216078692,
+        "NLL_unseen": 4.476762613681088,
+        "ECE": 5.535727481503712
+      },
+      "at_val_bias": {
+        "temperature": 1.0,
+        "bias": 0.7496713399887085,
+        "seen": 35.19061583577713,
+        "unseen": 15.970386039132734,
+        "HM": 21.9701608356421,
+        "NLL": 3.689268722178972,
+        "NLL_seen": 3.0572624338191763,
+        "NLL_unseen": 4.031173763422797,
+        "ECE": 15.365048868943179
+      },
+      "calibrated": {
+        "temperature": 0.6309573444801935,
+        "bias": 0.7496713399887085,
+        "seen": 35.19061583577713,
+        "unseen": 15.970386039132734,
+        "HM": 21.9701608356421,
+        "NLL": 3.4711957255871275,
+        "NLL_seen": 2.6064612466958117,
+        "NLL_unseen": 3.9390029026922657,
+        "ECE": 6.8112322894948285
+      },
+      "graph_variance": 0.0011355840833857656,
+      "candidates": 192,
+      "images": 2914,
+      "gt_object_attribute_accuracy": 36.273162841796875,
+      "gt_object_attribute_nll": 1.9806649684906006,
+      "errors": {
+        "both_correct": 373,
+        "attribute_wrong_object_correct": 616,
+        "attribute_correct_object_wrong": 725,
+        "both_wrong": 1200
+      }
+    }
+  }
+}

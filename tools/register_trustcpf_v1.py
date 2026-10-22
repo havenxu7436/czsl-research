@@ -166,8 +166,9 @@ def check():
         raise ValueError('Unindexed release members')
     return dict(passed=True, line=LINE, stage='v1', release_members=len(mapping),
         manifest_hashes_verified=len(manifest), indexed_files=len(indexed),
-        byte_identity_preserved=True, formal_training_results_included=False,
-        completed_runs=0, training_started=False)
+        byte_identity_preserved=True,
+        formal_training_results_included=inputs.get('formal_training_results_included', False),
+        completed_runs=inputs.get('completed_runs', 0), training_started=False)
 
 
 def materialize(destination):

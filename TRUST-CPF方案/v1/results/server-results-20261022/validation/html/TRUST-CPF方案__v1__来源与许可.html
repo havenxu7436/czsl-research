@@ -1,0 +1,11 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><base href="http://127.0.0.1:8767/TRUST-CPF%E6%96%B9%E6%A1%88/v1/"><title>TRUST-CPF方案/v1/来源与许可.md</title><style>body{font:16px/1.65 system-ui,"Microsoft YaHei",sans-serif;color:#1f2328;max-width:1080px;margin:0 auto;padding:38px;background:#fff}h1,h2{border-bottom:1px solid #d1d9e0;padding-bottom:.3em}h1{font-size:29px}h2{font-size:23px;margin-top:1.5em}h3{font-size:19px}a{color:#0969da;text-decoration:none}table{border-collapse:collapse;max-width:100%;margin:18px 0;font-size:14px}th,td{border:1px solid #d1d9e0;padding:7px 11px;text-align:left}tr:nth-child(even){background:#f6f8fa}pre{background:#f6f8fa;padding:16px;overflow:auto;line-height:1.5;border-radius:6px}code{font-family:Consolas,monospace;font-size:.88em}img{max-width:100%;height:auto}math[display=block]{margin:20px 0;overflow-x:auto;padding:8px 0}p{overflow-wrap:anywhere}</style></head><body><article><h1>来源与许可</h1>
+<ul>
+<li>本路线方法为TRUST-CPF / CLIP v1；原始idea和早期数学方案见<a href="references/README.md">版本与来源</a>。</li>
+<li>冻结CLIP源码来自OpenAI CLIP，版本<code>a1d071733d7111c9c014f024669f959182114e33</code>。<a href="code/trustcpf_clip_v1/vendor/CLIP_LICENSE">CLIP_LICENSE</a>随代码保存；BPE词表随发布资产保存。</li>
+<li>UT加载、图像路径映射、CLIP特征提取和AUC接口复用本机VG-CPOD v1并针对当前版本调整；条件概率基底、OI/OE/AE图、配对效用、风险预算和阶段训练由当前包实现。</li>
+<li>CLIP导入使用<code>packaging.version</code>，兼容当前Python依赖；完整来源与三个知识文件摘要见<a href="results/trustcpf_clip_v1/provenance.json">provenance.json</a>。</li>
+<li>reviewed-v2知识以当前执行快照随路线保存；其内容身份不随前三条路线的后续修改变化。</li>
+<li><a href="results/trustcpf_clip_v1/release_manifest.json">release_manifest.json</a>覆盖52个其他包内文件；<a href="results/release_member_map.json">成员映射</a>额外登记manifest自身。部署ZIP与所有映射成员逐字节一致。</li>
+<li>仓库可读方案只调整数学定界、等价运算符排版与源码相对链接，Python代码摘录保持一致。原始文档存于<a href="results/package_support/">package_support</a>。</li>
+</ul>
+</article></body></html>

@@ -1,0 +1,42 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><base href="http://127.0.0.1:8767/TRUST-CPF%E6%96%B9%E6%A1%88/v1/results/"><title>TRUST-CPF方案/v1/results/README.md</title><style>body{font:16px/1.65 system-ui,"Microsoft YaHei",sans-serif;color:#1f2328;max-width:1080px;margin:0 auto;padding:38px;background:#fff}h1,h2{border-bottom:1px solid #d1d9e0;padding-bottom:.3em}h1{font-size:29px}h2{font-size:23px;margin-top:1.5em}h3{font-size:19px}a{color:#0969da;text-decoration:none}table{border-collapse:collapse;max-width:100%;margin:18px 0;font-size:14px}th,td{border:1px solid #d1d9e0;padding:7px 11px;text-align:left}tr:nth-child(even){background:#f6f8fa}pre{background:#f6f8fa;padding:16px;overflow:auto;line-height:1.5;border-radius:6px}code{font-family:Consolas,monospace;font-size:.88em}img{max-width:100%;height:auto}math[display=block]{margin:20px 0;overflow-x:auto;padding:8px 0}p{overflow-wrap:anywhere}</style></head><body><article><h1>验证与结果</h1>
+<table>
+<thead>
+<tr>
+<th>归档</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a href="server-results-20261022/README.md">server-results-20261022/</a></td>
+<td>434个服务器成员、21组主实验、知识打乱、效用消融、完整OW噪声恢复、权重与图像</td>
+</tr>
+<tr>
+<td><a href="local-validation-20261021/">local-validation-20261021/</a></td>
+<td>发布包原有13项测试、CUDA、CLIP tokenizer、公式和文档检查</td>
+</tr>
+<tr>
+<td><a href="repository-validation-20261021/">repository-validation-20261021/</a></td>
+<td>仓库分区后的恢复、重复测试、链接与GitHub数学检查</td>
+</tr>
+<tr>
+<td><a href="deployment/">deployment/</a></td>
+<td>完整服务器ZIP与SHA256</td>
+</tr>
+<tr>
+<td><a href="release_member_map.json">release_member_map.json</a></td>
+<td>53成员→仓库位置→运行位置映射</td>
+</tr>
+<tr>
+<td><a href="trustcpf_clip_v1/">trustcpf_clip_v1/</a></td>
+<td>release manifest、provenance与CLIP BPE词表</td>
+</tr>
+<tr>
+<td><a href="package_support/">package_support/</a></td>
+<td>原始README、方案、公式及命令的精确字节副本</td>
+</tr>
+</tbody></table>
+<p>13项测试覆盖概率归一化、零图、预算一/二阶性质、异方差梯度、配对干预与方差、概率平均、全方差/指标、五折覆盖、未测边隔离、分类梯度、CLIP视觉接口、exact AUC，以及五折到七组训练/噪声/report/恢复的合成流程。CUDA检查使用768维合成CLIP空间、96边、3次优化；概率归一化误差为5.96×10⁻⁸。Tokenizer检查316条prompt，全部在77-token上下文内。</p>
+<p>正式UT主矩阵已完成21组，另有1组知识打乱终端模型、2项效用消融审计及600次噪声评估。完整结果见 <a href="server-results-20261022/README.md">2026-10-22批次</a>。</p>
+<p>仓库新增的<a href="../code/audits/check_repository_docs.py">文档检查器</a>复核链接、Python3.8语法、原始代码摘录与等价公式；<a href="../code/audits/check_github_math.cjs">数学渲染检查器</a>使用KaTeX复核全部数学表达式。全仓库校验已通过，全仓库6787个规范文件的哈希检查通过。</p>
+<p>GitHub网页排版已复核：<a href="repository-validation-20261021/github_layout.json">网页布局记录</a>与<a href="repository-validation-20261021/github_layout_fixed.png">实际截图</a>。修订方案的21个公式采用外置Markdown编号，避免浏览器MathML不支持的编号表格元素；53个行内公式、表格、数学内容及源码对应关系均已检查。</p>
+</article></body></html>

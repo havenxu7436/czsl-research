@@ -1,0 +1,30 @@
+{
+  "status": "planned_only_not_implemented",
+  "direction": "strong CPF static CP with conditional knowledge residual",
+  "dataset": "ut-zap50k natural split",
+  "variants": [
+    "Base",
+    "Knowledge",
+    "Shuffle"
+  ],
+  "seeds": [
+    3351,
+    3352,
+    3353
+  ],
+  "gpu_assignment": {
+    "3351": 1,
+    "3352": 2,
+    "3353": 3
+  },
+  "total_training_runs": 9,
+  "epochs": 10,
+  "batch_size": 64,
+  "object_branch_frozen": true,
+  "cp_rank": 32,
+  "adapter_rank": 8,
+  "message_rank": 16,
+  "eta": 0.1,
+  "beta": 0.075,
+  "specification": "TRUST-CPF方案/v1/analysis/server-results-20261022/README.md"
+}

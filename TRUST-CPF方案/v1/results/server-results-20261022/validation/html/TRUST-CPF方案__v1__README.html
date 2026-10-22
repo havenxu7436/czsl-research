@@ -1,0 +1,153 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><base href="http://127.0.0.1:8767/TRUST-CPF%E6%96%B9%E6%A1%88/v1/"><title>TRUST-CPF方案/v1/README.md</title><style>body{font:16px/1.65 system-ui,"Microsoft YaHei",sans-serif;color:#1f2328;max-width:1080px;margin:0 auto;padding:38px;background:#fff}h1,h2{border-bottom:1px solid #d1d9e0;padding-bottom:.3em}h1{font-size:29px}h2{font-size:23px;margin-top:1.5em}h3{font-size:19px}a{color:#0969da;text-decoration:none}table{border-collapse:collapse;max-width:100%;margin:18px 0;font-size:14px}th,td{border:1px solid #d1d9e0;padding:7px 11px;text-align:left}tr:nth-child(even){background:#f6f8fa}pre{background:#f6f8fa;padding:16px;overflow:auto;line-height:1.5;border-radius:6px}code{font-family:Consolas,monospace;font-size:.88em}img{max-width:100%;height:auto}math[display=block]{margin:20px 0;overflow-x:auto;padding:8px 0}p{overflow-wrap:anywhere}</style></head><body><article><h1>v1 · TRUST-CPF / CLIP</h1>
+<p><strong><a href="TRUST-CPF_CLIP_%E4%BF%AE%E8%AE%A2%E5%AE%9E%E9%AA%8C%E6%96%B9%E6%A1%88v1.md">CLIP修订实验方案</a></strong> · <strong><a href="TRUST-CPF%E5%85%AC%E5%BC%8F%E5%8F%8A%E4%BB%A3%E7%A0%81v1.md">公式及核心代码</a></strong> </p>
+<p>第四条独立研究路线：通过组合隔离的配对干预学习关系效用，再用异方差集成、风险收益和类型预算选择知识图。现已归档完整CLIP实现、配置、知识资产及正式UT结果：21组主实验、知识打乱、两项效用消融审计和600次噪声评估。</p>
+<h2>最新结果 · 2026-10-22</h2>
+<p><strong><a href="analysis/server-results-20261022/README.md">完整分析与下一轮方向</a></strong> · <strong><a href="results/server-results-20261022/README.md">全部数据、权重与日志</a></strong> · <a href="results/server-results-20261022/images/README.md">图像</a> · <a href="analysis/server-results-20261022/REPRODUCE.md">重算</a></p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>TEST CW AUC</th>
+<th>TEST OW AUC</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>r0</code></td>
+<td>2.020 ± 2.232</td>
+<td>2.010 ± 2.215</td>
+</tr>
+<tr>
+<td><code>capacity</code></td>
+<td>13.902 ± 0.885</td>
+<td>11.240 ± 1.065</td>
+</tr>
+<tr>
+<td><code>dense</code></td>
+<td>11.169 ± 2.488</td>
+<td>9.214 ± 2.309</td>
+</tr>
+<tr>
+<td><code>drop</code></td>
+<td>10.915 ± 1.545</td>
+<td>9.047 ± 1.257</td>
+</tr>
+<tr>
+<td><code>free</code></td>
+<td>10.896 ± 1.519</td>
+<td>9.011 ± 1.319</td>
+</tr>
+<tr>
+<td><code>mean</code></td>
+<td>10.080 ± 2.102</td>
+<td>8.249 ± 1.692</td>
+</tr>
+<tr>
+<td><code>robust</code></td>
+<td>9.901 ± 1.890</td>
+<td>8.172 ± 1.515</td>
+</tr>
+</tbody></table>
+<p>下一轮集中检验强 CPF 基底上的条件知识残差，三组 × 三 seed，使用 GPU <strong>1、2、3</strong>。当前归档的是 v1 已完成结果与下一轮公式规格。</p>
+<h2>目录</h2>
+<pre><code class="language-text">TRUST-CPF方案/
+  README.md
+  v1/
+    README.md
+    TRUST-CPF_CLIP_修订实验方案v1.md
+    TRUST-CPF公式及代码v1.md
+    服务器实践命令.md
+    code/trustcpf_clip_v1/          # 模型、阶段、训练、评价、脚本、测试、CLIP源码
+    configs/trustcpf_clip_v1/       # 默认/消融配置、标签、名称、知识与输入哈希
+    analysis/                      # 完整分析、CSV、统计图与重算脚本
+    references/                    # 原始idea、早期数学方案及版本演进
+    results/                       # 原始权重/日志/压缩包、截图、验证与映射
+    inputs.json
+    runbook.json
+    external_inputs.json
+</code></pre>
+<h2>实验定义</h2>
+<ul>
+<li>冻结CLIP ViT-L/14双编码器，224px、768维；UT-Zappos natural split，16属性、12对象、83训练组合。</li>
+<li>OI/OE/AE分别12/36/48条，共96条知识关系；关系原文和标签轴随包保存。</li>
+<li>五折组合隔离教师：Q1–Q3拟合效用，Q4开发与结构参数选择，Q5机制审计；选定参数后以五折标签拟合最终效用模型。</li>
+<li>主矩阵为7组×3seed＝21次最终识别适配：<code>r0/capacity/dense/drop/free/mean/robust</code>，seed为3351/3352/3353。五折教师、参考教师和效用拟合属于每seed的上游流程，另计训练成本。</li>
+<li>额外队列包括<code>shuffled</code>全流程、纯语义与20%未测边审计、OI/OE/AE错配与删除实验。</li>
+<li>首次严格最大VAL CW <code>AUC_native</code>选识别权重；同权重评价VAL/TEST CW/OW。实际工作点bias和温度取自VAL，TEST沿用。</li>
+</ul>
+<h2>从仓库恢复并训练</h2>
+<p>在仓库根目录执行：</p>
+<pre><code class="language-bash">git lfs pull
+python tools/register_trustcpf_v1.py --check
+REPLAY=&quot;$HOME/experiments/trustcpf-replay-v1&quot;
+python tools/reproduce.py materialize --line TRUST-CPF方案 --stage v1 --dest &quot;$REPLAY&quot;
+TRUST_PKG=&quot;$REPLAY/trustcpf_clip_v1&quot;
+cd &quot;$TRUST_PKG&quot;
+export CPF_PY=&quot;$(command -v python)&quot;
+export DATA_ROOT=/srv/czsl-project/data/ut-zap50k
+export CLIP_CKPT=&quot;$HOME/.cache/clip/ViT-L-14.pt&quot;
+export CACHE=&quot;$HOME/experiments/trustcpf_clip_v1/cache/ut-zap50k&quot;
+export WORK_ROOT=&quot;$HOME/experiments/trustcpf_clip_v1/work&quot;
+source scripts/env.sh
+&quot;$CPF_PY&quot; -m pip install -r requirements.txt
+&quot;$CPF_PY&quot; -m unittest discover -s tests -v
+CUDA_VISIBLE_DEVICES=0 bash scripts/prepare.sh
+CUDA_VISIBLE_DEVICES=0 bash scripts/train_seed.sh 3351
+</code></pre>
+<p><code>REPLAY</code>指定新的绝对目录；数据集与ViT-L/14权重见<a href="external_inputs.json">外部输入</a>。<code>code/</code>、<code>configs/</code>按阅读和归档用途分区，执行时先materialize为完整包布局。已有VG-CPOD同协议缓存时可直接指定<code>CACHE</code>，再执行本包<code>run.py graph</code>补充知识向量。</p>
+<p>三seed、多GPU、逐阶段恢复、知识扰动与结果导出命令见<a href="%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%AE%9E%E8%B7%B5%E5%91%BD%E4%BB%A4.md">服务器实践命令</a>；原始部署ZIP也保存在<a href="results/deployment/">results/deployment</a>。</p>
+<h2>实现与评价入口</h2>
+<table>
+<thead>
+<tr>
+<th>内容</th>
+<th>入口</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>条件概率、图消息、三元残差、图概率平均</td>
+<td><a href="code/trustcpf_clip_v1/trustcpf/model.py">model.py</a></td>
+</tr>
+<tr>
+<td>配对增益、支持摘要、异方差MLP与方差分解</td>
+<td><a href="code/trustcpf_clip_v1/trustcpf/utility.py">utility.py</a></td>
+</tr>
+<tr>
+<td>五折测量、拟合、审计、调参、结构与适配</td>
+<td><a href="code/trustcpf_clip_v1/trustcpf/stages.py">stages.py</a></td>
+</tr>
+<tr>
+<td>教师、训练恢复、选模、校准</td>
+<td><a href="code/trustcpf_clip_v1/trustcpf/engine.py">engine.py</a></td>
+</tr>
+<tr>
+<td>知识解析、CLIP编码、预算闭式解、知识错配</td>
+<td><a href="code/trustcpf_clip_v1/trustcpf/graph.py">graph.py</a></td>
+</tr>
+<tr>
+<td>全部配置与主矩阵</td>
+<td><a href="configs/README.md">配置索引</a></td>
+</tr>
+<tr>
+<td>必须验证的指标与产物</td>
+<td><a href="analysis/README.md">分析协议</a></td>
+</tr>
+<tr>
+<td>13项测试、CUDA、词表和公式检查</td>
+<td><a href="results/README.md">验证与结果索引</a></td>
+</tr>
+<tr>
+<td>idea→数学方案→CLIP实现</td>
+<td><a href="references/README.md">版本与来源</a></td>
+</tr>
+<tr>
+<td>全文件与命令索引</td>
+<td><a href="inputs.json">inputs.json</a> · <a href="runbook.json">runbook.json</a></td>
+</tr>
+</tbody></table>
+<h2>校验与来源</h2>
+<pre><code class="language-bash">python tools/register_trustcpf_v1.py --check
+python tools/register_trustcpf_v1.py --restore-check
+python tools/reproduce.py verify
+</code></pre>
+<p>53个冻结发布包成员通过<a href="results/release_member_map.json">成员映射</a>恢复，源代码、配置、知识和原始文档保持字节身份。仓库可读文档统一为GitHub数学块并链接分区源码；原始版本保存在<code>results/package_support/</code>。<a href="%E6%9D%A5%E6%BA%90%E4%B8%8E%E8%AE%B8%E5%8F%AF.md">来源与许可</a>记录复用模块与CLIP许可证。</p>
+</article></body></html>

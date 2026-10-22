@@ -1,0 +1,60 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><base href="http://127.0.0.1:8767//"><title>README.md</title><style>body{font:16px/1.65 system-ui,"Microsoft YaHei",sans-serif;color:#1f2328;max-width:1080px;margin:0 auto;padding:38px;background:#fff}h1,h2{border-bottom:1px solid #d1d9e0;padding-bottom:.3em}h1{font-size:29px}h2{font-size:23px;margin-top:1.5em}h3{font-size:19px}a{color:#0969da;text-decoration:none}table{border-collapse:collapse;max-width:100%;margin:18px 0;font-size:14px}th,td{border:1px solid #d1d9e0;padding:7px 11px;text-align:left}tr:nth-child(even){background:#f6f8fa}pre{background:#f6f8fa;padding:16px;overflow:auto;line-height:1.5;border-radius:6px}code{font-family:Consolas,monospace;font-size:.88em}img{max-width:100%;height:auto}math[display=block]{margin:20px 0;overflow-x:auto;padding:8px 0}p{overflow-wrap:anywhere}</style></head><body><article><h1>CZSL 研究：实验记录与复现</h1>
+<h2>目录</h2>
+<pre><code class="language-text">前期实验/      01–15 阶段的说明、代码、配置与结果
+0601方案/      01–03 与 v2 的评分实现、配置与结果
+VG-CPOD方案/   独立CLIP路线；v1方案、公式、代码、配置与验证
+TRUST-CPF方案/ 第四条路线；CLIP关系效用、风险预算、公式与完整实验代码
+src/           CPF / LogiCZSL 基础源码快照
+knowledge/     按数据集、类型和版本组织的知识资产
+environment/   环境版本、外部输入与路径配置
+tools/         文件校验与运行目录恢复
+provenance/    文件来源、路径映射与 SHA256
+</code></pre>
+<h2>实验路线</h2>
+<table>
+<thead>
+<tr>
+<th>实验路线</th>
+<th>实验编号</th>
+<th>入口</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>前期实验</td>
+<td>01–15</td>
+<td><a href="%E5%89%8D%E6%9C%9F%E5%AE%9E%E9%AA%8C/README.md">实验索引</a></td>
+</tr>
+<tr>
+<td>0601方案</td>
+<td>01–04</td>
+<td><a href="0601%E6%96%B9%E6%A1%88/README.md">方案索引</a></td>
+</tr>
+<tr>
+<td>VG-CPOD</td>
+<td>01–12</td>
+<td><a href="VG-CPOD%E6%96%B9%E6%A1%88/README.md">方案索引</a></td>
+</tr>
+<tr>
+<td>TRUST-CPF / CLIP</td>
+<td>01 / v1</td>
+<td><a href="TRUST-CPF%E6%96%B9%E6%A1%88/README.md">方案索引</a></td>
+</tr>
+</tbody></table>
+<h2>使用流程</h2>
+<pre><code class="language-bash">git lfs install
+git clone -c core.longpaths=true https://github.com/havenxu7436/czsl-research.git
+cd czsl-research
+git lfs pull
+python tools/reproduce.py verify
+</code></pre>
+<ol>
+<li><a href="environment/README.md">环境说明</a>定义软件版本、外部输入与命令变量。</li>
+<li><a href="knowledge/README.md">知识说明</a>定义资产分区与版本。</li>
+<li>各阶段 README 提供实验设置、关键流程、入口和结果链接。</li>
+<li><code>inputs.json</code> 索引知识、配置和结果；<code>runbook.json</code> 保存该阶段的执行命令。</li>
+</ol>
+<p>评价中的 CW/OW 分别表示 closed-world/open-world。训练组按对应 VAL 规则选模，选中权重用于结果评价。</p>
+<p>文件来源与 SHA256 见 <code>provenance/</code>。</p>
+<h2>最新结果归档</h2>
+<p><strong>TRUST-CPF · 2026-10-22：</strong> <a href="TRUST-CPF%E6%96%B9%E6%A1%88/v1/results/server-results-20261022/README.md">完整数据、模型权重与图像</a> · <a href="TRUST-CPF%E6%96%B9%E6%A1%88/v1/analysis/server-results-20261022/README.md">结果分析与下一轮方向</a>。已完成21组主实验、知识打乱、两项效用消融审计及600次噪声评估；原包和全部服务器成员均有SHA256映射。</p>
+</article></body></html>

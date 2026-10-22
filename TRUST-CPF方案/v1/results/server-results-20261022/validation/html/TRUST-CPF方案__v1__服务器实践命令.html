@@ -1,0 +1,85 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><base href="http://127.0.0.1:8767/TRUST-CPF%E6%96%B9%E6%A1%88/v1/"><title>TRUST-CPF方案/v1/服务器实践命令.md</title><style>body{font:16px/1.65 system-ui,"Microsoft YaHei",sans-serif;color:#1f2328;max-width:1080px;margin:0 auto;padding:38px;background:#fff}h1,h2{border-bottom:1px solid #d1d9e0;padding-bottom:.3em}h1{font-size:29px}h2{font-size:23px;margin-top:1.5em}h3{font-size:19px}a{color:#0969da;text-decoration:none}table{border-collapse:collapse;max-width:100%;margin:18px 0;font-size:14px}th,td{border:1px solid #d1d9e0;padding:7px 11px;text-align:left}tr:nth-child(even){background:#f6f8fa}pre{background:#f6f8fa;padding:16px;overflow:auto;line-height:1.5;border-radius:6px}code{font-family:Consolas,monospace;font-size:.88em}img{max-width:100%;height:auto}math[display=block]{margin:20px 0;overflow-x:auto;padding:8px 0}p{overflow-wrap:anywhere}</style></head><body><article><h1>TRUST-CPF / CLIP 服务器实践命令</h1>
+<h2>1. 从第四条路线恢复执行包</h2>
+<p>在服务器已克隆的<code>czsl-research</code>仓库根目录执行：</p>
+<pre><code class="language-bash">git lfs pull
+python tools/register_trustcpf_v1.py --check
+export REPLAY=&quot;$HOME/experiments/trustcpf-replay-v1&quot;
+python tools/reproduce.py materialize --line TRUST-CPF方案 --stage v1 --dest &quot;$REPLAY&quot;
+export TRUST_PKG=&quot;$REPLAY/trustcpf_clip_v1&quot;
+cd &quot;$TRUST_PKG&quot;
+export CPF_PY=&quot;$(command -v python)&quot;
+export DATA_ROOT=/srv/czsl-project/data/ut-zap50k
+export CLIP_CKPT=&quot;$HOME/.cache/clip/ViT-L-14.pt&quot;
+export CACHE=&quot;$HOME/experiments/trustcpf_clip_v1/cache/ut-zap50k&quot;
+export WORK_ROOT=&quot;$HOME/experiments/trustcpf_clip_v1/work&quot;
+source scripts/env.sh
+&quot;$CPF_PY&quot; -c &#39;import torch; print(torch.__version__,torch.cuda.get_device_name(0))&#39;
+&quot;$CPF_PY&quot; -m pip install -r requirements.txt
+&quot;$CPF_PY&quot; -m unittest discover -s tests -v
+</code></pre>
+<p><code>REPLAY</code>为新的绝对目录。<code>CPF_PY</code>取当前已激活CZSL环境解释器，也可指定<code>/srv/czsl-env/bin/python</code>。<code>DATA_ROOT</code>、<code>CLIP_CKPT</code>改为服务器已有数据与权重位置。沿用Python3.8/torch1.13环境时依赖下限可满足；当前源码通过Python3.8语法检查。</p>
+<p>数据与权重的文件身份见<a href="external_inputs.json">external_inputs.json</a>。使用离线部署ZIP时，将<a href="results/deployment/TRUST-CPF_CLIP_%E6%96%B9%E6%A1%88v1.zip">ZIP</a>解压到新的执行目录即可，包内布局与materialize结果一致。</p>
+<h2>2. 一次性准备</h2>
+<pre><code class="language-bash">CUDA_VISIBLE_DEVICES=0 bash scripts/prepare.sh
+</code></pre>
+<p>已有VG-CPOD <code>g/fa/fo</code>缓存时直接指定其目录：</p>
+<pre><code class="language-bash">export CACHE=/srv/czsl-runs/vgcpod/cache/ut-zap50k
+CUDA_VISIBLE_DEVICES=0 &quot;$CPF_PY&quot; run.py graph --cache &quot;$CACHE&quot; --checkpoint &quot;$CLIP_CKPT&quot;
+</code></pre>
+<p>图准备新建<code>graph.pt</code>和<code>knowledge_manifest.json</code>，原图像/文本缓存继续复用。特征维度分别为768/16×768/12×768。<code>graph.pt</code>包含96条边、28个原语锚点和全部源知识向量。</p>
+<h2>3. 第一轮正式实验</h2>
+<pre><code class="language-bash">mkdir -p &quot;$WORK_ROOT&quot; logs
+CUDA_VISIBLE_DEVICES=0 nohup bash scripts/train_seed.sh 3351 &gt; logs/seed3351.log 2&gt;&amp;1 &amp;
+tail -f logs/seed3351.log
+</code></pre>
+<p>完整队列不按准确率设置停跑阈值。教师各10epoch、测量拟合折各512任务、开发/审计各128任务、效用三模型最多50epoch、参考教师10epoch、每对照适配3epoch；由VAL CW AUC选择同一权重评价CW/OW。</p>
+<h2>4. 三seed并行</h2>
+<p>图像缓存共享，work分别存放：</p>
+<pre><code class="language-bash">CUDA_VISIBLE_DEVICES=0 nohup bash scripts/train_seed.sh 3351 &gt; logs/seed3351.log 2&gt;&amp;1 &amp;
+CUDA_VISIBLE_DEVICES=1 nohup bash scripts/train_seed.sh 3352 &gt; logs/seed3352.log 2&gt;&amp;1 &amp;
+CUDA_VISIBLE_DEVICES=2 nohup bash scripts/train_seed.sh 3353 &gt; logs/seed3353.log 2&gt;&amp;1 &amp;
+</code></pre>
+<p>只有一张GPU时依次执行三条前台<code>bash scripts/train_seed.sh SEED</code>。多GPU是三条独立单卡进程，每进程的<code>cuda</code>对应<code>CUDA_VISIBLE_DEVICES</code>选出的物理卡。</p>
+<h2>5. 逐阶段命令与恢复</h2>
+<pre><code class="language-bash">export WORK=&quot;$WORK_ROOT/seed3351&quot;
+CUDA_VISIBLE_DEVICES=0 &quot;$CPF_PY&quot; run.py teachers --cache &quot;$CACHE&quot; --work &quot;$WORK&quot; --seed 3351 --fold all
+CUDA_VISIBLE_DEVICES=0 &quot;$CPF_PY&quot; run.py measure --cache &quot;$CACHE&quot; --work &quot;$WORK&quot; --seed 3351 --fold all
+CUDA_VISIBLE_DEVICES=0 &quot;$CPF_PY&quot; run.py fit --cache &quot;$CACHE&quot; --work &quot;$WORK&quot; --seed 3351
+CUDA_VISIBLE_DEVICES=0 &quot;$CPF_PY&quot; run.py audit --cache &quot;$CACHE&quot; --work &quot;$WORK&quot; --seed 3351
+CUDA_VISIBLE_DEVICES=0 &quot;$CPF_PY&quot; run.py tune --cache &quot;$CACHE&quot; --work &quot;$WORK&quot; --seed 3351
+CUDA_VISIBLE_DEVICES=0 &quot;$CPF_PY&quot; run.py fit --cache &quot;$CACHE&quot; --work &quot;$WORK&quot; --seed 3351 --fit-all
+CUDA_VISIBLE_DEVICES=0 &quot;$CPF_PY&quot; run.py reference --cache &quot;$CACHE&quot; --work &quot;$WORK&quot; --seed 3351
+CUDA_VISIBLE_DEVICES=0 &quot;$CPF_PY&quot; run.py structure --cache &quot;$CACHE&quot; --work &quot;$WORK&quot; --seed 3351
+for VARIANT in r0 capacity dense drop free mean robust; do
+  CUDA_VISIBLE_DEVICES=0 &quot;$CPF_PY&quot; run.py adapt --cache &quot;$CACHE&quot; --work &quot;$WORK&quot; --seed 3351 --variant &quot;$VARIANT&quot;
+done
+&quot;$CPF_PY&quot; run.py report --cache &quot;$CACHE&quot; --work &quot;$WORK&quot;
+</code></pre>
+<p>恢复时重跑对应阶段的原命令。<code>teachers --fold 3</code>仅处理第3折；已完成fold测量文件直接读取。变更方法参数时使用新的work目录，以区分实验身份。</p>
+<h2>6. 知识内容和噪声实验</h2>
+<pre><code class="language-bash">CUDA_VISIBLE_DEVICES=0 &quot;$CPF_PY&quot; run.py pipeline --cache &quot;$CACHE&quot; --work &quot;$WORK_ROOT/shuffled3351&quot; --seed 3351 --variant shuffled
+CUDA_VISIBLE_DEVICES=0 bash scripts/noise.sh 3351
+</code></pre>
+<p>完整噪声队列为4组×5扰动seed×3关系类型×5强度×2扰动方式。快速检查一条噪声曲线：</p>
+<pre><code class="language-bash">CUDA_VISIBLE_DEVICES=0 &quot;$CPF_PY&quot; run.py noise --cache &quot;$CACHE&quot; --work &quot;$WORK_ROOT/seed3351&quot; --seed 3351 --variant robust --noise-seeds 7101 --rates 0 0.1 0.3 0.5
+</code></pre>
+<p>噪声实验固定干净VAL bias和温度，不用噪声TEST选参。效用组从已有TRAIN摘要预测变化知识的结构，无需新增效用标签。</p>
+<p>机制拆解另外提供纯语义、20%未测边配置。两者可复用已有五折教师和配对测量，只重拟合效用并审计：</p>
+<pre><code class="language-bash">for ABLATION in semantic unmeasured; do
+  export ABLATION_WORK=&quot;$WORK_ROOT/${ABLATION}3351&quot;
+  mkdir -p &quot;$ABLATION_WORK&quot;
+  ln -s &quot;$WORK_ROOT/seed3351/measurements&quot; &quot;$ABLATION_WORK/measurements&quot;
+  CUDA_VISIBLE_DEVICES=0 &quot;$CPF_PY&quot; run.py fit --cache &quot;$CACHE&quot; --work &quot;$ABLATION_WORK&quot; --seed 3351 --config &quot;configs/$ABLATION.json&quot;
+  CUDA_VISIBLE_DEVICES=0 &quot;$CPF_PY&quot; run.py audit --cache &quot;$CACHE&quot; --work &quot;$ABLATION_WORK&quot; --seed 3351 --config &quot;configs/$ABLATION.json&quot;
+done
+</code></pre>
+<p>类型常数和边查表对照由每次<code>audit</code>自动写入。<code>unmeasured</code>按关系类型固定留出20%边，不参与效用拟合和开发NLL选模，并单列其Q5结果。</p>
+<h2>7. 结果查看与下载</h2>
+<pre><code class="language-bash">&quot;$CPF_PY&quot; run.py report --cache &quot;$CACHE&quot; --work &quot;$WORK_ROOT&quot;
+cat &quot;$WORK_ROOT/seed3351/utility/audit.json&quot;
+cat &quot;$WORK_ROOT/seed3351/tuning.json&quot;
+cat &quot;$WORK_ROOT/seed3351/runs/robust/metrics.json&quot;
+cat &quot;$WORK_ROOT/paired_comparisons.json&quot;
+</code></pre>
+<p>主要产物：<code>summary.csv</code>、<code>paired_comparisons.json</code>、<code>utility/audit.json</code>、<code>structure.json</code>、<code>runs/*/metrics.json</code>、<code>runs/*/noise_*.json</code>和逐epoch训练日志。模型权重保存在各目录的<code>last.pt</code>与<code>best.pt</code>。</p>
+</article></body></html>

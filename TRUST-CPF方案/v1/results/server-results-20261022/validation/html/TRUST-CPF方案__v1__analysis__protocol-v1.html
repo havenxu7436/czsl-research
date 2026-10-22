@@ -1,0 +1,52 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><base href="http://127.0.0.1:8767/TRUST-CPF%E6%96%B9%E6%A1%88/v1/analysis/"><title>TRUST-CPF方案/v1/analysis/protocol-v1.md</title><style>body{font:16px/1.65 system-ui,"Microsoft YaHei",sans-serif;color:#1f2328;max-width:1080px;margin:0 auto;padding:38px;background:#fff}h1,h2{border-bottom:1px solid #d1d9e0;padding-bottom:.3em}h1{font-size:29px}h2{font-size:23px;margin-top:1.5em}h3{font-size:19px}a{color:#0969da;text-decoration:none}table{border-collapse:collapse;max-width:100%;margin:18px 0;font-size:14px}th,td{border:1px solid #d1d9e0;padding:7px 11px;text-align:left}tr:nth-child(even){background:#f6f8fa}pre{background:#f6f8fa;padding:16px;overflow:auto;line-height:1.5;border-radius:6px}code{font-family:Consolas,monospace;font-size:.88em}img{max-width:100%;height:auto}math[display=block]{margin:20px 0;overflow-x:auto;padding:8px 0}p{overflow-wrap:anywhere}</style></head><body><article><h1>核心指标与分析协议</h1>
+<h2>识别主表</h2>
+<p>七组×三seed分别整理VAL/TEST的CW/OW：<code>AUC_native</code>、<code>AUC_exact</code>、oracle-HM，以及固定VAL bias的Seen/Unseen/HM；同时记录NLL、ECE、GT-object属性准确率/NLL、三类错误数量和跨图预测方差。对三个seed计算均值与样本标准差；在相同seed下比较<code>robust−r0</code>、<code>robust−drop</code>、<code>robust−free</code>和<code>robust−mean</code>。</p>
+<h2>机制与成本</h2>
+<table>
+<thead>
+<tr>
+<th>研究问题</th>
+<th>核心指标</th>
+<th>原始产物</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>配对效用可否跨组合预测</td>
+<td>Q5 Spearman、RMSE、balanced direction accuracy、AUROC；可靠方向子集覆盖比例</td>
+<td><code>utility/audit.json</code></td>
+</tr>
+<tr>
+<td>预测方差是否有意义</td>
+<td>90%预测区间覆盖率；任务波动、支持摘要变异与模型分歧</td>
+<td><code>utility/audit.json</code>、<code>structure.json</code></td>
+</tr>
+<tr>
+<td>语义与视觉证据分别有何作用</td>
+<td>full对semantic；类型常数/边查表对照；20%未测边子集</td>
+<td>各work的<code>utility/audit.json</code></td>
+</tr>
+<tr>
+<td>知识内容是否有效</td>
+<td>clean对独立<code>shuffled</code>完整队列</td>
+<td><code>runs/*/metrics.json</code></td>
+</tr>
+<tr>
+<td>风险结构对知识变化的反应</td>
+<td>OI/OE/AE各5扰动seed的错配/删除曲线，RAUC</td>
+<td><code>runs/*/noise_*.json</code>、<code>robustness_summary.json</code></td>
+</tr>
+<tr>
+<td>图选择与容量</td>
+<td>各类型期望边数、预算乘子、风险项；capacity组识别</td>
+<td><code>structure.json</code>、<code>runs/*/metrics.json</code></td>
+</tr>
+<tr>
+<td>计算成本</td>
+<td>五折教师、测量、效用拟合、参考教师与适配的耗时及head forwards</td>
+<td><code>history.json</code>、测量文件、效用选择记录</td>
+</tr>
+</tbody></table>
+<p>主识别权重按VAL CW <code>AUC_native</code>选择；校准bias按VAL exact-HM选择，温度按VAL NLL选择。知识扰动沿用干净VAL工作点。<code>report</code>生成<code>summary.csv</code>与<code>paired_comparisons.json</code>。</p>
+<h2>本次归档状态</h2>
+<p>本机数学、合成流程和CUDA验证见<a href="../results/README.md">results</a>。正式UT结果由<a href="../%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%AE%9E%E8%B7%B5%E5%91%BD%E4%BB%A4.md">服务器队列</a>生成；后续结果按日期建独立批次目录，保留配置、protocol、逐epoch日志、选中权重、指标与原始导出映射。</p>
+</article></body></html>

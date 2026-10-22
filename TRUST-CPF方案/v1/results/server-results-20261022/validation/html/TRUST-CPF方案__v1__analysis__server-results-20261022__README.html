@@ -1,0 +1,657 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><base href="http://127.0.0.1:8767/TRUST-CPF%E6%96%B9%E6%A1%88/v1/analysis/server-results-20261022/"><title>TRUST-CPF方案/v1/analysis/server-results-20261022/README.md</title><style>body{font:16px/1.65 system-ui,"Microsoft YaHei",sans-serif;color:#1f2328;max-width:1080px;margin:0 auto;padding:38px;background:#fff}h1,h2{border-bottom:1px solid #d1d9e0;padding-bottom:.3em}h1{font-size:29px}h2{font-size:23px;margin-top:1.5em}h3{font-size:19px}a{color:#0969da;text-decoration:none}table{border-collapse:collapse;max-width:100%;margin:18px 0;font-size:14px}th,td{border:1px solid #d1d9e0;padding:7px 11px;text-align:left}tr:nth-child(even){background:#f6f8fa}pre{background:#f6f8fa;padding:16px;overflow:auto;line-height:1.5;border-radius:6px}code{font-family:Consolas,monospace;font-size:.88em}img{max-width:100%;height:auto}math[display=block]{margin:20px 0;overflow-x:auto;padding:8px 0}p{overflow-wrap:anywhere}</style></head><body><article><h1>TRUST-CPF v1 完整结果分析与下一轮实验方向</h1>
+<p>日期：2026-10-22。数据：UT-Zappos compositional-split-natural；骨干：OpenAI CLIP ViT-L/14。</p>
+<p><strong>研究判断：结束 TRUST-CPF v1 的效用预测、风险惩罚和随机选图扩展。下一轮只做一个整合实验：在已经验证较强的 CPF＋静态 CP 基底上，让知识仅修正物体条件属性分数。设置 Base、Knowledge、Shuffle 三组，三个 seed，共 9 次训练；GPU 使用 1、2、3。</strong></p>
+<p>做出这个选择的依据是：主模型三个 seed 都输给无关系的 <code>capacity</code> 和常数概率选图；效用预测的误差三个 seed 都高于类型常数；完整噪声曲线也没有建立相对常数选图的优势。同时，给定真实物体后的属性预测保留了一些有用信号，值得在强共同基底上做一次集中的知识实验。</p>
+<p>本文分析归档内已有实验，补做结果汇总、同样本效用比较和日志恢复。没有启动新的训练，也没有改动原训练结果。</p>
+<h2>1. 本次实际覆盖了哪些数据</h2>
+<table>
+<thead>
+<tr>
+<th>数据部分</th>
+<th>本次使用范围</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>主实验</td>
+<td>seed3351、3352、3353 × 7 个模型，21 组最终 CW/OW 结果及训练历史</td>
+</tr>
+<tr>
+<td>效用学习</td>
+<td>三个主 seed 的独立 Q5 审计、类型常数和边查表对照</td>
+</tr>
+<tr>
+<td>知识打乱</td>
+<td>shuffled3351 的完整训练、效用审计和最终结果</td>
+</tr>
+<tr>
+<td>机制消融</td>
+<td>semantic3351、unmeasured3351 的训练选择记录及 Q5 审计</td>
+</tr>
+<tr>
+<td>测量标签</td>
+<td>三个主 seed 与 shuffled3351 的全部 20 份 fold 测量，共 172,032 条标签</td>
+</tr>
+<tr>
+<td>噪声实验</td>
+<td>seed3351，4 个模型 × 5 个扰动 seed × 3 种关系 × 5 个强度 × 2 种扰动，共 600 次评估</td>
+</tr>
+<tr>
+<td>代码</td>
+<td>归档内的模型、训练、测量、选图、噪声和评估实现</td>
+</tr>
+<tr>
+<td>历史参照</td>
+<td>本机 VG-CPOD roundK 汇总中的 G0 静态 CP 三 seed 结果及其实现</td>
+</tr>
+</tbody></table>
+<p>原压缩包 gzip CRC 正常；解压文件已按归档校验 434 个文件，内容 SHA256 无差异。此前 Windows 解压遇到的中文文件名错误已经修复。</p>
+<p><strong>噪声数据有一处覆盖，分析已处理。</strong> <code>robust/noise_mismatch.json</code> 被后续快速检查覆盖，只保留 4 条，其余七个噪声 JSON 各有 75 条，因此现存 JSON 共 529 次评估。<code>noise3351.log</code> 仍有完整 600 条 OW AUC。按原脚本执行顺序恢复后，与所有现存 JSON 中对应 OW 数值逐条核对，最大差异为 0。下文的完整噪声比较使用恢复后的 600 条 OW 结果。<code>robust</code> 错配实验缺失的完整 CW 数值未保留在日志里，因此不把它的 4 条 CW 结果与其他模型的 75 条结果混合计算总表。</p>
+<p>本文件中 AUC、准确率、HM、ECE 均使用百分数单位；AUC 差值以“点”表示。均值后的标准差为三个训练 seed 的样本标准差。噪声扰动的五个 seed 只改变扰动，不增加训练重复数。</p>
+<h2>2. 主实验已经给出的结论</h2>
+<h3>2.1 全部主模型结果</h3>
+<p>表中每个 seed 单元格为 TEST CW / OW AUC；最后两列为三 seed 汇总。</p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>3351</th>
+<th>3352</th>
+<th>3353</th>
+<th>CW 均值 ± SD</th>
+<th>OW 均值 ± SD</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>r0</td>
+<td>4.598 / 4.568</td>
+<td>0.746 / 0.746</td>
+<td>0.717 / 0.717</td>
+<td>2.020 ± 2.232</td>
+<td>2.010 ± 2.215</td>
+</tr>
+<tr>
+<td>capacity</td>
+<td>14.801 / 11.947</td>
+<td>13.031 / 10.016</td>
+<td>13.872 / 11.758</td>
+<td>13.902 ± 0.885</td>
+<td>11.240 ± 1.065</td>
+</tr>
+<tr>
+<td>dense</td>
+<td>8.926 / 7.774</td>
+<td>10.736 / 7.992</td>
+<td>13.845 / 11.877</td>
+<td>11.169 ± 2.488</td>
+<td>9.214 ± 2.309</td>
+</tr>
+<tr>
+<td>drop</td>
+<td>10.266 / 8.631</td>
+<td>9.801 / 8.050</td>
+<td>12.678 / 10.459</td>
+<td>10.915 ± 1.545</td>
+<td>9.047 ± 1.257</td>
+</tr>
+<tr>
+<td>free</td>
+<td>10.252 / 8.599</td>
+<td>9.805 / 7.947</td>
+<td>12.631 / 10.487</td>
+<td>10.896 ± 1.519</td>
+<td>9.011 ± 1.319</td>
+</tr>
+<tr>
+<td>mean</td>
+<td>10.033 / 8.199</td>
+<td>8.002 / 6.583</td>
+<td>12.205 / 9.966</td>
+<td>10.080 ± 2.102</td>
+<td>8.249 ± 1.692</td>
+</tr>
+<tr>
+<td>robust</td>
+<td>9.999 / 8.282</td>
+<td>7.964 / 6.605</td>
+<td>11.740 / 9.628</td>
+<td>9.901 ± 1.890</td>
+<td>8.172 ± 1.515</td>
+</tr>
+</tbody></table>
+<p><code>capacity</code> 在 CW 和 OW 上都是平均最好的模型。<code>robust</code> 相对 <code>capacity</code> 平均下降 <strong>4.000 CW 点、3.069 OW 点</strong>；相对 <code>drop</code> 平均下降 <strong>1.014 CW 点、0.875 OW 点</strong>，这两组比较在三个 seed 上方向一致。</p>
+<p><code>robust</code> 相对 <code>mean</code> 平均下降 0.179 CW 点、0.078 OW 点。OW 上前两个 seed 有极小提升，第三个 seed 明显下降。因此，当前风险项没有形成稳定收益。<code>mean</code> 沿用了 <code>robust</code> 选出的预算和温度，这组比较回答的是既定配方下风险项的作用，不代表两个模型各自重新调参后的最优性能。</p>
+<p>常数概率选图与自由选图几乎相同：<code>free</code> 的选边概率相对 <code>drop</code> 的平均绝对变化，三个 seed 分别只有 0.000499、0.000395、0.000383。<code>free</code> 的最终 AUC 也接近 <code>drop</code>。这说明当前 REINFORCE 训练没有把初始常数概率推向一个明显不同的选择策略；不能用这组结果宣称“自由选图已被充分优化但无效”。下一轮没有必要继续扩展它。</p>
+<p>此前讨论中的两类“常数”要区分清楚：<code>drop</code> 是对每条关系独立做 Bernoulli 采样，本轮各类型概率均为 0.25，期望保留 OI/OE/AE 各 3/9/12 条，共 24/96 条；<code>capacity</code> 不使用关系附件，学习的是通用低秩变换与完整三元评分。<code>capacity</code> 的优势不能作为 Bernoulli 选图机制的收益。</p>
+<h3>2.2 低 AUC 的主要问题已经超出了积分口径</h3>
+<p>21 个模型、两个 world 中，native 与 exact AUC 的最大绝对差只有 <strong>0.113 点</strong>。积分采样差异解释不了当前模型与历史强基底之间的十几个至二十多个点差距。</p>
+<p>日志中的 <code>val_auc</code> 已经使用百分数单位。例如 <code>0.021956</code> 就是约 0.022 个 AUC 点，不能再乘 100 解释成 2.2。教师阶段的 <code>val_auc=None</code> 表示该阶段未执行 VAL 选模；正式适配阶段接近零的数值则是实际结果。</p>
+<p>下面同时看 VAL AUC 和 TEST 的两类误差。联合物体命中率按未加 bias 的组合 top-1 预测计算；真实物体属性准确率按现有评估器固定真实物体后计算。</p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>VAL CW AUC</th>
+<th>TEST 联合物体命中率</th>
+<th>TEST 真实物体属性准确率</th>
+<th>TEST CW HM（VAL bias）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>r0</td>
+<td>0.003</td>
+<td>19.46</td>
+<td>25.77</td>
+<td>4.50</td>
+</tr>
+<tr>
+<td>capacity</td>
+<td>4.622</td>
+<td>41.86</td>
+<td>28.13</td>
+<td>25.33</td>
+</tr>
+<tr>
+<td>dense</td>
+<td>1.718</td>
+<td>37.28</td>
+<td>38.65</td>
+<td>27.49</td>
+</tr>
+<tr>
+<td>drop</td>
+<td>0.491</td>
+<td>36.19</td>
+<td>38.03</td>
+<td>25.80</td>
+</tr>
+<tr>
+<td>mean</td>
+<td>0.330</td>
+<td>34.63</td>
+<td>38.92</td>
+<td>24.52</td>
+</tr>
+<tr>
+<td>robust</td>
+<td>0.352</td>
+<td>34.32</td>
+<td>37.90</td>
+<td>23.61</td>
+</tr>
+</tbody></table>
+<p>这个分解改变了下一步的重点：<code>robust</code> 的真实物体属性准确率比 <code>capacity</code> 高 <strong>9.77 个百分点</strong>，联合物体命中率却低 <strong>7.54 个百分点</strong>。图模型没有在所有能力上同时变差，主要矛盾体现在联合排序及物体竞争。这里的联合物体命中率并不是独立物体分支 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo stretchy="false">(</mo><mi>o</mi><mo>∣</mo><mi>x</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">P(o\mid x)</annotation></semantics></math></span> 的 top-1，现有记录不能把差异全部归因于物体头本身。</p>
+<p>因此下一轮保留历史较强的物体评分，集中改条件属性分数。这样可以直接检验当前保留下来的属性信号能否转化为组合收益。固定物体概率后，组合 top-1 的物体分量仍可能随条件属性分数变化；两者要分别记录。</p>
+<p>校准结果也没有扭转主结论：三 seed 平均 TEST OW HM，<code>capacity</code> 为 24.43，<code>drop</code> 为 22.34，<code>robust</code> 为 20.55。OW 校准 NLL 分别为 3.112、3.407、3.401。<code>robust</code> 相对 <code>drop</code> 的 ECE 从 10.56 降至 8.67，但排序和 HM 同时下降。仅凭更低 ECE 不能主张方法更有效；更弱的 <code>r0</code> 同样能得到较低 ECE。</p>
+<h3>2.3 历史强基底是下一轮的起点</h3>
+<p>本机 roundK 的 matched native 汇总保留了 G0 三个 seed：</p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>VAL CW AUC</th>
+<th>TEST CW AUC</th>
+<th>TEST OW AUC</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>G0 / 3351</td>
+<td>43.907</td>
+<td>34.175</td>
+<td>26.213</td>
+</tr>
+<tr>
+<td>G0 / 3352</td>
+<td>41.632</td>
+<td>35.205</td>
+<td>23.788</td>
+</tr>
+<tr>
+<td>G0 / 3353</td>
+<td>44.491</td>
+<td>34.154</td>
+<td>25.550</td>
+</tr>
+<tr>
+<td>G0 均值 ± SD</td>
+<td>43.343 ± 1.510</td>
+<td>34.512 ± 0.601</td>
+<td>25.184 ± 1.254</td>
+</tr>
+</tbody></table>
+<p>G0 使用 CLIP、全局视觉读出、静态 CP，TEST 平均为 <strong>34.512 CW / 25.184 OW</strong>。它与当前 v1 具有不同的评分参数化、损失配方和训练设置。这些历史值用于说明本项目已经具备怎样的基底，不把差值直接解释为单个图模块造成的损失。</p>
+<p>当前 <code>capacity</code> 值得保留的启示是“完整可训练三元交互很重要”。其低秩变换和三元评分本身，不能据此命名为一个已经成立的新 CZSL 方法。下一轮的研究问题应落在：<strong>固定强物体评分后，正确的外部知识能否提高未见组合的条件属性排序，并带来联合识别增益。</strong></p>
+<h2>3. 效用、消融与噪声结果是否支持继续 TRUST 机制</h2>
+<h3>3.1 效用预测：有局部信号，但没有形成可靠的选择依据</h3>
+<p>以下均为独立 Q5 审计，每个 seed 3,072 条标签。方向准确率使用正负两类平均的 balanced accuracy，随机基准为 50%。</p>
+<table>
+<thead>
+<tr>
+<th>seed</th>
+<th>完整模型 Spearman</th>
+<th>方向准确率</th>
+<th>完整模型 RMSE</th>
+<th>类型常数 RMSE</th>
+<th>边查表 RMSE</th>
+<th>90% 区间覆盖率</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>3351</td>
+<td>0.0878</td>
+<td>52.62%</td>
+<td>0.017361</td>
+<td>0.016813</td>
+<td>0.018545</td>
+<td>77.31%</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>0.2157</td>
+<td>53.60%</td>
+<td>0.008833</td>
+<td>0.008466</td>
+<td>0.009682</td>
+<td>86.62%</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>0.2302</td>
+<td>50.50%</td>
+<td>0.008191</td>
+<td>0.007558</td>
+<td>0.007788</td>
+<td>90.36%</td>
+</tr>
+</tbody></table>
+<p>完整模型的 RMSE 在三个 seed 上都高于类型常数。方向准确率仅为 50.50%–53.60%；90% 区间覆盖率从 77.31% 到 90.36%，不确定性校准随 seed 明显变化。</p>
+<p>完整模型并非完全没有排序信号：seed3352、3353 的整体 Spearman 分别为 0.216、0.230；OI 类型内部相关分别为 0.430、0.357。但 OE 类型内部相关分别为 −0.038、−0.029，AE 较弱，跨类型和跨 seed 的表现不一致。将这些预测直接变成全图选边概率，没有得到对应的 TEST 收益。</p>
+<p>在测量定义中，标签本身为一条边对某个查询任务的边际损失改善：</p>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mover accent="true"><mi>u</mi><mo stretchy="true">^</mo></mover><mrow><mi>Q</mi><mo separator="true">,</mo><mi>e</mi><mo separator="true">,</mo><mi>θ</mi></mrow></msub><mo>=</mo><mfrac><mn>1</mn><mi>M</mi></mfrac><munderover><mo>∑</mo><mrow><mi>m</mi><mo>=</mo><mn>1</mn></mrow><mi>M</mi></munderover><mrow><mo fence="true">[</mo><msub><mi mathvariant="script">L</mi><mi>Q</mi></msub><mo stretchy="false">(</mo><mi>θ</mi><mo separator="true">,</mo><msubsup><mi>G</mi><mi>m</mi><mrow><mo>−</mo><mi>e</mi></mrow></msubsup><mo stretchy="false">)</mo><mo>−</mo><msub><mi mathvariant="script">L</mi><mi>Q</mi></msub><mo stretchy="false">(</mo><mi>θ</mi><mo separator="true">,</mo><msubsup><mi>G</mi><mi>m</mi><mrow><mo>+</mo><mi>e</mi></mrow></msubsup><mo stretchy="false">)</mo><mo fence="true">]</mo></mrow><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\widehat{u}_{Q,e,\theta}
+=\frac{1}{M}\sum_{m=1}^{M}
+\left[\mathcal{L}_{Q}(\theta,G_m^{-e})-
+\mathcal{L}_{Q}(\theta,G_m^{+e})\right].</annotation></semantics></math></span></p>
+<p>代码符号与此一致，正值表示加边降低查询损失。困难在于这个量同时依赖查询组合 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Q</mi></mrow><annotation encoding="application/x-tex">Q</annotation></semantics></math></span>、教师参数 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi></mrow><annotation encoding="application/x-tex">\theta</annotation></semantics></math></span> 和背景图；输入特征主要由关系语义与训练支持集摘要构成，没有显式输入该次查询组合或教师状态。因此，当前学习目标包含输入未直接描述的变化来源。</p>
+<p>这一点在跨 fold 对齐中已经表现出来。把 Q1–Q3 的每条边平均效用与 Q5 的同一条边平均效用比较：</p>
+<table>
+<thead>
+<tr>
+<th>seed</th>
+<th>96 条边均值的 Spearman</th>
+<th>效用正负号一致率</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>3351</td>
+<td>-0.1922</td>
+<td>40.62%</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>0.0178</td>
+<td>51.04%</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>0.2521</td>
+<td>55.21%</td>
+</tr>
+</tbody></table>
+<p>三个 seed 中，排序相关为 −0.192、0.018、0.252，符号一致率为 40.63%、51.04%、55.21%。不同 fold 同时改变查询组成和教师参数，当前测量不能把二者分开；结果已经足够说明“边有一个稳定、容易迁移的全局效用次序”在本实现中没有建立起来。</p>
+<p>背景图采样噪声也不小。Q1–Q3 中，记录的平均 Monte Carlo 方差占标签总方差约 29%–60%；Q5 增加到 16 个背景后降至约 5%–25%。增加采样可以改善测量精度，却不会自动消除跨教师、跨查询任务的目标变化。继续加大网络、ensemble 或测量数量，投入方向与当前主要问题不匹配。</p>
+<p><code>dev_nll</code> 为负并不是这里的错误。连续高斯密度可以大于 1，其负对数密度可以为负；NLL 的下降也不直接证明效用排序有效。</p>
+<h3>3.2 两个消融：视觉摘要有小幅作用，未测边结果没有超过简单对照</h3>
+<p>semantic3351 去掉视觉摘要后，整体 Spearman 从 0.0878 降为 0.0185，RMSE 从 0.017361 升为 0.017689；方向准确率从 52.62% 变为 52.46%。视觉摘要改善了一部分拟合，但幅度尚不足以支撑整条选择机制。</p>
+<p>unmeasured3351 按类型留出 18 条边，即 2 条 OI、7 条 OE、9 条 AE，占全部关系的 18.75%。为了与完整模型公平对照，本次把四个预测器都放在这些留出边对应的<strong>同一批 591 条 Q5 样本</strong>上重新计算；类型常数也仅用非留出边训练。</p>
+<table>
+<thead>
+<tr>
+<th>预测器</th>
+<th>RMSE</th>
+<th>Spearman</th>
+<th>方向准确率</th>
+<th>正负方向 AUROC</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>完整模型</td>
+<td>0.011533</td>
+<td>0.1327</td>
+<td>50.87%</td>
+<td>0.5598</td>
+</tr>
+<tr>
+<td>纯语义模型</td>
+<td>0.011573</td>
+<td>0.0472</td>
+<td>55.01%</td>
+<td>0.5158</td>
+</tr>
+<tr>
+<td>未测边模型</td>
+<td>0.011354</td>
+<td>0.1646</td>
+<td>57.26%</td>
+<td>0.5650</td>
+</tr>
+<tr>
+<td>类型常数（排除留出边训练）</td>
+<td>0.011689</td>
+<td>0.3189</td>
+<td>56.98%</td>
+<td>0.6476</td>
+</tr>
+</tbody></table>
+<p>未测边模型的方向准确率为 57.26%，类型常数为 56.98%，只差 <strong>0.28 个百分点</strong>；未测边模型的 RMSE 约好 2.87%，但 Spearman 和方向 AUROC 更低。类型常数的全体相关来自关系类型之间的差异，并不表示它能在同一种类型内部排序。这个对齐结果支持“有少量可泛化信息”，尚未支持学习到了实用的未测边选择能力。</p>
+<p>这两组消融目前完成的是效用审计，没有对应的完整终端 CW/OW 训练结果；不能把它们写成已经证明识别性能提升的 ablation。</p>
+<h3>3.3 知识打乱：原始内容存在信号，整条流程仍弱于无关系模型</h3>
+<p>seed3351 的原始 <code>robust</code> 为 <strong>9.999 CW / 8.282 OW</strong>，完整打乱流程为 <strong>8.588 CW / 7.545 OW</strong>。原始内容高出 <strong>1.411 CW 点、0.737 OW 点</strong>。</p>
+<p>但打乱实验同时重新训练了教师、参考模型和效用预测器，回答的是整个流程对正确附件关系是否敏感。下一轮要用同一个基底、同一个参数化来测量内容差异。另一个很有说明性的现象是：打乱流程的效用 Spearman 为 0.357，高于原始 seed3351 的 0.088，最终识别却更低。效用审计更容易拟合，并不等价于学到了更有利于 CZSL 的关系。</p>
+<h3>3.4 完整 600 次 OW 噪声结果</h3>
+<p>下表每个 RAUC 使用 15 条完整曲线，即 5 个扰动 seed × 3 种关系。各曲线按名义扰动率 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>∈</mo><mo stretchy="false">{</mo><mn>0</mn><mo separator="true">,</mo><mn>0.1</mn><mo separator="true">,</mo><mn>0.2</mn><mo separator="true">,</mo><mn>0.3</mn><mo separator="true">,</mo><mn>0.5</mn><mo stretchy="false">}</mo></mrow><annotation encoding="application/x-tex">r\in\{0,0.1,0.2,0.3,0.5\}</annotation></semantics></math></span> 积分，并除以区间长度：</p>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mrow><mi mathvariant="normal">R</mi><mi mathvariant="normal">A</mi><mi mathvariant="normal">U</mi><mi mathvariant="normal">C</mi></mrow><mo>=</mo><mfrac><mn>1</mn><mn>0.5</mn></mfrac><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mn>4</mn></munderover><mfrac><mrow><mi>A</mi><mo stretchy="false">(</mo><msub><mi>r</mi><mi>j</mi></msub><mo stretchy="false">)</mo><mo>+</mo><mi>A</mi><mo stretchy="false">(</mo><msub><mi>r</mi><mrow><mi>j</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false">)</mo></mrow><mn>2</mn></mfrac><mtext> </mtext><mo stretchy="false">(</mo><msub><mi>r</mi><mi>j</mi></msub><mo>−</mo><msub><mi>r</mi><mrow><mi>j</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\mathrm{RAUC}
+=\frac{1}{0.5}\sum_{j=1}^{4}
+\frac{A(r_j)+A(r_{j-1})}{2}\,(r_j-r_{j-1}).</annotation></semantics></math></span></p>
+<p>“50%”指当前被扰动关系类型内部的比例，其他两种关系保持原样。</p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>干净 OW AUC</th>
+<th>错配 RAUC</th>
+<th>删除 RAUC</th>
+<th>50% 错配 OW AUC</th>
+<th>50% 删除 OW AUC</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>dense</td>
+<td>7.774</td>
+<td>7.821</td>
+<td>7.904</td>
+<td>7.928</td>
+<td>7.973</td>
+</tr>
+<tr>
+<td>drop</td>
+<td>8.631</td>
+<td>8.577</td>
+<td>8.523</td>
+<td>8.588</td>
+<td>8.480</td>
+</tr>
+<tr>
+<td>mean</td>
+<td>8.199</td>
+<td>8.264</td>
+<td>8.177</td>
+<td>8.346</td>
+<td>8.176</td>
+</tr>
+<tr>
+<td>robust</td>
+<td>8.282</td>
+<td>8.293</td>
+<td>8.221</td>
+<td>8.300</td>
+<td>8.155</td>
+</tr>
+</tbody></table>
+<p><code>drop</code> 的两种 RAUC 都最高。<code>robust</code> 相对 <code>drop</code> 分别低 <strong>0.284 点、0.302 点</strong>。<code>robust</code> 略高于 <code>mean</code>，但差值只有约 <strong>0.029 点、0.044 点</strong>，而且干净条件下它本来就高 0.083 点。这个结果没有建立风险建模带来的额外鲁棒性优势。</p>
+<p>删除一半某类边之后，<code>dense</code> 的平均 AUC 反而从 7.774 升到 7.973；<code>robust</code> 只从 8.282 降到 8.155。错配对平均分数的影响也很小，部分模型略有提升。当前系统对这些附件的依赖较弱，部分关系还可能带来负干扰。曲线平坦本身不能解释成“准确识别坏知识并成功防御”。</p>
+<p>同一个 seed 的 <code>capacity</code> 干净 OW AUC 为 11.947。根据代码，它不使用外部 source 和 availability，所以在保持权重的前提下，这两种针对关系附件的扰动不会改变预测。11.947 可作为<strong>由实现推出的水平参照</strong>，不是另行执行了 600 次 capacity 实验。</p>
+<p>需要注意小图的离散性：OI 只有 12 条边，名义 10% 的错配实际至少改变 2/12，达到 16.67%；名义 20% 也可能仍是 2/12。表中 RAUC 沿用原方案的名义横轴，以便各模型在同一口径比较；保存的 JSON 同时记录了实际扰动比例。</p>
+<h2>4. 从实现看，下一轮应当改哪里</h2>
+<p>当前最重要的实现差异在三元项。用 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>θ</mi></msub><mo stretchy="false">(</mo><mi>x</mi><mo separator="true">,</mo><msub><mi>z</mi><mi>o</mi></msub><mo separator="true">,</mo><msub><mi>z</mi><mi>a</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">T_\theta(x,z_o,z_a)</annotation></semantics></math></span> 表示当前归一化投影后的三元评分，<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>o</mi></msub><mo separator="true">,</mo><msub><mi>e</mi><mi>a</mi></msub></mrow><annotation encoding="application/x-tex">e_o,e_a</annotation></semantics></math></span> 表示原始锚点，<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mi>o</mi></msub><mo separator="true">,</mo><msub><mi>z</mi><mi>a</mi></msub></mrow><annotation encoding="application/x-tex">z_o,z_a</annotation></semantics></math></span> 表示图更新原型，则两类模型实际使用：</p>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.25em" columnalign="right left" columnspacing="0em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mi mathvariant="normal">Δ</mi><msub><mi>U</mi><mrow><mi mathvariant="normal">g</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">p</mi><mi mathvariant="normal">h</mi></mrow></msub></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><msub><mi>T</mi><mi>θ</mi></msub><mo stretchy="false">(</mo><mi>x</mi><mo separator="true">,</mo><msub><mi>z</mi><mi>o</mi></msub><mo separator="true">,</mo><msub><mi>z</mi><mi>a</mi></msub><mo stretchy="false">)</mo><mo>−</mo><msub><mi>T</mi><mi>θ</mi></msub><mo stretchy="false">(</mo><mi>x</mi><mo separator="true">,</mo><msub><mi>e</mi><mi>o</mi></msub><mo separator="true">,</mo><msub><mi>e</mi><mi>a</mi></msub><mo stretchy="false">)</mo><mo separator="true">,</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mi mathvariant="normal">Δ</mi><msub><mi>U</mi><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">p</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">c</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">y</mi></mrow></msub></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><msub><mi>T</mi><mi>θ</mi></msub><mo stretchy="false">(</mo><mi>x</mi><mo separator="true">,</mo><msub><mover accent="true"><mi>e</mi><mo stretchy="true">~</mo></mover><mi>o</mi></msub><mo separator="true">,</mo><msub><mover accent="true"><mi>e</mi><mo stretchy="true">~</mo></mover><mi>a</mi></msub><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+\Delta U_{\mathrm{graph}}
+&amp;=T_\theta(x,z_o,z_a)-T_\theta(x,e_o,e_a),\\
+\Delta U_{\mathrm{capacity}}
+&amp;=T_\theta(x,\widetilde e_o,\widetilde e_a).
+\end{aligned}</annotation></semantics></math></span></p>
+<p>图模型只有“三元项的变化量”，<code>capacity</code> 则有完整可训练三元项。零边时图模型的该项严格消失。这是从代码可以直接确认的函数形式差异，参数数量接近不能消除它。<code>r0/capacity</code> 又分别预训练自己的参考模型，图组使用另一套共同参考模型，因此当前比较同时包含参考模型训练差异。</p>
+<p>此外，v1 的物体基础分数采用各候选物体查询特征与自身文本的匹配；历史 G0 使用全局视觉特征对物体文本评分。两者的学习率、CP 归一化和辅助损失也不同。直接在 v1 上增加适配 epoch，只会继续优化已经明显偏弱的基底。</p>
+<p>下一轮同时落实三个相互配套的改变：<strong>恢复完整静态 CP；固定较强的物体概率；用确定性知识残差修正条件属性。</strong> 研究内容收敛到正确知识是否有可利用的条件判别信息。当前的五折教师、效用 MLP、风险惩罚、预算求解和多图平均退出这一轮。</p>
+<h2>5. 下一轮：强 CPF 基底上的条件知识残差</h2>
+<h3>5.1 一个正式实验，三组 × 三 seed</h3>
+<table>
+<thead>
+<tr>
+<th>组别</th>
+<th>共同部分</th>
+<th>条件属性分数</th>
+<th>回答的问题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Base</strong></td>
+<td>对应 seed 的 G0 静态 CP 权重、冻结的物体评分、相同条件头续训</td>
+<td>原始完整静态 CP</td>
+<td>强共同基底在同等训练预算下的表现</td>
+</tr>
+<tr>
+<td><strong>Knowledge</strong></td>
+<td>同上</td>
+<td>完整静态 CP＋真实知识原型的残差</td>
+<td>正确知识能否转化为组合识别收益</td>
+</tr>
+<tr>
+<td><strong>Shuffle</strong></td>
+<td>与 Knowledge 相同的新增参数、初始化和训练</td>
+<td>完整静态 CP＋打乱附件的知识残差</td>
+<td>收益是否来自正确语义附件</td>
+</tr>
+</tbody></table>
+<p>Knowledge−Base 衡量整个知识分支的收益，其中包含新增参数的作用；Knowledge−Shuffle 衡量相同分支下正确附件内容的作用。这两个差值共同解释实验。三组从同一个 seed 对应的 G0 checkpoint 出发，使用同一图像顺序和训练预算。</p>
+<p>数据首先固定为本轮 UT-Zappos natural 划分。使用 96 条现成知识关系：OI 12、OE 36、AE 48。关系全部参与确定性聚合，不再训练选边概率。Shuffle 在 OI/OE/AE 内分别打乱 source 附件，保持关系类型、目标节点、度数和 source 多重集不变；用固定扰动 seed7101 生成一次并保存映射。训练 seed 的差异只来自共同基底和优化随机性。</p>
+<h3>5.2 共同基底：直接保留 G0 的评分与尺度</h3>
+<p>固定 CLIP 图像向量 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><mn>768</mn></msup></mrow><annotation encoding="application/x-tex">g(x)\in\mathbb{R}^{768}</annotation></semantics></math></span>、属性文本 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>a</mi></msub></mrow><annotation encoding="application/x-tex">e_a</annotation></semantics></math></span>、物体文本 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>o</mi></msub></mrow><annotation encoding="application/x-tex">e_o</annotation></semantics></math></span> 和组合文本 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mrow><mi>a</mi><mi>o</mi></mrow></msub></mrow><annotation encoding="application/x-tex">e_{ao}</annotation></semantics></math></span>。继承对应 seed 的 G0 权重，物体分数为：</p>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msubsup><mi>z</mi><mi>o</mi><mn>0</mn></msubsup><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><mi>κ</mi><mi>g</mi><mo stretchy="false">(</mo><mi>x</mi><msup><mo stretchy="false">)</mo><mi mathvariant="normal">⊤</mi></msup><msub><mi>e</mi><mi>o</mi></msub><mo>+</mo><mo fence="true" stretchy="true" minsize="1.2em" maxsize="1.2em">(</mo><mi>g</mi><mo stretchy="false">(</mo><mi>x</mi><msup><mo stretchy="false">)</mo><mi mathvariant="normal">⊤</mi></msup><msub><mi>B</mi><mi>o</mi></msub><mo fence="true" stretchy="true" minsize="1.2em" maxsize="1.2em">)</mo><mo fence="true" stretchy="true" minsize="1.2em" maxsize="1.2em">(</mo><msubsup><mi>e</mi><mi>o</mi><mi mathvariant="normal">⊤</mi></msubsup><msub><mi>C</mi><mi>o</mi></msub><msup><mo fence="true" stretchy="true" minsize="1.2em" maxsize="1.2em">)</mo><mi mathvariant="normal">⊤</mi></msup><mo separator="true">,</mo><mspace width="2em"/><msub><mi>P</mi><mn>0</mn></msub><mo stretchy="false">(</mo><mi>o</mi><mo>∣</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><mfrac><mrow><mi>exp</mi><mo>⁡</mo><msubsup><mi>z</mi><mi>o</mi><mn>0</mn></msubsup><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo></mrow><mrow><munder><mo>∑</mo><msup><mi>o</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup></munder><mi>exp</mi><mo>⁡</mo><msubsup><mi>z</mi><msup><mi>o</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mn>0</mn></msubsup><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo></mrow></mfrac><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">z_o^0(x)
+=\kappa g(x)^\top e_o
++\bigl(g(x)^\top B_o\bigr)\bigl(e_o^\top C_o\bigr)^\top,
+\qquad
+P_0(o\mid x)=\frac{\exp z_o^0(x)}{\sum_{o&#x27;}\exp z_{o&#x27;}^0(x)}.</annotation></semantics></math></span></p>
+<p>三组均冻结 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>B</mi><mi>o</mi></msub><mo separator="true">,</mo><msub><mi>C</mi><mi>o</mi></msub></mrow><annotation encoding="application/x-tex">B_o,C_o</annotation></semantics></math></span>，CLIP 及全部文本向量也冻结。条件属性分数保留完整静态 CP：</p>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.25em" columnalign="right left" columnspacing="0em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><msub><mi>T</mi><mi>θ</mi></msub><mo stretchy="false">(</mo><mi>g</mi><mo separator="true">,</mo><mi>o</mi><mo separator="true">,</mo><mi>a</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mi>ρ</mi><mi>κ</mi><mtext> </mtext><msup><mi>g</mi><mi mathvariant="normal">⊤</mi></msup><msub><mi>W</mi><mi>c</mi></msub><mrow><mo fence="true">[</mo><mo stretchy="false">(</mo><msub><mi>A</mi><mi>u</mi></msub><msub><mi>e</mi><mi>a</mi></msub><mo stretchy="false">)</mo><mo>⊙</mo><mo stretchy="false">(</mo><msub><mi>A</mi><mi>v</mi></msub><msub><mi>e</mi><mi>o</mi></msub><mo stretchy="false">)</mo><mo fence="true">]</mo></mrow><mo separator="true">,</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><msubsup><mi>c</mi><mrow><mi>a</mi><mi>o</mi></mrow><mn>0</mn></msubsup><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mi>κ</mi><msup><mi>g</mi><mi mathvariant="normal">⊤</mi></msup><msub><mi>e</mi><mrow><mi>a</mi><mi>o</mi></mrow></msub><mo>+</mo><mo stretchy="false">(</mo><msup><mi>g</mi><mi mathvariant="normal">⊤</mi></msup><msub><mi>B</mi><mi>c</mi></msub><mo stretchy="false">)</mo><mo stretchy="false">(</mo><msubsup><mi>e</mi><mrow><mi>a</mi><mi>o</mi></mrow><mi mathvariant="normal">⊤</mi></msubsup><msub><mi>C</mi><mi>c</mi></msub><msup><mo stretchy="false">)</mo><mi mathvariant="normal">⊤</mi></msup><mo>+</mo><msub><mi>T</mi><mi>θ</mi></msub><mo stretchy="false">(</mo><mi>g</mi><mo separator="true">,</mo><mi>o</mi><mo separator="true">,</mo><mi>a</mi><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+T_\theta(g,o,a)
+&amp;=\rho\kappa\,g^\top W_c
+\left[(A_u e_a)\odot(A_v e_o)\right],\\
+c^0_{ao}(x)
+&amp;=\kappa g^\top e_{ao}
++(g^\top B_c)(e_{ao}^\top C_c)^\top
++T_\theta(g,o,a).
+\end{aligned}</annotation></semantics></math></span></p>
+<p>这里 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>A</mi><mi>u</mi></msub><mo separator="true">,</mo><msub><mi>A</mi><mi>v</mi></msub><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><mrow><mn>32</mn><mo>×</mo><mn>768</mn></mrow></msup></mrow><annotation encoding="application/x-tex">A_u,A_v\in\mathbb{R}^{32\times768}</annotation></semantics></math></span>，<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>W</mi><mi>c</mi></msub><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><mrow><mn>768</mn><mo>×</mo><mn>32</mn></mrow></msup></mrow><annotation encoding="application/x-tex">W_c\in\mathbb{R}^{768\times32}</annotation></semantics></math></span>，<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>B</mi><mi>o</mi></msub><mo separator="true">,</mo><msub><mi>C</mi><mi>o</mi></msub><mo separator="true">,</mo><msub><mi>B</mi><mi>c</mi></msub><mo separator="true">,</mo><msub><mi>C</mi><mi>c</mi></msub><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><mrow><mn>768</mn><mo>×</mo><mn>8</mn></mrow></msup></mrow><annotation encoding="application/x-tex">B_o,C_o,B_c,C_c\in\mathbb{R}^{768\times8}</annotation></semantics></math></span>。保留 G0 的 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>κ</mi><mo>=</mo><mn>20</mn></mrow><annotation encoding="application/x-tex">\kappa=20</annotation></semantics></math></span>、<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo>=</mo><mn>0.15</mn></mrow><annotation encoding="application/x-tex">\rho=0.15</annotation></semantics></math></span>。CP 因子沿用原尺度，不加入 v1 中额外的投影后 L2 归一化。Base 训练 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>B</mi><mi>c</mi></msub><mo separator="true">,</mo><msub><mi>C</mi><mi>c</mi></msub><mo separator="true">,</mo><msub><mi>A</mi><mi>u</mi></msub><mo separator="true">,</mo><msub><mi>A</mi><mi>v</mi></msub><mo separator="true">,</mo><msub><mi>W</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">B_c,C_c,A_u,A_v,W_c</annotation></semantics></math></span>，Knowledge 和 Shuffle 也训练同一套共同参数。</p>
+<h3>5.3 知识只改变条件属性项</h3>
+<p>将全部属性和物体文本统一记为锚点 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>v</mi></msub></mrow><annotation encoding="application/x-tex">e_v</annotation></semantics></math></span>。关系 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>e</mi></mrow><annotation encoding="application/x-tex">e</annotation></semantics></math></span> 的 source 文本向量为 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mi>e</mi></msub><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><mn>768</mn></msup></mrow><annotation encoding="application/x-tex">h_e\in\mathbb{R}^{768}</annotation></semantics></math></span>，target 为 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>v</mi><mo stretchy="false">(</mo><mi>e</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">v(e)</annotation></semantics></math></span>，类型为 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo stretchy="false">(</mo><mi>e</mi><mo stretchy="false">)</mo><mo>∈</mo><mo stretchy="false">{</mo><mrow><mi mathvariant="normal">O</mi><mi mathvariant="normal">I</mi></mrow><mo separator="true">,</mo><mrow><mi mathvariant="normal">O</mi><mi mathvariant="normal">E</mi></mrow><mo separator="true">,</mo><mrow><mi mathvariant="normal">A</mi><mi mathvariant="normal">E</mi></mrow><mo stretchy="false">}</mo></mrow><annotation encoding="application/x-tex">t(e)\in\{\mathrm{OI},\mathrm{OE},\mathrm{AE}\}</annotation></semantics></math></span>。复用现有类型低秩消息形式：</p>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.25em" columnalign="right left" columnspacing="0em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msub><mi>m</mi><mi>e</mi></msub></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mo stretchy="false">(</mo><msub><mi>h</mi><mi>e</mi></msub><mo>−</mo><msub><mi>e</mi><mrow><mi>v</mi><mo stretchy="false">(</mo><mi>e</mi><mo stretchy="false">)</mo></mrow></msub><mo stretchy="false">)</mo><mo>+</mo><msub><mi>L</mi><mrow><mi>t</mi><mo stretchy="false">(</mo><mi>e</mi><mo stretchy="false">)</mo></mrow></msub><msub><mi>R</mi><mrow><mi>t</mi><mo stretchy="false">(</mo><mi>e</mi><mo stretchy="false">)</mo></mrow></msub><mo stretchy="false">(</mo><msub><mi>h</mi><mi>e</mi></msub><mo>−</mo><msub><mi>e</mi><mrow><mi>v</mi><mo stretchy="false">(</mo><mi>e</mi><mo stretchy="false">)</mo></mrow></msub><mo stretchy="false">)</mo><mo separator="true">,</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msub><mi>d</mi><mrow><mi>v</mi><mo separator="true">,</mo><mi>t</mi></mrow></msub></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mrow><mo fence="true">∣</mo><mo stretchy="false">{</mo><mi>e</mi><mo>:</mo><mi>v</mi><mo stretchy="false">(</mo><mi>e</mi><mo stretchy="false">)</mo><mo>=</mo><mi>v</mi><mo separator="true">,</mo><mtext> </mtext><mi>t</mi><mo stretchy="false">(</mo><mi>e</mi><mo stretchy="false">)</mo><mo>=</mo><mi>t</mi><mo stretchy="false">}</mo><mo fence="true">∣</mo></mrow><mo separator="true">,</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msub><mi>z</mi><mi>v</mi></msub></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mi mathvariant="script">N</mi><mtext> ⁣</mtext><mrow><mo fence="true">(</mo><msub><mi>e</mi><mi>v</mi></msub><mo>+</mo><mi>η</mi><munder><mo>∑</mo><mrow><mi>t</mi><mo>:</mo><msub><mi>d</mi><mrow><mi>v</mi><mo separator="true">,</mo><mi>t</mi></mrow></msub><mo>&gt;</mo><mn>0</mn></mrow></munder><mfrac><mn>1</mn><msub><mi>d</mi><mrow><mi>v</mi><mo separator="true">,</mo><mi>t</mi></mrow></msub></mfrac><munder><mo>∑</mo><mrow><mi>e</mi><mo>:</mo><mi>v</mi><mo stretchy="false">(</mo><mi>e</mi><mo stretchy="false">)</mo><mo>=</mo><mi>v</mi><mo separator="true">,</mo><mtext> </mtext><mi>t</mi><mo stretchy="false">(</mo><mi>e</mi><mo stretchy="false">)</mo><mo>=</mo><mi>t</mi></mrow></munder><msub><mi>m</mi><mi>e</mi></msub><mo fence="true">)</mo></mrow><mo separator="true">,</mo><mspace width="2em"/><mi mathvariant="script">N</mi><mo stretchy="false">(</mo><mi>q</mi><mo stretchy="false">)</mo><mo>=</mo><mfrac><mi>q</mi><mrow><mo stretchy="false">∥</mo><mi>q</mi><msub><mo stretchy="false">∥</mo><mn>2</mn></msub></mrow></mfrac><mi mathvariant="normal">.</mi></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+m_e&amp;=(h_e-e_{v(e)})+L_{t(e)}R_{t(e)}(h_e-e_{v(e)}),\\
+d_{v,t}&amp;=\left|\{e:v(e)=v,\ t(e)=t\}\right|,\\
+z_v&amp;=\mathcal{N}\!\left(
+e_v+\eta\sum_{t:d_{v,t}&gt;0}\frac{1}{d_{v,t}}
+\sum_{e:v(e)=v,\,t(e)=t}m_e\right),
+\qquad \mathcal{N}(q)=\frac{q}{\lVert q\rVert_2}.
+\end{aligned}</annotation></semantics></math></span></p>
+<p>其中 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>L</mi><mi>t</mi></msub><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><mrow><mn>768</mn><mo>×</mo><mn>16</mn></mrow></msup></mrow><annotation encoding="application/x-tex">L_t\in\mathbb{R}^{768\times16}</annotation></semantics></math></span>，<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mi>t</mi></msub><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><mrow><mn>16</mn><mo>×</mo><mn>768</mn></mrow></msup></mrow><annotation encoding="application/x-tex">R_t\in\mathbb{R}^{16\times768}</annotation></semantics></math></span>，固定 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>η</mi><mo>=</mo><mn>0.1</mn></mrow><annotation encoding="application/x-tex">\eta=0.1</annotation></semantics></math></span>。每种关系类型分别除以对应目标节点度数，与现有图实现一致。实现归一化使用既有的数值 epsilon。</p>
+<p>用<strong>共同 CP 参数</strong>读取更新原型，不再为知识分支额外随机初始化一套三元评分器：</p>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.25em" columnalign="right left" columnspacing="0em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mi mathvariant="normal">Δ</mi><msub><mi>c</mi><mrow><mi>a</mi><mi>o</mi></mrow></msub><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mi>ρ</mi><mi>κ</mi><mtext> </mtext><msup><mi>g</mi><mi mathvariant="normal">⊤</mi></msup><msub><mi>W</mi><mi>c</mi></msub><mrow><mo fence="true">[</mo><mo stretchy="false">(</mo><msub><mi>A</mi><mi>u</mi></msub><msub><mi>z</mi><mi>a</mi></msub><mo stretchy="false">)</mo><mo>⊙</mo><mo stretchy="false">(</mo><msub><mi>A</mi><mi>v</mi></msub><msub><mi>z</mi><mi>o</mi></msub><mo stretchy="false">)</mo><mo>−</mo><mo stretchy="false">(</mo><msub><mi>A</mi><mi>u</mi></msub><msub><mi>e</mi><mi>a</mi></msub><mo stretchy="false">)</mo><mo>⊙</mo><mo stretchy="false">(</mo><msub><mi>A</mi><mi>v</mi></msub><msub><mi>e</mi><mi>o</mi></msub><mo stretchy="false">)</mo><mo fence="true">]</mo></mrow><mo separator="true">,</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><msubsup><mi>c</mi><mrow><mi>a</mi><mi>o</mi></mrow><mi>K</mi></msubsup><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><msubsup><mi>c</mi><mrow><mi>a</mi><mi>o</mi></mrow><mn>0</mn></msubsup><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>+</mo><mi>α</mi><mi mathvariant="normal">Δ</mi><msub><mi>c</mi><mrow><mi>a</mi><mi>o</mi></mrow></msub><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+\Delta c_{ao}(x)
+&amp;=\rho\kappa\,g^\top W_c
+\left[
+(A_u z_a)\odot(A_v z_o)
+-(A_u e_a)\odot(A_v e_o)
+\right],\\
+c^K_{ao}(x)&amp;=c^0_{ao}(x)+\alpha\Delta c_{ao}(x).
+\end{aligned}</annotation></semantics></math></span></p>
+<p>Knowledge 和 Shuffle 的可训练标量 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi></mrow><annotation encoding="application/x-tex">\alpha</annotation></semantics></math></span> 均初始化为 0；<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>L</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">L_t</annotation></semantics></math></span> 用标准差 0.01 的高斯初始化，<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mi>t</mi></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">R_t=0</annotation></semantics></math></span>。因此训练起点严格为同一个 G0 条件评分，之后通过 CZSL 监督直接学习如何使用原型残差。第一步可先更新 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi></mrow><annotation encoding="application/x-tex">\alpha</annotation></semantics></math></span>，随后梯度进入消息参数。</p>
+<p>完整静态项始终保留。设关系聚合为零且锚点已单位归一化，则 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mi>a</mi></msub><mo>=</mo><msub><mi>e</mi><mi>a</mi></msub><mo separator="true">,</mo><msub><mi>z</mi><mi>o</mi></msub><mo>=</mo><msub><mi>e</mi><mi>o</mi></msub></mrow><annotation encoding="application/x-tex">z_a=e_a,z_o=e_o</annotation></semantics></math></span>，从而 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>c</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\Delta c=0</annotation></semantics></math></span>、<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>c</mi><mi>K</mi></msup><mo>=</mo><msup><mi>c</mi><mn>0</mn></msup></mrow><annotation encoding="application/x-tex">c^K=c^0</annotation></semantics></math></span>。这里消失的是知识引起的增量，原本的完整 CP 能力仍然存在。</p>
+<p>三个模型统一输出：</p>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>P</mi><mo stretchy="false">(</mo><mi>a</mi><mo>∣</mo><mi>o</mi><mo separator="true">,</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><mfrac><mrow><mi>exp</mi><mo>⁡</mo><msub><mi>c</mi><mrow><mi>a</mi><mi>o</mi></mrow></msub><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo></mrow><mrow><munder><mo>∑</mo><msup><mi>a</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup></munder><mi>exp</mi><mo>⁡</mo><msub><mi>c</mi><mrow><msup><mi>a</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mi>o</mi></mrow></msub><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo></mrow></mfrac><mo separator="true">,</mo><mspace width="2em"/><msub><mi>J</mi><mrow><mi>a</mi><mi>o</mi></mrow></msub><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><mi>log</mi><mo>⁡</mo><msub><mi>P</mi><mn>0</mn></msub><mo stretchy="false">(</mo><mi>o</mi><mo>∣</mo><mi>x</mi><mo stretchy="false">)</mo><mo>+</mo><mi>log</mi><mo>⁡</mo><mi>P</mi><mo stretchy="false">(</mo><mi>a</mi><mo>∣</mo><mi>o</mi><mo separator="true">,</mo><mi>x</mi><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">P(a\mid o,x)=\frac{\exp c_{ao}(x)}{\sum_{a&#x27;}\exp c_{a&#x27;o}(x)},
+\qquad
+J_{ao}(x)=\log P_0(o\mid x)+\log P(a\mid o,x).</annotation></semantics></math></span></p>
+<p>没有额外的知识物体 logit 修正。未知组合通过对应原型和共享 CP 因子评分，推理时不使用真实物体标签。</p>
+<h3>5.4 训练目标与固定配方</h3>
+<p>沿用 G0 的任务目标。设训练候选集合为 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="script">C</mi><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\mathcal{C}_{\mathrm{tr}}</annotation></semantics></math></span>，样本真值为 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">(</mo><msub><mi>a</mi><mi>i</mi></msub><mo separator="true">,</mo><msub><mi>o</mi><mi>i</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">(a_i,o_i)</annotation></semantics></math></span>，定义：</p>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.25em" columnalign="right left" columnspacing="0em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msub><mi mathvariant="normal">ℓ</mi><mrow><mrow><mi mathvariant="normal">p</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">r</mi></mrow><mo separator="true">,</mo><mi>i</mi></mrow></msub></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mo>−</mo><msub><mi>J</mi><mrow><msub><mi>a</mi><mi>i</mi></msub><msub><mi>o</mi><mi>i</mi></msub></mrow></msub><mo stretchy="false">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>+</mo><mi>log</mi><mo>⁡</mo><munder><mo>∑</mo><mrow><mo stretchy="false">(</mo><mi>a</mi><mo separator="true">,</mo><mi>o</mi><mo stretchy="false">)</mo><mo>∈</mo><msub><mi mathvariant="script">C</mi><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi></mrow></msub></mrow></munder><mi>exp</mi><mo>⁡</mo><msub><mi>J</mi><mrow><mi>a</mi><mi>o</mi></mrow></msub><mo stretchy="false">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo separator="true">,</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msub><mi mathvariant="normal">ℓ</mi><mrow><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">d</mi></mrow><mo separator="true">,</mo><mi>i</mi></mrow></msub></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mo>−</mo><mi>log</mi><mo>⁡</mo><mi>P</mi><mo stretchy="false">(</mo><msub><mi>a</mi><mi>i</mi></msub><mo>∣</mo><msub><mi>o</mi><mi>i</mi></msub><mo separator="true">,</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo separator="true">,</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msub><mi mathvariant="normal">ℓ</mi><mrow><mrow><mi mathvariant="normal">o</mi><mi mathvariant="normal">b</mi><mi mathvariant="normal">j</mi></mrow><mo separator="true">,</mo><mi>i</mi></mrow></msub></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mo>−</mo><mi>log</mi><mo>⁡</mo><msub><mi>P</mi><mn>0</mn></msub><mo stretchy="false">(</mo><msub><mi>o</mi><mi>i</mi></msub><mo>∣</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo separator="true">,</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mi mathvariant="script">L</mi></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mfrac><mn>1.5</mn><mrow><mn>1</mn><mo>+</mo><mi>β</mi></mrow></mfrac><mfrac><mn>1</mn><mi>B</mi></mfrac><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>B</mi></munderover><mrow><mo fence="true">[</mo><msub><mi mathvariant="normal">ℓ</mi><mrow><mrow><mi mathvariant="normal">p</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">r</mi></mrow><mo separator="true">,</mo><mi>i</mi></mrow></msub><mo>+</mo><mi>β</mi><mo stretchy="false">(</mo><msub><mi mathvariant="normal">ℓ</mi><mrow><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">d</mi></mrow><mo separator="true">,</mo><mi>i</mi></mrow></msub><mo>+</mo><msub><mi mathvariant="normal">ℓ</mi><mrow><mrow><mi mathvariant="normal">o</mi><mi mathvariant="normal">b</mi><mi mathvariant="normal">j</mi></mrow><mo separator="true">,</mo><mi>i</mi></mrow></msub><mo stretchy="false">)</mo><mo fence="true">]</mo></mrow><mo separator="true">,</mo><mspace width="2em"/><mi>β</mi><mo>=</mo><mn>0.075.</mn></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+\ell_{\mathrm{pair},i}
+&amp;=-J_{a_i o_i}(x_i)
++\log\sum_{(a,o)\in\mathcal{C}_{\mathrm{tr}}}\exp J_{ao}(x_i),\\
+\ell_{\mathrm{cond},i}&amp;=-\log P(a_i\mid o_i,x_i),\\
+\ell_{\mathrm{obj},i}&amp;=-\log P_0(o_i\mid x_i),\\
+\mathcal{L}
+&amp;=\frac{1.5}{1+\beta}\frac1B\sum_{i=1}^{B}
+\left[\ell_{\mathrm{pair},i}
++\beta(\ell_{\mathrm{cond},i}+\ell_{\mathrm{obj},i})\right],
+\qquad\beta=0.075.
+\end{aligned}</annotation></semantics></math></span></p>
+<p>物体项因分支冻结而成为常数；保留它便于与原目标对齐。组合归一化仍会对所有训练候选的条件分数产生梯度。三组不增加效用监督或额外置信度损失。</p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>下一轮固定设置</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>初始化</td>
+<td>对应 seed 的 G0、按原 VAL CW AUC 选出的 checkpoint</td>
+</tr>
+<tr>
+<td>更新范围</td>
+<td>三组共同更新 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>B</mi><mi>c</mi></msub><mo separator="true">,</mo><msub><mi>C</mi><mi>c</mi></msub><mo separator="true">,</mo><msub><mi>A</mi><mi>u</mi></msub><mo separator="true">,</mo><msub><mi>A</mi><mi>v</mi></msub><mo separator="true">,</mo><msub><mi>W</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">B_c,C_c,A_u,A_v,W_c</annotation></semantics></math></span>；知识两组另更新 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>L</mi><mi>t</mi></msub><mo separator="true">,</mo><msub><mi>R</mi><mi>t</mi></msub><mo separator="true">,</mo><mi>α</mi></mrow><annotation encoding="application/x-tex">L_t,R_t,\alpha</annotation></semantics></math></span></td>
+</tr>
+<tr>
+<td>训练</td>
+<td>每组续训 10 epochs，有效 batch64；CLIP 与物体评分冻结</td>
+</tr>
+<tr>
+<td>学习率</td>
+<td><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>B</mi><mi>c</mi></msub><mo separator="true">,</mo><msub><mi>C</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">B_c,C_c</annotation></semantics></math></span> 为 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>10</mn><mrow><mo>−</mo><mn>3</mn></mrow></msup></mrow><annotation encoding="application/x-tex">10^{-3}</annotation></semantics></math></span>；<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>A</mi><mi>u</mi></msub><mo separator="true">,</mo><msub><mi>A</mi><mi>v</mi></msub><mo separator="true">,</mo><msub><mi>W</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">A_u,A_v,W_c</annotation></semantics></math></span> 为 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>3</mn><mo>×</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>4</mn></mrow></msup></mrow><annotation encoding="application/x-tex">3\times10^{-4}</annotation></semantics></math></span>；<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>L</mi><mi>t</mi></msub><mo separator="true">,</mo><msub><mi>R</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">L_t,R_t</annotation></semantics></math></span> 为 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>3</mn><mo>×</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>4</mn></mrow></msup></mrow><annotation encoding="application/x-tex">3\times10^{-4}</annotation></semantics></math></span>；<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi></mrow><annotation encoding="application/x-tex">\alpha</annotation></semantics></math></span> 为 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>10</mn><mrow><mo>−</mo><mn>3</mn></mrow></msup></mrow><annotation encoding="application/x-tex">10^{-3}</annotation></semantics></math></span></td>
+</tr>
+<tr>
+<td>优化</td>
+<td>AdamW，betas=(0.9,0.999)，eps=<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>10</mn><mrow><mo>−</mo><mn>8</mn></mrow></msup></mrow><annotation encoding="application/x-tex">10^{-8}</annotation></semantics></math></span>，矩阵 weight decay=<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>10</mn><mrow><mo>−</mo><mn>4</mn></mrow></msup></mrow><annotation encoding="application/x-tex">10^{-4}</annotation></semantics></math></span>；<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi></mrow><annotation encoding="application/x-tex">\alpha</annotation></semantics></math></span> 不做 weight decay；梯度范数裁剪 1.0</td>
+</tr>
+<tr>
+<td>学习率调度</td>
+<td>逐 epoch 余弦衰减，第 1 个 epoch 使用初始学习率，第 10 个 epoch 为初始值的 1%</td>
+</tr>
+<tr>
+<td>结构</td>
+<td>静态 CP rank32，后编码低秩矩阵 rank8，消息 rank16；<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>η</mi><mo>=</mo><mn>0.1</mn></mrow><annotation encoding="application/x-tex">\eta=0.1</annotation></semantics></math></span></td>
+</tr>
+<tr>
+<td>数据与随机性</td>
+<td>三组使用相同训练图像、候选、batch 顺序；分支初始化使用独立随机生成器</td>
+</tr>
+<tr>
+<td>选模</td>
+<td>每 epoch 计算 VAL CW native AUC，取最大值；同值取更早 epoch；该权重统一评估 CW/OW</td>
+</tr>
+<tr>
+<td>校准</td>
+<td>各 world 在 VAL 上确定 bias 与温度，固定后报告 TEST HM/NLL；AUC 仍对 bias 扫描</td>
+</tr>
+</tbody></table>
+<p>余弦调度对第 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>∈</mo><mo stretchy="false">{</mo><mn>0</mn><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><mn>9</mn><mo stretchy="false">}</mo></mrow><annotation encoding="application/x-tex">k\in\{0,\ldots,9\}</annotation></semantics></math></span> 个 epoch 定义为：</p>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mrow><mi mathvariant="normal">l</mi><mi mathvariant="normal">r</mi></mrow><mo stretchy="false">(</mo><mi>k</mi><mo stretchy="false">)</mo><mo>=</mo><msub><mrow><mi mathvariant="normal">l</mi><mi mathvariant="normal">r</mi></mrow><mn>0</mn></msub><mrow><mo fence="true">[</mo><mn>0.01</mn><mo>+</mo><mn>0.99</mn><mfrac><mrow><mn>1</mn><mo>+</mo><mi>cos</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>π</mi><mi>k</mi><mi mathvariant="normal">/</mi><mn>9</mn><mo stretchy="false">)</mo></mrow><mn>2</mn></mfrac><mo fence="true">]</mo></mrow><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\mathrm{lr}(k)=\mathrm{lr}_0
+\left[0.01+0.99\frac{1+\cos(\pi k/9)}{2}\right].</annotation></semantics></math></span></p>
+<p>这个实验需要新增“G0 条件知识残差”的模型与训练入口。现有 <code>run.py pipeline</code> 仍执行 v1 的教师—测量—效用流程，不能通过改一个 variant 名称完成上述实验。本文交付的是分析与确定后的实验规格，未把尚未实现的入口写成可运行命令。</p>
+<h3>5.5 三张卡一次完成</h3>
+<table>
+<thead>
+<tr>
+<th>GPU 物理卡号</th>
+<th>seed</th>
+<th>卡内顺序</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>1</strong></td>
+<td>3351</td>
+<td>Base → Knowledge → Shuffle</td>
+</tr>
+<tr>
+<td><strong>2</strong></td>
+<td>3352</td>
+<td>Base → Knowledge → Shuffle</td>
+</tr>
+<tr>
+<td><strong>3</strong></td>
+<td>3353</td>
+<td>Base → Knowledge → Shuffle</td>
+</tr>
+</tbody></table>
+<p>三张卡并行；同一卡内三组依次训练，共 9 次。建议结果统一存入独立的 <code>conditional_knowledge_v2</code> 工作目录，每个 seed 下分 Base、Knowledge、Shuffle。固定映射、配置、checkpoint 和逐图像预测随结果一并保存。</p>
+<p>现有 CLIP 图像／文本缓存、知识文本与 source 向量可以复用；G0 checkpoint 按其原始标签顺序和配置加载。v1 教师测量标签、效用模型及选边概率依赖旧评分器，不带入新模型。</p>
+<p>已有日志记录的主 seed 阶段耗时合计为 54.81、51.70、50.63 分钟，包含教师、测量、参考训练、适配及效用拟合；不含缓存编码、部分调参与最终评估。下一轮改成 9 个确定性缓存特征头训练，按首个正常训练 epoch 的日志推算整队列时间即可，无需再做一轮独立的耗时实验。</p>
+<h2>6. 下一轮统一看什么，以及如何决定后续主线</h2>
+<p>正式结果用一张三 seed 总表呈现，下列指标全部从同一批训练及最终预测中产生：</p>
+<table>
+<thead>
+<tr>
+<th>指标组</th>
+<th>具体记录</th>
+<th>对应的研究判断</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>主指标</td>
+<td>CW/OW native AUC，三 seed 均值 ± SD；Knowledge−Base、Knowledge−Shuffle 的逐 seed 差值</td>
+<td>模块是否提高 CZSL，正确知识是否提供额外信息</td>
+</tr>
+<tr>
+<td>固定工作点</td>
+<td>VAL bias 下的 TEST seen、unseen、HM；TEST NLL</td>
+<td>曲线收益是否同时体现为可用的识别工作点</td>
+</tr>
+<tr>
+<td>条件属性</td>
+<td>固定真实物体后的属性准确率，分别报告 seen/unseen 图像；未见样本真实属性对最强错误属性的 margin</td>
+<td>知识是否改善当前最有希望的属性信号</td>
+</tr>
+<tr>
+<td>物体竞争</td>
+<td>独立 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mn>0</mn></msub><mo stretchy="false">(</mo><mi>o</mi><mo>∣</mo><mi>x</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">P_0(o\mid x)</annotation></semantics></math></span> top-1；联合 top-1 的物体命中率；物体正确而属性错误的数量</td>
+<td>共同物体评分是否一致，条件修正如何改变联合竞争</td>
+</tr>
+<tr>
+<td>代价与作用量</td>
+<td>训练时间、峰值显存、新增参数；最终 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi></mrow><annotation encoding="application/x-tex">\alpha</annotation></semantics></math></span> 与知识增量的均值绝对值</td>
+<td>收益来自多大计算投入，知识分支是否实际参与评分</td>
+</tr>
+</tbody></table>
+<p>未见样本的条件属性 margin 定义为：</p>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>M</mi><mi>i</mi></msub><mo>=</mo><msub><mi>c</mi><mrow><msub><mi>a</mi><mi>i</mi></msub><msub><mi>o</mi><mi>i</mi></msub></mrow></msub><mo stretchy="false">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>−</mo><munder><mrow><mi>max</mi><mo>⁡</mo></mrow><mrow><mi>a</mi><mo mathvariant="normal">≠</mo><msub><mi>a</mi><mi>i</mi></msub></mrow></munder><msub><mi>c</mi><mrow><mi>a</mi><msub><mi>o</mi><mi>i</mi></msub></mrow></msub><mo stretchy="false">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">M_i=c_{a_i o_i}(x_i)
+-\max_{a\ne a_i}c_{a o_i}(x_i).</annotation></semantics></math></span></p>
+<p>在相同完整属性词表下计算，并单独报告未见组合图像的平均 margin、正 margin 比例。Knowledge 与 Shuffle 的新增参数数目相同；不再用“参数数目相近”代替内容对照。</p>
+<p><strong>我对后续主线的选择是：先用这 9 次训练把“知识内容是否有用”直接做清楚，同时结束 v1 的效用估计与选图研究。</strong> Knowledge 同时优于 Base 和 Shuffle，才构成继续研究知识条件判别的依据；只优于 Base、接近 Shuffle，收益主要应归于新增分支的参数化；两项都没有形成清楚增益，则将后续投入转回此前讨论的可训练局部视觉判别，即同一物体条件下先比较属性证据、再汇聚位置。</p>
+<p>该局部视觉方向已经在 VG-CPOD roundK 分析中形成了具体方案。它与本轮三组知识实验不同时混入一个新模型：前者改变视觉证据，后者检验外部语义附件，混合修改会再次丢失主要增益来源。</p>
+<p>当前数据已经足够结束“再跑更多 v1 噪声或小消融以寻找优势”的工作。下一轮的价值在于恢复强识别能力后，集中回答一个明确的问题；不再延长教师、效用预测、风险与随机选图组成的实验链。</p>
+<h2>结果图像</h2>
+<p><img src="confirmed/figures/01_main_auc.png" alt="三 seed 主实验 AUC"></p>
+<p>点为独立训练 seed，误差条为三 seed 的样本标准差。</p>
+<p><img src="confirmed/figures/02_utility_audit.png" alt="独立效用审计"></p>
+<p>Q5 每个 seed 含 3,072 条标签；方向准确率以 50% 为随机基准。</p>
+<p><img src="confirmed/figures/03_noise_ow_curves.png" alt="完整 OW 噪声曲线"></p>
+<p>噪声仅使用训练 seed3351，曲线对五个扰动 seed、三种关系求均值；capacity 虚线来自其实现对附件扰动的不变性。</p>
+<p><img src="confirmed/figures/04_error_decomposition.png" alt="联合物体与条件属性准确率"></p>
+<p>全部图像提供 PNG 与 SVG，图表源数据见 <a href="confirmed/">CSV 汇总</a>。</p>
+<h2>数据与实现索引</h2>
+<p>本报告的全部汇总值、完整 OW 噪声恢复和同 Q5 子集比较保存在本地分析目录中。下面链接用于复核，不需要重新训练。</p>
+<ul>
+<li><a href="../../results/server-results-20261022/validation/source_archive_integrity.json">原始归档完整性校验</a></li>
+<li><a href="confirmed/analysis.json">完整派生分析（含逐 seed 数值、审计、噪声及耗时）</a></li>
+<li><a href="confirmed/noise_ow_recovered.csv">从原日志恢复的完整 600 次 OW 噪声结果</a></li>
+<li><a href="confirmed/noise_long.csv">现存 JSON 的 CW/OW 噪声长表</a></li>
+<li><a href="recompute_metrics.py">本次分析脚本</a></li>
+<li><a href="../../code/trustcpf_clip_v1/trustcpf/model.py">v1 模型：完整三元项与差分项</a></li>
+<li><a href="../../code/trustcpf_clip_v1/trustcpf/engine.py">v1 训练、选模与评价</a></li>
+<li><a href="../../code/trustcpf_clip_v1/trustcpf/stages.py">v1 效用、选图、消融与噪声流程</a></li>
+<li><a href="../../code/trustcpf_clip_v1/trustcpf/utility.py">v1 测量标签与效用预测定义</a></li>
+<li><a href="../../code/trustcpf_clip_v1/trustcpf/graph.py">v1 关系归一化与扰动</a></li>
+<li><a href="../../../../VG-CPOD%E6%96%B9%E6%A1%88/12/results/raw_export/roundK_20261021/matched_native_summary.csv">历史 G0 matched native 汇总</a></li>
+<li><a href="../../../../VG-CPOD%E6%96%B9%E6%A1%88/12/configs/round_g/G0.json">历史 G0 配置</a></li>
+<li><a href="../../../../VG-CPOD%E6%96%B9%E6%A1%88/12/code/vgcpod_v1_roundK/vgcpod/model.py">历史静态 CP 模型与损失实现</a></li>
+<li><a href="../../../../VG-CPOD%E6%96%B9%E6%A1%88/12/code/original_analysis/analysis_roundK_results_20261021/research_direction.md">此前局部视觉判别方向</a></li>
+</ul>
+</article></body></html>

@@ -111,6 +111,10 @@ def verify():
     if (ROOT/'TRUST-CPF方案/v1/inputs.json').is_file():
         from register_trustcpf_v1 import check as check_trustcpf
         trust_check=check_trustcpf()
+        results_map=ROOT/'TRUST-CPF方案/v1/results/server-results-20261022/server_member_map.json'
+        if results_map.exists():
+            from register_trustcpf_results_20261022 import check as check_trustcpf_results
+            trust_check['server_results_20261022']=check_trustcpf_results()
     result={'passed':not(failures or links or formatting or syntax),'original_canonical_files':len(expected),
       'changed_or_missing':failures,'broken_links':links,'formatting_errors':formatting,
       'python_syntax_errors':syntax,'vgcpod':route_check,'vgcpod_round_b':b_check,'vgcpod_round_c':c_check,'vgcpod_round_d':d_check,'vgcpod_round_e':e_check,'vgcpod_round_f':f_check,'vgcpod_round_g':g_check,'vgcpod_round_h':h_check,'vgcpod_round_i':i_check,'vgcpod_round_j':j_check,'vgcpod_round_k':k_check,'trustcpf':trust_check,'training_started':False}

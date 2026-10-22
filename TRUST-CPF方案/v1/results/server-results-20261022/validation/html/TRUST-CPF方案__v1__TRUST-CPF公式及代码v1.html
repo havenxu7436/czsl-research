@@ -1,0 +1,1064 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><base href="http://127.0.0.1:8767/TRUST-CPF%E6%96%B9%E6%A1%88/v1/"><title>TRUST-CPF方案/v1/TRUST-CPF公式及代码v1.md</title><style>body{font:16px/1.65 system-ui,"Microsoft YaHei",sans-serif;color:#1f2328;max-width:1080px;margin:0 auto;padding:38px;background:#fff}h1,h2{border-bottom:1px solid #d1d9e0;padding-bottom:.3em}h1{font-size:29px}h2{font-size:23px;margin-top:1.5em}h3{font-size:19px}a{color:#0969da;text-decoration:none}table{border-collapse:collapse;max-width:100%;margin:18px 0;font-size:14px}th,td{border:1px solid #d1d9e0;padding:7px 11px;text-align:left}tr:nth-child(even){background:#f6f8fa}pre{background:#f6f8fa;padding:16px;overflow:auto;line-height:1.5;border-radius:6px}code{font-family:Consolas,monospace;font-size:.88em}img{max-width:100%;height:auto}math[display=block]{margin:20px 0;overflow-x:auto;padding:8px 0}p{overflow-wrap:anywhere}</style></head><body><article><h1>TRUST-CPF公式及代码v1：CLIP框架</h1>
+<p>版本：2026-10-21。公式对应本包实际源码，代码块由AST逐段提取。对象条件属性概率、配对关系效用和风险选图均以本版CLIP实现为准。各块按标明的源码上下文阅读，类方法的self对应所属模型实例。</p>
+<pre><code class="language-python">import math
+import numpy as np
+import torch
+from torch import nn
+from torch.nn import functional as F
+</code></pre>
+<h2>0. 符号、张量与单位化</h2>
+<p>图文维度<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>=</mo><mn>768</mn></mrow><annotation encoding="application/x-tex">d=768</annotation></semantics></math></span>，属性<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi><mo>=</mo><mn>16</mn></mrow><annotation encoding="application/x-tex">A=16</annotation></semantics></math></span>，对象<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo>=</mo><mn>12</mn></mrow><annotation encoding="application/x-tex">O=12</annotation></semantics></math></span>，关系<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>E</mi><mo>=</mo><mn>96</mn></mrow><annotation encoding="application/x-tex">E=96</annotation></semantics></math></span>，三线性秩<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>=</mo><mn>64</mn></mrow><annotation encoding="application/x-tex">r=64</annotation></semantics></math></span>，消息秩<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>q</mi><mo>=</mo><mn>16</mn></mrow><annotation encoding="application/x-tex">q=16</annotation></semantics></math></span>。
+图像缓存为<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo stretchy="false">[</mo><mi>B</mi><mo separator="true">,</mo><mi>d</mi><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">g[B,d]</annotation></semantics></math></span>、<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>f</mi><mi>a</mi></msup><mo stretchy="false">[</mo><mi>B</mi><mo separator="true">,</mo><mi>A</mi><mo separator="true">,</mo><mi>d</mi><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">f^a[B,A,d]</annotation></semantics></math></span>、<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>f</mi><mi>o</mi></msup><mo stretchy="false">[</mo><mi>B</mi><mo separator="true">,</mo><mi>O</mi><mo separator="true">,</mo><mi>d</mi><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">f^o[B,O,d]</annotation></semantics></math></span>；联合概率轴为<code>[batch, object, attribute]</code>。</p>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi mathvariant="script">N</mi><mo stretchy="false">(</mo><mi>v</mi><mo stretchy="false">)</mo><mo>=</mo><mi>v</mi><mi mathvariant="normal">/</mi><mi>max</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi mathvariant="normal">∥</mi><mi>v</mi><msub><mi mathvariant="normal">∥</mi><mn>2</mn></msub><mo separator="true">,</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>8</mn></mrow></msup><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\mathcal N(v)=v/\max(\|v\|_2,10^{-8}).</annotation></semantics></math></span></p>
+<p><a href="code/trustcpf_clip_v1/trustcpf/common.py#L72"><code>trustcpf/common.py · unit</code></a>，源码第72行。</p>
+<pre><code class="language-python">def unit(x):
+    return x / x.norm(dim=-1, keepdim=True).clamp_min(1e-8)
+</code></pre>
+<h2>1. CLIP视觉与文本编码</h2>
+<p>CLIP ViT-L/14视觉末层的CLS和256个补丁同时通过<code>ln_post</code>与<code>visual.proj</code>，得到共同768维表示。</p>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>g</mi><mo>=</mo><mi mathvariant="script">N</mi><mo stretchy="false">(</mo><msubsup><mi>P</mi><mi>v</mi><mi mathvariant="normal">⊤</mi></msubsup><msub><mo><mrow><mi mathvariant="normal">L</mi><mi mathvariant="normal">N</mi></mrow></mo><mrow><mi>p</mi><mi>o</mi><mi>s</mi><mi>t</mi></mrow></msub><mo stretchy="false">(</mo><msub><mi>H</mi><mn>0</mn></msub><mo stretchy="false">)</mo><mo stretchy="false">)</mo><mo separator="true">,</mo><mspace width="1em"/><msub><mi>p</mi><mi mathvariant="normal">ℓ</mi></msub><mo>=</mo><mi mathvariant="script">N</mi><mo stretchy="false">(</mo><msubsup><mi>P</mi><mi>v</mi><mi mathvariant="normal">⊤</mi></msubsup><msub><mo><mrow><mi mathvariant="normal">L</mi><mi mathvariant="normal">N</mi></mrow></mo><mrow><mi>p</mi><mi>o</mi><mi>s</mi><mi>t</mi></mrow></msub><mo stretchy="false">(</mo><msub><mi>H</mi><mi mathvariant="normal">ℓ</mi></msub><mo stretchy="false">)</mo><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">g=\mathcal N(P_v^\top\mathop{\mathrm{LN}}\nolimits_{post}(H_0)),\quad p_\ell=\mathcal N(P_v^\top\mathop{\mathrm{LN}}\nolimits_{post}(H_\ell)).</annotation></semantics></math></span></p>
+<p>编码FP32，缓存FP16，输入预处理为官方CLIP的Resize、CenterCrop、RGB和Normalize。</p>
+<p><a href="code/trustcpf_clip_v1/trustcpf/features.py#L17"><code>trustcpf/features.py · visual_tokens</code></a>，源码第17行。</p>
+<pre><code class="language-python">def visual_tokens(visual, images):
+    &quot;&quot;&quot;Return CLS and patches after ln_post and projection, in FP32 unit vectors.&quot;&quot;&quot;
+    x = visual.conv1(images.to(visual.conv1.weight.dtype))
+    x = x.reshape(x.shape[0], x.shape[1], -1).permute(0, 2, 1)
+    cls = visual.class_embedding.to(x.dtype).expand(x.shape[0], 1, -1)
+    x = torch.cat([cls, x], dim=1)
+    x = visual.ln_pre(x + visual.positional_embedding.to(x.dtype))
+    x = visual.transformer(x.permute(1, 0, 2)).permute(1, 0, 2)
+    x = visual.ln_post(x)
+    if visual.proj is not None:
+        x = x @ visual.proj
+    x = unit(x.float())
+    return x[:, 0], x[:, 1:]
+</code></pre>
+<h2>1.1 名称、组合与领域Prompt</h2>
+<p>属性、对象、组合文本分别编码为<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>a</mi></msub><mo separator="true">,</mo><msub><mi>e</mi><mi>o</mi></msub><mo separator="true">,</mo><msub><mi>e</mi><mrow><mi>o</mi><mi>a</mi></mrow></msub></mrow><annotation encoding="application/x-tex">e_a,e_o,e_{oa}</annotation></semantics></math></span>。组合表按对象外层、属性内层reshape为<code>[O,A,768]</code>。</p>
+<p><a href="code/trustcpf_clip_v1/trustcpf/features.py#L37"><code>trustcpf/features.py · prompts</code></a>，源码第37行。</p>
+<pre><code class="language-python">def prompts():
+    names = read_json(ROOT / &#39;assets&#39; / &#39;names.json&#39;)
+    return {&#39;a&#39;: [&#39;a photo of footwear made of {}&#39;.format(a) for a in names[&#39;a&#39;]],
+            &#39;o&#39;: [&#39;a photo of {}&#39;.format(o) for o in names[&#39;o&#39;]],
+            &#39;c&#39;: [&#39;a photo of {} made of {}&#39;.format(o, a) for o in names[&#39;o&#39;] for a in names[&#39;a&#39;]]}
+</code></pre>
+<h2>1.2 类别查询补丁</h2>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>α</mi><mi mathvariant="normal">ℓ</mi></msub><mo stretchy="false">(</mo><mi>e</mi><mo stretchy="false">)</mo><mo>=</mo><msub><mo><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">x</mi></mrow></mo><mi mathvariant="normal">ℓ</mi></msub><mo stretchy="false">(</mo><msup><mi>e</mi><mi mathvariant="normal">⊤</mi></msup><msub><mi>p</mi><mi mathvariant="normal">ℓ</mi></msub><mi mathvariant="normal">/</mi><mn>0.07</mn><mo stretchy="false">)</mo><mo separator="true">,</mo><mspace width="1em"/><mi>f</mi><mo stretchy="false">(</mo><mi>e</mi><mo stretchy="false">)</mo><mo>=</mo><mi mathvariant="script">N</mi><mo stretchy="false">(</mo><munder><mo>∑</mo><mi mathvariant="normal">ℓ</mi></munder><msub><mi>α</mi><mi mathvariant="normal">ℓ</mi></msub><mo stretchy="false">(</mo><mi>e</mi><mo stretchy="false">)</mo><msub><mi>p</mi><mi mathvariant="normal">ℓ</mi></msub><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\alpha_\ell(e)=\mathop{\mathrm{softmax}}\nolimits_{\ell}(e^\top p_\ell/0.07),\quad f(e)=\mathcal N(\sum_\ell\alpha_\ell(e)p_\ell).</annotation></semantics></math></span></p>
+<p><a href="code/trustcpf_clip_v1/trustcpf/features.py#L32"><code>trustcpf/features.py · query_patches</code></a>，源码第32行。</p>
+<pre><code class="language-python">def query_patches(patches, queries, tau):
+    alpha = torch.einsum(&#39;qd,bld-&gt;bql&#39;, queries, patches).div(tau).softmax(-1)
+    return unit(torch.einsum(&#39;bql,bld-&gt;bqd&#39;, alpha, patches))
+</code></pre>
+<h2>1.3 缓存、数据轴和读取</h2>
+<p>缓存中的<code>g/fa/fo</code>以FP16保存，数据集读取后转换为FP32。共享适配器首先重新单位化，训练与评价使用相同输入契约。</p>
+<p><a href="code/trustcpf_clip_v1/trustcpf/data.py#L99"><code>trustcpf/data.py · FeatureDataset</code></a>，源码第99行。</p>
+<pre><code class="language-python">class FeatureDataset(Dataset):
+    def __init__(self, cache, phase):
+        self.root = Path(cache)
+        self.phase = phase
+        self.rows = read_json(self.root / (phase + &#39;_records.json&#39;))
+        self.arrays = None
+
+    def __len__(self):
+        return len(self.rows)
+
+    def __getitem__(self, index):
+        if self.arrays is None:
+            self.arrays = [np.load(self.root / self.phase / (name + &#39;.npy&#39;), mmap_mode=&#39;r&#39;)
+                           for name in (&#39;g&#39;, &#39;fa&#39;, &#39;fo&#39;)]
+        row = self.rows[index]
+        return tuple(torch.from_numpy(np.array(x[index], dtype=np.float32)) for x in self.arrays) + (
+            row[&#39;attr&#39;], row[&#39;object&#39;])
+
+    def __getstate__(self):
+        state = dict(self.__dict__)
+        state[&#39;arrays&#39;] = None
+        return state
+</code></pre>
+<h2>2. 共享低秩适配器</h2>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>A</mi><mi>θ</mi></msub><mo stretchy="false">(</mo><mi>z</mi><mo stretchy="false">)</mo><mo>=</mo><mi mathvariant="script">N</mi><mo stretchy="false">(</mo><mi>z</mi><mo>+</mo><mn>0.1</mn><mi>U</mi><mo><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">L</mi><mi mathvariant="normal">U</mi></mrow></mo><mo stretchy="false">(</mo><mi>D</mi><mi>z</mi><mo stretchy="false">)</mo><mo stretchy="false">)</mo><mo separator="true">,</mo><mspace width="1em"/><mi>D</mi><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><mrow><mn>8</mn><mo>×</mo><mn>768</mn></mrow></msup><mo separator="true">,</mo><mtext> </mtext><mi>U</mi><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><mrow><mn>768</mn><mo>×</mo><mn>8</mn></mrow></msup><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">A_\theta(z)=\mathcal N(z+0.1U\mathop{\mathrm{GELU}}\nolimits(Dz)),\quad D\in\mathbb R^{8\times768},\ U\in\mathbb R^{768\times8}.</annotation></semantics></math></span></p>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>U</mi></mrow><annotation encoding="application/x-tex">U</annotation></semantics></math></span>零初始化。该适配器共享于全局、属性查询与对象查询特征。</p>
+<p><a href="code/trustcpf_clip_v1/trustcpf/model.py#L8"><code>trustcpf/model.py · Adapter</code></a>，源码第8行。</p>
+<pre><code class="language-python">class Adapter(nn.Module):
+    def __init__(self, dim, rank=8):
+        super().__init__()
+        self.down = nn.Linear(dim, rank, bias=False)
+        self.up = nn.Linear(rank, dim, bias=False)
+        nn.init.zeros_(self.up.weight)
+
+    def forward(self, x):
+        return unit(x + .1 * self.up(F.gelu(self.down(x))))
+</code></pre>
+<h2>2.1 CLIP对象条件属性基底</h2>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.25em" columnalign="right left" columnspacing="0em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msubsup><mi>z</mi><mi>o</mi><mn>0</mn></msubsup></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><msubsup><mover accent="true"><mi>f</mi><mo stretchy="true">~</mo></mover><mi>o</mi><mi mathvariant="normal">⊤</mi></msubsup><msub><mi>e</mi><mi>o</mi></msub><mi mathvariant="normal">/</mi><msub><mi>T</mi><mn>0</mn></msub><mo separator="true">,</mo><mspace width="1em"/><msub><mi>c</mi><mrow><mi>x</mi><mi>o</mi></mrow></msub><mo>=</mo><mi mathvariant="script">N</mi><mo stretchy="false">(</mo><mover accent="true"><mi>g</mi><mo stretchy="true">~</mo></mover><mo>+</mo><mn>0.5</mn><msub><mover accent="true"><mi>f</mi><mo stretchy="true">~</mo></mover><mi>o</mi></msub><mo stretchy="false">)</mo><mo separator="true">,</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msubsup><mi>U</mi><mrow><mi>o</mi><mi>a</mi></mrow><mn>0</mn></msubsup></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mo stretchy="false">(</mo><msubsup><mi>c</mi><mrow><mi>x</mi><mi>o</mi></mrow><mi mathvariant="normal">⊤</mi></msubsup><msub><mi>e</mi><mrow><mi>o</mi><mi>a</mi></mrow></msub><mo>+</mo><msubsup><mover accent="true"><mi>f</mi><mo stretchy="true">~</mo></mover><mi>a</mi><mi mathvariant="normal">⊤</mi></msubsup><msub><mi>e</mi><mi>a</mi></msub><mo stretchy="false">)</mo><mi mathvariant="normal">/</mi><msub><mi>T</mi><mn>0</mn></msub><mo separator="true">,</mo><mspace width="1em"/><msub><mi>T</mi><mn>0</mn></msub><mo>=</mo><mn>0.07.</mn></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+z_o^0&amp;=\widetilde f_o^\top e_o/T_0,\quad c_{xo}=\mathcal N(\widetilde g+0.5\widetilde f_o),\\
+U_{oa}^0&amp;=(c_{xo}^\top e_{oa}+\widetilde f_a^\top e_a)/T_0,\quad T_0=0.07.
+\end{aligned}</annotation></semantics></math></span></p>
+<p>对象条件作用同时来自图像上下文<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>c</mi><mrow><mi>x</mi><mi>o</mi></mrow></msub></mrow><annotation encoding="application/x-tex">c_{xo}</annotation></semantics></math></span>和组合文本<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mrow><mi>o</mi><mi>a</mi></mrow></msub></mrow><annotation encoding="application/x-tex">e_{oa}</annotation></semantics></math></span>。</p>
+<p><a href="code/trustcpf_clip_v1/trustcpf/model.py#L60"><code>trustcpf/model.py · TrustCPF.base</code></a>，源码第60行。</p>
+<pre><code class="language-python">    def base(self, g, fa, fo):
+        g, fa, fo = self.adapter(g), self.adapter(fa), self.adapter(fo)
+        obj = torch.einsum(&#39;bod,od-&gt;bo&#39;, fo, self.eo) / self.cfg.get(&#39;t0&#39;, .07)
+        context = unit(g[:, None] + self.cfg.get(&#39;object_context&#39;, .5) * fo)
+        comp = torch.einsum(&#39;bod,oad-&gt;boa&#39;, context, self.ec)
+        attr = torch.einsum(&#39;bad,ad-&gt;ba&#39;, fa, self.ea)
+        cond = (comp + attr[:, None]) / self.cfg.get(&#39;t0&#39;, .07)
+        return {&#39;g&#39;: g, &#39;obj&#39;: obj, &#39;cond&#39;: cond, &#39;context&#39;: context}
+</code></pre>
+<h2>3. 知识关系与类型编号</h2>
+<p>类型编号OI/OE/AE依次为0/1/2。属性目标节点索引<code>0..A-1</code>，对象目标节点索引<code>A..A+O-1</code>。
+OI源为父类CLIP文本；OE/AE源为描述CLIP文本。每个描述槽是独立关系。</p>
+<p><a href="code/trustcpf_clip_v1/trustcpf/graph.py#L8"><code>trustcpf/graph.py · graph_records</code></a>，源码第8行。</p>
+<pre><code class="language-python">def graph_records(labels, knowledge):
+    attrs, objs = labels[&#39;attrs&#39;], labels[&#39;objs&#39;]
+    rows, parents = [], sorted(knowledge[&#39;oi&#39;])
+    # Node targets are attrs first, objects next; type indices OI/OE/AE=0/1/2.
+    for h in parents:
+        for o in knowledge[&#39;oi&#39;][h]:
+            rows.append({&#39;type&#39;: 0, &#39;target&#39;: len(attrs) + objs.index(o), &#39;text&#39;: h,
+                         &#39;prompt&#39;: &#39;a photo of &#39; + h, &#39;owner&#39;: o, &#39;slot&#39;: h})
+    for kind, labels_, offset, ty in [(&#39;oe&#39;, objs, len(attrs), 1), (&#39;ae&#39;, attrs, 0, 2)]:
+        for i, c in enumerate(labels_):
+            for k, text in enumerate(knowledge[kind][c]):
+                rows.append({&#39;type&#39;: ty, &#39;target&#39;: offset+i, &#39;text&#39;: text,
+                             &#39;prompt&#39;: &#39;a photo of footwear with &#39; + text, &#39;owner&#39;: c, &#39;slot&#39;: k})
+    return rows
+</code></pre>
+<h2>3.1 低秩类型消息</h2>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>d</mi><mi>e</mi></msub><mo>=</mo><msub><mi>h</mi><mi>u</mi></msub><mo>−</mo><msub><mi>h</mi><mi>c</mi></msub><mo separator="true">,</mo><mspace width="1em"/><msub><mi>W</mi><mi>ρ</mi></msub><mo>=</mo><mi>I</mi><mo>+</mo><msub><mi>L</mi><mi>ρ</mi></msub><msub><mi>R</mi><mi>ρ</mi></msub><mo separator="true">,</mo><mspace width="1em"/><msub><mi>m</mi><mi>e</mi></msub><mo>=</mo><msub><mi>d</mi><mi>e</mi></msub><mo>+</mo><msub><mi>L</mi><mi>ρ</mi></msub><mo stretchy="false">(</mo><msub><mi>R</mi><mi>ρ</mi></msub><msub><mi>d</mi><mi>e</mi></msub><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">d_e=h_u-h_c,\quad W_\rho=I+L_\rho R_\rho,\quad m_e=d_e+L_\rho(R_\rho d_e).</annotation></semantics></math></span></p>
+<p>768维下每类型消息矩阵用秩16参数化。<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mi>ρ</mi></msub></mrow><annotation encoding="application/x-tex">R_\rho</annotation></semantics></math></span>零初始化，对应<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>W</mi><mi>ρ</mi></msub><mo>=</mo><mi>I</mi></mrow><annotation encoding="application/x-tex">W_\rho=I</annotation></semantics></math></span>。</p>
+<p><a href="code/trustcpf_clip_v1/trustcpf/model.py#L29"><code>trustcpf/model.py · TypedGraph.messages</code></a>，源码第29行。</p>
+<pre><code class="language-python">    def messages(self):
+        diff = self.source - self.anchors[self.target]
+        low = torch.einsum(&#39;erd,ed-&gt;er&#39;, self.right[self.types], diff)
+        return diff + torch.einsum(&#39;edr,er-&gt;ed&#39;, self.left[self.types], low)
+</code></pre>
+<h2>3.2 固定候选度数的图聚合</h2>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>Z</mi><mi>c</mi></msub><mo stretchy="false">(</mo><mi>G</mi><mo stretchy="false">)</mo><mo>=</mo><mi mathvariant="script">N</mi><mrow><mo fence="true">(</mo><msub><mi>h</mi><mi>c</mi></msub><mo>+</mo><mn>0.1</mn><munder><mo>∑</mo><mi>ρ</mi></munder><mfrac><mrow><munder><mo>∑</mo><mrow><mi>e</mi><mo>∈</mo><msub><mi>N</mi><mi>ρ</mi></msub><mo stretchy="false">(</mo><mi>c</mi><mo stretchy="false">)</mo></mrow></munder><msub><mi>b</mi><mi>e</mi></msub><msub><mi>m</mi><mi>e</mi></msub></mrow><mrow><mi>max</mi><mo>⁡</mo><mo stretchy="false">(</mo><mn>1</mn><mo separator="true">,</mo><mi mathvariant="normal">∣</mi><msub><mi>N</mi><mi>ρ</mi></msub><mo stretchy="false">(</mo><mi>c</mi><mo stretchy="false">)</mo><mi mathvariant="normal">∣</mi><mo stretchy="false">)</mo></mrow></mfrac><mo fence="true">)</mo></mrow><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">Z_c(G)=\mathcal N\left(h_c+0.1\sum_\rho\frac{\sum_{e\in N_\rho(c)}b_em_e}{\max(1,|N_\rho(c)|)}\right).</annotation></semantics></math></span></p>
+<p>程序用关联矩阵乘法实现聚合，每次干预保持候选度数不变。</p>
+<p><a href="code/trustcpf_clip_v1/trustcpf/model.py#L34"><code>trustcpf/model.py · TypedGraph.forward</code></a>，源码第34行。</p>
+<pre><code class="language-python">    def forward(self, edges):
+        msg = self.messages() * (edges / self.degree)[:, None]
+        # Dense incidence avoids CUDA scatter nondeterminism for this small graph.
+        incidence = F.one_hot(self.target, len(self.anchors)).to(msg.dtype).T
+        return unit(self.anchors + self.eta * (incidence @ msg))
+</code></pre>
+<h2>4. 三元图残差和完整联合概率</h2>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.25em" columnalign="right left" columnspacing="0em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mi>T</mi><mo stretchy="false">(</mo><mi>x</mi><mo separator="true">,</mo><mi>o</mi><mo separator="true">,</mo><mi>a</mi><mo separator="true">;</mo><mi>G</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mo stretchy="false">⟨</mo><mi mathvariant="script">N</mi><mo stretchy="false">(</mo><msub><mi>P</mi><mi>v</mi></msub><msub><mi>c</mi><mrow><mi>x</mi><mi>o</mi></mrow></msub><mo stretchy="false">)</mo><mo separator="true">,</mo><mi mathvariant="script">N</mi><mo stretchy="false">(</mo><msub><mi>P</mi><mi>o</mi></msub><msub><mi>Z</mi><mi>o</mi></msub><mo stretchy="false">(</mo><mi>G</mi><mo stretchy="false">)</mo><mo stretchy="false">)</mo><mo>⊙</mo><mi mathvariant="script">N</mi><mo stretchy="false">(</mo><msub><mi>P</mi><mi>a</mi></msub><msub><mi>Z</mi><mi>a</mi></msub><mo stretchy="false">(</mo><mi>G</mi><mo stretchy="false">)</mo><mo stretchy="false">)</mo><mo stretchy="false">⟩</mo><mo separator="true">,</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msub><mi>z</mi><mi>o</mi></msub></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><msubsup><mi>z</mi><mi>o</mi><mn>0</mn></msubsup><mo>+</mo><msub><mi>α</mi><mi>g</mi></msub><msup><mover accent="true"><mi>g</mi><mo stretchy="true">~</mo></mover><mi mathvariant="normal">⊤</mi></msup><mo stretchy="false">(</mo><msub><mi>Z</mi><mi>o</mi></msub><mo>−</mo><msub><mi>h</mi><mi>o</mi></msub><mo stretchy="false">)</mo><mi mathvariant="normal">/</mi><msub><mi>T</mi><mi>g</mi></msub><mo separator="true">,</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msub><mi>U</mi><mrow><mi>o</mi><mi>a</mi></mrow></msub></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><msubsup><mi>U</mi><mrow><mi>o</mi><mi>a</mi></mrow><mn>0</mn></msubsup><mo>+</mo><msub><mi>α</mi><mi>g</mi></msub><mo stretchy="false">[</mo><mi>T</mi><mo stretchy="false">(</mo><mi>G</mi><mo stretchy="false">)</mo><mo>−</mo><mi>T</mi><mo stretchy="false">(</mo><mi mathvariant="normal">∅</mi><mo stretchy="false">)</mo><mo stretchy="false">]</mo><mi mathvariant="normal">/</mi><msub><mi>T</mi><mi>g</mi></msub><mo separator="true">,</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msub><mi mathvariant="normal">ℓ</mi><mrow><mi>o</mi><mi>a</mi></mrow></msub></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mi>log</mi><mo>⁡</mo><msub><mo><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">x</mi></mrow></mo><mi>o</mi></msub><mo stretchy="false">(</mo><mi>z</mi><mo stretchy="false">)</mo><mo>+</mo><mi>log</mi><mo>⁡</mo><msub><mo><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">x</mi></mrow></mo><mi>a</mi></msub><mo stretchy="false">(</mo><msub><mi>U</mi><mrow><mi>o</mi><mo separator="true">,</mo><mo>:</mo></mrow></msub><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+T(x,o,a;G)&amp;=\langle\mathcal N(P_vc_{xo}),\mathcal N(P_oZ_o(G))\odot\mathcal N(P_aZ_a(G))\rangle,\\
+z_o&amp;=z_o^0+\alpha_g\widetilde g^\top(Z_o-h_o)/T_g,\\
+U_{oa}&amp;=U_{oa}^0+\alpha_g[T(G)-T(\varnothing)]/T_g,\\
+\ell_{oa}&amp;=\log\mathop{\mathrm{softmax}}\nolimits_o(z)+\log\mathop{\mathrm{softmax}}\nolimits_a(U_{o,:}).
+\end{aligned}</annotation></semantics></math></span></p>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mi>g</mi></msub><mo>=</mo><msub><mi>T</mi><mi>g</mi></msub><mo>=</mo><mn>0.1</mn></mrow><annotation encoding="application/x-tex">\alpha_g=T_g=0.1</annotation></semantics></math></span>，<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>v</mi></msub><mo separator="true">,</mo><msub><mi>P</mi><mi>o</mi></msub><mo separator="true">,</mo><msub><mi>P</mi><mi>a</mi></msub><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><mrow><mn>64</mn><mo>×</mo><mn>768</mn></mrow></msup></mrow><annotation encoding="application/x-tex">P_v,P_o,P_a\in\mathbb R^{64\times768}</annotation></semantics></math></span>。空图时残差为零。</p>
+<p><code>capacity=True</code>为容量对照：名称低秩变换取代关系消息，三元头直接作用于名称，不读取OE/AE来源。</p>
+<p><a href="code/trustcpf_clip_v1/trustcpf/model.py#L69"><code>trustcpf/model.py · TrustCPF.score</code></a>，源码第69行。</p>
+<pre><code class="language-python">    def score(self, base, edges, capacity=False):
+        anchors = self.graph.anchors
+        z = self.graph(edges)
+        ao, aa = anchors[self.na:], anchors[:self.na]
+        zo, za = z[self.na:], z[:self.na]
+        qx = unit(self.pv(base[&#39;context&#39;]))
+        def tri(o, a):
+            return torch.einsum(&#39;bor,or,ar-&gt;boa&#39;, qx, unit(self.po(o)), unit(self.pa(a)))
+        delta_o = base[&#39;g&#39;] @ (zo - ao).T
+        delta_u = tri(zo, za) - tri(ao, aa)
+        if capacity:
+            # Same effective projection matrices; no relation attachment is used.
+            o = unit(ao + .1 * ((ao @ self.graph.right[0].T) @ self.graph.left[0].T))
+            a = unit(aa + .1 * ((aa @ self.graph.right[1].T) @ self.graph.left[1].T
+                            + (aa @ self.graph.right[2].T) @ self.graph.left[2].T))
+            delta_o = base[&#39;g&#39;] @ (o - ao).T
+            delta_u = tri(o, a)  # generic trainable three-way head
+        gain = self.cfg.get(&#39;alpha&#39;, .1) / self.cfg.get(&#39;tg&#39;, .1)
+        obj = base[&#39;obj&#39;] + gain * delta_o
+        conditional = base[&#39;cond&#39;] + gain * delta_u
+        lo, lc = obj.log_softmax(-1), conditional.log_softmax(-1)
+        return lo[:, :, None] + lc, lo, lc
+</code></pre>
+<h2>4.1 分类目标</h2>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi mathvariant="script">L</mi><mrow><mi>t</mi><mi>a</mi><mi>s</mi><mi>k</mi></mrow></msub><mo>=</mo><mo>−</mo><msub><mi mathvariant="normal">ℓ</mi><mrow><msup><mi>o</mi><mo>∗</mo></msup><msup><mi>a</mi><mo>∗</mo></msup></mrow></msub><mo>+</mo><msub><mo><mrow><mi mathvariant="normal">L</mi><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi></mrow></mo><mrow><mi>c</mi><mo>∈</mo><msub><mi>I</mi><mi>j</mi></msub></mrow></msub><msub><mi mathvariant="normal">ℓ</mi><mi>c</mi></msub><mo>−</mo><mn>0.4</mn><msub><mi mathvariant="normal">ℓ</mi><msup><mi>o</mi><mo>∗</mo></msup></msub><mo>−</mo><mn>0.6</mn><msub><mi mathvariant="normal">ℓ</mi><mrow><msup><mi>a</mi><mo>∗</mo></msup><mi mathvariant="normal">∣</mi><msup><mi>o</mi><mo>∗</mo></msup></mrow></msub><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\mathcal L_{task}=-\ell_{o^*a^*}+\mathop{\mathrm{LSE}}\nolimits_{c\in I_j}\ell_c-0.4\ell_{o^*}-0.6\ell_{a^*|o^*}.</annotation></semantics></math></span></p>
+<p>训练候选为自己的Inner，最终适配为官方TRAIN。辅助属性损失读取完整未屏蔽条件概率。</p>
+<p><a href="code/trustcpf_clip_v1/trustcpf/model.py#L96"><code>trustcpf/model.py · task_loss</code></a>，源码第96行。</p>
+<pre><code class="language-python">def task_loss(joint, lo, lc, attrs, objs, candidates):
+    flat = joint.flatten(1)
+    target = objs * joint.shape[2] + attrs
+    lp = -flat.gather(1, target[:, None]).mean() + flat[:, candidates].logsumexp(-1).mean()
+    rows = torch.arange(len(attrs), device=attrs.device)
+    return lp + .4 * F.nll_loss(lo, objs) + .6 * F.nll_loss(lc[rows, objs], attrs)
+</code></pre>
+<h2>4.2 图消息正则</h2>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi mathvariant="script">R</mi><mi>W</mi></msub><mo>=</mo><msup><mn>768</mn><mrow><mo>−</mo><mn>2</mn></mrow></msup><munder><mo>∑</mo><mi>ρ</mi></munder><mi mathvariant="normal">∥</mi><msub><mi>L</mi><mi>ρ</mi></msub><msub><mi>R</mi><mi>ρ</mi></msub><msubsup><mi mathvariant="normal">∥</mi><mi>F</mi><mn>2</mn></msubsup><mo separator="true">,</mo><mspace width="1em"/><mi mathvariant="script">L</mi><mo>=</mo><msub><mi mathvariant="script">L</mi><mrow><mi>t</mi><mi>a</mi><mi>s</mi><mi>k</mi></mrow></msub><mo>+</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>3</mn></mrow></msup><msub><mi mathvariant="script">R</mi><mi>W</mi></msub><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\mathcal R_W=768^{-2}\sum_\rho\|L_\rho R_\rho\|_F^2,\quad\mathcal L=\mathcal L_{task}+10^{-3}\mathcal R_W.</annotation></semantics></math></span></p>
+<p><a href="code/trustcpf_clip_v1/trustcpf/model.py#L40"><code>trustcpf/model.py · TypedGraph.regularizer</code></a>，源码第40行。</p>
+<pre><code class="language-python">    def regularizer(self):
+        delta = self.left @ self.right
+        return delta.square().sum() / self.anchors.shape[1] ** 2
+</code></pre>
+<h2>5. 五折组合任务</h2>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi mathvariant="script">C</mi><mi>s</mi></msub><mo>=</mo><msub><mi>C</mi><mn>0</mn></msub><mo>⊔</mo><munderover><mo>⨆</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mn>5</mn></munderover><msub><mi>Q</mi><mi>j</mi></msub><mo separator="true">,</mo><mspace width="1em"/><msub><mi>I</mi><mi>j</mi></msub><mo>=</mo><msub><mi mathvariant="script">C</mi><mi>s</mi></msub><mo>∖</mo><msub><mi>Q</mi><mi>j</mi></msub><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\mathcal C_s=C_0\sqcup\bigsqcup_{j=1}^5Q_j,\quad I_j=\mathcal C_s\setminus Q_j.</annotation></semantics></math></span></p>
+<p>分块种子2026，稀有原语对应组合放公共Inner；检查每折Query的属性、对象均在该折Inner出现。</p>
+<p><a href="code/trustcpf_clip_v1/trustcpf/folds.py#L4"><code>trustcpf/folds.py · make_folds</code></a>，源码第4行。</p>
+<pre><code class="language-python">def make_folds(pairs, seed=2026, count=5):
+    pairs = sorted(map(tuple, pairs))
+    primitive = lambda c: {(&#39;a&#39;,c[0]),(&#39;o&#39;,c[1])}
+    counts = {v:sum(v in primitive(p) for p in pairs) for c in pairs for v in primitive(c)}
+    common = [p for p in pairs if any(counts[v]==1 for v in primitive(p))]
+    rest = [p for p in pairs if p not in common]
+    rng = np.random.RandomState(seed)
+    for _ in range(10000):
+        perm = rng.permutation(len(rest))
+        blocks = [[rest[i] for i in ids] for ids in np.array_split(perm,count)]
+        if all(all(primitive(c) &lt;= set.union(*(primitive(p) for p in pairs if p not in q)) for c in q) for q in blocks):
+            return {&#39;seed&#39;:seed,&#39;common&#39;:common,&#39;query&#39;:blocks,&#39;roles&#39;:[&#39;fit&#39;,&#39;fit&#39;,&#39;fit&#39;,&#39;dev&#39;,&#39;audit&#39;]}
+    raise ValueError(&#39;No coverage-preserving composition partition found&#39;)
+</code></pre>
+<h2>5.1 配对边干预</h2>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi mathvariant="normal">Δ</mi><mi>e</mi></msub><mo>=</mo><msub><mi>L</mi><mi>Q</mi></msub><mo stretchy="false">(</mo><msub><mi>G</mi><mrow><mo>−</mo><mi>e</mi></mrow></msub><mo separator="true">,</mo><mn>0</mn><mo stretchy="false">)</mo><mo>−</mo><msub><mi>L</mi><mi>Q</mi></msub><mo stretchy="false">(</mo><msub><mi>G</mi><mrow><mo>−</mo><mi>e</mi></mrow></msub><mo separator="true">,</mo><mn>1</mn><mo stretchy="false">)</mo><mo separator="true">,</mo><mspace width="1em"/><msub><mi>y</mi><mi>e</mi></msub><mo>=</mo><msup><mi>M</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><munder><mo>∑</mo><mi>m</mi></munder><msub><mi mathvariant="normal">Δ</mi><mrow><mi>e</mi><mo separator="true">,</mo><mi>m</mi></mrow></msub><mo separator="true">,</mo><mspace width="1em"/><msub><mi>ν</mi><mi>e</mi></msub><mo>=</mo><msub><mo><mrow><mi mathvariant="normal">V</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">r</mi></mrow></mo><mrow><mi>s</mi><mi>a</mi><mi>m</mi><mi>p</mi><mi>l</mi><mi>e</mi></mrow></msub><mo stretchy="false">(</mo><msub><mi mathvariant="normal">Δ</mi><mrow><mi>e</mi><mo separator="true">,</mo><mi>m</mi></mrow></msub><mo stretchy="false">)</mo><mi mathvariant="normal">/</mi><mi>M</mi><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\Delta_e=L_Q(G_{-e},0)-L_Q(G_{-e},1),\quad
+y_e=M^{-1}\sum_m\Delta_{e,m},\quad\nu_e=\mathop{\mathrm{Var}}\nolimits_{sample}(\Delta_{e,m})/M.</annotation></semantics></math></span></p>
+<p>每对共享背景图和Query；正值表示打开边降低NLL。<code>weights</code>先组合内均分，再组合等权。</p>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mfrac><mrow><mi mathvariant="normal">∂</mi><msub><mi mathvariant="double-struck">E</mi><msub><mi>q</mi><mi>π</mi></msub></msub><msub><mi>L</mi><mi>Q</mi></msub></mrow><mrow><mi mathvariant="normal">∂</mi><msub><mi>π</mi><mi>e</mi></msub></mrow></mfrac><mo>=</mo><mo>−</mo><msub><mi mathvariant="double-struck">E</mi><msub><mi>G</mi><mrow><mo>−</mo><mi>e</mi></mrow></msub></msub><msub><mi mathvariant="normal">Δ</mi><mi>e</mi></msub><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\frac{\partial\mathbb E_{q_\pi}L_Q}{\partial\pi_e}=-\mathbb E_{G_{-e}}\Delta_e.</annotation></semantics></math></span></p>
+<p><a href="code/trustcpf_clip_v1/trustcpf/utility.py#L10"><code>trustcpf/utility.py · paired_utility</code></a>，源码第10行。</p>
+<pre><code class="language-python">@torch.no_grad()
+def paired_utility(model, base, target_local, candidates, edge_ids, weights, backgrounds, generator):
+    ecount = len(model.graph.types)
+    ys, vs, differences = [], [], []
+    for e in edge_ids.tolist():
+        diffs = []
+        for _ in range(backgrounds):
+            b = (torch.rand(ecount,device=weights.device,generator=generator)&lt;.5).float()
+            b[e]=0
+            minus=candidate_logprob(model.score(base,b)[0],candidates)
+            b[e]=1
+            plus=candidate_logprob(model.score(base,b)[0],candidates)
+            rows=torch.arange(len(weights),device=weights.device)
+            diff=((minus[rows,target_local]-plus[rows,target_local]) * -weights).sum()
+            diffs.append(diff)
+        ds=torch.stack(diffs)
+        ys.append(ds.mean()); vs.append(ds.var(unbiased=True)/backgrounds)
+        differences.append(ds)
+    return torch.stack(ys), torch.stack(vs), torch.stack(differences)
+</code></pre>
+<h2>5.2 测量队列与包含概率</h2>
+<p>每任务最多8个Query组合、每组合8图、每类型8条边。<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>κ</mi><mi>e</mi></msub><mo>=</mo><msub><mi>b</mi><mi>ρ</mi></msub><mi mathvariant="normal">/</mi><mi mathvariant="normal">∣</mi><msub><mi>E</mi><mi>ρ</mi></msub><mi mathvariant="normal">∣</mi></mrow><annotation encoding="application/x-tex">\kappa_e=b_\rho/|E_\rho|</annotation></semantics></math></span>，背景图<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">M=4</annotation></semantics></math></span>；第5折<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><mn>16</mn></mrow><annotation encoding="application/x-tex">M=16</annotation></semantics></math></span>。
+拟合三折各512任务，开发和审计各128任务。配对差分、边ID、Query图像ID和抽样概率写入测量文件。</p>
+<p><a href="code/trustcpf_clip_v1/trustcpf/stages.py#L19"><code>trustcpf/stages.py · measure</code></a>，源码第19行。</p>
+<pre><code class="language-python">def measure(args):
+    cfg,manifest,text,bank,folds,work=setup(args)
+    gs,rows=globals_and_rows(args.cache); na=len(manifest[&#39;labels&#39;][&#39;attrs&#39;]); no=len(manifest[&#39;labels&#39;][&#39;objs&#39;])
+    wanted=list(range(5)) if args.fold==&#39;all&#39; else [int(args.fold)-1]
+    for j in wanted:
+        started=time.perf_counter()
+        dest=work/&#39;measurements&#39;/(&#39;fold%d.pt&#39;%(j+1))
+        if dest.exists(): print(&#39;REUSE&#39;,dest,flush=True); continue
+        model=new_model(text,bank,cfg,args.device)
+        model.load_state_dict(load_torch(work/&#39;teachers&#39;/str(j+1)/&#39;last.pt&#39;)[&#39;model&#39;]); model.eval()
+        query=folds[&#39;query&#39;][j]; qids=set(pair_ids(manifest[&#39;labels&#39;],query))
+        inner=[i for i,r in enumerate(rows) if r[&#39;object&#39;]*na+r[&#39;attr&#39;] not in qids]
+        groups={p:[i for i,r in enumerate(rows) if r[&#39;object&#39;]*na+r[&#39;attr&#39;]==p] for p in qids}
+        candidates=torch.tensor(pair_ids(manifest[&#39;labels&#39;],manifest[&#39;pairs&#39;][&#39;train&#39;]),device=args.device)
+        index={int(p):i for i,p in enumerate(candidates.tolist())}
+        rng=np.random.RandomState(cfg[&#39;seed&#39;]+100*(j+1))
+        gen=torch.Generator(device=args.device).manual_seed(cfg[&#39;seed&#39;]+100*(j+1))
+        count=cfg[&#39;fit_episodes&#39;] if j&lt;3 else cfg[&#39;eval_episodes&#39;]
+        backgrounds=cfg[&#39;backgrounds&#39;] if j&lt;4 else cfg[&#39;audit_backgrounds&#39;]
+        from .data import FeatureDataset
+        ds=FeatureDataset(args.cache,&#39;train&#39;)
+        X,Y,V,E,K,T,D,query_log=[],[],[],[],[],[],[],[]
+        for t in range(count):
+            chosen=rng.choice(sorted(qids),min(cfg[&#39;query_pairs&#39;],len(qids)),replace=False)
+            indices=[]; weights=[]
+            for p in chosen:
+                idx=rng.choice(groups[p],min(cfg[&#39;query_images&#39;],len(groups[p])),replace=False)
+                indices.extend(idx.tolist()); weights.extend([1/(len(chosen)*len(idx))]*len(idx))
+            sample=[ds[i] for i in indices]
+            batch=[torch.stack([s[k] for s in sample]).to(args.device) for k in range(3)]
+            local=torch.tensor([index[rows[i][&#39;object&#39;]*na+rows[i][&#39;attr&#39;]] for i in indices],device=args.device)
+            edge_ids=[]; kappas=[]
+            for ty in range(3):
+                ids=torch.where(bank[&#39;types&#39;]==ty)[0].numpy(); size=min(cfg[&#39;edges_per_type&#39;],len(ids))
+                selected=rng.choice(ids,size,replace=False); edge_ids.extend(selected.tolist()); kappas.extend([size/len(ids)]*size)
+            e=torch.tensor(edge_ids,device=args.device)
+            with torch.no_grad():
+                base=model.base(*batch)
+                y,v,d=paired_utility(model,base,local,candidates,e,torch.tensor(weights,device=args.device),backgrounds,gen)
+            summary=support_summary(gs,rows,inner,na,no,cfg[&#39;support_images&#39;],rng)
+            x=utility_features(bank,summary)
+            X.append(x[edge_ids].half()); Y.append(y.cpu()); V.append(v.cpu()); D.append(d.cpu())
+            E.append(e.cpu()); K.append(torch.tensor(kappas)); T.append(torch.full((len(e),),t,dtype=torch.long))
+            query_log.append({&#39;episode&#39;:t,&#39;query_indices&#39;:indices,&#39;query_pair_ids&#39;:chosen.tolist()})
+            if (t+1)%32==0: print(&#39;MEASURE&#39;,j+1,t+1,&#39;/&#39;,count,flush=True)
+        save_torch(dest,{&#39;x&#39;:torch.cat(X),&#39;y&#39;:torch.cat(Y),&#39;noise&#39;:torch.cat(V), &#39;differences&#39;:torch.cat(D),
+            &#39;edge&#39;:torch.cat(E),&#39;inclusion&#39;:torch.cat(K),&#39;episode&#39;:torch.cat(T),&#39;queries&#39;:query_log,
+            &#39;sampled&#39;:len(edge_ids),&#39;total&#39;:len(bank[&#39;types&#39;]),&#39;fold&#39;:j+1,&#39;wall_seconds&#39;:time.perf_counter()-started,
+            &#39;head_forwards&#39;:2*count*len(edge_ids)*backgrounds,&#39;teacher&#39;:str(work/&#39;teachers&#39;/str(j+1)/&#39;last.pt&#39;)})
+        print(&#39;MEASUREMENT_COMPLETE&#39;,dest,flush=True)
+</code></pre>
+<h2>6. Inner视觉证据摘要</h2>
+<p>每个原语最多16张Inner图像，按组合均值再按上下文等权；对象和属性分别聚合。<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">r_c</annotation></semantics></math></span>为最终单位摘要，<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mi>c</mi></msub><mo separator="true">,</mo><msub><mi>k</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">n_c,k_c</annotation></semantics></math></span>为图像数、上下文数。</p>
+<p><a href="code/trustcpf_clip_v1/trustcpf/utility.py#L31"><code>trustcpf/utility.py · support_summary</code></a>，源码第31行。</p>
+<pre><code class="language-python">def support_summary(globals_, rows, allowed_ids, na, no, maximum, rng):
+    &quot;&quot;&quot;Per-composition means followed by equal context averaging; cap per primitive.&quot;&quot;&quot;
+    groups={}
+    for i in allowed_ids:
+        r=rows[i]; groups.setdefault((r[&#39;attr&#39;],r[&#39;object&#39;]),[]).append(i)
+    means=torch.zeros(na+no,globals_.shape[1]); counts=torch.zeros(na+no); contexts=torch.zeros(na+no)
+    for c in range(na+no):
+        keys=[p for p in groups if (p[0]==c if c&lt;na else p[1]==c-na)]
+        pools=[list(rng.permutation(groups[p])) for p in keys]
+        selected={p:[] for p in keys}
+        total=0
+        while total&lt;maximum and any(pools):
+            for k in rng.permutation(len(keys)):
+                if pools[k] and total&lt;maximum:
+                    selected[keys[k]].append(pools[k].pop()); total+=1
+        vals=[unit(globals_[idx].float()).mean(0) for idx in selected.values() if idx]
+        if vals:
+            means[c]=torch.stack(vals).mean(0); counts[c]=total; contexts[c]=len(vals)
+    return unit(means),counts,contexts
+</code></pre>
+<h2>6.1 6157维关系输入</h2>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.25em" columnalign="right left" columnspacing="0em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msub><mi>k</mi><mi>e</mi></msub></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mo stretchy="false">[</mo><msub><mi>h</mi><mi>u</mi></msub><mo separator="true">;</mo><msub><mi>h</mi><mi>c</mi></msub><mo separator="true">;</mo><msub><mi>h</mi><mi>u</mi></msub><mo>⊙</mo><msub><mi>h</mi><mi>c</mi></msub><mo separator="true">;</mo><mi mathvariant="normal">∣</mi><msub><mi>h</mi><mi>u</mi></msub><mo>−</mo><msub><mi>h</mi><mi>c</mi></msub><mi mathvariant="normal">∣</mi><mo separator="true">;</mo><msub><mi>t</mi><mi>ρ</mi></msub><mo separator="true">;</mo><msub><mi>s</mi><mrow><mi>s</mi><mi>r</mi><mi>c</mi></mrow></msub><mo stretchy="false">]</mo><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><mn>3079</mn></msup><mo separator="true">,</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msubsup><mi>h</mi><mi>e</mi><mi>I</mi></msubsup></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mo stretchy="false">[</mo><msub><mi>r</mi><mi>c</mi></msub><mo separator="true">;</mo><msub><mi>r</mi><mi>u</mi></msub><mo separator="true">;</mo><msub><mi>h</mi><mi>u</mi></msub><mo separator="true">;</mo><msub><mi>h</mi><mi>c</mi></msub><mo separator="true">;</mo><msubsup><mi>r</mi><mi>c</mi><mi mathvariant="normal">⊤</mi></msubsup><msub><mi>h</mi><mi>u</mi></msub><mo separator="true">;</mo><msubsup><mi>r</mi><mi>c</mi><mi mathvariant="normal">⊤</mi></msubsup><msub><mi>h</mi><mi>c</mi></msub><mo separator="true">;</mo><mi>log</mi><mo>⁡</mo><mo stretchy="false">(</mo><mn>1</mn><mo>+</mo><msub><mi>n</mi><mi>c</mi></msub><mo stretchy="false">)</mo><mo separator="true">;</mo><mi>log</mi><mo>⁡</mo><mo stretchy="false">(</mo><mn>1</mn><mo>+</mo><msub><mi>k</mi><mi>c</mi></msub><mo stretchy="false">)</mo><mo separator="true">;</mo><msub><mi>m</mi><mi>c</mi></msub><mo separator="true">;</mo><msub><mi>m</mi><mi>u</mi></msub><mo stretchy="false">]</mo><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><mn>3078</mn></msup><mi mathvariant="normal">.</mi></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+k_e&amp;=[h_u;h_c;h_u\odot h_c;|h_u-h_c|;t_\rho;s_{src}]\in\mathbb R^{3079},\\
+h_e^I&amp;=[r_c;r_u;h_u;h_c;r_c^\top h_u;r_c^\top h_c;\log(1+n_c);\log(1+k_c);m_c;m_u]\in\mathbb R^{3078}.
+\end{aligned}</annotation></semantics></math></span></p>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>z</mi><mo>=</mo><mo stretchy="false">[</mo><msub><mi>k</mi><mi>e</mi></msub><mo separator="true">;</mo><msubsup><mi>h</mi><mi>e</mi><mi>I</mi></msubsup><mo stretchy="false">]</mo><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><mn>6157</mn></msup></mrow><annotation encoding="application/x-tex">z=[k_e;h_e^I]\in\mathbb R^{6157}</annotation></semantics></math></span>。OI父类的<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>u</mi></msub></mrow><annotation encoding="application/x-tex">r_u</annotation></semantics></math></span>使用成员Inner证据；描述节点置零并附缺失标记。</p>
+<p><a href="code/trustcpf_clip_v1/trustcpf/utility.py#L52"><code>trustcpf/utility.py · utility_features</code></a>，源码第52行。</p>
+<pre><code class="language-python">def utility_features(bank, summary, semantic_only=False):
+    mean,count,contexts=summary
+    src=bank[&#39;source&#39;]; dst=bank[&#39;anchors&#39;][bank[&#39;target&#39;]]
+    semantic=torch.cat([src,dst,src*dst,(src-dst).abs(),
+                        F.one_hot(bank[&#39;types&#39;],3).float(),bank[&#39;metadata&#39;]],-1)
+    rc=mean[bank[&#39;target&#39;]]; ru=torch.zeros_like(rc); mu=torch.ones(len(rc))
+    for e,row in enumerate(bank[&#39;rows&#39;]):
+        if row[&#39;type&#39;]==0:
+            children=sorted({r[&#39;target&#39;] for r in bank[&#39;rows&#39;] if r[&#39;type&#39;]==0 and r[&#39;slot&#39;]==row[&#39;slot&#39;]})
+            valid=[c for c in children if count[c]&gt;0]
+            if valid: ru[e]=unit(mean[valid].mean(0)); mu[e]=0
+    scalars=torch.stack([(rc*src).sum(-1),(rc*dst).sum(-1),
+        count[bank[&#39;target&#39;]].log1p(), contexts[bank[&#39;target&#39;]].log1p(),
+        (count[bank[&#39;target&#39;]]==0).float(),mu],-1)
+    visual=torch.cat([rc,ru,src,dst,scalars],-1)
+    if semantic_only: visual=torch.zeros_like(visual)
+    return torch.cat([semantic,visual],-1)
+</code></pre>
+<h2>6.2 异方差效用预测器</h2>
+<p>MLP为6157→256→128→2，隐藏层GELU；均值直接输出，方差<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">p</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">s</mi></mrow></mo><mo stretchy="false">(</mo><msub><mi>v</mi><mrow><mi>r</mi><mi>a</mi><mi>w</mi></mrow></msub><mo stretchy="false">)</mo><mo>+</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>4</mn></mrow></msup></mrow><annotation encoding="application/x-tex">\mathop{\mathrm{softplus}}\nolimits(v_{raw})+10^{-4}</annotation></semantics></math></span>。
+输入均值和尺度仅由拟合记录计算。</p>
+<p><a href="code/trustcpf_clip_v1/trustcpf/utility.py#L71"><code>trustcpf/utility.py · UtilityNet</code></a>，源码第71行。</p>
+<pre><code class="language-python">class UtilityNet(nn.Module):
+    def __init__(self, dim, center, spread):
+        super().__init__()
+        self.register_buffer(&#39;center&#39;,center)
+        self.register_buffer(&#39;spread&#39;,spread)
+        self.net=nn.Sequential(nn.Linear(dim,256),nn.GELU(),nn.Linear(256,128),nn.GELU(),nn.Linear(128,2))
+
+    def forward(self,x):
+        v=self.net((x-self.center)/self.spread)
+        return v[:,0], F.softplus(v[:,1])+1e-4
+</code></pre>
+<h2>6.3 测量噪声与HT加权NLL</h2>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>L</mi><mi>e</mi></msub><mo>=</mo><mstyle displaystyle="false" scriptlevel="0"><mfrac><mn>1</mn><mn>2</mn></mfrac></mstyle><mo stretchy="false">[</mo><mi>log</mi><mo>⁡</mo><mo stretchy="false">(</mo><msub><mi>v</mi><mi>e</mi></msub><mo>+</mo><msub><mi>ν</mi><mi>e</mi></msub><mo stretchy="false">)</mo><mo>+</mo><mo stretchy="false">(</mo><msub><mi>y</mi><mi>e</mi></msub><mo>−</mo><msub><mi>m</mi><mi>e</mi></msub><msup><mo stretchy="false">)</mo><mn>2</mn></msup><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><msub><mi>v</mi><mi>e</mi></msub><mo>+</mo><msub><mi>ν</mi><mi>e</mi></msub><mo stretchy="false">)</mo><mo stretchy="false">]</mo><mo separator="true">,</mo><mspace width="1em"/><mover accent="true"><mi>L</mi><mo stretchy="true">^</mo></mover><mo>=</mo><mi mathvariant="normal">∣</mi><mi>E</mi><msup><mi mathvariant="normal">∣</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><munder><mo>∑</mo><mrow><mi>e</mi><mo>∈</mo><msub><mi>B</mi><mi>t</mi></msub></mrow></munder><msub><mi>L</mi><mi>e</mi></msub><mi mathvariant="normal">/</mi><msub><mi>κ</mi><mi>e</mi></msub><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">L_e=\tfrac12[\log(v_e+\nu_e)+(y_e-m_e)^2/(v_e+\nu_e)],\quad
+\widehat L=|E|^{-1}\sum_{e\in B_t}L_e/\kappa_e.</annotation></semantics></math></span></p>
+<p>代码使用均匀记录batch，故将<code>mean(L/kappa)</code>乘以<code>sampled/total</code>。类型标准差在外层用于<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mi mathvariant="normal">/</mi><msub><mi>s</mi><mi>ρ</mi></msub></mrow><annotation encoding="application/x-tex">y/s_\rho</annotation></semantics></math></span>、<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ν</mi><mi mathvariant="normal">/</mi><msubsup><mi>s</mi><mi>ρ</mi><mn>2</mn></msubsup></mrow><annotation encoding="application/x-tex">\nu/s_\rho^2</annotation></semantics></math></span>。</p>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi mathvariant="normal">∂</mi><mi>m</mi></msub><mi>L</mi><mo>=</mo><mo stretchy="false">(</mo><mi>m</mi><mo>−</mo><mi>y</mi><mo stretchy="false">)</mo><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mi>v</mi><mo>+</mo><mi>ν</mi><mo stretchy="false">)</mo><mo separator="true">,</mo><mspace width="1em"/><msub><mi mathvariant="normal">∂</mi><mi>v</mi></msub><mi>L</mi><mo>=</mo><mstyle displaystyle="false" scriptlevel="0"><mfrac><mn>1</mn><mrow><mn>2</mn><mo stretchy="false">(</mo><mi>v</mi><mo>+</mo><mi>ν</mi><mo stretchy="false">)</mo></mrow></mfrac></mstyle><mo>−</mo><mstyle displaystyle="false" scriptlevel="0"><mfrac><mrow><mo stretchy="false">(</mo><mi>m</mi><mo>−</mo><mi>y</mi><msup><mo stretchy="false">)</mo><mn>2</mn></msup></mrow><mrow><mn>2</mn><mo stretchy="false">(</mo><mi>v</mi><mo>+</mo><mi>ν</mi><msup><mo stretchy="false">)</mo><mn>2</mn></msup></mrow></mfrac></mstyle><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\partial_mL=(m-y)/(v+\nu),\quad\partial_vL=\tfrac1{2(v+\nu)}-\tfrac{(m-y)^2}{2(v+\nu)^2}.</annotation></semantics></math></span></p>
+<p><a href="code/trustcpf_clip_v1/trustcpf/utility.py#L83"><code>trustcpf/utility.py · utility_nll</code></a>，源码第83行。</p>
+<pre><code class="language-python">def utility_nll(mean, variance, target, noise, inclusion, edges):
+    v=variance+noise.detach()
+    loss=.5*(v.log()+(mean-target.detach()).square()/v)
+    # Records sample uniformly within the fixed-size stratified subsets B_t.
+    # Multiplying by |B_t|/|E| implements the full-edge HT objective.
+    return (loss/inclusion).mean()*edges[&#39;sampled&#39;]/edges[&#39;total&#39;]
+</code></pre>
+<h2>6.4 三模型与epoch选择</h2>
+<p>三模型独立种子，以Q4观测NLL选epoch；Q5审计使用选择前的三拟合折模型。最终模型使用五折标签按已选epoch数重新拟合。</p>
+<p><a href="code/trustcpf_clip_v1/trustcpf/stages.py#L97"><code>trustcpf/stages.py · fit_utility</code></a>，源码第97行。</p>
+<pre><code class="language-python">def fit_utility(args):
+    cfg,manifest,text,bank,folds,work=setup(args)
+    train=combine_measurements(work,[1,2,3,4,5] if args.fit_all else [1,2,3])
+    held=heldout_edges(bank,cfg); train=remove_heldout(train,held)
+    dev=remove_heldout(combine_measurements(work,[4]),held)
+    dim=bank[&#39;anchors&#39;].shape[1]
+    train[&#39;x&#39;]=feature_mode(train[&#39;x&#39;],cfg,dim); dev[&#39;x&#39;]=feature_mode(dev[&#39;x&#39;],cfg,dim)
+    center=train[&#39;x&#39;].mean(0); spread=train[&#39;x&#39;].std(0,unbiased=False).clamp_min(.01)
+    types=bank[&#39;types&#39;]; scales=torch.stack([train[&#39;y&#39;][types[train[&#39;edge&#39;]]==ty].std(unbiased=False).clamp_min(1e-4) for ty in range(3)])
+    out=work/(&#39;utility_all&#39; if args.fit_all else &#39;utility&#39;); out.mkdir(exist_ok=True)
+    if args.fit_all:
+        recipe=read_json(work/&#39;utility/selection.json&#39;); epochs=recipe[&#39;epochs&#39;]
+    else: epochs=[cfg[&#39;utility_epochs&#39;]]*cfg[&#39;utility_models&#39;]
+    selected=[]; timing=[]
+    for m in range(cfg[&#39;utility_models&#39;]):
+        started=time.perf_counter()
+        seed_all(cfg[&#39;seed&#39;]+10000+m)
+        net=UtilityNet(train[&#39;x&#39;].shape[1],center,spread).to(args.device)
+        opt=torch.optim.AdamW(net.parameters(),lr=cfg[&#39;utility_lr&#39;],weight_decay=cfg[&#39;weight_decay&#39;])
+        best=float(&#39;inf&#39;); best_state=None; best_epoch=0; history=[]
+        for epoch in range(epochs[m]):
+            net.train()
+            for ids in torch.randperm(len(train[&#39;y&#39;])).split(cfg[&#39;utility_batch&#39;]):
+                ty=types[train[&#39;edge&#39;][ids]]; s=scales[ty].to(args.device)
+                mean,var=net(train[&#39;x&#39;][ids].to(args.device))
+                loss=utility_nll(mean,var,train[&#39;y&#39;][ids].to(args.device)/s,
+                    train[&#39;noise&#39;][ids].to(args.device)/s.square(),train[&#39;inclusion&#39;][ids].to(args.device),train)
+                opt.zero_grad(); loss.backward(); opt.step()
+            net.eval()
+            with torch.no_grad():
+                means=[]; vars_=[]
+                for x in dev[&#39;x&#39;].split(cfg[&#39;utility_batch&#39;]):
+                    mm,vv=net(x.to(args.device)); means.append(mm.cpu()); vars_.append(vv.cpu())
+                s=scales[types[dev[&#39;edge&#39;]]]
+                metrics=regression_metrics(torch.cat(means)*s,torch.cat(vars_)*s.square(),dev[&#39;y&#39;],dev[&#39;noise&#39;])
+            history.append({&#39;epoch&#39;:epoch+1,**metrics})
+            if (epoch+1)%5==0: print(&#39;UTILITY_EPOCH&#39;,m,epoch+1,&#39;dev_nll&#39;,metrics[&#39;nll&#39;],flush=True)
+            if args.fit_all or metrics[&#39;nll&#39;]&lt;best:
+                best=metrics[&#39;nll&#39;]; best_state=copy.deepcopy(net.cpu().state_dict()); net.to(args.device); best_epoch=epoch+1
+        save_torch(out/(&#39;model%d.pt&#39;%m),{&#39;model&#39;:best_state,&#39;scales&#39;:scales,&#39;cfg&#39;:cfg,&#39;epoch&#39;:best_epoch,&#39;dimension&#39;:len(center)})
+        write_json(out/(&#39;history%d.json&#39;%m),history); selected.append(best_epoch)
+        timing.append(time.perf_counter()-started)
+        print(&#39;UTILITY&#39;,m,&#39;epoch&#39;,best_epoch,&#39;dev_nll&#39;,best,flush=True)
+    write_json(out/&#39;selection.json&#39;,{&#39;epochs&#39;:selected,&#39;folds&#39;:[1,2,3,4,5] if args.fit_all else [1,2,3],
+                                  &#39;heldout_edges&#39;:held,&#39;model_seconds&#39;:timing})
+</code></pre>
+<h2>7. 集成分歧</h2>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mover accent="true"><mi>m</mi><mo>ˉ</mo></mover><mo>=</mo><msup><mi>L</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><munder><mo>∑</mo><mi>l</mi></munder><msub><mi>m</mi><mi>l</mi></msub><mo separator="true">,</mo><mspace width="1em"/><mover accent="true"><mi>v</mi><mo>ˉ</mo></mover><mo>=</mo><msup><mi>L</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><munder><mo>∑</mo><mi>l</mi></munder><msub><mi>v</mi><mi>l</mi></msub><mo separator="true">,</mo><mspace width="1em"/><mi>e</mi><mo>=</mo><msup><mi>L</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><munder><mo>∑</mo><mi>l</mi></munder><mo stretchy="false">(</mo><msub><mi>m</mi><mi>l</mi></msub><mo>−</mo><mover accent="true"><mi>m</mi><mo>ˉ</mo></mover><msup><mo stretchy="false">)</mo><mn>2</mn></msup><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\bar m=L^{-1}\sum_lm_l,\quad\bar v=L^{-1}\sum_lv_l,\quad e=L^{-1}\sum_l(m_l-\bar m)^2.</annotation></semantics></math></span></p>
+<p>方差和均值还原至原始NLL增益单位。</p>
+<p><a href="code/trustcpf_clip_v1/trustcpf/utility.py#L91"><code>trustcpf/utility.py · ensemble_moments</code></a>，源码第91行。</p>
+<pre><code class="language-python">@torch.no_grad()
+def ensemble_moments(models, x, scales, types):
+    pred=[net(x) for net in models]
+    ms=torch.stack([p[0]*scales[types] for p in pred])
+    vs=torch.stack([p[1]*scales[types].square() for p in pred])
+    return ms.mean(0),vs.mean(0),ms.var(0,unbiased=False)
+</code></pre>
+<h2>7.1 支持摘要的全方差汇总</h2>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mover accent="true"><mi>μ</mi><mo stretchy="true">^</mo></mover><mo>=</mo><msup><mi>R</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><munder><mo>∑</mo><mi>r</mi></munder><msub><mover accent="true"><mi>m</mi><mo>ˉ</mo></mover><mi>r</mi></msub><mo separator="true">,</mo><mspace width="1em"/><msubsup><mover accent="true"><mi>σ</mi><mo stretchy="true">^</mo></mover><mrow><mi>t</mi><mi>a</mi><mi>s</mi><mi>k</mi></mrow><mn>2</mn></msubsup><mo>=</mo><msup><mi>R</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><munder><mo>∑</mo><mi>r</mi></munder><msub><mover accent="true"><mi>v</mi><mo>ˉ</mo></mover><mi>r</mi></msub><mo>+</mo><msub><mo><mrow><mi mathvariant="normal">V</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">r</mi></mrow></mo><mi>r</mi></msub><mo stretchy="false">(</mo><msub><mover accent="true"><mi>m</mi><mo>ˉ</mo></mover><mi>r</mi></msub><mo stretchy="false">)</mo><mo separator="true">,</mo><mspace width="1em"/><msub><mover accent="true"><mi>v</mi><mo stretchy="true">^</mo></mover><mrow><mi>e</mi><mi>n</mi><mi>s</mi></mrow></msub><mo>=</mo><msup><mi>R</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><munder><mo>∑</mo><mi>r</mi></munder><msub><mi>e</mi><mi>r</mi></msub><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\widehat\mu=R^{-1}\sum_r\bar m_r,\quad
+\widehat\sigma_{task}^2=R^{-1}\sum_r\bar v_r+\mathop{\mathrm{Var}}\nolimits_r(\bar m_r),\quad
+\widehat v_{ens}=R^{-1}\sum_re_r.</annotation></semantics></math></span></p>
+<p>所有有限集合上的方差采用分母<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi></mrow><annotation encoding="application/x-tex">L</annotation></semantics></math></span>或<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi></mrow><annotation encoding="application/x-tex">R</annotation></semantics></math></span>，与程序<code>unbiased=False</code>一致。测量噪声<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ν</mi></mrow><annotation encoding="application/x-tex">\nu</annotation></semantics></math></span>不加入部署风险。</p>
+<p><a href="code/trustcpf_clip_v1/trustcpf/utility.py#L99"><code>trustcpf/utility.py · aggregate_moments</code></a>，源码第99行。</p>
+<pre><code class="language-python">def aggregate_moments(means, variances, ensemble_vars):
+    return means.mean(0),variances.mean(0)+means.var(0,unbiased=False),ensemble_vars.mean(0)
+</code></pre>
+<h2>7.2 风险收益与结构分布</h2>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>R</mi><mi>e</mi></msub><mo>=</mo><msub><mover accent="true"><mi>μ</mi><mo stretchy="true">^</mo></mover><mi>e</mi></msub><mo>−</mo><msub><mi>λ</mi><mrow><mi>v</mi><mi>a</mi><mi>r</mi></mrow></msub><msqrt><msubsup><mover accent="true"><mi>σ</mi><mo stretchy="true">^</mo></mover><mrow><mi>t</mi><mi>a</mi><mi>s</mi><mi>k</mi><mo separator="true">,</mo><mi>e</mi></mrow><mn>2</mn></msubsup></msqrt><mo>−</mo><msub><mi>λ</mi><mrow><mi>e</mi><mi>n</mi><mi>s</mi></mrow></msub><msqrt><msub><mover accent="true"><mi>v</mi><mo stretchy="true">^</mo></mover><mrow><mi>e</mi><mi>n</mi><mi>s</mi><mo separator="true">,</mo><mi>e</mi></mrow></msub></msqrt><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">R_e=\widehat\mu_e-\lambda_{var}\sqrt{\widehat\sigma^2_{task,e}}-\lambda_{ens}\sqrt{\widehat v_{ens,e}}.</annotation></semantics></math></span></p>
+<p><code>mean</code>将两个风险权重置零，其余步骤与robust一致。</p>
+<p><a href="code/trustcpf_clip_v1/trustcpf/stages.py#L202"><code>trustcpf/stages.py · make_structure</code></a>，源码第202行。</p>
+<pre><code class="language-python">def make_structure(cfg,bank,moments):
+    m,v,e=moments
+    lv=0. if cfg[&#39;variant&#39;]==&#39;mean&#39; else cfg[&#39;lambda_var&#39;]
+    le=0. if cfg[&#39;variant&#39;]==&#39;mean&#39; else cfg[&#39;lambda_ens&#39;]
+    reward=m-lv*v.sqrt()-le*e.sqrt()
+    pi,gamma=solve_budget(reward,bank[&#39;types&#39;],cfg[&#39;tau_absolute&#39;],cfg[&#39;budget&#39;])
+    if &#39;availability&#39; in bank: pi=pi*bank[&#39;availability&#39;]
+    return {&#39;pi&#39;:pi,&#39;mean&#39;:m,&#39;task_variance&#39;:v,&#39;ensemble_variance&#39;:e,&#39;reward&#39;:reward,&#39;multipliers&#39;:gamma}
+</code></pre>
+<h2>7.3 KL和预算的闭式解</h2>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.25em" columnalign="right left" columnspacing="0em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mi>J</mi><mo stretchy="false">(</mo><mi>π</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mo>−</mo><munder><mo>∑</mo><mi>e</mi></munder><msub><mi>π</mi><mi>e</mi></msub><msub><mi>R</mi><mi>e</mi></msub><mo>+</mo><mi>τ</mi><munder><mo>∑</mo><mi>e</mi></munder><mo stretchy="false">[</mo><msub><mi>π</mi><mi>e</mi></msub><mi>log</mi><mo>⁡</mo><mo stretchy="false">(</mo><msub><mi>π</mi><mi>e</mi></msub><mi mathvariant="normal">/</mi><msubsup><mi>p</mi><mi>e</mi><mn>0</mn></msubsup><mo stretchy="false">)</mo><mo>+</mo><mo stretchy="false">(</mo><mn>1</mn><mo>−</mo><msub><mi>π</mi><mi>e</mi></msub><mo stretchy="false">)</mo><mi>log</mi><mo>⁡</mo><mo stretchy="false">(</mo><mo stretchy="false">(</mo><mn>1</mn><mo>−</mo><msub><mi>π</mi><mi>e</mi></msub><mo stretchy="false">)</mo><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mn>1</mn><mo>−</mo><msubsup><mi>p</mi><mi>e</mi><mn>0</mn></msubsup><mo stretchy="false">)</mo><mo stretchy="false">)</mo><mo stretchy="false">]</mo><mo separator="true">,</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><msub><mi mathvariant="normal">∂</mi><msub><mi>π</mi><mi>e</mi></msub></msub><mi mathvariant="script">L</mi></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mo>−</mo><msub><mi>R</mi><mi>e</mi></msub><mo>+</mo><mi>τ</mi><mo stretchy="false">[</mo><mo><mrow><mi mathvariant="normal">l</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">g</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">t</mi></mrow></mo><mo stretchy="false">(</mo><msub><mi>π</mi><mi>e</mi></msub><mo stretchy="false">)</mo><mo>−</mo><mo><mrow><mi mathvariant="normal">l</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">g</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">t</mi></mrow></mo><mo stretchy="false">(</mo><msubsup><mi>p</mi><mi>e</mi><mn>0</mn></msubsup><mo stretchy="false">)</mo><mo stretchy="false">]</mo><mo>+</mo><msub><mi>γ</mi><mi>ρ</mi></msub><mo separator="true">,</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msub><mi>π</mi><mi>e</mi></msub></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mo><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">g</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">d</mi></mrow></mo><mo stretchy="false">(</mo><mo><mrow><mi mathvariant="normal">l</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">g</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">t</mi></mrow></mo><mo stretchy="false">(</mo><msubsup><mi>p</mi><mi>e</mi><mn>0</mn></msubsup><mo stretchy="false">)</mo><mo>+</mo><mo stretchy="false">(</mo><msub><mi>R</mi><mi>e</mi></msub><mo>−</mo><msub><mi>γ</mi><mi>ρ</mi></msub><mo stretchy="false">)</mo><mi mathvariant="normal">/</mi><mi>τ</mi><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+J(\pi)&amp;=-\sum_e\pi_eR_e+\tau\sum_e[\pi_e\log(\pi_e/p_e^0)+(1-\pi_e)\log((1-\pi_e)/(1-p_e^0))],\\
+\partial_{\pi_e}\mathscr L&amp;=-R_e+\tau[\mathop{\mathrm{logit}}\nolimits(\pi_e)-\mathop{\mathrm{logit}}\nolimits(p_e^0)]+\gamma_\rho,\\
+\pi_e&amp;=\mathop{\mathrm{sigmoid}}\nolimits(\mathop{\mathrm{logit}}\nolimits(p_e^0)+(R_e-\gamma_\rho)/\tau).
+\end{aligned}</annotation></semantics></math></span></p>
+<p>约束<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∑</mo><mrow><mi>e</mi><mo>∈</mo><msub><mi>E</mi><mi>ρ</mi></msub></mrow></msub><msub><mi>π</mi><mi>e</mi></msub><mo>≤</mo><msub><mi>B</mi><mi>ρ</mi></msub></mrow><annotation encoding="application/x-tex">\sum_{e\in E_\rho}\pi_e\le B_\rho</annotation></semantics></math></span>。<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>τ</mi><mi mathvariant="normal">/</mi><mo stretchy="false">[</mo><msub><mi>π</mi><mi>e</mi></msub><mo stretchy="false">(</mo><mn>1</mn><mo>−</mo><msub><mi>π</mi><mi>e</mi></msub><mo stretchy="false">)</mo><mo stretchy="false">]</mo><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\tau/[\pi_e(1-\pi_e)]&gt;0</annotation></semantics></math></span>保证严格凸；未超预算时乘子为0，超限时二分60次。</p>
+<p><a href="code/trustcpf_clip_v1/trustcpf/graph.py#L59"><code>trustcpf/graph.py · solve_budget</code></a>，源码第59行。</p>
+<pre><code class="language-python">def solve_budget(reward, types, tau, fraction=.5, prior=.5):
+    &quot;&quot;&quot;Unique convex optimum; multipliers are nonnegative, per-type upper budgets.&quot;&quot;&quot;
+    pi, multipliers = torch.zeros_like(reward), {}
+    tau = max(float(tau), 1e-8)
+    prior = torch.as_tensor(prior, device=reward.device, dtype=reward.dtype).clamp(1e-6,1-1e-6)
+    prior_logit = torch.logit(prior).expand_as(reward)
+    for ty in types.unique().tolist():
+        mask = types == ty
+        budget = fraction * int(mask.sum())
+        def value(gamma): return torch.sigmoid(prior_logit[mask] + (reward[mask]-gamma)/tau)
+        if fraction == 0:
+            multipliers[str(ty)] = 0.; continue
+        if value(0).sum() &lt;= budget:
+            gamma = 0.
+        else:
+            low, high = 0., max(1., float(reward[mask].abs().max()))
+            while value(high).sum() &gt; budget: high *= 2
+            for _ in range(60):
+                mid = (low+high)/2
+                if value(mid).sum() &gt; budget: low=mid
+                else: high=mid
+            gamma=high
+        pi[mask] = value(gamma)
+        multipliers[str(ty)] = gamma
+    return pi, multipliers
+</code></pre>
+<h2>7.4 Q4结构参数选择</h2>
+<p>顺序选择风险9组、预算3组、温度3组。每个配置真实运行第4折冻结教师，按Query组合等权NLL选择。</p>
+<p><a href="code/trustcpf_clip_v1/trustcpf/stages.py#L212"><code>trustcpf/stages.py · tune</code></a>，源码第212行。</p>
+<pre><code class="language-python">@torch.no_grad()
+def tune(args):
+    cfg,manifest,text,bank,folds,work=setup(args)
+    inner_pairs=[p for p in manifest[&#39;pairs&#39;][&#39;train&#39;] if tuple(p) not in set(map(tuple,folds[&#39;query&#39;][3]))]
+    inner=row_ids(args.cache,inner_pairs,manifest[&#39;labels&#39;])
+    moments=deployment_moments(args,cfg,manifest,bank,work,work/&#39;utility&#39;,inner)
+    fit=remove_heldout(combine_measurements(work,[1,2,3]),heldout_edges(bank,cfg))
+    scale=max(float(fit[&#39;y&#39;].std(unbiased=False)),1e-4)
+    model=new_model(text,bank,cfg,args.device); model.load_state_dict(load_torch(work/&#39;teachers/4/last.pt&#39;)[&#39;model&#39;]); model.eval()
+    from .data import FeatureDataset
+    from torch.utils.data import Subset,DataLoader
+    ds=FeatureDataset(args.cache,&#39;train&#39;); qids=row_ids(args.cache,folds[&#39;query&#39;][3],manifest[&#39;labels&#39;])
+    loader=DataLoader(Subset(ds,qids),batch_size=cfg[&#39;batch_size&#39;])
+    candidates=torch.tensor(pair_ids(manifest[&#39;labels&#39;],manifest[&#39;pairs&#39;][&#39;train&#39;]),device=args.device)
+    index={int(p):i for i,p in enumerate(candidates.tolist())}; history=[]
+    def objective(c):
+        c=dict(c,tau_absolute=c[&#39;tau_scale&#39;]*scale)
+        structure=make_structure(c,bank,moments); values={}
+        for data in loader:
+            batch=[v.to(args.device) for v in data[:3]]
+            lp,_=average_graphs(model,batch,structure[&#39;pi&#39;].to(args.device),candidates,min(4,cfg[&#39;graphs&#39;]),1701)
+            targets=(data[4]*len(manifest[&#39;labels&#39;][&#39;attrs&#39;])+data[3]).tolist()
+            for i,p in enumerate(targets): values.setdefault(p,[]).append(float(-lp[i,index[p]]))
+        score=float(np.mean([np.mean(v) for v in values.values()]))
+        history.append({&#39;lambda_var&#39;:c[&#39;lambda_var&#39;],&#39;lambda_ens&#39;:c[&#39;lambda_ens&#39;],&#39;budget&#39;:c[&#39;budget&#39;],&#39;tau_scale&#39;:c[&#39;tau_scale&#39;],&#39;query_nll&#39;:score})
+        return score
+    # Coordinate search fixed in the research protocol; Q4 alone supplies selection labels.
+    for keys,choices in [ ((&#39;lambda_var&#39;,&#39;lambda_ens&#39;),[(a,b) for a in (0.,.5,1.) for b in (0.,.25,.5)]),
+                          ((&#39;budget&#39;,),[(a,) for a in (.25,.5,.75)]),
+                          ((&#39;tau_scale&#39;,),[(a,) for a in (.25,.5,1.)]) ]:
+        trials=[]
+        for vals in choices:
+            trial=dict(cfg,**dict(zip(keys,vals))); trials.append((objective(trial),vals))
+        _,winner=min(trials,key=lambda p:p[0]); cfg.update(dict(zip(keys,winner)))
+    cfg[&#39;tau_absolute&#39;]=cfg[&#39;tau_scale&#39;]*scale
+    write_json(work/&#39;tuning.json&#39;,{&#39;selected&#39;:{k:cfg[k] for k in (&#39;lambda_var&#39;,&#39;lambda_ens&#39;,&#39;budget&#39;,&#39;tau_scale&#39;,&#39;tau_absolute&#39;)},&#39;trials&#39;:history})
+    print(&#39;TUNED&#39;,read_json(work/&#39;tuning.json&#39;)[&#39;selected&#39;],flush=True)
+</code></pre>
+<h2>8. 单批优化、步长与恢复</h2>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>θ</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>=</mo><mo><mrow><mi mathvariant="normal">A</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">W</mi></mrow></mo><mo stretchy="false">(</mo><msub><mi>θ</mi><mi>t</mi></msub><mo separator="true">,</mo><msub><mi mathvariant="normal">∇</mi><mi>θ</mi></msub><msub><mi mathvariant="script">L</mi><mi>t</mi></msub><mo separator="true">;</mo><msub><mi>η</mi><mi>t</mi></msub><mo separator="true">,</mo><msub><mi>β</mi><mn>1</mn></msub><mo>=</mo><mn>.9</mn><mo separator="true">,</mo><msub><mi>β</mi><mn>2</mn></msub><mo>=</mo><mn>.999</mn><mo separator="true">,</mo><mi>ϵ</mi><mo>=</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>8</mn></mrow></msup><mo separator="true">,</mo><mi>λ</mi><mo>=</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>4</mn></mrow></msup><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\theta_{t+1}=\mathop{\mathrm{AdamW}}\nolimits(\theta_t,\nabla_\theta\mathcal L_t;\eta_t,\beta_1=.9,\beta_2=.999,\epsilon=10^{-8},\lambda=10^{-4}).</annotation></semantics></math></span></p>
+<p>代码以一个epoch更新数作warmup，随后按总更新步数余弦衰减。教师/最终参考10epoch，适配3epoch；每epoch保存模型、optimizer和RNG。</p>
+<p>free结构对照采用score-function：<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">∂</mi><msub><mi>a</mi><mi>e</mi></msub></msub><mi mathvariant="double-struck">E</mi><mi>L</mi><mo>=</mo><mi mathvariant="double-struck">E</mi><mo stretchy="false">[</mo><mo stretchy="false">(</mo><mi>L</mi><mo>−</mo><mi>b</mi><mo stretchy="false">)</mo><mo stretchy="false">(</mo><msub><mi>b</mi><mi>e</mi></msub><mo>−</mo><msub><mi>π</mi><mi>e</mi></msub><mo stretchy="false">)</mo><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">\partial_{a_e}\mathbb E L=\mathbb E[(L-b)(b_e-\pi_e)]</annotation></semantics></math></span>；<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi></mrow><annotation encoding="application/x-tex">b</annotation></semantics></math></span>为上一批次EMA，额外KL均值权重0.01、各类型超预算概率均值的平方惩罚权重1。</p>
+<p><a href="code/trustcpf_clip_v1/trustcpf/engine.py#L56"><code>trustcpf/engine.py · train_model</code></a>，源码第56行。</p>
+<pre><code class="language-python">def train_model(args,cfg,text,bank,manifest,train_pairs,output,pi=None,initial=None,select=False):
+    device=args.device
+    model=new_model(text,bank,cfg,device)
+    if initial:
+        model.load_state_dict(load_torch(initial)[&#39;model&#39;])
+        for key in (&#39;anchors&#39;,&#39;source&#39;,&#39;target&#39;,&#39;types&#39;,&#39;degree&#39;):
+            getattr(model.graph,key).copy_(bank[key].to(device))
+    opt=optimizer(model,cfg)
+    candidates=torch.tensor(pair_ids(manifest[&#39;labels&#39;],train_pairs),device=device)
+    ids=row_ids(args.cache,train_pairs,manifest[&#39;labels&#39;])
+    loader=batches(args.cache,&#39;train&#39;,cfg,ids,True)
+    epochs=cfg[&#39;adapt_epochs&#39;] if select else cfg[&#39;teacher_epochs&#39;]
+    out=Path(output); out.mkdir(parents=True,exist_ok=True)
+    pi=torch.full((len(bank[&#39;types&#39;]),),.5,device=device) if pi is None else pi.to(device)
+    edge_logits=torch.nn.Parameter(torch.logit(pi.clamp(.001,.999)))
+    free=cfg.get(&#39;variant&#39;)==&#39;free&#39; and select
+    if free: opt.add_param_group({&#39;params&#39;:[edge_logits],&#39;lr&#39;:cfg[&#39;graph_lr&#39;]})
+    history=[]; start=0; best=-float(&#39;inf&#39;); baseline=0.
+    if (out/&#39;last.pt&#39;).exists():
+        state=load_torch(out/&#39;last.pt&#39;); model.load_state_dict(state[&#39;model&#39;]); opt.load_state_dict(state[&#39;optimizer&#39;])
+        start=state[&#39;epoch&#39;]; history=state[&#39;history&#39;]; best=state[&#39;best&#39;]; baseline=state.get(&#39;baseline&#39;,0.)
+        pi=state[&#39;pi&#39;].to(device)
+        with torch.no_grad(): edge_logits.copy_(torch.logit(pi.clamp(.001,.999)))
+        torch.set_rng_state(state[&#39;torch_rng&#39;])
+        np.random.set_state(state[&#39;numpy_rng&#39;])
+        if torch.cuda.is_available() and state.get(&#39;cuda_rng&#39;) is not None: torch.cuda.set_rng_state_all(state[&#39;cuda_rng&#39;])
+    if select and not (out/&#39;best.pt&#39;).exists():
+        metrics=evaluate_model(model,args.cache,cfg,manifest,pi,&#39;val&#39;)
+        best=metrics[&#39;cw&#39;][&#39;AUC_native&#39;]
+        save_torch(out/&#39;best.pt&#39;,{&#39;model&#39;:model.state_dict(),&#39;pi&#39;:pi.cpu(),&#39;epoch&#39;:0,&#39;cfg&#39;:cfg,&#39;val&#39;:metrics})
+    total_steps=max(1,epochs*len(loader)); warmup=max(1,len(loader))
+    for epoch in range(start,epochs):
+        model.train(); losses=[]; tic=time.time()
+        for bi,data in enumerate(loader):
+            step=epoch*len(loader)+bi
+            factor=min((step+1)/warmup,1.)*.5*(1+math.cos(math.pi*max(0,step-warmup)/max(1,total_steps-warmup)))
+            for gi,group in enumerate(opt.param_groups): group[&#39;lr&#39;]=(cfg[&#39;lr&#39;] if gi==0 else cfg[&#39;graph_lr&#39;])*factor
+            g,fa,fo,a,o=[t.to(device) for t in data]
+            prob=edge_logits.sigmoid() if free else pi
+            mask=torch.bernoulli(prob.detach())
+            if cfg.get(&#39;variant&#39;) in (&#39;r0&#39;,&#39;capacity&#39;): mask.zero_()
+            joint,lo,lc=model(g,fa,fo,mask,capacity=(cfg.get(&#39;variant&#39;)==&#39;capacity&#39;))
+            loss=task_loss(joint,lo,lc,a,o,candidates)+cfg[&#39;lambda_w&#39;]*model.graph.regularizer()
+            objective=loss
+            if free:
+                logq=(mask*prob.log()+(1-mask)*(1-prob).log()).sum()
+                kl=(prob*torch.log(2*prob)+(1-prob)*torch.log(2*(1-prob))).mean()
+                budget=sum(torch.relu(prob[model.graph.types==ty].mean()-cfg[&#39;budget&#39;]).square() for ty in range(3))
+                objective=loss+(loss.detach()-baseline)*logq+.01*kl+budget
+                baseline=.95*baseline+.05*float(loss.detach())
+            opt.zero_grad(); objective.backward(); opt.step(); losses.append(float(loss.detach()))
+        if free: pi=edge_logits.sigmoid().detach()
+        metrics=evaluate_model(model,args.cache,cfg,manifest,pi,&#39;val&#39;) if select else None
+        if select and metrics[&#39;cw&#39;][&#39;AUC_native&#39;]&gt;best:
+            best=metrics[&#39;cw&#39;][&#39;AUC_native&#39;]
+            save_torch(out/&#39;best.pt&#39;,{&#39;model&#39;:model.state_dict(),&#39;pi&#39;:pi.cpu(),&#39;epoch&#39;:epoch+1,&#39;cfg&#39;:cfg,&#39;val&#39;:metrics})
+        record={&#39;epoch&#39;:epoch+1,&#39;loss&#39;:float(np.mean(losses)),&#39;seconds&#39;:time.time()-tic,&#39;val&#39;:metrics}
+        history.append(record); write_json(out/&#39;history.json&#39;,history)
+        save_torch(out/&#39;last.pt&#39;,{&#39;model&#39;:model.state_dict(),&#39;optimizer&#39;:opt.state_dict(),&#39;pi&#39;:pi.cpu(),
+            &#39;epoch&#39;:epoch+1,&#39;cfg&#39;:cfg,&#39;history&#39;:history,&#39;best&#39;:best,&#39;baseline&#39;:baseline,
+            &#39;torch_rng&#39;:torch.get_rng_state(),&#39;numpy_rng&#39;:np.random.get_state(),
+            &#39;cuda_rng&#39;:torch.cuda.get_rng_state_all() if torch.cuda.is_available() else None,
+            &#39;train_pairs&#39;:train_pairs})
+        print(&#39;EPOCH&#39;,out.name,epoch+1,&#39;loss&#39;,record[&#39;loss&#39;],&#39;val_auc&#39;,None if metrics is None else best,flush=True)
+    write_json(out/&#39;training.json&#39;,{&#39;pairs&#39;:train_pairs,&#39;epochs&#39;:epochs,&#39;seed&#39;:cfg[&#39;seed&#39;],&#39;checkpoint&#39;:sha(out/&#39;last.pt&#39;)})
+    return out/(&#39;best.pt&#39; if select else &#39;last.pt&#39;)
+</code></pre>
+<h2>8.1 完整条件任务损失的解析梯度</h2>
+<p>令候选概率<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mi mathvariant="script">C</mi></msub></mrow><annotation encoding="application/x-tex">p_{\mathcal C}</annotation></semantics></math></span>在候选集外取0，<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mrow><mi>o</mi><mi>a</mi></mrow></msub><mo>=</mo><msub><mi>p</mi><mi mathvariant="script">C</mi></msub><mo stretchy="false">(</mo><mi>a</mi><mo separator="true">,</mo><mi>o</mi><mo stretchy="false">)</mo><mo>−</mo><mn mathvariant="bold">1</mn><mo stretchy="false">[</mo><mo stretchy="false">(</mo><mi>a</mi><mo separator="true">,</mo><mi>o</mi><mo stretchy="false">)</mo><mo>=</mo><mo stretchy="false">(</mo><msup><mi>a</mi><mo>∗</mo></msup><mo separator="true">,</mo><msup><mi>o</mi><mo>∗</mo></msup><mo stretchy="false">)</mo><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">h_{oa}=p_{\mathcal C}(a,o)-\mathbf1[(a,o)=(a^*,o^*)]</annotation></semantics></math></span>，<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>g</mi><mi>o</mi></msub><mo>=</mo><msub><mo>∑</mo><mi>a</mi></msub><msub><mi>h</mi><mrow><mi>o</mi><mi>a</mi></mrow></msub></mrow><annotation encoding="application/x-tex">g_o=\sum_ah_{oa}</annotation></semantics></math></span>。单图像损失导数为：</p>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.25em" columnalign="right left" columnspacing="0em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mfrac><mrow><mi mathvariant="normal">∂</mi><mi>L</mi></mrow><mrow><mi mathvariant="normal">∂</mi><msub><mi>z</mi><mi>o</mi></msub></mrow></mfrac></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><msub><mi>g</mi><mi>o</mi></msub><mo>+</mo><mn>0.4</mn><mo stretchy="false">[</mo><msub><mi>p</mi><mi>o</mi></msub><mo>−</mo><mn mathvariant="bold">1</mn><mo stretchy="false">(</mo><mi>o</mi><mo>=</mo><msup><mi>o</mi><mo>∗</mo></msup><mo stretchy="false">)</mo><mo stretchy="false">]</mo><mo separator="true">,</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mfrac><mrow><mi mathvariant="normal">∂</mi><mi>L</mi></mrow><mrow><mi mathvariant="normal">∂</mi><msub><mi>U</mi><mrow><mi>o</mi><mi>a</mi></mrow></msub></mrow></mfrac></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><msub><mi>h</mi><mrow><mi>o</mi><mi>a</mi></mrow></msub><mo>−</mo><msub><mi>p</mi><mrow><mi>a</mi><mi mathvariant="normal">∣</mi><mi>o</mi></mrow></msub><msub><mi>g</mi><mi>o</mi></msub><mo>+</mo><mn>0.61</mn><mo stretchy="false">(</mo><mi>o</mi><mo>=</mo><msup><mi>o</mi><mo>∗</mo></msup><mo stretchy="false">)</mo><mo stretchy="false">[</mo><msub><mi>p</mi><mrow><mi>a</mi><mi mathvariant="normal">∣</mi><mi>o</mi></mrow></msub><mo>−</mo><mn mathvariant="bold">1</mn><mo stretchy="false">(</mo><mi>a</mi><mo>=</mo><msup><mi>a</mi><mo>∗</mo></msup><mo stretchy="false">)</mo><mo stretchy="false">]</mo><mi mathvariant="normal">.</mi></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+\frac{\partial L}{\partial z_o}&amp;=g_o+0.4[p_o-\mathbf1(o=o^*)],\\
+\frac{\partial L}{\partial U_{oa}}&amp;=h_{oa}-p_{a|o}g_o+0.6\mathbf1(o=o^*)[p_{a|o}-\mathbf1(a=a^*)].
+\end{aligned}</annotation></semantics></math></span></p>
+<p>以下函数给batch均值的导数，测试逐项比对实际任务损失的autograd。</p>
+<p>对单位化输入<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>z</mi><mo>=</mo><mi>v</mi><mi mathvariant="normal">/</mi><mi mathvariant="normal">∥</mi><mi>v</mi><mi mathvariant="normal">∥</mi></mrow><annotation encoding="application/x-tex">z=v/\|v\|</annotation></semantics></math></span>，<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>J</mi><mi mathvariant="script">N</mi></msub><mo stretchy="false">(</mo><mi>v</mi><mo stretchy="false">)</mo><mo>=</mo><mo stretchy="false">(</mo><mi>I</mi><mo>−</mo><mi>z</mi><msup><mi>z</mi><mi mathvariant="normal">⊤</mi></msup><mo stretchy="false">)</mo><mi mathvariant="normal">/</mi><mi mathvariant="normal">∥</mi><mi>v</mi><mi mathvariant="normal">∥</mi></mrow><annotation encoding="application/x-tex">J_{\mathcal N}(v)=(I-zz^\top)/\|v\|</annotation></semantics></math></span>（<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">∥</mi><mi>v</mi><mi mathvariant="normal">∥</mi><mo>&gt;</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>8</mn></mrow></msup></mrow><annotation encoding="application/x-tex">\|v\|&gt;10^{-8}</annotation></semantics></math></span>）。图消息的低秩矩阵梯度为：</p>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi mathvariant="normal">∂</mi><msub><mi>L</mi><mi>ρ</mi></msub></msub><mi>L</mi><mo>=</mo><munder><mo>∑</mo><mrow><mi>e</mi><mo>:</mo><mi>ρ</mi><mo stretchy="false">(</mo><mi>e</mi><mo stretchy="false">)</mo><mo>=</mo><mi>ρ</mi></mrow></munder><msub><mi>g</mi><mi>e</mi></msub><mo stretchy="false">(</mo><msub><mi>R</mi><mi>ρ</mi></msub><msub><mi>d</mi><mi>e</mi></msub><msup><mo stretchy="false">)</mo><mi mathvariant="normal">⊤</mi></msup><mo separator="true">,</mo><mspace width="1em"/><msub><mi mathvariant="normal">∂</mi><msub><mi>R</mi><mi>ρ</mi></msub></msub><mi>L</mi><mo>=</mo><munder><mo>∑</mo><mrow><mi>e</mi><mo>:</mo><mi>ρ</mi><mo stretchy="false">(</mo><mi>e</mi><mo stretchy="false">)</mo><mo>=</mo><mi>ρ</mi></mrow></munder><mo stretchy="false">(</mo><msubsup><mi>L</mi><mi>ρ</mi><mi mathvariant="normal">⊤</mi></msubsup><msub><mi>g</mi><mi>e</mi></msub><mo stretchy="false">)</mo><msubsup><mi>d</mi><mi>e</mi><mi mathvariant="normal">⊤</mi></msubsup><mo separator="true">,</mo></mrow><annotation encoding="application/x-tex">\partial_{L_\rho}L=\sum_{e:\rho(e)=\rho}g_e(R_\rho d_e)^\top,\quad
+\partial_{R_\rho}L=\sum_{e:\rho(e)=\rho}(L_\rho^\top g_e)d_e^\top,</annotation></semantics></math></span></p>
+<p>其中<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>g</mi><mi>e</mi></msub><mo>=</mo><mi mathvariant="normal">∂</mi><mi>L</mi><mi mathvariant="normal">/</mi><mi mathvariant="normal">∂</mi><msub><mi>m</mi><mi>e</mi></msub></mrow><annotation encoding="application/x-tex">g_e=\partial L/\partial m_e</annotation></semantics></math></span>包含固定度数、边开关、概念单位化及三元残差的链式导数。训练使用同一计算图自动回传，并叠加消息正则梯度。</p>
+<p><a href="code/trustcpf_clip_v1/trustcpf/model.py#L109"><code>trustcpf/model.py · task_logit_gradients</code></a>，源码第109行。</p>
+<pre><code class="language-python">def task_logit_gradients(obj_logits, conditional_logits, attrs, objs, candidates):
+    &quot;&quot;&quot;Analytic task-loss derivatives; used to verify the autograd implementation.&quot;&quot;&quot;
+    po,pc=obj_logits.softmax(-1),conditional_logits.softmax(-1)
+    joint=obj_logits.log_softmax(-1)[:,:,None]+conditional_logits.log_softmax(-1)
+    h=torch.zeros_like(joint).flatten(1)
+    h[:,candidates]=candidate_logprob(joint,candidates).exp()
+    row=torch.arange(len(attrs),device=attrs.device)
+    h[row,objs*joint.shape[2]+attrs]-=1
+    h=h.reshape_as(joint); by_object=h.sum(-1)
+    go=by_object+.4*po
+    go[row,objs]-=.4
+    gu=h-pc*by_object[:,:,None]
+    gu[row,objs]+=.6*pc[row,objs]
+    gu[row,objs,attrs]-=.6
+    return go/len(attrs),gu/len(attrs)
+</code></pre>
+<h2>9. 概率平均与跨图方差</h2>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>log</mi><mo>⁡</mo><msub><mover accent="true"><mi>p</mi><mo>ˉ</mo></mover><mi mathvariant="script">C</mi></msub><mo stretchy="false">(</mo><mi>c</mi><mi mathvariant="normal">∣</mi><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><msub><mo><mrow><mi mathvariant="normal">L</mi><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi></mrow></mo><mi>k</mi></msub><mi>log</mi><mo>⁡</mo><msub><mi>p</mi><mi mathvariant="script">C</mi></msub><mo stretchy="false">(</mo><mi>c</mi><mi mathvariant="normal">∣</mi><mi>x</mi><mo separator="true">,</mo><msup><mi>G</mi><mrow><mo stretchy="false">(</mo><mi>k</mi><mo stretchy="false">)</mo></mrow></msup><mo stretchy="false">)</mo><mo>−</mo><mi>log</mi><mo>⁡</mo><mi>K</mi><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\log\bar p_{\mathcal C}(c|x)=\mathop{\mathrm{LSE}}\nolimits_k\log p_{\mathcal C}(c|x,G^{(k)})-\log K.</annotation></semantics></math></span></p>
+<p>固定图种子使所有batch用同一组图。<code>mean_logit</code>、<code>mean_graph</code>是额外读出配置。</p>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>V</mi><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><msup><mi>K</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><munder><mo>∑</mo><mi>k</mi></munder><mi mathvariant="normal">∥</mi><msub><mi>p</mi><mi>k</mi></msub><mo>−</mo><mover accent="true"><mi>p</mi><mo>ˉ</mo></mover><msubsup><mi mathvariant="normal">∥</mi><mn>2</mn><mn>2</mn></msubsup><mo separator="true">,</mo><mspace width="2em"/><mo>−</mo><mi>log</mi><mo>⁡</mo><mover accent="true"><mi>p</mi><mo>ˉ</mo></mover><mo stretchy="false">(</mo><mi>y</mi><mo stretchy="false">)</mo><mo>≤</mo><msup><mi>K</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><munder><mo>∑</mo><mi>k</mi></munder><mo stretchy="false">[</mo><mo>−</mo><mi>log</mi><mo>⁡</mo><msub><mi>p</mi><mi>k</mi></msub><mo stretchy="false">(</mo><mi>y</mi><mo stretchy="false">)</mo><mo stretchy="false">]</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">V(x)=K^{-1}\sum_k\|p_k-\bar p\|_2^2,\qquad -\log\bar p(y)\le K^{-1}\sum_k[-\log p_k(y)].</annotation></semantics></math></span></p>
+<p><a href="code/trustcpf_clip_v1/trustcpf/model.py#L126"><code>trustcpf/model.py · average_graphs</code></a>，源码第126行。</p>
+<pre><code class="language-python">def average_graphs(model, batch, pi, candidates, count=16, seed=1701, mode=&#39;probability&#39;, capacity=False, return_joint=False):
+    base = model.base(*batch)
+    gen = torch.Generator(device=pi.device).manual_seed(seed)
+    outputs = []
+    for _ in range(count):
+        edges = pi if mode == &#39;mean_graph&#39; else (torch.rand(pi.shape, generator=gen, device=pi.device) &lt; pi).float()
+        outputs.append(model.score(base, edges, capacity)[0])
+    stack = torch.stack(outputs)
+    if mode in (&#39;mean_graph&#39;, &#39;mean_logit&#39;):
+        logs = candidate_logprob(stack.mean(0), candidates)
+    else:
+        logs = torch.stack([candidate_logprob(j, candidates) for j in outputs]).logsumexp(0) - torch.log(pi.new_tensor(count))
+    probs = torch.stack([candidate_logprob(j, candidates).exp() for j in outputs])
+    variance = (probs - probs.mean(0)).square().sum(-1).mean(0)
+    if return_joint:
+        full = stack.mean(0) if mode in (&#39;mean_graph&#39;,&#39;mean_logit&#39;) else stack.logsumexp(0)-torch.log(pi.new_tensor(count))
+        return logs, variance, full
+    return logs, variance
+</code></pre>
+<h2>9.1 Seen/unseen工作点与校准</h2>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msubsup><mi>s</mi><mi>c</mi><mrow><mo stretchy="false">(</mo><mi>b</mi><mo stretchy="false">)</mo></mrow></msubsup><mo>=</mo><mi>log</mi><mo>⁡</mo><mover accent="true"><mi>p</mi><mo>ˉ</mo></mover><mo stretchy="false">(</mo><mi>c</mi><mi mathvariant="normal">∣</mi><mi>x</mi><mo stretchy="false">)</mo><mo>+</mo><mi>b</mi><mn mathvariant="bold">1</mn><mo stretchy="false">[</mo><mi>c</mi><mo mathvariant="normal">∉</mo><msub><mi mathvariant="script">C</mi><mi>s</mi></msub><mo stretchy="false">]</mo><mo separator="true">,</mo><mspace width="1em"/><msub><mi>p</mi><mrow><mi>c</mi><mi>a</mi><mi>l</mi></mrow></msub><mo>=</mo><mo><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">x</mi></mrow></mo><mo stretchy="false">(</mo><msup><mi>s</mi><mrow><mo stretchy="false">(</mo><mi>b</mi><mo stretchy="false">)</mo></mrow></msup><mi mathvariant="normal">/</mi><mi>T</mi><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">s_c^{(b)}=\log\bar p(c|x)+b\mathbf1[c\notin\mathcal C_s],\quad
+p_{cal}=\mathop{\mathrm{softmax}}\nolimits(s^{(b)}/T).</annotation></semantics></math></span></p>
+<p>VAL选择工作点bias和温度，TEST直接应用。ECE采用15个等宽区间。</p>
+<p><a href="code/trustcpf_clip_v1/trustcpf/engine.py#L132"><code>trustcpf/engine.py · calibration_metrics</code></a>，源码第132行。</p>
+<pre><code class="language-python">def calibration_metrics(logs,truth,seen,bias,temperature):
+    z=torch.as_tensor(logs,dtype=torch.float64).clone()
+    z[:,~torch.as_tensor(seen)]+=bias
+    lp=(z/temperature).log_softmax(-1); p=lp.exp(); conf,pred=p.topk(1,dim=-1)
+    conf,pred=conf[:,0],pred[:,0]
+    truth=torch.as_tensor(truth); ok=(pred==truth); sm=torch.as_tensor(seen)[truth]
+    s=float(ok[sm].double().mean()); u=float(ok[~sm].double().mean())
+    ece=0.
+    for b in range(15):
+        mask=(conf&gt;=b/15)&amp;(conf&lt;(b+1)/15 if b&lt;14 else conf&lt;=1)
+        if mask.any(): ece+=float(mask.double().mean()*(ok[mask].double().mean()-conf[mask].mean()).abs())
+    nll=-lp[torch.arange(len(truth)),truth]
+    return {&#39;temperature&#39;:float(temperature),&#39;bias&#39;:float(bias),&#39;seen&#39;:100*s,&#39;unseen&#39;:100*u,&#39;HM&#39;:float(hm(s,u)*100),
+        &#39;NLL&#39;:float(nll.mean()),&#39;NLL_seen&#39;:float(nll[sm].mean()),&#39;NLL_unseen&#39;:float(nll[~sm].mean()),&#39;ECE&#39;:ece*100}
+</code></pre>
+<h2>9.2 原生有限偏置曲线</h2>
+<p>从正确未见样本的分数差减<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>10</mn><mrow><mo>−</mo><mn>4</mn></mrow></msup></mrow><annotation encoding="application/x-tex">10^{-4}</annotation></semantics></math></span>后采约20个bias点，加bias1000端点；与现有CPF原生扫描保持同一口径。准确率/AUC展示单位为百分数。</p>
+<p><a href="code/trustcpf_clip_v1/trustcpf/metrics.py#L11"><code>trustcpf/metrics.py · native_curve</code></a>，源码第11行。</p>
+<pre><code class="language-python">def native_curve(scores, truth, seen_classes):
+    # Same top-1 CPF scan: correct unseen differences -1e-4, ~20 bins, endpoint bias=1000.
+    x = torch.as_tensor(scores, dtype=torch.float32)
+    y = torch.as_tensor(truth, dtype=torch.long)
+    seen = torch.as_tensor(seen_classes, dtype=torch.bool)
+    is_seen = seen[y]
+    if not is_seen.any() or is_seen.all():
+        raise ValueError(&#39;AUC requires seen and unseen evaluation images&#39;)
+    endpoint = x.clone()
+    endpoint[:, ~seen] += 1000.0
+    pred = endpoint.topk(1, dim=1).indices[:, 0]
+    correct = pred.eq(y)
+    un = ~is_seen
+    delta = x[un][:, seen].topk(1, dim=1).values[:, 0] - x[un, y[un]]
+    diffs = torch.sort(delta[correct[un]] - 1e-4).values
+    step = max(len(diffs) // 20, 1)
+    biases = [float(b) for b in diffs[::step]] + [1000.0]
+    ss, uu = [], []
+    for bias in biases:
+        z = x.clone()
+        z[:, ~seen] += bias
+        correct = z.topk(1, dim=1).indices[:, 0].eq(y)
+        ss.append(float(correct[is_seen].float().mean()))
+        uu.append(float(correct[un].float().mean()))
+    h = hm(ss, uu)
+    best = int(np.argmax(h))
+    trapz = np.trapezoid if hasattr(np, &#39;trapezoid&#39;) else np.trapz
+    return {&#39;AUC&#39;: float(trapz(ss, uu) * 100), &#39;best_hm&#39;: float(h[best] * 100),
+            &#39;best_bias&#39;: biases[best], &#39;best_seen&#39;: max(ss) * 100, &#39;best_unseen&#39;: max(uu) * 100,
+            &#39;biases&#39;: biases, &#39;seen&#39;: (100 * np.array(ss)).tolist(), &#39;unseen&#39;: (100 * np.array(uu)).tolist()}
+</code></pre>
+<h2>9.3 全临界事件曲线</h2>
+<p>每图像最佳seen分数<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mi>s</mi></msub></mrow><annotation encoding="application/x-tex">s_s</annotation></semantics></math></span>与最佳unseen分数<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mi>u</mi></msub></mrow><annotation encoding="application/x-tex">s_u</annotation></semantics></math></span>在<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo>=</mo><msub><mi>s</mi><mi>s</mi></msub><mo>−</mo><msub><mi>s</mi><mi>u</mi></msub></mrow><annotation encoding="application/x-tex">b=s_s-s_u</annotation></semantics></math></span>切换。汇总相同临界点后逐次更新Seen/Unseen计数，区间内部bias用于固定工作点。</p>
+<p><a href="code/trustcpf_clip_v1/trustcpf/metrics.py#L43"><code>trustcpf/metrics.py · exact_curve</code></a>，源码第43行。</p>
+<pre><code class="language-python">def exact_curve(scores, truth, seen_classes):
+    x = np.asarray(scores, dtype=np.float64)
+    seen = np.asarray(seen_classes, dtype=bool)
+    y = np.asarray(truth)
+    si, ui = np.flatnonzero(seen), np.flatnonzero(~seen)
+    if not len(si) or not len(ui):
+        raise ValueError(&#39;Curve needs both candidate partitions&#39;)
+    # A single fixed winner within each partition; events switch seen -&gt; unseen.
+    sp = si[x[:, si].argmax(1)]
+    up = ui[x[:, ui].argmax(1)]
+    d = x[np.arange(len(x)), sp] - x[np.arange(len(x)), up]
+    sm, um = seen[y], ~seen[y]
+    ns, nu = sm.sum(), um.sum()
+    if ns == 0 or nu == 0:
+        raise ValueError(&#39;Curve needs both sample partitions&#39;)
+    cs, cu = (sp == y) &amp; sm, (up == y) &amp; um
+    order = np.argsort(d, kind=&#39;stable&#39;)
+    thresholds, starts = np.unique(d[order], return_index=True)
+    loss_s = np.add.reduceat(cs[order].astype(int), starts)
+    gain_u = np.add.reduceat(cu[order].astype(int), starts)
+    ss = np.r_[cs.sum(), cs.sum() - np.cumsum(loss_s)] / ns
+    uu = np.r_[0, np.cumsum(gain_u)] / nu
+    h = hm(ss, uu)
+    # Choose interval interiors, so no prediction depends on equality at a threshold.
+    low = thresholds[0] - max(1.0, abs(thresholds[0]) * 1e-6)
+    high = thresholds[-1] + max(1.0, abs(thresholds[-1]) * 1e-6)
+    midpoints = thresholds[:-1] + (thresholds[1:] - thresholds[:-1]) * 0.5
+    biases = np.r_[low, midpoints, high]
+    best = int(np.argmax(h))
+    trapz = np.trapezoid if hasattr(np, &#39;trapezoid&#39;) else np.trapz
+    return {&#39;AUC&#39;: float(trapz(ss, uu) * 100), &#39;best_hm&#39;: float(h[best] * 100),
+            &#39;best_bias&#39;: float(biases[best]), &#39;thresholds&#39;: thresholds.tolist(),
+            &#39;biases&#39;: biases.tolist(), &#39;seen&#39;: (ss * 100).tolist(), &#39;unseen&#39;: (uu * 100).tolist()}
+</code></pre>
+<h2>9.4 效用预测与方向指标</h2>
+<p>Spearman使用平均秩；方向同时报告全部样本和<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">∣</mi><mi>y</mi><mi mathvariant="normal">∣</mi><mo>&gt;</mo><mn>1.96</mn><msqrt><mi>ν</mi></msqrt></mrow><annotation encoding="application/x-tex">|y|&gt;1.96\sqrt\nu</annotation></semantics></math></span>子集，可靠子集比例另报。
+90%预测区间为<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi><mo>±</mo><mn>1.645</mn><msqrt><mrow><mi>v</mi><mo>+</mo><mi>ν</mi></mrow></msqrt></mrow><annotation encoding="application/x-tex">m\pm1.645\sqrt{v+\nu}</annotation></semantics></math></span>，这里传入的<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>v</mi></mrow><annotation encoding="application/x-tex">v</annotation></semantics></math></span>是条件任务方差与集成分歧之和。</p>
+<p><a href="code/trustcpf_clip_v1/trustcpf/utility.py#L111"><code>trustcpf/utility.py · regression_metrics</code></a>，源码第111行。</p>
+<pre><code class="language-python">def regression_metrics(mean,var,y,noise):
+    m,v,y,nu=[np.asarray(a,dtype=float) for a in (mean,var,y,noise)]
+    if not len(y):
+        return {&#39;observations&#39;:0,&#39;rmse&#39;:None,&#39;mae&#39;:None,&#39;spearman&#39;:None,&#39;pearson&#39;:None,
+                &#39;direction_balanced_accuracy&#39;:None,&#39;reliable_direction_balanced_accuracy&#39;:None,
+                &#39;reliable_fraction&#39;:None,&#39;direction_auroc&#39;:None,&#39;coverage90&#39;:None,&#39;nll&#39;:None}
+    def corr(a,b):
+        a=a-a.mean(); b=b-b.mean(); den=np.sqrt((a*a).sum()*(b*b).sum())
+        return float((a*b).sum()/den) if den&gt;0 else 0.
+    def balanced(mask):
+        pos=mask&amp;(y&gt;0); neg=mask&amp;(y&lt;0)
+        if not pos.any() or not neg.any(): return None
+        return float(((m[pos]&gt;0).mean()+(m[neg]&lt;0).mean())/2)
+    reliable=np.abs(y)&gt;1.96*np.sqrt(nu)
+    pos=y&gt;0; ranks=average_rank(m)
+    auc=float((ranks[pos].sum()-pos.sum()*(pos.sum()-1)/2)/(pos.sum()*(~pos).sum())) if pos.any() and (~pos).any() else None
+    return {&#39;observations&#39;:len(y),&#39;rmse&#39;:float(np.sqrt(np.mean((m-y)**2))),&#39;mae&#39;:float(np.abs(m-y).mean()),
+            &#39;spearman&#39;:corr(average_rank(m),average_rank(y)), &#39;pearson&#39;:corr(m,y),
+            &#39;direction_balanced_accuracy&#39;:balanced(np.ones(len(y),bool)),
+            &#39;reliable_direction_balanced_accuracy&#39;:balanced(reliable),&#39;reliable_fraction&#39;:float(reliable.mean()),
+            &#39;direction_auroc&#39;:auc,&#39;coverage90&#39;:float((np.abs(m-y)&lt;=1.645*np.sqrt(v+nu)).mean()),
+            &#39;nll&#39;:float(.5*(np.log(v+nu)+(m-y)**2/(v+nu)).mean())}
+</code></pre>
+<h2>10. 知识内容错配与删除</h2>
+<p>每类型固定随机排序前缀。描述来源用按所属原语分组的块旋转置换，保持被选源句多重集合；OI按父类分组旋转。小样本前缀不足以跨组置换时扩展到首个可置换前缀，保存实际扰动比例。</p>
+<p><a href="code/trustcpf_clip_v1/trustcpf/graph.py#L86"><code>trustcpf/graph.py · permute_bank</code></a>，源码第86行。</p>
+<pre><code class="language-python">def permute_bank(bank, seed=7101, rate=1., relation=None, deletion=False):
+    &quot;&quot;&quot;Fixed random order, nested corruption prefixes, types remain separate.&quot;&quot;&quot;
+    import copy
+    out = copy.deepcopy(bank)
+    gen = torch.Generator().manual_seed(seed)
+    for ty in range(3):
+        if relation is not None and ty != relation: continue
+        ids = torch.where(bank[&#39;types&#39;]==ty)[0]
+        ids = ids[torch.randperm(len(ids), generator=gen)]
+        n = int(round(rate*len(ids)))
+        if not n: continue
+        if deletion:
+            if &#39;availability&#39; not in out: out[&#39;availability&#39;]=torch.ones(len(bank[&#39;types&#39;]))
+            out[&#39;availability&#39;][ids[:n]]=0
+        else:
+            # A block rotation deranges owner groups and preserves the exact source multiset.
+            def owner(e):
+                return str(bank[&#39;rows&#39;][int(e)][&#39;slot&#39;]) if ty==0 else str(int(bank[&#39;target&#39;][e]))
+            n=max(2,n)
+            while n&lt;=len(ids):
+                chosen=ids[:n].tolist(); groups={owner(e) for e in chosen}
+                largest=max(sum(owner(e)==g for e in chosen) for g in groups)
+                if 2*largest&lt;=n: break
+                n+=1
+            chosen=sorted(ids[:n].tolist(),key=lambda e:(owner(e),e))
+            donors=chosen[largest:]+chosen[:largest]
+            out[&#39;source&#39;][chosen]=bank[&#39;source&#39;][donors]
+    return out
+</code></pre>
+<h2>11. 核心验证指标与结果文件</h2>
+<table>
+<thead>
+<tr>
+<th>目标</th>
+<th>指标</th>
+<th>文件</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>独立任务迁移</td>
+<td>Q5 Spearman、RMSE、方向balanced accuracy、AUROC、90%覆盖率</td>
+<td><code>utility/audit.json</code></td>
+</tr>
+<tr>
+<td>组合识别</td>
+<td>CW/OW AUC_native、AUC_exact、oracle-HM、VAL bias的Seen/Unseen/HM</td>
+<td><code>runs/*/metrics.json</code></td>
+</tr>
+<tr>
+<td>条件属性</td>
+<td>GT-object属性准确率/NLL、对象/属性错误分解</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>概率稳定性</td>
+<td>NLL、ECE、跨图预测方差</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>结构选择</td>
+<td>每类型期望边数、任务/集成方差、预算乘子</td>
+<td><code>structure.json</code>、各组metrics</td>
+</tr>
+<tr>
+<td>知识变化</td>
+<td>分类型噪声曲线、实际扰动率、RAUC</td>
+<td><code>noise_*.json</code>、<code>robustness_summary.json</code></td>
+</tr>
+<tr>
+<td>随机重复</td>
+<td>seed配对AUC差、均值、样本std</td>
+<td><code>paired_comparisons.json</code></td>
+</tr>
+</tbody></table>
+<p>完整训练和部署命令见<a href="%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%AE%9E%E8%B7%B5%E5%91%BD%E4%BB%A4.md">服务器实践命令</a>，方法与对照见<a href="TRUST-CPF_CLIP_%E4%BF%AE%E8%AE%A2%E5%AE%9E%E9%AA%8C%E6%96%B9%E6%A1%88v1.md">CLIP修订实验方案</a>。</p>
+<h2>12. 源码索引</h2>
+<table>
+<thead>
+<tr>
+<th>节</th>
+<th>文件</th>
+<th>函数/方法</th>
+<th align="right">行</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0. 符号、张量与单位化</td>
+<td><code>trustcpf/common.py</code></td>
+<td><code>unit</code></td>
+<td align="right">72</td>
+</tr>
+<tr>
+<td>1. CLIP视觉与文本编码</td>
+<td><code>trustcpf/features.py</code></td>
+<td><code>visual_tokens</code></td>
+<td align="right">17</td>
+</tr>
+<tr>
+<td>1.1 名称、组合与领域Prompt</td>
+<td><code>trustcpf/features.py</code></td>
+<td><code>prompts</code></td>
+<td align="right">37</td>
+</tr>
+<tr>
+<td>1.2 类别查询补丁</td>
+<td><code>trustcpf/features.py</code></td>
+<td><code>query_patches</code></td>
+<td align="right">32</td>
+</tr>
+<tr>
+<td>1.3 缓存、数据轴和读取</td>
+<td><code>trustcpf/data.py</code></td>
+<td><code>FeatureDataset</code></td>
+<td align="right">99</td>
+</tr>
+<tr>
+<td>2. 共享低秩适配器</td>
+<td><code>trustcpf/model.py</code></td>
+<td><code>Adapter</code></td>
+<td align="right">8</td>
+</tr>
+<tr>
+<td>2.1 CLIP对象条件属性基底</td>
+<td><code>trustcpf/model.py</code></td>
+<td><code>TrustCPF.base</code></td>
+<td align="right">60</td>
+</tr>
+<tr>
+<td>3. 知识关系与类型编号</td>
+<td><code>trustcpf/graph.py</code></td>
+<td><code>graph_records</code></td>
+<td align="right">8</td>
+</tr>
+<tr>
+<td>3.1 低秩类型消息</td>
+<td><code>trustcpf/model.py</code></td>
+<td><code>TypedGraph.messages</code></td>
+<td align="right">29</td>
+</tr>
+<tr>
+<td>3.2 固定候选度数的图聚合</td>
+<td><code>trustcpf/model.py</code></td>
+<td><code>TypedGraph.forward</code></td>
+<td align="right">34</td>
+</tr>
+<tr>
+<td>4. 三元图残差和完整联合概率</td>
+<td><code>trustcpf/model.py</code></td>
+<td><code>TrustCPF.score</code></td>
+<td align="right">69</td>
+</tr>
+<tr>
+<td>4.1 分类目标</td>
+<td><code>trustcpf/model.py</code></td>
+<td><code>task_loss</code></td>
+<td align="right">96</td>
+</tr>
+<tr>
+<td>4.2 图消息正则</td>
+<td><code>trustcpf/model.py</code></td>
+<td><code>TypedGraph.regularizer</code></td>
+<td align="right">40</td>
+</tr>
+<tr>
+<td>5. 五折组合任务</td>
+<td><code>trustcpf/folds.py</code></td>
+<td><code>make_folds</code></td>
+<td align="right">4</td>
+</tr>
+<tr>
+<td>5.1 配对边干预</td>
+<td><code>trustcpf/utility.py</code></td>
+<td><code>paired_utility</code></td>
+<td align="right">10</td>
+</tr>
+<tr>
+<td>5.2 测量队列与包含概率</td>
+<td><code>trustcpf/stages.py</code></td>
+<td><code>measure</code></td>
+<td align="right">19</td>
+</tr>
+<tr>
+<td>6. Inner视觉证据摘要</td>
+<td><code>trustcpf/utility.py</code></td>
+<td><code>support_summary</code></td>
+<td align="right">31</td>
+</tr>
+<tr>
+<td>6.1 6157维关系输入</td>
+<td><code>trustcpf/utility.py</code></td>
+<td><code>utility_features</code></td>
+<td align="right">52</td>
+</tr>
+<tr>
+<td>6.2 异方差效用预测器</td>
+<td><code>trustcpf/utility.py</code></td>
+<td><code>UtilityNet</code></td>
+<td align="right">71</td>
+</tr>
+<tr>
+<td>6.3 测量噪声与HT加权NLL</td>
+<td><code>trustcpf/utility.py</code></td>
+<td><code>utility_nll</code></td>
+<td align="right">83</td>
+</tr>
+<tr>
+<td>6.4 三模型与epoch选择</td>
+<td><code>trustcpf/stages.py</code></td>
+<td><code>fit_utility</code></td>
+<td align="right">97</td>
+</tr>
+<tr>
+<td>7. 集成分歧</td>
+<td><code>trustcpf/utility.py</code></td>
+<td><code>ensemble_moments</code></td>
+<td align="right">91</td>
+</tr>
+<tr>
+<td>7.1 支持摘要的全方差汇总</td>
+<td><code>trustcpf/utility.py</code></td>
+<td><code>aggregate_moments</code></td>
+<td align="right">99</td>
+</tr>
+<tr>
+<td>7.2 风险收益与结构分布</td>
+<td><code>trustcpf/stages.py</code></td>
+<td><code>make_structure</code></td>
+<td align="right">202</td>
+</tr>
+<tr>
+<td>7.3 KL和预算的闭式解</td>
+<td><code>trustcpf/graph.py</code></td>
+<td><code>solve_budget</code></td>
+<td align="right">59</td>
+</tr>
+<tr>
+<td>7.4 Q4结构参数选择</td>
+<td><code>trustcpf/stages.py</code></td>
+<td><code>tune</code></td>
+<td align="right">212</td>
+</tr>
+<tr>
+<td>8. 单批优化、步长与恢复</td>
+<td><code>trustcpf/engine.py</code></td>
+<td><code>train_model</code></td>
+<td align="right">56</td>
+</tr>
+<tr>
+<td>8.1 完整条件任务损失的解析梯度</td>
+<td><code>trustcpf/model.py</code></td>
+<td><code>task_logit_gradients</code></td>
+<td align="right">109</td>
+</tr>
+<tr>
+<td>9. 概率平均与跨图方差</td>
+<td><code>trustcpf/model.py</code></td>
+<td><code>average_graphs</code></td>
+<td align="right">126</td>
+</tr>
+<tr>
+<td>9.1 Seen/unseen工作点与校准</td>
+<td><code>trustcpf/engine.py</code></td>
+<td><code>calibration_metrics</code></td>
+<td align="right">132</td>
+</tr>
+<tr>
+<td>9.2 原生有限偏置曲线</td>
+<td><code>trustcpf/metrics.py</code></td>
+<td><code>native_curve</code></td>
+<td align="right">11</td>
+</tr>
+<tr>
+<td>9.3 全临界事件曲线</td>
+<td><code>trustcpf/metrics.py</code></td>
+<td><code>exact_curve</code></td>
+<td align="right">43</td>
+</tr>
+<tr>
+<td>9.4 效用预测与方向指标</td>
+<td><code>trustcpf/utility.py</code></td>
+<td><code>regression_metrics</code></td>
+<td align="right">111</td>
+</tr>
+<tr>
+<td>10. 知识内容错配与删除</td>
+<td><code>trustcpf/graph.py</code></td>
+<td><code>permute_bank</code></td>
+<td align="right">86</td>
+</tr>
+</tbody></table>
+</article></body></html>
