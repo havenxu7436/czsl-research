@@ -1,0 +1,218 @@
+"""Register, verify and restore the frozen TRUST-CPF conditional v2 release."""
+import argparse
+import hashlib
+import json
+from pathlib import Path
+import shutil
+import tempfile
+import zipfile
+
+from register_trustcpf_v1 import read, safe_name, sha, write
+
+ROOT = Path(__file__).resolve().parents[1]
+LINE = 'TRUST-CPF方案'
+STAGE = LINE + '/v2'
+PACKAGE = 'trustcpf_conditional_v2'
+ARCHIVE_STAGE = '33'
+MAP = STAGE + '/results/release_member_map.json'
+RECEIPT = 'provenance/updates/20261022_trustcpf_v2.json'
+
+
+def destination(name):
+    path = safe_name(name)
+    if name.startswith(('assets/', 'configs/')):
+        return STAGE + '/configs/' + PACKAGE + '/' + name
+    if name.startswith('initial/'):
+        return STAGE + '/results/' + PACKAGE + '/' + name
+    if name.startswith('validation/'):
+        return STAGE + '/results/local-validation-20261022/' + path.name
+    if path.suffix == '.md':
+        return STAGE + '/results/package_support/' + PACKAGE + '/' + name + '.txt'
+    if path.suffix in ('.py', '.sh') or name == 'requirements.txt':
+        return STAGE + '/code/' + PACKAGE + '/' + name
+    return STAGE + '/results/' + PACKAGE + '/' + name
+
+
+def register(package, archive):
+    package, archive = Path(package), Path(archive)
+    if (ROOT / MAP).exists():
+        raise FileExistsError('Release already registered; use --check')
+    manifest = read(package / 'MANIFEST.json')
+    names = sorted(manifest) + ['MANIFEST.json']
+    for name, digest in manifest.items():
+        safe_name(name)
+        if sha(package / name) != digest:
+            raise ValueError('Source member changed: ' + name)
+    with zipfile.ZipFile(archive) as zipped:
+        if set(zipped.namelist()) != {PACKAGE + '/' + n for n in names} or zipped.testzip():
+            raise ValueError('ZIP member set or CRC differs')
+        for name in names:
+            if zipped.read(PACKAGE + '/' + name) != (package / name).read_bytes():
+                raise ValueError('ZIP member changed: ' + name)
+    stages = read(ROOT / 'provenance/stages.json')
+    if any(s['id'] == ARCHIVE_STAGE or (s.get('line') == LINE and s.get('number') == 'v2') for s in stages):
+        raise ValueError('Stage identity is already used')
+    mapping, records = {}, []
+    for name in names:
+        target = destination(name)
+        path = ROOT / target
+        if path.exists():
+            raise FileExistsError('Target exists: ' + target)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(package / name, path)
+        mapping[name] = target
+        records.append(dict(original_path=archive.name + '::' + PACKAGE + '/' + name,
+            runtime_path=PACKAGE + '/' + name, current_path=target,
+            sha256=sha(path), bytes=path.stat().st_size,
+            stage=ARCHIVE_STAGE, kind='trustcpf_v2_release_member'))
+    deployment = ROOT / STAGE / 'results/deployment' / archive.name
+    deployment.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(archive, deployment)
+    deployment.with_suffix('.zip.sha256').write_text(sha(archive) + '  ' + archive.name + '\n', encoding='utf-8')
+    write(ROOT / MAP, dict(source_zip_sha256=sha(archive), source_zip_root=PACKAGE,
+        runtime_package=PACKAGE, members=mapping))
+    layout = read(ROOT / 'provenance/layout.json')
+    layout['files'].extend(records)
+    write(ROOT / 'provenance/layout.json', layout)
+    stages.append(dict(id=ARCHIVE_STAGE, line=LINE, number='v2', version='v2',
+        title='v2 · 强CPF基底上的条件知识残差', path=STAGE,
+        primary_package=PACKAGE, active_package=PACKAGE,
+        status='修订方案、实现、初始权重与本机验证已归档；待服务器正式训练',
+        completed_runs=0, planned_main_runs=9, local_tests=5))
+    write(ROOT / 'provenance/stages.json', stages)
+    write(ROOT / STAGE / 'inputs.json', dict(line=LINE, stage='v2', archive_stage=ARCHIVE_STAGE,
+        primary_package=PACKAGE, status='conditional_knowledge_implementation_and_local_validation',
+        formal_training_results_included=False, completed_runs=0, planned_main_runs=9,
+        seeds=[3351, 3352, 3353], variants=['base', 'knowledge', 'shuffle'],
+        gpu_schedule={'1': 3351, '2': 3352, '3': 3353}, release_member_map=MAP))
+    write(ROOT / RECEIPT, dict(date='2026-10-22', line=LINE, stage='v2', archive_stage=ARCHIVE_STAGE,
+        source_zip_sha256=sha(archive), release_members=len(names), original_member_bytes_modified=False,
+        local_tests=5, formal_training_results_included=False, completed_runs=0, planned_main_runs=9,
+        training_started_by_import=False, mapping=MAP))
+    return dict(registered_members=len(names), training_started=False)
+
+
+def check():
+    record = read(ROOT / MAP)
+    mapping = record['members']
+    manifest = read(ROOT / mapping['MANIFEST.json'])
+    if set(mapping) != set(manifest) | {'MANIFEST.json'}:
+        raise ValueError('Incomplete release mapping')
+    rows = [r for r in read(ROOT / 'provenance/layout.json')['files']
+            if r['stage'] == ARCHIVE_STAGE and r['kind'] == 'trustcpf_v2_release_member']
+    if len(rows) != len(mapping):
+        raise ValueError('Layout count differs')
+    for row in rows:
+        name = row['runtime_path'].split('/', 1)[1]
+        if row['current_path'] != mapping[name] or sha(ROOT / row['current_path']) != row['sha256']:
+            raise ValueError('Layout member differs: ' + name)
+    for name, digest in manifest.items():
+        safe_name(name)
+        if sha(ROOT / mapping[name]) != digest:
+            raise ValueError('Manifest member differs: ' + name)
+    deployment = ROOT / STAGE / 'results/deployment' / (PACKAGE + '.zip')
+    if sha(deployment) != record['source_zip_sha256']:
+        raise ValueError('Deployment ZIP changed')
+    with zipfile.ZipFile(deployment) as zipped:
+        if set(zipped.namelist()) != {PACKAGE + '/' + name for name in mapping} or zipped.testzip():
+            raise ValueError('Deployment member set or CRC differs')
+        for name, target in mapping.items():
+            if zipped.read(PACKAGE + '/' + name) != (ROOT / target).read_bytes():
+                raise ValueError('Deployment bytes differ: ' + name)
+    inputs = read(ROOT / STAGE / 'inputs.json')
+    indexed = set()
+    for key in ('knowledge', 'configs', 'code_files', 'data_files', 'documents'):
+        for name in inputs.get(key, []):
+            safe_name(name)
+            if not (ROOT / name).is_file():
+                raise ValueError('Indexed file missing: ' + name)
+            indexed.add(name)
+    if not set(mapping.values()) <= indexed:
+        raise ValueError('Unindexed release members')
+    return dict(passed=True, line=LINE, stage='v2', release_members=len(mapping),
+        manifest_hashes_verified=len(manifest), indexed_files=len(indexed), byte_identity_preserved=True,
+        formal_training_results_included=inputs['formal_training_results_included'], training_started=False)
+
+
+def materialize(destination):
+    check()
+    destination = Path(destination).expanduser()
+    if not destination.is_absolute():
+        raise ValueError('Choose an absolute destination')
+    destination = destination.resolve()
+    if destination == ROOT or ROOT in destination.parents or destination.exists():
+        raise FileExistsError('Choose a new directory outside repository: ' + str(destination))
+    from reproduce import safe_child
+    receipts = []
+    for name, source in sorted(read(ROOT / MAP)['members'].items()):
+        path = safe_child(destination, PACKAGE + '/' + name)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(ROOT / source, path)
+        if path.suffix == '.sh':
+            path.chmod(path.stat().st_mode | 0o111)
+        if sha(path) != sha(ROOT / source):
+            raise ValueError('Restored member differs: ' + name)
+        receipts.append(dict(runtime_path=PACKAGE + '/' + name, sha256=sha(path)))
+    write(destination / 'materialization.json', dict(line=LINE, stage='v2', archive_stage=ARCHIVE_STAGE,
+        files=receipts, training_started=False, original_bytes_modified=False))
+    return dict(line=LINE, stage='v2', runtime=str(destination), package=str(destination / PACKAGE),
+        files_verified=len(receipts), training_started=False)
+
+
+def doctor(package):
+    package = Path(package).resolve()
+    problems = [name for name, digest in read(package / 'MANIFEST.json').items()
+        if not (package / name).is_file() or sha(package / name) != digest]
+    return dict(line=LINE, stage='v2', package=str(package), changed_package_members=problems,
+        ready_for_package_preflight=not problems, training_started=False,
+        next_command='python run.py setup', external_cache_check='Performed by run.py setup on server')
+
+
+def finalize():
+    inputs = read(ROOT / STAGE / 'inputs.json')
+    paths = sorted(p.relative_to(ROOT).as_posix() for p in (ROOT / STAGE).rglob('*')
+                   if p.is_file() and '__pycache__' not in p.parts and p.suffix != '.pyc')
+    inputs['knowledge'] = [p for p in paths if p.endswith(('/assets/knowledge.pt', '/assets/shuffle.pt'))]
+    inputs['configs'] = [p for p in paths if '/configs/' in p and not p.endswith('.md') and p not in inputs['knowledge']]
+    inputs['code_files'] = [p for p in paths if '/code/' in p and not p.endswith('.md')]
+    inputs['documents'] = [p for p in paths if p.endswith('.md')]
+    used = set().union(*(set(inputs[k]) for k in ('knowledge', 'configs', 'code_files', 'documents')))
+    inputs['data_files'] = [p for p in paths if p not in used and not p.endswith(('/inputs.json', '/runbook.json'))]
+    write(ROOT / STAGE / 'inputs.json', inputs)
+    stages = read(ROOT / 'provenance/stages.json')
+    for stage in stages:
+        if stage['id'] == ARCHIVE_STAGE:
+            stage.update({k: len(inputs[k]) for k in ('knowledge', 'configs', 'code_files', 'data_files')})
+    write(ROOT / 'provenance/stages.json', stages)
+    owned = set(paths) | {'README.md', LINE + '/README.md', 'tools/reproduce.py',
+        'tools/register_trustcpf_v1.py', 'tools/register_trustcpf_v2.py',
+        'provenance/layout.json', 'provenance/stages.json', RECEIPT}
+    owned.update(p.relative_to(ROOT).as_posix() for p in (ROOT / 'provenance/documents').glob('trustcpf_v2_*.json'))
+    current = {r['path']: r for r in read(ROOT / 'provenance/current_manifest.json')}
+    for name in sorted(owned):
+        path = ROOT / name
+        current[name] = dict(path=name, sha256=sha(path), bytes=path.stat().st_size)
+    write(ROOT / 'provenance/current_manifest.json', [current[p] for p in sorted(current)])
+    return check()
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--package', type=Path)
+    parser.add_argument('--archive', type=Path)
+    parser.add_argument('--check', action='store_true')
+    parser.add_argument('--finalize', action='store_true')
+    parser.add_argument('--restore-check', action='store_true')
+    args = parser.parse_args()
+    if args.check:
+        result = check()
+    elif args.finalize:
+        result = finalize()
+    elif args.restore_check:
+        with tempfile.TemporaryDirectory(prefix='trustcpf-v2-restore-') as temporary:
+            result = materialize(Path(temporary) / 'release')
+    elif args.package and args.archive:
+        result = register(args.package, args.archive)
+    else:
+        parser.error('Choose --check/--finalize/--restore-check or --package with --archive')
+    print(json.dumps(result, ensure_ascii=False))

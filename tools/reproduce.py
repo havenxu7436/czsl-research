@@ -111,16 +111,20 @@ def verify():
     if (ROOT/'TRUST-CPF方案/v1/inputs.json').is_file():
         from register_trustcpf_v1 import check as check_trustcpf
         trust_check=check_trustcpf()
+    trust_v2_check=None
+    if (ROOT/'TRUST-CPF方案/v2/inputs.json').is_file():
+        from register_trustcpf_v2 import check as check_trustcpf_v2
+        trust_v2_check=check_trustcpf_v2()
     result={'passed':not(failures or links or formatting or syntax),'original_canonical_files':len(expected),
       'changed_or_missing':failures,'broken_links':links,'formatting_errors':formatting,
-      'python_syntax_errors':syntax,'vgcpod':route_check,'vgcpod_round_b':b_check,'vgcpod_round_c':c_check,'vgcpod_round_d':d_check,'vgcpod_round_e':e_check,'vgcpod_round_f':f_check,'vgcpod_round_g':g_check,'vgcpod_round_h':h_check,'vgcpod_round_i':i_check,'vgcpod_round_j':j_check,'vgcpod_round_k':k_check,'trustcpf':trust_check,'training_started':False}
+      'python_syntax_errors':syntax,'vgcpod':route_check,'vgcpod_round_b':b_check,'vgcpod_round_c':c_check,'vgcpod_round_d':d_check,'vgcpod_round_e':e_check,'vgcpod_round_f':f_check,'vgcpod_round_g':g_check,'vgcpod_round_h':h_check,'vgcpod_round_i':i_check,'vgcpod_round_j':j_check,'vgcpod_round_k':k_check,'trustcpf':trust_check,'trustcpf_v2':trust_v2_check,'training_started':False}
     print(json.dumps(result,ensure_ascii=False))
     if not result['passed']: raise SystemExit(1)
 
 def archive_stage(line,number):
     if line is None:
         if number == 'v1': raise ValueError('Use --line VG-CPOD方案 or --line TRUST-CPF方案 for --stage v1')
-        if number == 'v2': raise ValueError('Use --line 0601方案 for --stage v2')
+        if number == 'v2': raise ValueError('Use --line 0601方案 or --line TRUST-CPF方案 for --stage v2')
         return number
     matches=[s['id'] for s in read(ROOT/'provenance/stages.json')
       if s.get('line')==line and s.get('number')==number]
@@ -128,6 +132,10 @@ def archive_stage(line,number):
     return matches[0]
 
 def materialize(stage,destination,line=None,number=None):
+    if stage=='33':
+        from register_trustcpf_v2 import materialize as materialize_trustcpf_v2
+        print(json.dumps(materialize_trustcpf_v2(destination),ensure_ascii=False))
+        return
     if stage=='32':
         from register_trustcpf_v1 import materialize as materialize_trustcpf
         print(json.dumps(materialize_trustcpf(destination),ensure_ascii=False))
@@ -243,6 +251,12 @@ def materialize(stage,destination,line=None,number=None):
       'note':'External inputs and frozen absolute paths still require setup; see environment/README.md'},ensure_ascii=False))
 
 def doctor(stage,project,line=None,number=None):
+    if stage=='33':
+        from register_trustcpf_v2 import doctor as doctor_trustcpf_v2
+        result=doctor_trustcpf_v2(project)
+        print(json.dumps(result,ensure_ascii=False))
+        if not result['ready_for_package_preflight']: raise SystemExit(2)
+        return
     if stage=='32':
         from register_trustcpf_v1 import doctor as doctor_trustcpf
         result=doctor_trustcpf(project)

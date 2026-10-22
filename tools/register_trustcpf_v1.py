@@ -216,7 +216,7 @@ def doctor(package):
 
 def finalize():
     inputs = read(ROOT / STAGE / 'inputs.json')
-    paths = sorted(p.relative_to(ROOT).as_posix() for p in (ROOT / LINE).rglob('*')
+    paths = sorted(p.relative_to(ROOT).as_posix() for p in (ROOT / STAGE).rglob('*')
                    if p.is_file() and '__pycache__' not in p.parts and p.suffix != '.pyc')
     inputs['knowledge'] = [p for p in paths if '/assets/knowledge/' in p]
     inputs['configs'] = [p for p in paths if '/configs/' in p and not p.endswith('.md') and p not in inputs['knowledge']]
@@ -230,7 +230,7 @@ def finalize():
         if stage['id'] == ARCHIVE_STAGE:
             stage.update({k: len(inputs[k]) for k in ('knowledge', 'configs', 'code_files', 'data_files')})
     write(ROOT / 'provenance/stages.json', stages)
-    owned = set(paths) | {'README.md', 'environment/README.md', 'tools/reproduce.py',
+    owned = set(paths) | {'README.md', LINE + '/README.md', 'environment/README.md', 'tools/reproduce.py',
         'tools/register_trustcpf_v1.py', 'provenance/layout.json', 'provenance/stages.json', RECEIPT}
     owned.update(p.relative_to(ROOT).as_posix() for p in (ROOT / 'provenance/documents').glob('trustcpf_*.json'))
     current = {r['path']: r for r in read(ROOT / 'provenance/current_manifest.json')}

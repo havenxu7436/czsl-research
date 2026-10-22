@@ -1,0 +1,26 @@
+{
+  "dataset": "UT-Zappos compositional-split-natural",
+  "required_cache": "/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14",
+  "cache_fingerprint": "configs/trustcpf_conditional_v2/assets/expected_cache.json",
+  "validation_command": "python run.py setup",
+  "python": ">=3.8",
+  "torch": ">=1.13",
+  "numpy": ">=1.21",
+  "historical_environment": {
+    "name": "vgcpod_v1",
+    "python": "3.8.18",
+    "torch": "1.13.1+cu117",
+    "numpy": "1.24.4"
+  },
+  "included": [
+    "3 G0 initial weights and protocols",
+    "real/shuffle knowledge",
+    "source",
+    "configuration",
+    "validation"
+  ],
+  "external": [
+    "historical CLIP feature cache",
+    "Python/PyTorch/CUDA runtime and GPUs"
+  ]
+}
