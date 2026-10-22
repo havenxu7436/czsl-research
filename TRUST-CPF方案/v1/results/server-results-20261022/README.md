@@ -31,7 +31,7 @@
 | [压缩包 SHA256](archives/trustcpf_clip_v1_results_20261022.tar.gz.sha256) | 原包校验值 |
 | [434 个成员映射](server_member_map.json) | 原始运行路径 → 仓库规范路径 → 大小／SHA256 |
 | [归档完整性核对](validation/source_archive_integrity.json) | gzip CRC、中文路径修复、434 文件逐字节身份记录 |
-| [Markdown 与公式检查](validation/markdown_checks.json) | 17份文档、211处公式、相对链接及表格结构 |
+| [Markdown 与公式检查](validation/markdown_checks.json) | 合并v2后覆盖27份文档、271处公式、相对链接及表格结构 |
 | [页面渲染记录](validation/local_browser_layout.json) | 完整分析的11个块公式、52个行内公式及4张统计图均正常，未见横向溢出 |
 | [仓库总校验](validation/repository_verify.json) | 文件哈希、Markdown、Python语法及12条既有路线校验通过 |
 | [全部运行清单](../../configs/server-results-20261022/run_inventory.json) | 22 个终端识别模型的选中 epoch、指标与 checkpoint |
