@@ -41,3 +41,7 @@ python tools/reproduce.py verify
 评价中的 CW/OW 分别表示 closed-world/open-world。训练组按对应 VAL 规则选模，选中权重用于结果评价。
 
 文件来源与 SHA256 见 `provenance/`。
+
+## 最新结果归档
+
+**TRUST-CPF · 2026-10-22：** [完整数据、模型权重与图像](TRUST-CPF方案/v1/results/server-results-20261022/README.md) · [结果分析与下一轮方向](TRUST-CPF方案/v1/analysis/server-results-20261022/README.md)。已完成21组主实验、知识打乱、两项效用消融审计及600次噪声评估；原包和全部服务器成员均有SHA256映射。

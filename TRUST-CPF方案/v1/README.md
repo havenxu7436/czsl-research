@@ -2,7 +2,23 @@
 
 **[CLIP修订实验方案](TRUST-CPF_CLIP_修订实验方案v1.md)** · **[公式及核心代码](TRUST-CPF公式及代码v1.md)** 
 
-第四条独立研究路线：通过组合隔离的配对干预学习关系效用，再用异方差集成、风险收益和类型预算选择知识图。当前归档完整CLIP实现、配置、知识资产与本机验证；正式UT训练由下列服务器队列执行。
+第四条独立研究路线：通过组合隔离的配对干预学习关系效用，再用异方差集成、风险收益和类型预算选择知识图。现已归档完整CLIP实现、配置、知识资产及正式UT结果：21组主实验、知识打乱、两项效用消融审计和600次噪声评估。
+
+## 最新结果 · 2026-10-22
+
+**[完整分析与下一轮方向](analysis/server-results-20261022/README.md)** · **[全部数据、权重与日志](results/server-results-20261022/README.md)** · [图像](results/server-results-20261022/images/README.md) · [重算](analysis/server-results-20261022/REPRODUCE.md)
+
+| 模型 | TEST CW AUC | TEST OW AUC |
+| --- | --- | --- |
+| `r0` | 2.020 ± 2.232 | 2.010 ± 2.215 |
+| `capacity` | 13.902 ± 0.885 | 11.240 ± 1.065 |
+| `dense` | 11.169 ± 2.488 | 9.214 ± 2.309 |
+| `drop` | 10.915 ± 1.545 | 9.047 ± 1.257 |
+| `free` | 10.896 ± 1.519 | 9.011 ± 1.319 |
+| `mean` | 10.080 ± 2.102 | 8.249 ± 1.692 |
+| `robust` | 9.901 ± 1.890 | 8.172 ± 1.515 |
+
+下一轮集中检验强 CPF 基底上的条件知识残差，三组 × 三 seed，使用 GPU **1、2、3**。当前归档的是 v1 已完成结果与下一轮公式规格。
 
 ## 目录
 
@@ -16,9 +32,9 @@ TRUST-CPF方案/
     服务器实践命令.md
     code/trustcpf_clip_v1/          # 模型、阶段、训练、评价、脚本、测试、CLIP源码
     configs/trustcpf_clip_v1/       # 默认/消融配置、标签、名称、知识与输入哈希
-    analysis/                      # 核心指标、对照与结果文件字段
+    analysis/                      # 完整分析、CSV、统计图与重算脚本
     references/                    # 原始idea、早期数学方案及版本演进
-    results/                       # CPU/CUDA/词表/公式验证、部署包、恢复映射
+    results/                       # 原始权重/日志/压缩包、截图、验证与映射
     inputs.json
     runbook.json
     external_inputs.json

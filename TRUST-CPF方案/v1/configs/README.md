@@ -13,3 +13,9 @@
 | [assets/knowledge/](trustcpf_clip_v1/assets/knowledge/) | reviewed-v2 OI/OE/AE，12/36/48条候选关系 |
 
 主矩阵的每个seed先完成五折教师与效用学习。`shuffled`另建work完成全流程；噪声队列在选中权重上执行关系错配和删除。全部原始JSON与发布包保持一致。
+
+## 2026-10-22 实际运行与下一轮规格
+
+- [22个终端模型运行清单](server-results-20261022/run_inventory.json)保存选中epoch、指标和checkpoint位置。
+- [工作目录最终配置快照](server-results-20261022/runtime/)按原字节保存；各运行的实际训练配置随对应checkpoint保存。
+- [下一轮三组实验配置说明](server-results-20261022/next_experiment_planned.json)标为planned，仅对应分析文件中的公式规格，尚未执行。

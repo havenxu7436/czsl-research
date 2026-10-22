@@ -2,6 +2,7 @@
 
 | 归档 | 内容 |
 |---|---|
+| [server-results-20261022/](server-results-20261022/README.md) | 434个服务器成员、21组主实验、知识打乱、效用消融、完整OW噪声恢复、权重与图像 |
 | [local-validation-20261021/](local-validation-20261021/) | 发布包原有13项测试、CUDA、CLIP tokenizer、公式和文档检查 |
 | [repository-validation-20261021/](repository-validation-20261021/) | 仓库分区后的恢复、重复测试、链接与GitHub数学检查 |
 | [deployment/](deployment/) | 完整服务器ZIP与SHA256 |
@@ -11,7 +12,7 @@
 
 13项测试覆盖概率归一化、零图、预算一/二阶性质、异方差梯度、配对干预与方差、概率平均、全方差/指标、五折覆盖、未测边隔离、分类梯度、CLIP视觉接口、exact AUC，以及五折到七组训练/噪声/report/恢复的合成流程。CUDA检查使用768维合成CLIP空间、96边、3次优化；概率归一化误差为5.96×10⁻⁸。Tokenizer检查316条prompt，全部在77-token上下文内。
 
-当前正式UT训练完成数为0。这里保存实现和合成验证记录；正式识别指标及权重由服务器实验追加。
+正式UT主矩阵已完成21组，另有1组知识打乱终端模型、2项效用消融审计及600次噪声评估。完整结果见 [2026-10-22批次](server-results-20261022/README.md)。
 
 仓库新增的[文档检查器](../code/audits/check_repository_docs.py)复核链接、Python3.8语法、原始代码摘录与等价公式；[数学渲染检查器](../code/audits/check_github_math.cjs)使用KaTeX复核全部数学表达式。全仓库校验已通过，全仓库6787个规范文件的哈希检查通过。
 
