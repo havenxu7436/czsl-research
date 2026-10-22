@@ -1,5 +1,7 @@
 # TRUST-CPF v1 完整结果分析与下一轮实验方向
 
+本页保留 v1 完整结果形成时的下一轮提案。后续 v2 已归档，并修订了投影冻结与学习率配方；执行规格见 [v2 修订方案](../../../v2/REVISED_PLAN.md)。
+
 日期：2026-10-22。数据：UT-Zappos compositional-split-natural；骨干：OpenAI CLIP ViT-L/14。
 
 **研究判断：结束 TRUST-CPF v1 的效用预测、风险惩罚和随机选图扩展。下一轮只做一个整合实验：在已经验证较强的 CPF＋静态 CP 基底上，让知识仅修正物体条件属性分数。设置 Base、Knowledge、Shuffle 三组，三个 seed，共 9 次训练；GPU 使用 1、2、3。**

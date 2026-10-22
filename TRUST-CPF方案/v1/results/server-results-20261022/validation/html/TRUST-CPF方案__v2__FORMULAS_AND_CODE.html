@@ -1,0 +1,157 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><base href="http://127.0.0.1:8767/TRUST-CPF%E6%96%B9%E6%A1%88/v2/"><title>TRUST-CPF方案/v2/FORMULAS_AND_CODE.md</title><style>body{font:16px/1.65 system-ui,"Microsoft YaHei",sans-serif;color:#1f2328;max-width:1080px;margin:0 auto;padding:38px;background:#fff}h1,h2{border-bottom:1px solid #d1d9e0;padding-bottom:.3em}h1{font-size:29px}h2{font-size:23px;margin-top:1.5em}h3{font-size:19px}a{color:#0969da;text-decoration:none}table{border-collapse:collapse;max-width:100%;margin:18px 0;font-size:14px}th,td{border:1px solid #d1d9e0;padding:7px 11px;text-align:left}tr:nth-child(even){background:#f6f8fa}pre{background:#f6f8fa;padding:16px;overflow:auto;line-height:1.5;border-radius:6px}code{font-family:Consolas,monospace;font-size:.88em}img{max-width:100%;height:auto}math[display=block]{margin:20px 0;overflow-x:auto;padding:8px 0}p{overflow-wrap:anywhere}</style></head><body><article><h1>TRUST-CPF 条件知识残差 v2：公式与核心实现</h1>
+<p>本文对应最终代码和 <a href="configs/trustcpf_conditional_v2/configs/default.json">configs/default.json</a>。三组模型共用 G0，冻结 CLIP、文本和 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>B</mi><mi>o</mi></msub><mo separator="true">,</mo><msub><mi>C</mi><mi>o</mi></msub><mo separator="true">,</mo><msub><mi>A</mi><mi>u</mi></msub><mo separator="true">,</mo><msub><mi>A</mi><mi>v</mi></msub></mrow><annotation encoding="application/x-tex">B_o,C_o,A_u,A_v</annotation></semantics></math></span>；训练 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>B</mi><mi>c</mi></msub><mo separator="true">,</mo><msub><mi>C</mi><mi>c</mi></msub><mo separator="true">,</mo><msub><mi>W</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">B_c,C_c,W_c</annotation></semantics></math></span>。Knowledge 与 Shuffle 额外训练 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>L</mi><mi>t</mi></msub><mo separator="true">,</mo><msub><mi>R</mi><mi>t</mi></msub><mo separator="true">,</mo><mi>α</mi></mrow><annotation encoding="application/x-tex">L_t,R_t,\alpha</annotation></semantics></math></span>。</p>
+<h2>1. 共同评分器</h2>
+<p>设 CLIP 全局视觉向量为 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><mn>768</mn></msup></mrow><annotation encoding="application/x-tex">g\in\mathbb{R}^{768}</annotation></semantics></math></span>，原始属性、物体和组合文本向量为 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mi>a</mi></msub><mo separator="true">,</mo><msub><mi>e</mi><mi>o</mi></msub><mo separator="true">,</mo><msub><mi>e</mi><mrow><mi>a</mi><mi>o</mi></mrow></msub></mrow><annotation encoding="application/x-tex">e_a,e_o,e_{ao}</annotation></semantics></math></span>。冻结的物体分支为：</p>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msubsup><mi>z</mi><mi>o</mi><mn>0</mn></msubsup><mo>=</mo><mi>κ</mi><msup><mi>g</mi><mi mathvariant="normal">⊤</mi></msup><msub><mi>e</mi><mi>o</mi></msub><mo>+</mo><mo stretchy="false">(</mo><msup><mi>g</mi><mi mathvariant="normal">⊤</mi></msup><msub><mi>B</mi><mi>o</mi></msub><mo stretchy="false">)</mo><mo stretchy="false">(</mo><msubsup><mi>e</mi><mi>o</mi><mi mathvariant="normal">⊤</mi></msubsup><msub><mi>C</mi><mi>o</mi></msub><msup><mo stretchy="false">)</mo><mi mathvariant="normal">⊤</mi></msup><mo separator="true">,</mo><mspace width="2em"/><mi>log</mi><mo>⁡</mo><msub><mi>P</mi><mn>0</mn></msub><mo stretchy="false">(</mo><mi>o</mi><mo>∣</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><mi>log</mi><mo>⁡</mo><msub><mo><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">x</mi></mrow></mo><mi>o</mi></msub><mo stretchy="false">(</mo><msup><mi>z</mi><mn>0</mn></msup><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">z_o^0=\kappa g^\top e_o+(g^\top B_o)(e_o^\top C_o)^\top,
+\qquad \log P_0(o\mid x)=\log\mathop{\mathrm{softmax}}\nolimits_o(z^0).</annotation></semantics></math></span></p>
+<p>完整的静态 CP 与条件分数为：</p>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.25em" columnalign="right left" columnspacing="0em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mi>T</mi><mo stretchy="false">(</mo><mi>g</mi><mo separator="true">,</mo><msub><mi>e</mi><mi>a</mi></msub><mo separator="true">,</mo><msub><mi>e</mi><mi>o</mi></msub><mo stretchy="false">)</mo></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mi>ρ</mi><mi>κ</mi><mtext> </mtext><msup><mi>g</mi><mi mathvariant="normal">⊤</mi></msup><msub><mi>W</mi><mi>c</mi></msub><mo stretchy="false">[</mo><mo stretchy="false">(</mo><msub><mi>A</mi><mi>u</mi></msub><msub><mi>e</mi><mi>a</mi></msub><mo stretchy="false">)</mo><mo>⊙</mo><mo stretchy="false">(</mo><msub><mi>A</mi><mi>v</mi></msub><msub><mi>e</mi><mi>o</mi></msub><mo stretchy="false">)</mo><mo stretchy="false">]</mo><mo separator="true">,</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msubsup><mi>c</mi><mrow><mi>a</mi><mi>o</mi></mrow><mn>0</mn></msubsup></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mi>κ</mi><msup><mi>g</mi><mi mathvariant="normal">⊤</mi></msup><msub><mi>e</mi><mrow><mi>a</mi><mi>o</mi></mrow></msub><mo>+</mo><mo stretchy="false">(</mo><msup><mi>g</mi><mi mathvariant="normal">⊤</mi></msup><msub><mi>B</mi><mi>c</mi></msub><mo stretchy="false">)</mo><mo stretchy="false">(</mo><msubsup><mi>e</mi><mrow><mi>a</mi><mi>o</mi></mrow><mi mathvariant="normal">⊤</mi></msubsup><msub><mi>C</mi><mi>c</mi></msub><msup><mo stretchy="false">)</mo><mi mathvariant="normal">⊤</mi></msup><mo>+</mo><mi>T</mi><mo stretchy="false">(</mo><mi>g</mi><mo separator="true">,</mo><msub><mi>e</mi><mi>a</mi></msub><mo separator="true">,</mo><msub><mi>e</mi><mi>o</mi></msub><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+T(g,e_a,e_o)&amp;=\rho\kappa\,g^\top W_c[(A_u e_a)\odot(A_v e_o)],\\
+c^0_{ao}&amp;=\kappa g^\top e_{ao}+(g^\top B_c)(e_{ao}^\top C_c)^\top+T(g,e_a,e_o).
+\end{aligned}</annotation></semantics></math></span></p>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>κ</mi><mo>=</mo><mn>20</mn></mrow><annotation encoding="application/x-tex">\kappa=20</annotation></semantics></math></span>、<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo>=</mo><mn>0.15</mn></mrow><annotation encoding="application/x-tex">\rho=0.15</annotation></semantics></math></span>；<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>A</mi><mi>u</mi></msub><mo separator="true">,</mo><msub><mi>A</mi><mi>v</mi></msub></mrow><annotation encoding="application/x-tex">A_u,A_v</annotation></semantics></math></span> 为 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>32</mn><mo>×</mo><mn>768</mn></mrow><annotation encoding="application/x-tex">32\times768</annotation></semantics></math></span>，<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>W</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">W_c</annotation></semantics></math></span> 为 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>768</mn><mo>×</mo><mn>32</mn></mrow><annotation encoding="application/x-tex">768\times32</annotation></semantics></math></span>；其余低秩矩阵为 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>768</mn><mo>×</mo><mn>8</mn></mrow><annotation encoding="application/x-tex">768\times8</annotation></semantics></math></span>。保持 G0 原始运算顺序和 CP 因子尺度。</p>
+<h2>2. 类型消息与条件残差</h2>
+<p>边 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>e</mi></mrow><annotation encoding="application/x-tex">e</annotation></semantics></math></span> 的 source 向量为 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mi>e</mi></msub></mrow><annotation encoding="application/x-tex">h_e</annotation></semantics></math></span>，target 为 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>v</mi><mo stretchy="false">(</mo><mi>e</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">v(e)</annotation></semantics></math></span>，类型为 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo stretchy="false">(</mo><mi>e</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">t(e)</annotation></semantics></math></span>；<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>d</mi><mrow><mi>v</mi><mo separator="true">,</mo><mi>t</mi></mrow></msub></mrow><annotation encoding="application/x-tex">d_{v,t}</annotation></semantics></math></span> 是该目标在该类型中的度数。使用全部 96 条边：</p>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.25em" columnalign="right left" columnspacing="0em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msub><mi>m</mi><mi>e</mi></msub></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mo stretchy="false">(</mo><mi>I</mi><mo>+</mo><msub><mi>L</mi><mrow><mi>t</mi><mo stretchy="false">(</mo><mi>e</mi><mo stretchy="false">)</mo></mrow></msub><msub><mi>R</mi><mrow><mi>t</mi><mo stretchy="false">(</mo><mi>e</mi><mo stretchy="false">)</mo></mrow></msub><mo stretchy="false">)</mo><mo stretchy="false">(</mo><msub><mi>h</mi><mi>e</mi></msub><mo>−</mo><msub><mi>e</mi><mrow><mi>v</mi><mo stretchy="false">(</mo><mi>e</mi><mo stretchy="false">)</mo></mrow></msub><mo stretchy="false">)</mo><mo separator="true">,</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msub><mi>z</mi><mi>v</mi></msub></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mi mathvariant="script">N</mi><mtext> ⁣</mtext><mrow><mo fence="true">(</mo><msub><mi>e</mi><mi>v</mi></msub><mo>+</mo><mn>0.1</mn><munder><mo>∑</mo><mrow><mi>t</mi><mo>:</mo><msub><mi>d</mi><mrow><mi>v</mi><mo separator="true">,</mo><mi>t</mi></mrow></msub><mo>&gt;</mo><mn>0</mn></mrow></munder><mfrac><mn>1</mn><msub><mi>d</mi><mrow><mi>v</mi><mo separator="true">,</mo><mi>t</mi></mrow></msub></mfrac><munder><mo>∑</mo><mrow><mi>e</mi><mo>:</mo><mi>v</mi><mo stretchy="false">(</mo><mi>e</mi><mo stretchy="false">)</mo><mo>=</mo><mi>v</mi><mo separator="true">,</mo><mtext> </mtext><mi>t</mi><mo stretchy="false">(</mo><mi>e</mi><mo stretchy="false">)</mo><mo>=</mo><mi>t</mi></mrow></munder><msub><mi>m</mi><mi>e</mi></msub><mo fence="true">)</mo></mrow><mo separator="true">,</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mi mathvariant="normal">Δ</mi><msub><mi>c</mi><mrow><mi>a</mi><mi>o</mi></mrow></msub></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mi>T</mi><mo stretchy="false">(</mo><mi>g</mi><mo separator="true">,</mo><msub><mi>z</mi><mi>a</mi></msub><mo separator="true">,</mo><msub><mi>z</mi><mi>o</mi></msub><mo stretchy="false">)</mo><mo>−</mo><mi>T</mi><mo stretchy="false">(</mo><mi>g</mi><mo separator="true">,</mo><msub><mi>e</mi><mi>a</mi></msub><mo separator="true">,</mo><msub><mi>e</mi><mi>o</mi></msub><mo stretchy="false">)</mo><mo separator="true">,</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msubsup><mi>c</mi><mrow><mi>a</mi><mi>o</mi></mrow><mi>K</mi></msubsup></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><msubsup><mi>c</mi><mrow><mi>a</mi><mi>o</mi></mrow><mn>0</mn></msubsup><mo>+</mo><mi>α</mi><mi mathvariant="normal">Δ</mi><msub><mi>c</mi><mrow><mi>a</mi><mi>o</mi></mrow></msub><mi mathvariant="normal">.</mi></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+m_e&amp;=(I+L_{t(e)}R_{t(e)})(h_e-e_{v(e)}),\\
+z_v&amp;=\mathcal N\!\left(e_v+0.1\sum_{t:d_{v,t}&gt;0}\frac{1}{d_{v,t}}
+\sum_{e:v(e)=v,\,t(e)=t}m_e\right),\\
+\Delta c_{ao}&amp;=T(g,z_a,z_o)-T(g,e_a,e_o),\\
+c^K_{ao}&amp;=c^0_{ao}+\alpha\Delta c_{ao}.
+\end{aligned}</annotation></semantics></math></span></p>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">N</mi></mrow><annotation encoding="application/x-tex">\mathcal N</annotation></semantics></math></span> 表示 L2 归一化；<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>L</mi><mi>t</mi></msub><mo separator="true">,</mo><msub><mi>R</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">L_t,R_t</annotation></semantics></math></span> 分别为 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>768</mn><mo>×</mo><mn>16</mn></mrow><annotation encoding="application/x-tex">768\times16</annotation></semantics></math></span>、<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>16</mn><mo>×</mo><mn>768</mn></mrow><annotation encoding="application/x-tex">16\times768</annotation></semantics></math></span>。类型内先平均，再对类型求和。<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi></mrow><annotation encoding="application/x-tex">\alpha</annotation></semantics></math></span> 初始化为0，<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">R_t</annotation></semantics></math></span> 初始化为0，<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>L</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">L_t</annotation></semantics></math></span> 的高斯标准差为0.01。初始时完整 CP 保留，三组输出与对应 G0 一致。</p>
+<p>Shuffle 仅替换 source 附件向量，类型、目标、度数与每类型的 source 多重集一致；真实与打乱两组新增参数数量相同。</p>
+<h2>3. 概率与训练目标</h2>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>J</mi><mrow><mi>a</mi><mi>o</mi></mrow></msub><mo>=</mo><mi>log</mi><mo>⁡</mo><msub><mi>P</mi><mn>0</mn></msub><mo stretchy="false">(</mo><mi>o</mi><mo>∣</mo><mi>x</mi><mo stretchy="false">)</mo><mo>+</mo><mi>log</mi><mo>⁡</mo><msub><mo><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">x</mi></mrow></mo><mi>a</mi></msub><mo stretchy="false">(</mo><msub><mi>c</mi><mrow><mi>a</mi><mi>o</mi></mrow></msub><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">J_{ao}=\log P_0(o\mid x)+\log\mathop{\mathrm{softmax}}\nolimits_{a}(c_{ao}).</annotation></semantics></math></span></p>
+<p>训练组合集合为 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="script">C</mi><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\mathcal C_{\rm tr}</annotation></semantics></math></span>，真值为 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">(</mo><msub><mi>a</mi><mi>i</mi></msub><mo separator="true">,</mo><msub><mi>o</mi><mi>i</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">(a_i,o_i)</annotation></semantics></math></span>：</p>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.25em" columnalign="right left" columnspacing="0em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msub><mi mathvariant="normal">ℓ</mi><mrow><mrow><mi mathvariant="normal">p</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">r</mi></mrow><mo separator="true">,</mo><mi>i</mi></mrow></msub></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mo>−</mo><msub><mi>J</mi><mrow><msub><mi>a</mi><mi>i</mi></msub><msub><mi>o</mi><mi>i</mi></msub></mrow></msub><mo>+</mo><mi>log</mi><mo>⁡</mo><munder><mo>∑</mo><mrow><mo stretchy="false">(</mo><mi>a</mi><mo separator="true">,</mo><mi>o</mi><mo stretchy="false">)</mo><mo>∈</mo><msub><mi mathvariant="script">C</mi><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi></mrow></msub></mrow></munder><mi>exp</mi><mo>⁡</mo><msub><mi>J</mi><mrow><mi>a</mi><mi>o</mi></mrow></msub><mo separator="true">,</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msub><mi mathvariant="normal">ℓ</mi><mrow><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">d</mi></mrow><mo separator="true">,</mo><mi>i</mi></mrow></msub></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mo>−</mo><mi>log</mi><mo>⁡</mo><mi>P</mi><mo stretchy="false">(</mo><msub><mi>a</mi><mi>i</mi></msub><mo>∣</mo><msub><mi>o</mi><mi>i</mi></msub><mo separator="true">,</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo separator="true">,</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msub><mi mathvariant="normal">ℓ</mi><mrow><mrow><mi mathvariant="normal">o</mi><mi mathvariant="normal">b</mi><mi mathvariant="normal">j</mi></mrow><mo separator="true">,</mo><mi>i</mi></mrow></msub></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mo>−</mo><mi>log</mi><mo>⁡</mo><msub><mi>P</mi><mn>0</mn></msub><mo stretchy="false">(</mo><msub><mi>o</mi><mi>i</mi></msub><mo>∣</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo separator="true">,</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mi mathvariant="script">L</mi></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mfrac><mn>1.5</mn><mrow><mn>1</mn><mo>+</mo><mi>β</mi></mrow></mfrac><mfrac><mn>1</mn><mi>B</mi></mfrac><munder><mo>∑</mo><mi>i</mi></munder><mrow><mo fence="true">[</mo><msub><mi mathvariant="normal">ℓ</mi><mrow><mrow><mi mathvariant="normal">p</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">r</mi></mrow><mo separator="true">,</mo><mi>i</mi></mrow></msub><mo>+</mo><mi>β</mi><mo stretchy="false">(</mo><msub><mi mathvariant="normal">ℓ</mi><mrow><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">d</mi></mrow><mo separator="true">,</mo><mi>i</mi></mrow></msub><mo>+</mo><msub><mi mathvariant="normal">ℓ</mi><mrow><mrow><mi mathvariant="normal">o</mi><mi mathvariant="normal">b</mi><mi mathvariant="normal">j</mi></mrow><mo separator="true">,</mo><mi>i</mi></mrow></msub><mo stretchy="false">)</mo><mo fence="true">]</mo></mrow><mo separator="true">,</mo><mspace width="1em"/><mi>β</mi><mo>=</mo><mn>0.075.</mn></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+\ell_{{\rm pair},i}&amp;=-J_{a_i o_i}+\log\sum_{(a,o)\in\mathcal C_{\rm tr}}\exp J_{ao},\\
+\ell_{{\rm cond},i}&amp;=-\log P(a_i\mid o_i,x_i),\\
+\ell_{{\rm obj},i}&amp;=-\log P_0(o_i\mid x_i),\\
+\mathcal L&amp;=\frac{1.5}{1+\beta}\frac1B\sum_i
+\left[\ell_{{\rm pair},i}+\beta(\ell_{{\rm cond},i}+\ell_{{\rm obj},i})\right],
+\quad\beta=0.075.
+\end{aligned}</annotation></semantics></math></span></p>
+<p>物体项是常数。训练候选归一化仍让所有训练候选的条件分数接收梯度。原有条件头学习率为2e-4，CP读出6e-5，新消息3e-4，alpha1e-3。每个 epoch 的学习率比例为 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0.01</mn><mo>+</mo><mn>0.99</mn><mo stretchy="false">[</mo><mn>1</mn><mo>+</mo><mi>cos</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>π</mi><mi>k</mi><mi mathvariant="normal">/</mi><mn>9</mn><mo stretchy="false">)</mo><mo stretchy="false">]</mo><mi mathvariant="normal">/</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">0.01+0.99[1+\cos(\pi k/9)]/2</annotation></semantics></math></span>，其中 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mn>0</mn><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><mn>9</mn></mrow><annotation encoding="application/x-tex">k=0,\ldots,9</annotation></semantics></math></span>。</p>
+<h2>4. 评价与必须保留的指标</h2>
+<p>CW 的候选为训练组合与当前 split 组合的并集，OW 为全部属性×物体。native AUC 保持历史 CPF 的扫描算法；exact AUC 使用全部临界 bias。选模只使用 VAL CW native AUC；固定同一权重后再评价 CW/OW。</p>
+<p>每个 world 的 bias 在 VAL exact HM 最大处选取，温度在 VAL NLL 上选取；二者原样传入 TEST。代码保存未加 bias 的完整联合、条件、物体 logits 及样本顺序，供后续统一重算。</p>
+<table>
+<thead>
+<tr>
+<th>输出</th>
+<th>指标／用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>metrics.json</code></td>
+<td>CW/OW AUC、VAL bias 下的 seen/unseen/HM、NLL/ECE</td>
+</tr>
+<tr>
+<td>条件属性诊断</td>
+<td>seen/unseen 的真实物体属性准确率、margin、正 margin 比例</td>
+</tr>
+<tr>
+<td>物体诊断</td>
+<td>独立物体分支准确率、联合 top-1 的物体命中率、四类联合错误计数</td>
+</tr>
+<tr>
+<td>作用与成本</td>
+<td>alpha、加权知识残差的均值绝对值、训练参数量、耗时和峰值显存</td>
+</tr>
+<tr>
+<td><code>paired_comparisons.json</code></td>
+<td>Knowledge−Base、Knowledge−Shuffle 的逐 seed AUC 差值</td>
+</tr>
+<tr>
+<td><code>aggregates.json</code></td>
+<td>每组三 seed 的 AUC 均值与样本标准差</td>
+</tr>
+<tr>
+<td><code>*_predictions.npz</code></td>
+<td>全部最终 VAL/TEST logits、标签和逐图像残差幅值</td>
+</tr>
+</tbody></table>
+<p>未见条件属性 margin 使用全部16个属性：</p>
+<p><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>M</mi><mi>i</mi></msub><mo>=</mo><msub><mi>c</mi><mrow><msub><mi>a</mi><mi>i</mi></msub><msub><mi>o</mi><mi>i</mi></msub></mrow></msub><mo stretchy="false">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>−</mo><munder><mrow><mi>max</mi><mo>⁡</mo></mrow><mrow><mi>a</mi><mo mathvariant="normal">≠</mo><msub><mi>a</mi><mi>i</mi></msub></mrow></munder><msub><mi>c</mi><mrow><mi>a</mi><msub><mi>o</mi><mi>i</mi></msub></mrow></msub><mo stretchy="false">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">M_i=c_{a_i o_i}(x_i)-\max_{a\ne a_i}c_{a o_i}(x_i).</annotation></semantics></math></span></p>
+<p>代码中的 <code>delta</code> 和 <code>delta_mean_abs</code> 已包含 <span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi></mrow><annotation encoding="application/x-tex">\alpha</annotation></semantics></math></span>，用于衡量知识分支对最终 logits 的实际贡献。</p>
+<h2>5. 核心模型代码</h2>
+<p>以下内容直接摘自本次交付的 <a href="code/trustcpf_conditional_v2/ckcpf/model.py">ckcpf/model.py</a>，与执行版本一致。</p>
+<pre><code class="language-python">&quot;&quot;&quot;G0 static CP with a conditional-only knowledge prototype residual.&quot;&quot;&quot;
+import torch
+from torch import nn
+from torch.nn import functional as F
+
+
+class ConditionalCPF(nn.Module):
+    def __init__(self, initial, bank, variant, cfg, seed):
+        super().__init__()
+        if variant not in (&#39;base&#39;, &#39;knowledge&#39;, &#39;shuffle&#39;):
+            raise ValueError(variant)
+        self.variant = variant
+        self.cfg = dict(cfg)
+        state = initial[&#39;model&#39;]
+        self.kappa, self.rho = initial[&#39;config&#39;][&#39;kappa&#39;], initial[&#39;config&#39;][&#39;rho&#39;]
+        for key in (&#39;ea&#39;, &#39;eo&#39;, &#39;ec&#39;):
+            self.register_buffer(key, state[key].float().clone())
+        for key in (&#39;Bo&#39;, &#39;Co&#39;, &#39;Bc&#39;, &#39;Cc&#39;, &#39;Au&#39;, &#39;Av&#39;, &#39;Wc&#39;):
+            # Keep the learned primitive geometry fixed; train the conditional readout.
+            self.register_parameter(key, nn.Parameter(state[key].float().clone(), requires_grad=key not in (&#39;Bo&#39;, &#39;Co&#39;, &#39;Au&#39;, &#39;Av&#39;)))
+        if variant != &#39;base&#39;:
+            d = self.ea.shape[1]
+            r = cfg[&#39;message_rank&#39;]
+            gen = torch.Generator().manual_seed(seed + 17001)
+            self.left = nn.Parameter(torch.randn(3, d, r, generator=gen) * .01)
+            self.right = nn.Parameter(torch.zeros(3, r, d))
+            self.alpha = nn.Parameter(torch.zeros(()))
+            for key in (&#39;source&#39;, &#39;target&#39;, &#39;types&#39;, &#39;degree&#39;):
+                self.register_buffer(key, bank[key].clone())
+            self.register_buffer(&#39;incidence&#39;, F.one_hot(bank[&#39;target&#39;], len(self.ea) + len(self.eo)).float().T)
+
+    def prototypes(self):
+        anchor = torch.cat([self.ea, self.eo])
+        diff = self.source - anchor[self.target]
+        low = torch.einsum(&#39;erd,ed-&gt;er&#39;, self.right[self.types], diff)
+        messages = diff + torch.einsum(&#39;edr,er-&gt;ed&#39;, self.left[self.types], low)
+        return F.normalize(anchor + self.cfg[&#39;eta&#39;] * (self.incidence @ (messages / self.degree[:, None])), dim=-1, eps=1e-8)
+
+    def cp(self, g, ea, eo):
+        # Preserve the original G0 operation order and unnormalized CP factors.
+        u, v = ea @ self.Au.T, eo @ self.Av.T
+        readout = g[:, None, :].expand(-1, len(v), -1)
+        modes = (readout @ self.Wc) * v[None, :, :]
+        return self.rho * self.kappa * torch.einsum(&#39;bor,ir-&gt;boi&#39;, modes, u)
+
+    def forward(self, g):
+        obj = self.kappa * (g @ self.eo.T) + (g @ self.Bo) @ (self.eo @ self.Co).T
+        cond = self.kappa * torch.einsum(&#39;bd,oid-&gt;boi&#39;, g, self.ec)
+        cond = cond + torch.einsum(&#39;bq,oiq-&gt;boi&#39;, g @ self.Bc, self.ec @ self.Cc)
+        static = self.cp(g, self.ea, self.eo)
+        cond = cond + static
+        delta = torch.zeros_like(cond)
+        if self.variant != &#39;base&#39;:
+            z = self.prototypes()
+            delta = self.alpha * (self.cp(g, z[:len(self.ea)], z[len(self.ea):]) - static)
+            cond = cond + delta
+        lo, la = obj.log_softmax(-1), cond.log_softmax(-1)
+        return dict(joint=lo[:, :, None] + la, cond=cond, obj=obj, log_o=lo, log_a=la, delta=delta)
+
+    def loss(self, out, a, o, train_mask):
+        row = torch.arange(len(a), device=a.device)
+        truth = out[&#39;joint&#39;][row, o, a]
+        pair = (-truth + out[&#39;joint&#39;][:, train_mask].logsumexp(-1)).mean()
+        cond = -out[&#39;log_a&#39;][row, o, a].mean()
+        obj = -out[&#39;log_o&#39;][row, o].mean()
+        beta = self.cfg[&#39;beta&#39;]
+        return 1.5 / (1. + beta) * (pair + beta * (cond + obj))
+
+    def optimizer(self):
+        c = self.cfg
+        groups = [dict(params=[self.Bc, self.Cc], lr=c[&#39;lr_adapter&#39;], initial_lr=c[&#39;lr_adapter&#39;]),
+                  dict(params=[self.Wc], lr=c[&#39;lr_cp&#39;], initial_lr=c[&#39;lr_cp&#39;])]
+        if self.variant != &#39;base&#39;:
+            groups += [dict(params=[self.left, self.right], lr=c[&#39;lr_message&#39;], initial_lr=c[&#39;lr_message&#39;]),
+                       dict(params=[self.alpha], lr=c[&#39;lr_alpha&#39;], initial_lr=c[&#39;lr_alpha&#39;], weight_decay=0.)]
+        return torch.optim.AdamW(groups, betas=(.9, .999), eps=1e-8, weight_decay=c[&#39;weight_decay&#39;])
+</code></pre>
+</article></body></html>

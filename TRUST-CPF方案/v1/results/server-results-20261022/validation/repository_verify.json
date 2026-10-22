@@ -1,12 +1,14 @@
 {
   "passed": true,
-  "original_canonical_files": 7168,
+  "original_canonical_files": 7208,
   "changed_or_missing": [],
   "broken_links": [],
   "formatting_errors": [],
   "python_syntax_errors": [],
   "training_started": false,
-  "command": "python tools/reproduce.py verify",
+  "command": "tools/reproduce.py verify",
+  "sha256_cache": "per resolved path, size and mtime_ns; unchanged content is hashed once",
+  "unique_file_hashes": 13902,
   "route_checks": {
     "vgcpod": true,
     "vgcpod_round_b": true,
@@ -19,7 +21,8 @@
     "vgcpod_round_i": true,
     "vgcpod_round_j": true,
     "vgcpod_round_k": true,
-    "trustcpf": true
+    "trustcpf": true,
+    "trustcpf_v2": true
   },
   "trustcpf_completed_main_runs": 21,
   "server_result_checks": {
@@ -32,6 +35,17 @@
     "noise_json_evaluations": 529,
     "original_bytes_preserved": true,
     "complete_robust_mismatch_cw_available": false,
+    "training_started": false
+  },
+  "preserved_v2_release": {
+    "passed": true,
+    "line": "TRUST-CPF方案",
+    "stage": "v2",
+    "release_members": 40,
+    "manifest_hashes_verified": 39,
+    "indexed_files": 58,
+    "byte_identity_preserved": true,
+    "formal_training_results_included": false,
     "training_started": false
   }
 }

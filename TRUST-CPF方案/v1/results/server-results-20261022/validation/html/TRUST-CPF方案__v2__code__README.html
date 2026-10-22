@@ -1,0 +1,43 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><base href="http://127.0.0.1:8767/TRUST-CPF%E6%96%B9%E6%A1%88/v2/code/"><title>TRUST-CPF方案/v2/code/README.md</title><style>body{font:16px/1.65 system-ui,"Microsoft YaHei",sans-serif;color:#1f2328;max-width:1080px;margin:0 auto;padding:38px;background:#fff}h1,h2{border-bottom:1px solid #d1d9e0;padding-bottom:.3em}h1{font-size:29px}h2{font-size:23px;margin-top:1.5em}h3{font-size:19px}a{color:#0969da;text-decoration:none}table{border-collapse:collapse;max-width:100%;margin:18px 0;font-size:14px}th,td{border:1px solid #d1d9e0;padding:7px 11px;text-align:left}tr:nth-child(even){background:#f6f8fa}pre{background:#f6f8fa;padding:16px;overflow:auto;line-height:1.5;border-radius:6px}code{font-family:Consolas,monospace;font-size:.88em}img{max-width:100%;height:auto}math[display=block]{margin:20px 0;overflow-x:auto;padding:8px 0}p{overflow-wrap:anywhere}</style></head><body><article><h1>v2 代码</h1>
+<table>
+<thead>
+<tr>
+<th>功能</th>
+<th>文件</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CLI与队列状态</td>
+<td><a href="trustcpf_conditional_v2/run.py">run.py</a></td>
+</tr>
+<tr>
+<td>G0、知识消息与条件残差</td>
+<td><a href="trustcpf_conditional_v2/ckcpf/model.py">model.py</a></td>
+</tr>
+<tr>
+<td>训练、选模、续训和报告</td>
+<td><a href="trustcpf_conditional_v2/ckcpf/runtime.py">runtime.py</a></td>
+</tr>
+<tr>
+<td>CW/OW校准与机制指标</td>
+<td><a href="trustcpf_conditional_v2/ckcpf/evaluation.py">evaluation.py</a> · <a href="trustcpf_conditional_v2/ckcpf/metrics.py">metrics.py</a></td>
+</tr>
+<tr>
+<td>缓存验证与样本轴</td>
+<td><a href="trustcpf_conditional_v2/ckcpf/data.py">data.py</a></td>
+</tr>
+<tr>
+<td>GPU1/2/3三seed队列</td>
+<td><a href="trustcpf_conditional_v2/scripts/run_all.sh">run_all.sh</a> · <a href="trustcpf_conditional_v2/scripts/run_seed.sh">run_seed.sh</a></td>
+</tr>
+<tr>
+<td>打包与UTF-8解压</td>
+<td><a href="trustcpf_conditional_v2/scripts/pack_results.py">pack_results.py</a> · <a href="trustcpf_conditional_v2/scripts/extract_results.py">extract_results.py</a></td>
+</tr>
+<tr>
+<td>五项实现测试</td>
+<td><a href="trustcpf_conditional_v2/tests/test_experiment.py">test_experiment.py</a> · <a href="trustcpf_conditional_v2/tests/reference_g0.py">G0原实现对照</a></td>
+</tr>
+</tbody></table>
+<p>执行前按<a href="../README.md">版本入口</a>恢复完整包；此目录与configs、initial在仓库中分区保存。</p>
+</article></body></html>

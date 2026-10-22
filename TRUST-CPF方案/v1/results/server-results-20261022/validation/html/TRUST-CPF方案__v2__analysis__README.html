@@ -1,0 +1,37 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><base href="http://127.0.0.1:8767/TRUST-CPF%E6%96%B9%E6%A1%88/v2/analysis/"><title>TRUST-CPF方案/v2/analysis/README.md</title><style>body{font:16px/1.65 system-ui,"Microsoft YaHei",sans-serif;color:#1f2328;max-width:1080px;margin:0 auto;padding:38px;background:#fff}h1,h2{border-bottom:1px solid #d1d9e0;padding-bottom:.3em}h1{font-size:29px}h2{font-size:23px;margin-top:1.5em}h3{font-size:19px}a{color:#0969da;text-decoration:none}table{border-collapse:collapse;max-width:100%;margin:18px 0;font-size:14px}th,td{border:1px solid #d1d9e0;padding:7px 11px;text-align:left}tr:nth-child(even){background:#f6f8fa}pre{background:#f6f8fa;padding:16px;overflow:auto;line-height:1.5;border-radius:6px}code{font-family:Consolas,monospace;font-size:.88em}img{max-width:100%;height:auto}math[display=block]{margin:20px 0;overflow-x:auto;padding:8px 0}p{overflow-wrap:anywhere}</style></head><body><article><h1>v2 评价与结果文件</h1>
+<p>主矩阵为Base / Knowledge / Shuffle × seed3351 / 3352 / 3353。训练后统一报告三seed均值、样本标准差及Knowledge−Base、Knowledge−Shuffle的逐seed差值。</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>对应问题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CW/OW AUC native与exact</td>
+<td>组合识别及校准曲线；epoch1–10以VAL CW native AUC选模</td>
+</tr>
+<tr>
+<td>固定VAL bias的TEST HM</td>
+<td>已见／未见工作点的迁移表现</td>
+</tr>
+<tr>
+<td>未见组合的真实物体条件属性准确率、margin</td>
+<td>改善是否进入条件属性判别</td>
+</tr>
+<tr>
+<td>独立物体top-1与联合物体命中率</td>
+<td>物体分支固定时，联合决策如何变化</td>
+</tr>
+<tr>
+<td>VAL温度迁移后的TEST NLL/ECE</td>
+<td>概率校准</td>
+</tr>
+<tr>
+<td>alpha、残差幅值、参数量、时间与显存</td>
+<td>分支作用与成本</td>
+</tr>
+</tbody></table>
+<p><code>summary.csv</code>保存逐seed、组、split/world结果；<code>aggregates.json</code>保存三seed汇总；<code>paired_comparisons.json</code>保存两项配对差值。每组包含<code>initial.json</code>、<code>history.json</code>、<code>metrics.json</code>、权重、完整VAL/TEST logits和样本标识。<code>DONE.json</code>在最终评价和预测导出完成后生成，<code>status</code>应显示9/9。</p>
+<p>Knowledge同时优于Base与Shuffle，支持正确知识附件提供条件判别信息；仅优于Base时，要结合Shuffle判断新增分支的作用。精确公式与实现见<a href="../FORMULAS_AND_CODE.md">公式文档</a>。</p>
+</article></body></html>

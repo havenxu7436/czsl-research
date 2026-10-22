@@ -1,0 +1,112 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><base href="http://127.0.0.1:8767/TRUST-CPF%E6%96%B9%E6%A1%88/v2/"><title>TRUST-CPF方案/v2/SERVER_COMMANDS.md</title><style>body{font:16px/1.65 system-ui,"Microsoft YaHei",sans-serif;color:#1f2328;max-width:1080px;margin:0 auto;padding:38px;background:#fff}h1,h2{border-bottom:1px solid #d1d9e0;padding-bottom:.3em}h1{font-size:29px}h2{font-size:23px;margin-top:1.5em}h3{font-size:19px}a{color:#0969da;text-decoration:none}table{border-collapse:collapse;max-width:100%;margin:18px 0;font-size:14px}th,td{border:1px solid #d1d9e0;padding:7px 11px;text-align:left}tr:nth-child(even){background:#f6f8fa}pre{background:#f6f8fa;padding:16px;overflow:auto;line-height:1.5;border-radius:6px}code{font-family:Consolas,monospace;font-size:.88em}img{max-width:100%;height:auto}math[display=block]{margin:20px 0;overflow-x:auto;padding:8px 0}p{overflow-wrap:anywhere}</style></head><body><article><h1>TRUST-CPF 条件知识残差 v2：上传、训练、下载</h1>
+<p>服务器：<code>xhw@211.87.232.122</code>。正式实验为 Base / Knowledge / Shuffle × seed3351 / 3352 / 3353，共 9 次训练。分别使用物理 GPU <strong>1 / 2 / 3</strong>。每次 10 epochs。</p>
+<p>代码包已包含三个 G0 最优权重、原始知识向量与固定打乱向量。复用历史全局 CLIP 缓存，原始图片与 CLIP 大权重无需重新上传。修订后的配方见 <a href="REVISED_PLAN.md">修订方案</a>；该版本固定 CP 的属性／物体投影，训练条件读出与知识残差。</p>
+<h2>从仓库恢复部署包</h2>
+<p>本机 PowerShell 在克隆的仓库根目录执行；<code>$cpfRepo</code> 自动取当前目录：</p>
+<pre><code class="language-powershell">$cpfRepo = (Get-Location).Path
+git lfs pull --include=&quot;TRUST-CPF方案/v2/**&quot;
+$cpfPython = &quot;C:\Users\llenovo\anaconda3\envs\ai-lab\python.exe&quot;
+&amp; $cpfPython tools/register_trustcpf_v2.py --check
+$cpfReplay = Join-Path $env:USERPROFILE &quot;experiments\trustcpf-v2-replay&quot;
+&amp; $cpfPython tools/reproduce.py materialize --line TRUST-CPF方案 --stage v2 --dest &quot;$cpfReplay&quot;
+</code></pre>
+<p><code>$cpfReplay</code> 使用新的绝对目录；运行包恢复为 <code>$cpfReplay\trustcpf_conditional_v2</code>。以下上传使用仓库中的原始部署 ZIP；第 6 节从该恢复目录读取解压工具。</p>
+<h2>1. 本机 PowerShell：上传</h2>
+<p>完整复制到本机 PowerShell：</p>
+<pre><code class="language-powershell">$cpfServer = &quot;xhw@211.87.232.122&quot;
+$cpfZip = Join-Path $cpfRepo &quot;TRUST-CPF方案\v2\results\deployment\trustcpf_conditional_v2.zip&quot;
+
+ssh $cpfServer &#39;mkdir -p &quot;$HOME/experiments&quot;&#39;
+scp &quot;$cpfZip&quot; &quot;${cpfServer}:~/experiments/trustcpf_conditional_v2.zip&quot;
+if ($LASTEXITCODE -ne 0) { throw &quot;上传未完成，请重新执行 scp&quot; }
+
+ssh $cpfServer
+</code></pre>
+<p>最后一行登录服务器。后面第 2–5 节在服务器终端执行。</p>
+<h2>2. 服务器：解压与环境配置</h2>
+<pre><code class="language-bash">conda activate vgcpod_v1
+python -m zipfile -e &quot;$HOME/experiments/trustcpf_conditional_v2.zip&quot; &quot;$HOME/experiments&quot;
+cd &quot;$HOME/experiments/trustcpf_conditional_v2&quot;
+
+python run.py setup
+source scripts/env.sh
+&quot;$CPF_PY&quot; -c &#39;import torch; print(&quot;PyTorch:&quot;, torch.__version__, &quot;CUDA:&quot;, torch.cuda.is_available())&#39;
+&quot;$CPF_PY&quot; -m unittest discover -s tests -v
+</code></pre>
+<p><code>setup</code> 首先查找历史记录里的 <code>/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14</code>，也会检查之前 TRUST 项目的常用缓存位置。它核对本轮使用的 <code>g.npy</code>、文本和样本顺序，然后把当前 Python 的绝对路径、缓存路径及工作目录保存到 <code>server_env.sh</code>。后续脚本会自动读取，不再依赖旧终端里的 <code>CPF_PY</code>、<code>CACHE</code> 等变量。</p>
+<p>若缓存实际被移动，指定它所在目录执行下面这一条，再继续第 3 节：</p>
+<pre><code class="language-bash">python run.py setup --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14
+</code></pre>
+<p>已有 <code>vgcpod_v1</code> 环境的 PyTorch 1.13.1、NumPy 1.24.4 满足依赖；这条训练路径只使用 PyTorch 和 NumPy。测试中使用合成数据的流水线分数不代表正式 CZSL 结果，结尾显示 <code>OK</code> 即测试通过。</p>
+<h2>3. 服务器：一次启动三张卡</h2>
+<pre><code class="language-bash">cd &quot;$HOME/experiments/trustcpf_conditional_v2&quot;
+mkdir -p logs
+nohup bash scripts/run_all.sh &gt;&gt; logs/queue.log 2&gt;&amp;1 &amp;
+echo $! &gt; logs/queue.pid
+tail -f logs/queue.log
+</code></pre>
+<p>调度固定为：GPU1 跑 seed3351；GPU2 跑 seed3352；GPU3 跑 seed3353。每张卡内部依次执行 Base → Knowledge → Shuffle。内部 <code>cuda:0</code> 对应当前进程选中的那张物理卡。</p>
+<p>查看详细训练日志，在另一个服务器终端执行：</p>
+<pre><code class="language-bash">cd &quot;$HOME/experiments/trustcpf_conditional_v2&quot;
+tail -f logs/seed3351.log logs/seed3352.log logs/seed3353.log
+</code></pre>
+<p><code>Ctrl+C</code> 结束的是 <code>tail</code> 查看，后台训练继续。查看 GPU：</p>
+<pre><code class="language-bash">nvidia-smi
+</code></pre>
+<p>每个 epoch 会打印本轮 <code>VAL_CW_AUC</code>、loss、alpha 和耗时。G0 起点的 VAL CW AUC 写在各目录 <code>initial.json</code> 中，历史三个 seed 分别约为 43.907、41.632、44.491。</p>
+<h2>4. 服务器：检查完成、恢复与汇总</h2>
+<pre><code class="language-bash">cd &quot;$HOME/experiments/trustcpf_conditional_v2&quot;
+source scripts/env.sh
+&quot;$CPF_PY&quot; run.py status --work &quot;$CPF_WORK&quot;
+tail -n 12 logs/queue.log
+</code></pre>
+<p>全部完成时显示 <code>COMPLETED 9 / 9 MISSING []</code>，总日志末尾为 <code>QUEUE_COMPLETE</code>。每组最终目录中都有 <code>DONE.json</code>；它在最优权重、完整 VAL/TEST 评价和逐图像预测都保存后才生成。</p>
+<p>队列因断连以外的原因中断后，重新执行第 3 节的启动命令即可。已完成的模型直接跳过，未完成模型从最近完整 epoch 续训。若同一队列还在运行，锁会阻止重复启动。</p>
+<p>汇总结果：</p>
+<pre><code class="language-bash">cd &quot;$HOME/experiments/trustcpf_conditional_v2&quot;
+source scripts/env.sh
+&quot;$CPF_PY&quot; run.py report --work &quot;$CPF_WORK&quot;
+cat &quot;$CPF_WORK/aggregates.json&quot;
+cat &quot;$CPF_WORK/paired_comparisons.json&quot;
+</code></pre>
+<p><code>summary.csv</code> 保存逐 seed、逐组、逐 split/world 指标；<code>aggregates.json</code> 给出三 seed 的 AUC 均值和样本标准差；<code>paired_comparisons.json</code> 给出 Knowledge−Base、Knowledge−Shuffle 的逐 seed AUC 差值。各模型 <code>metrics.json</code> 同时记录固定 VAL bias 的 HM、未见条件属性准确率与 margin、物体分支准确率、联合物体命中率、alpha、耗时和显存。</p>
+<h2>5. 服务器：打包完整结果</h2>
+<p>九组完成后执行：</p>
+<pre><code class="language-bash">cd &quot;$HOME/experiments/trustcpf_conditional_v2&quot;
+bash scripts/pack_results.sh
+cat latest_archive.txt
+</code></pre>
+<p>打包包括代码、配置、初始权重、九组训练权重、日志、汇总、完整预测和样本标识。缓存不重复打包。压缩包位于 <code>$HOME/experiments/</code>，名字包含打包时间；路径写入 <code>latest_archive.txt</code>，另保存同名 <code>.sha256</code> 校验文件。归档内部文件名统一使用英文。</p>
+<h2>6. 本机 PowerShell：下载、校验、解压</h2>
+<p>新开本机 PowerShell，复制整个代码块：</p>
+<pre><code class="language-powershell">$cpfServer = &quot;xhw@211.87.232.122&quot;
+$cpfLocal = &quot;C:\Users\llenovo\Documents\ChatGPT\USG&quot;
+$cpfProject = Join-Path $env:USERPROFILE &quot;experiments\trustcpf-v2-replay\trustcpf_conditional_v2&quot;
+$cpfPython = &quot;C:\Users\llenovo\anaconda3\envs\ai-lab\python.exe&quot;
+
+$cpfRemoteReply = ssh $cpfServer &#39;cat &quot;$HOME/experiments/trustcpf_conditional_v2/latest_archive.txt&quot;&#39;
+if ($LASTEXITCODE -ne 0 -or $null -eq $cpfRemoteReply) {
+    throw &quot;服务器结果路径未生成，请先完成第 5 节打包&quot;
+}
+$cpfRemoteArchive = ($cpfRemoteReply -join &quot;`n&quot;).Trim()
+$cpfArchiveName = ($cpfRemoteArchive -split &#39;/&#39;)[-1]
+$cpfLocalArchive = Join-Path $cpfLocal $cpfArchiveName
+
+scp &quot;${cpfServer}:$cpfRemoteArchive&quot; &quot;$cpfLocalArchive&quot;
+if ($LASTEXITCODE -ne 0) { throw &quot;下载未完成，请重新执行本节&quot; }
+scp &quot;${cpfServer}:${cpfRemoteArchive}.sha256&quot; &quot;${cpfLocalArchive}.sha256&quot;
+if ($LASTEXITCODE -ne 0) { throw &quot;校验文件下载未完成&quot; }
+
+$cpfExpectedHash = ((Get-Content -LiteralPath &quot;${cpfLocalArchive}.sha256&quot; -Raw) -split &#39;\s+&#39;)[0]
+$cpfActualHash = (Get-FileHash -LiteralPath $cpfLocalArchive -Algorithm SHA256).Hash
+if ($cpfActualHash -ine $cpfExpectedHash) { throw &quot;SHA256不一致，请重新下载压缩包&quot; }
+
+$cpfExtract = Join-Path $cpfLocal ($cpfArchiveName -replace &#39;\.tar\.gz$&#39;, &#39;&#39;)
+&amp; $cpfPython &quot;$cpfProject\scripts\extract_results.py&quot; &quot;$cpfLocalArchive&quot; &quot;$cpfExtract&quot;
+if ($LASTEXITCODE -ne 0) { throw &quot;解压未完成&quot; }
+
+Write-Host &quot;结果已保存：$cpfExtract\trustcpf_conditional_v2\work&quot;
+Get-Content -LiteralPath &quot;$cpfExtract\trustcpf_conditional_v2\work\status.json&quot;
+</code></pre>
+<p>下载脚本使用本文首节恢复出的 <code>trustcpf-v2-replay/trustcpf_conditional_v2/scripts/extract_results.py</code>。采用 UTF-8 解压与 SHA256 校验，处理前次下载中断、Windows tar 中文路径报错这两类问题。</p>
+</article></body></html>
