@@ -21,7 +21,7 @@ provenance/    文件来源、路径映射与 SHA256
 | 前期实验 | 01–15 | [实验索引](前期实验/README.md) |
 | 0601方案 | 01–04 | [方案索引](0601方案/README.md) |
 | VG-CPOD | 01–12 | [方案索引](VG-CPOD方案/README.md) |
-| TRUST-CPF / CLIP | v1–v2 | [方案索引](TRUST-CPF方案/README.md) |
+| TRUST-CPF / CLIP | 01-02 | [方案索引](TRUST-CPF方案/README.md) |
 
 ## 使用流程
 
