@@ -18,7 +18,7 @@ z_o^0=\kappa g^\top e_o+(g^\top B_o)(e_o^\top C_o)^\top,
 
 ```math
 \begin{aligned}
-T(g,e_a,e_o)&=\rho\kappa\,g^\top W_c[(A_u e_a)\odot(A_v e_o)],\\
+T(g,e_a,e_o)&=\rho\kappa\,g^\top W_c[(A_u e_a)\odot(A_v e_o)],\\[4pt]
 c^0_{ao}&=\kappa g^\top e_{ao}+(g^\top B_c)(e_{ao}^\top C_c)^\top+T(g,e_a,e_o).
 \end{aligned}
 ```
@@ -33,10 +33,10 @@ $`\kappa=20`$、$`\rho=0.15`$；$`A_u,A_v`$ 为 $`32\times768`$，$`W_c`$ 为 $`
 
 ```math
 \begin{aligned}
-m_e&=(I+L_{t(e)}R_{t(e)})(h_e-e_{v(e)}),\\
+m_e&=(I+L_{t(e)}R_{t(e)})(h_e-e_{v(e)}),\\[4pt]
 z_v&=\mathcal N\!\left(e_v+0.1\sum_{t:d_{v,t}>0}\frac{1}{d_{v,t}}
-\sum_{e:v(e)=v,\,t(e)=t}m_e\right),\\
-\Delta c_{ao}&=T(g,z_a,z_o)-T(g,e_a,e_o),\\
+\sum_{e:v(e)=v,\,t(e)=t}m_e\right),\\[4pt]
+\Delta c_{ao}&=T(g,z_a,z_o)-T(g,e_a,e_o),\\[4pt]
 c^K_{ao}&=c^0_{ao}+\alpha\Delta c_{ao}.
 \end{aligned}
 ```
@@ -59,9 +59,9 @@ J_{ao}=\log P_0(o\mid x)+\log\mathop{\mathrm{softmax}}\nolimits_{a}(c_{ao}).
 
 ```math
 \begin{aligned}
-\ell_{{\rm pair},i}&=-J_{a_i o_i}+\log\sum_{(a,o)\in\mathcal C_{\rm tr}}\exp J_{ao},\\
-\ell_{{\rm cond},i}&=-\log P(a_i\mid o_i,x_i),\\
-\ell_{{\rm obj},i}&=-\log P_0(o_i\mid x_i),\\
+\ell_{{\rm pair},i}&=-J_{a_i o_i}+\log\sum_{(a,o)\in\mathcal C_{\rm tr}}\exp J_{ao},\\[4pt]
+\ell_{{\rm cond},i}&=-\log P(a_i\mid o_i,x_i),\\[4pt]
+\ell_{{\rm obj},i}&=-\log P_0(o_i\mid x_i),\\[4pt]
 \mathcal L&=\frac{1.5}{1+\beta}\frac1B\sum_i
 \left[\ell_{{\rm pair},i}+\beta(\ell_{{\rm cond},i}+\ell_{{\rm obj},i})\right],
 \quad\beta=0.075.
