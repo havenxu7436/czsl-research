@@ -6,7 +6,7 @@
 
 ## 最新结果 · 2026-10-22
 
-**[完整分析与下一轮方向](analysis/server-results-20261022/README.md)** · **[全部数据、权重与日志](results/server-results-20261022/README.md)** · [图像](results/server-results-20261022/images/README.md) · [重算](analysis/server-results-20261022/REPRODUCE.md)
+**[完整结果分析](analysis/server-results-20261022/README.md)** · **[全部数据、权重与日志](results/server-results-20261022/README.md)** · [图像](results/server-results-20261022/images/README.md) · [重算](analysis/server-results-20261022/REPRODUCE.md)
 
 | 模型 | TEST CW AUC | TEST OW AUC |
 | --- | --- | --- |
@@ -18,7 +18,6 @@
 | `mean` | 10.080 ± 2.102 | 8.249 ± 1.692 |
 | `robust` | 9.901 ± 1.890 | 8.172 ± 1.515 |
 
-下一轮集中检验强 CPF 基底上的条件知识残差，三组 × 三 seed，使用 GPU **1、2、3**。当前归档的是 v1 已完成结果与分析时的公式提案；后续实现与修订配方见 [v2](../v2/README.md)。
 
 ## 目录
 

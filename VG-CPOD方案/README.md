@@ -1,8 +1,8 @@
 # VG-CPOD方案
 
-冻结CLIP图文双编码器上的视觉引导类别低秩算子。
+CLIP 图文框架上的组合评分、条件知识对照与视觉判别研究。
 
-**[完整公式及核心代码v1](v1/VG-CPOD公式及代码v1.md)** · [数学与实验设计](v1/数学与实验设计_v1.md) 
+**[完整公式及核心代码v1](v1/VG-CPOD公式及代码v1.md)** · [数学与实验设计](v1/数学与实验设计_v1.md)
 
 | 编号 | 实验 | 入口 |
 |---|---|---|
@@ -18,3 +18,4 @@
 | 10 | 残差幅值保留与门控温度对照（I 组）；I1/I2各三seed、双准则选择与十二项均值评估 | [修订说明](10/README.md) · [代码](10/code/README.md) · [配置](10/configs/README.md) · [结果](10/results/README.md) · [数据分析](10/analysis/README.md) |
 | 11 | 静态与动态CP独立读出（J 组）；J1三seed、双准则选择与六项均值评估 | [修订说明](11/README.md) · [代码](11/code/README.md) · [配置](11/configs/README.md) · [结果](11/results/README.md) · [数据分析](11/analysis/README.md) |
 | 12 | 动态读出学习率分组与更新尺度对照（K 组）；K1/K2各三seed、双准则及十二项均值评估 | [修订说明](12/README.md) · [代码](12/code/README.md) · [配置](12/configs/README.md) · [结果](12/results/README.md) · [数据分析](12/analysis/README.md) |
+| 13 | G0条件知识残差与语义附件对照（L组）；L0/L1/L2各三seed，九组完整训练 | [实验入口](13/README.md) · [公式代码](13/FORMULAS_AND_CODE.md) · [结果](13/results/README.md) · [数据分析](13/analysis/README.md) · [下一步方向](13/NEXT_DIRECTION.md) |

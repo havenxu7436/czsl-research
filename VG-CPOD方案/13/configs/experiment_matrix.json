@@ -1,0 +1,41 @@
+{
+  "seeds": [
+    3351,
+    3352,
+    3353
+  ],
+  "variants": [
+    "base",
+    "knowledge",
+    "shuffle"
+  ],
+  "planned_main_runs": 9,
+  "gpu_schedule": {
+    "1": 3351,
+    "2": 3352,
+    "3": 3353
+  },
+  "epochs": 10,
+  "frozen": [
+    "CLIP",
+    "texts",
+    "Bo",
+    "Co",
+    "Au",
+    "Av"
+  ],
+  "common_trainable": [
+    "Bc",
+    "Cc",
+    "Wc"
+  ],
+  "knowledge_trainable": [
+    "left",
+    "right",
+    "alpha"
+  ],
+  "common_parameters": 36864,
+  "knowledge_total_parameters": 110593,
+  "model_selection": "first maximum VAL CW native AUC among epochs 1-10",
+  "formal_completed_runs": 0
+}
