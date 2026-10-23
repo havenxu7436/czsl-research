@@ -1,0 +1,181 @@
+# VG-CPOD 第13实验：L组条件知识残差：公式与核心实现
+
+本文对应最终代码和 [configs/default.json](configs/vgcpod_v1_roundL/configs/default.json)。三组模型共用 G0，冻结 CLIP、文本和 $`B_o,C_o,A_u,A_v`$；训练 $`B_c,C_c,W_c`$。Knowledge 与 Shuffle 额外训练 $`L_t,R_t,\alpha`$。
+
+## 1. 共同评分器
+
+设 CLIP 全局视觉向量为 $`g\in\mathbb{R}^{768}`$，原始属性、物体和组合文本向量为 $`e_a,e_o,e_{ao}`$。冻结的物体分支为：
+
+
+```math
+z_o^0=\kappa g^\top e_o+(g^\top B_o)(e_o^\top C_o)^\top,
+\qquad \log P_0(o\mid x)=\log\mathop{\mathrm{softmax}}\nolimits_o(z^0).
+```
+
+
+完整的静态 CP 与条件分数为：
+
+
+```math
+\begin{aligned}
+T(g,e_a,e_o)&=\rho\kappa\,g^\top W_c[(A_u e_a)\odot(A_v e_o)],\\
+c^0_{ao}&=\kappa g^\top e_{ao}+(g^\top B_c)(e_{ao}^\top C_c)^\top+T(g,e_a,e_o).
+\end{aligned}
+```
+
+
+$`\kappa=20`$、$`\rho=0.15`$；$`A_u,A_v`$ 为 $`32\times768`$，$`W_c`$ 为 $`768\times32`$；其余低秩矩阵为 $`768\times8`$。保持 G0 原始运算顺序和 CP 因子尺度。
+
+## 2. 类型消息与条件残差
+
+边 $`e`$ 的 source 向量为 $`h_e`$，target 为 $`v(e)`$，类型为 $`t(e)`$；$`d_{v,t}`$ 是该目标在该类型中的度数。使用全部 96 条边：
+
+
+```math
+\begin{aligned}
+m_e&=(I+L_{t(e)}R_{t(e)})(h_e-e_{v(e)}),\\
+z_v&=\mathcal N\!\left(e_v+0.1\sum_{t:d_{v,t}>0}\frac{1}{d_{v,t}}
+\sum_{e:v(e)=v,\,t(e)=t}m_e\right),\\
+\Delta c_{ao}&=T(g,z_a,z_o)-T(g,e_a,e_o),\\
+c^K_{ao}&=c^0_{ao}+\alpha\Delta c_{ao}.
+\end{aligned}
+```
+
+
+$`\mathcal N`$ 表示 L2 归一化；$`L_t,R_t`$ 分别为 $`768\times16`$、$`16\times768`$。类型内先平均，再对类型求和。$`\alpha`$ 初始化为0，$`R_t`$ 初始化为0，$`L_t`$ 的高斯标准差为0.01。初始时完整 CP 保留，三组输出与对应 G0 一致。
+
+Shuffle 仅替换 source 附件向量，类型、目标、度数与每类型的 source 多重集一致；真实与打乱两组新增参数数量相同。
+
+## 3. 概率与训练目标
+
+
+```math
+J_{ao}=\log P_0(o\mid x)+\log\mathop{\mathrm{softmax}}\nolimits_{a}(c_{ao}).
+```
+
+
+训练组合集合为 $`\mathcal C_{\rm tr}`$，真值为 $`(a_i,o_i)`$：
+
+
+```math
+\begin{aligned}
+\ell_{{\rm pair},i}&=-J_{a_i o_i}+\log\sum_{(a,o)\in\mathcal C_{\rm tr}}\exp J_{ao},\\
+\ell_{{\rm cond},i}&=-\log P(a_i\mid o_i,x_i),\\
+\ell_{{\rm obj},i}&=-\log P_0(o_i\mid x_i),\\
+\mathcal L&=\frac{1.5}{1+\beta}\frac1B\sum_i
+\left[\ell_{{\rm pair},i}+\beta(\ell_{{\rm cond},i}+\ell_{{\rm obj},i})\right],
+\quad\beta=0.075.
+\end{aligned}
+```
+
+
+物体项是常数。训练候选归一化仍让所有训练候选的条件分数接收梯度。原有条件头学习率为2e-4，CP读出6e-5，新消息3e-4，alpha1e-3。每个 epoch 的学习率比例为 $`0.01+0.99[1+\cos(\pi k/9)]/2`$，其中 $`k=0,\ldots,9`$。
+
+## 4. 评价与必须保留的指标
+
+CW 的候选为训练组合与当前 split 组合的并集，OW 为全部属性×物体。native AUC 保持历史 CPF 的扫描算法；exact AUC 使用全部临界 bias。选模只使用 VAL CW native AUC；固定同一权重后再评价 CW/OW。
+
+每个 world 的 bias 在 VAL exact HM 最大处选取，温度在 VAL NLL 上选取；二者原样传入 TEST。代码保存未加 bias 的完整联合、条件、物体 logits 及样本顺序，供后续统一重算。
+
+| 输出 | 指标／用途 |
+| --- | --- |
+| `metrics.json` | CW/OW AUC、VAL bias 下的 seen/unseen/HM、NLL/ECE |
+| 条件属性诊断 | seen/unseen 的真实物体属性准确率、margin、正 margin 比例 |
+| 物体诊断 | 独立物体分支准确率、联合 top-1 的物体命中率、四类联合错误计数 |
+| 作用与成本 | alpha、加权知识残差的均值绝对值、训练参数量、耗时和峰值显存 |
+| `paired_comparisons.json` | Knowledge−Base、Knowledge−Shuffle 的逐 seed AUC 差值 |
+| `aggregates.json` | 每组三 seed 的 AUC 均值与样本标准差 |
+| `*_predictions.npz` | 全部最终 VAL/TEST logits、标签和逐图像残差幅值 |
+
+未见条件属性 margin 使用全部16个属性：
+
+
+```math
+M_i=c_{a_i o_i}(x_i)-\max_{a\ne a_i}c_{a o_i}(x_i).
+```
+
+
+代码中的 `delta` 和 `delta_mean_abs` 已包含 $`\alpha`$，用于衡量知识分支对最终 logits 的实际贡献。
+
+## 5. 核心模型代码
+
+以下内容直接摘自本次交付的 [ckcpf/model.py](code/vgcpod_v1_roundL/ckcpf/model.py)，与执行版本一致。
+
+```python
+"""G0 static CP with a conditional-only knowledge prototype residual."""
+import torch
+from torch import nn
+from torch.nn import functional as F
+
+
+class ConditionalCPF(nn.Module):
+    def __init__(self, initial, bank, variant, cfg, seed):
+        super().__init__()
+        if variant not in ('base', 'knowledge', 'shuffle'):
+            raise ValueError(variant)
+        self.variant = variant
+        self.cfg = dict(cfg)
+        state = initial['model']
+        self.kappa, self.rho = initial['config']['kappa'], initial['config']['rho']
+        for key in ('ea', 'eo', 'ec'):
+            self.register_buffer(key, state[key].float().clone())
+        for key in ('Bo', 'Co', 'Bc', 'Cc', 'Au', 'Av', 'Wc'):
+            # Keep the learned primitive geometry fixed; train the conditional readout.
+            self.register_parameter(key, nn.Parameter(state[key].float().clone(), requires_grad=key not in ('Bo', 'Co', 'Au', 'Av')))
+        if variant != 'base':
+            d = self.ea.shape[1]
+            r = cfg['message_rank']
+            gen = torch.Generator().manual_seed(seed + 17001)
+            self.left = nn.Parameter(torch.randn(3, d, r, generator=gen) * .01)
+            self.right = nn.Parameter(torch.zeros(3, r, d))
+            self.alpha = nn.Parameter(torch.zeros(()))
+            for key in ('source', 'target', 'types', 'degree'):
+                self.register_buffer(key, bank[key].clone())
+            self.register_buffer('incidence', F.one_hot(bank['target'], len(self.ea) + len(self.eo)).float().T)
+
+    def prototypes(self):
+        anchor = torch.cat([self.ea, self.eo])
+        diff = self.source - anchor[self.target]
+        low = torch.einsum('erd,ed->er', self.right[self.types], diff)
+        messages = diff + torch.einsum('edr,er->ed', self.left[self.types], low)
+        return F.normalize(anchor + self.cfg['eta'] * (self.incidence @ (messages / self.degree[:, None])), dim=-1, eps=1e-8)
+
+    def cp(self, g, ea, eo):
+        # Preserve the original G0 operation order and unnormalized CP factors.
+        u, v = ea @ self.Au.T, eo @ self.Av.T
+        readout = g[:, None, :].expand(-1, len(v), -1)
+        modes = (readout @ self.Wc) * v[None, :, :]
+        return self.rho * self.kappa * torch.einsum('bor,ir->boi', modes, u)
+
+    def forward(self, g):
+        obj = self.kappa * (g @ self.eo.T) + (g @ self.Bo) @ (self.eo @ self.Co).T
+        cond = self.kappa * torch.einsum('bd,oid->boi', g, self.ec)
+        cond = cond + torch.einsum('bq,oiq->boi', g @ self.Bc, self.ec @ self.Cc)
+        static = self.cp(g, self.ea, self.eo)
+        cond = cond + static
+        delta = torch.zeros_like(cond)
+        if self.variant != 'base':
+            z = self.prototypes()
+            delta = self.alpha * (self.cp(g, z[:len(self.ea)], z[len(self.ea):]) - static)
+            cond = cond + delta
+        lo, la = obj.log_softmax(-1), cond.log_softmax(-1)
+        return dict(joint=lo[:, :, None] + la, cond=cond, obj=obj, log_o=lo, log_a=la, delta=delta)
+
+    def loss(self, out, a, o, train_mask):
+        row = torch.arange(len(a), device=a.device)
+        truth = out['joint'][row, o, a]
+        pair = (-truth + out['joint'][:, train_mask].logsumexp(-1)).mean()
+        cond = -out['log_a'][row, o, a].mean()
+        obj = -out['log_o'][row, o].mean()
+        beta = self.cfg['beta']
+        return 1.5 / (1. + beta) * (pair + beta * (cond + obj))
+
+    def optimizer(self):
+        c = self.cfg
+        groups = [dict(params=[self.Bc, self.Cc], lr=c['lr_adapter'], initial_lr=c['lr_adapter']),
+                  dict(params=[self.Wc], lr=c['lr_cp'], initial_lr=c['lr_cp'])]
+        if self.variant != 'base':
+            groups += [dict(params=[self.left, self.right], lr=c['lr_message'], initial_lr=c['lr_message']),
+                       dict(params=[self.alpha], lr=c['lr_alpha'], initial_lr=c['lr_alpha'], weight_decay=0.)]
+        return torch.optim.AdamW(groups, betas=(.9, .999), eps=1e-8, weight_decay=c['weight_decay'])
+```

@@ -1,0 +1,215 @@
+import csv
+import hashlib
+import importlib
+import json
+import sys
+import tarfile
+from pathlib import Path
+import numpy as np
+import torch
+
+ROOT=Path(r'C:/Users/llenovo/Documents/ChatGPT/USG')
+RUN=ROOT/'trustcpf_conditional_v2_results_20261022_232124/trustcpf_conditional_v2'
+OUT=ROOT/'analysis_TRUST_CPF_v2_20261022'
+OUT.mkdir(exist_ok=True)
+SEEDS=[3351,3352,3353];VARIANTS=['base','knowledge','shuffle']
+read=lambda p:json.loads(Path(p).read_text(encoding='utf-8-sig'))
+sha=lambda p:hashlib.sha256(Path(p).read_bytes()).hexdigest()
+torch.set_num_threads(2)
+
+def stats(x):
+ a=np.asarray(x,float)
+ return dict(mean=float(a.mean()),sd=float(a.std(ddof=1)) if len(a)>1 else None,values=a.tolist())
+
+def array_corr(a,b):
+ a=np.asarray(a,float).ravel();b=np.asarray(b,float).ravel();a=a-a.mean();b=b-b.mean()
+ return float(a@b/np.sqrt((a@a)*(b@b))) if a@a>0 and b@b>0 else None
+
+def compare_numbers(a,b):
+ errors=[]
+ if isinstance(a,dict):
+  for k in b:
+   if k in a:errors.extend(compare_numbers(a[k],b[k]))
+ elif isinstance(a,(int,float)) and isinstance(b,(int,float)):errors.append(abs(a-b))
+ return errors
+
+def audit_archive():
+ archive=ROOT/'trustcpf_conditional_v2_results_20261022_232124.tar.gz'
+ expected=Path(str(archive)+'.sha256').read_text().split()[0]
+ actual=sha(archive);assert expected==actual
+ missing=[];different=[];count=0
+ with tarfile.open(archive,'r:gz') as tar:
+  for m in tar:
+   if not m.isfile():continue
+   count+=1;p=RUN.parent/m.name
+   h=hashlib.sha256()
+   with tar.extractfile(m) as f:
+    for chunk in iter(lambda:f.read(4*1024*1024),b''):h.update(chunk)
+   if not p.exists():missing.append(m.name)
+   elif sha(p)!=h.hexdigest():different.append(m.name)
+ release=read(RUN/'MANIFEST.json')
+ source_changes=[n for n,h in release.items() if not (RUN/n).exists() or sha(RUN/n)!=h]
+ assert not missing and not different and not source_changes,(missing,different,source_changes)
+ return dict(compressed_sha256=actual,archive_regular_files=count,missing=missing,content_differences=different,
+             release_files=len(release),release_differences=source_changes)
+
+
+def main():
+ result={'archive':audit_archive()}
+ print('ARCHIVE_OK',flush=True)
+ sys.path.insert(0,str(RUN))
+ from ckcpf.evaluation import evaluate,candidate_scores
+ from ckcpf.metrics import native_curve,exact_curve
+ manifest=read(RUN/'assets/expected_cache.json');labels=manifest['labels']
+ train=set(map(tuple,manifest['pairs']['train']));A=len(labels['attrs']);O=len(labels['objs'])
+ train_mask=np.zeros((O,A),bool)
+ for a,o in train:train_mask[labels['objs'].index(o),labels['attrs'].index(a)]=True
+ predictions={};metrics={};diagnostics={};history={};maxerror=0.
+ row_hashes={};frozen_checks={};records_count={};rows_long=[]
+ for seed in SEEDS:
+  init=torch.load(RUN/f'initial/g0_seed{seed}.pt',map_location='cpu',weights_only=False)
+  frozen_checks[str(seed)]={}
+  for v in VARIANTS:
+   key=f'{seed}/{v}';folder=RUN/f'work/seed{seed}/{v}'
+   metrics[key]=read(folder/'metrics.json');done=read(folder/'DONE.json')
+   assert done['metrics_sha256']==sha(folder/'metrics.json')
+   hist=read(folder/'history.json');assert [h['epoch'] for h in hist]==list(range(1,11))
+   winner=max(range(10),key=lambda i:hist[i]['val_cw_auc'])
+   assert hist[winner]['epoch']==metrics[key]['selected_epoch']
+   history[key]=hist
+   state=torch.load(folder/'best.pt',map_location='cpu',weights_only=False)['model']
+   frozen_checks[str(seed)][v]={n:float((state[n]-init['model'][n]).abs().max()) for n in ['Bo','Co','Au','Av','ea','eo','ec']}
+   diagnostics[key]={}
+   calibration=None
+   for phase in ['val','test']:
+    with np.load(folder/f'{phase}_predictions.npz') as z:pred={k:z[k].copy() for k in z.files}
+    predictions[(seed,v,phase)]=pred
+    rows=read(folder/f'{phase}_records.json');assert len(rows)==len(pred['attrs'])
+    assert np.array_equal(pred['attrs'],[r['attr'] for r in rows]) and np.array_equal(pred['objs'],[r['object'] for r in rows])
+    row_hashes[key+'/'+phase]=sha(folder/f'{phase}_records.json')
+    recomputed,_=evaluate(pred,manifest,phase,calibration)
+    maxerror=max(maxerror,max(compare_numbers(recomputed,metrics[key][phase])))
+    if phase=='val':calibration=recomputed
+    a,o=pred['attrs'],pred['objs'];idx=np.arange(len(a));sm=train_mask[o,a]
+    cond=pred['cond'][idx,o];attr_pred=cond.argmax(-1);attr_ok=attr_pred==a
+    true=cond[idx,a];wrong=cond.copy();wrong[idx,a]=-np.inf;margin=true-wrong.max(-1)
+    allowed=np.zeros((O,A),bool)
+    for aa,oo in train|set(map(tuple,manifest['pairs'][phase])):allowed[labels['objs'].index(oo),labels['attrs'].index(aa)]=True
+    partition_allowed=allowed&~train_mask
+    unseen_cond=np.where(partition_allowed[o],cond,-np.inf)
+    unseen_attr_pred=unseen_cond.argmax(-1)
+    groups={}
+    for n,mask in [('all',np.ones(len(a),bool)),('seen',sm),('unseen',~sm)]:
+     ps=sorted(set(zip(a[mask],o[mask])))
+     groups[n]=dict(n=int(mask.sum()),attribute_accuracy=float(attr_ok[mask].mean()*100),margin_mean=float(margin[mask].mean()),
+                   margin_median=float(np.median(margin[mask])),macro_pair_attribute_accuracy=float(np.mean([attr_ok[mask&(a==aa)&(o==oo)].mean() for aa,oo in ps])*100))
+    groups['unseen']['attribute_accuracy_within_unseen_partition']=float((unseen_attr_pred[~sm]==a[~sm]).mean()*100)
+    groups['unseen']['by_attribute']={labels['attrs'][aa]:dict(n=int(((a==aa)&~sm).sum()),accuracy=float(attr_ok[(a==aa)&~sm].mean()*100))
+                                     for aa in sorted(set(a[~sm]))}
+    groups['unseen']['by_object']={labels['objs'][oo]:dict(n=int(((o==oo)&~sm).sum()),accuracy=float(attr_ok[(o==oo)&~sm].mean()*100))
+                                  for oo in sorted(set(o[~sm]))}
+    partition={}
+    for world in ['cw','ow']:
+     scores,truth,seen=candidate_scores(pred,manifest,phase,world)
+     sp=np.flatnonzero(seen)[scores[:,seen].argmax(-1)];up=np.flatnonzero(~seen)[scores[:,~seen].argmax(-1)]
+     partition[world]=dict(seen_partition_accuracy=float((sp[sm]==truth[sm]).mean()*100),unseen_partition_accuracy=float((up[~sm]==truth[~sm]).mean()*100))
+    diagnostics[key][phase]=dict(groups=groups,partitions=partition,delta_abs_mean=float(pred['delta_abs'].mean()))
+    records_count[phase]=dict(images=len(a),seen=int(sm.sum()),unseen=int((~sm).sum()))
+    for world in ['cw','ow']:
+     m=metrics[key][phase][world]
+     rows_long.append(dict(seed=seed,variant=v,phase=phase,world=world,selected_epoch=metrics[key]['selected_epoch'],
+      AUC_native=m['AUC_native'],AUC_exact=m['AUC_exact'],HM_val_bias=m['at_val_bias']['HM'],NLL=m['calibrated']['NLL'],
+      ECE=m['calibrated']['ECE'],seen_val_bias=m['at_val_bias']['seen'],unseen_val_bias=m['at_val_bias']['unseen'],
+      gt_attr_seen=m['gt_object_attr_acc_seen'],gt_attr_unseen=m['gt_object_attr_acc_unseen'],margin_unseen=m['gt_object_margin_unseen'],
+      object_accuracy=m['object_marginal_accuracy'],joint_object_accuracy=m['joint_object_accuracy']))
+   del state
+ print('PREDICTIONS_RECOMPUTED',maxerror,flush=True)
+ assert maxerror<1e-7,maxerror
+ for phase in ['val','test']:assert len({h for k,h in row_hashes.items() if k.endswith('/'+phase)})==1
+ assert all(x==0 for v in frozen_checks.values() for c in v.values() for x in c.values())
+ result.update(metrics=metrics,history=history,diagnostics=diagnostics,records=records_count,
+  integrity=dict(recomputed_metric_max_error=maxerror,sample_record_hashes=row_hashes,frozen_parameter_max_errors=frozen_checks))
+ result['aggregate']={v:{w:{k:stats([metrics[f'{s}/{v}']['test'][w][k] for s in SEEDS]) for k in ['AUC_native','AUC_exact','HM_oracle_native','pair_acc_unbiased','gt_object_attr_acc_unseen','gt_object_margin_unseen','object_marginal_accuracy','joint_object_accuracy']}
+                              for w in ['cw','ow']} for v in VARIANTS}
+ result['paired']={f'{left}-{right}':{w:stats([metrics[f'{s}/{left}']['test'][w]['AUC_native']-metrics[f'{s}/{right}']['test'][w]['AUC_native'] for s in SEEDS]) for w in ['cw','ow']}
+                   for left,right in [('knowledge','base'),('shuffle','base'),('knowledge','shuffle')]}
+ paired_images={}
+ for seed in SEEDS:
+  for left,right in [('knowledge','base'),('shuffle','base'),('knowledge','shuffle')]:
+   p=predictions[(seed,left,'test')];q=predictions[(seed,right,'test')]
+   a,o=p['attrs'],p['objs'];idx=np.arange(len(a));sm=train_mask[o,a]
+   ca=p['cond'][idx,o];cb=q['cond'][idx,o]
+   pa,pb=ca.argmax(-1),cb.argmax(-1);oka,okb=pa==a,pb==a
+   entry={'object_logits_max_abs_diff':float(np.max(np.abs(p['obj']-q['obj'])))}
+   for label,mask in [('all',np.ones(len(a),bool)),('seen',sm),('unseen',~sm)]:
+    entry[label]=dict(n=int(mask.sum()),corrected=int((oka&~okb&mask).sum()),harmed=int((~oka&okb&mask).sum()),
+      agreement=float((pa[mask]==pb[mask]).mean()*100),both_wrong=int((~oka&~okb&mask).sum()))
+   dc=ca-ca.mean(-1,keepdims=True);dq=cb-cb.mean(-1,keepdims=True)
+   entry['within_object_centered_logits_correlation']=array_corr(dc,dq)
+   entry['joint']={}
+   for world in ['cw','ow']:
+    x,truth,seen=candidate_scores(p,manifest,'test',world);y,_,_=candidate_scores(q,manifest,'test',world)
+    for mode in ['unbiased','val_bias']:
+     if mode=='val_bias':
+      x=x.copy();y=y.copy()
+      x[:,~seen]+=metrics[f'{seed}/{left}']['val'][world]['at_val_bias']['bias']
+      y[:,~seen]+=metrics[f'{seed}/{right}']['val'][world]['at_val_bias']['bias']
+     px=torch.from_numpy(x).topk(1,dim=1).indices[:,0].numpy();py=torch.from_numpy(y).topk(1,dim=1).indices[:,0].numpy()
+     oks=px==truth;okt=py==truth
+     entry['joint'][world+'/'+mode]=dict(corrected=int((oks&~okt).sum()),harmed=int((~oks&okt).sum()),agreement=float((px==py).mean()*100))
+   paired_images[f'{seed}/{left}-{right}']=entry
+ result['paired_images']=paired_images
+ taxonomy={}
+ for seed in SEEDS:
+  local={}
+  for v in VARIANTS:
+   p=predictions[(seed,v,'test')];a,o=p['attrs'],p['objs'];idx=np.arange(len(a));sm=train_mask[o,a]
+   ap=p['cond'][idx,o].argmax(-1);ok=ap==a
+   entry=dict(unseen_count=int((~sm).sum()),correct=int((ok&~sm).sum()),
+              wrong_seen_attachment=int((~ok&~sm&train_mask[o,ap]).sum()),
+              wrong_unseen_attachment=int((~ok&~sm&~train_mask[o,ap]).sum()))
+   entry['seen_attachment_fraction_among_errors']=entry['wrong_seen_attachment']/(entry['wrong_seen_attachment']+entry['wrong_unseen_attachment'])
+   taxonomy[f'{seed}/{v}']=entry;local[v]=(ap,ok,a,o,sm)
+  for left,right in [('knowledge','base'),('shuffle','base')]:
+   pa,oka,a,o,sm=local[left];pb,okb,*_=local[right]
+   corr=oka&~okb&~sm;harm=~oka&okb&~sm
+   taxonomy[f'{seed}/{left}-{right}']=dict(corrected_from_seen=int((corr&train_mask[o,pb]).sum()),
+      corrected_from_unseen=int((corr&~train_mask[o,pb]).sum()),harmed_to_seen=int((harm&train_mask[o,pa]).sum()),
+      harmed_to_unseen=int((harm&~train_mask[o,pa]).sum()))
+ result['conditional_error_taxonomy']=taxonomy
+ # Changes in class rankings within the common uncalibrated attribute task.
+ result['by_attribute_gain']={labels['attrs'][aa]:stats([diagnostics[f'{s}/knowledge']['test']['groups']['unseen']['by_attribute'][labels['attrs'][aa]]['accuracy']-
+  diagnostics[f'{s}/base']['test']['groups']['unseen']['by_attribute'][labels['attrs'][aa]]['accuracy'] for s in SEEDS]) for aa in range(A)
+  if labels['attrs'][aa] in diagnostics['3351/base']['test']['groups']['unseen']['by_attribute']}
+ # Actual learned, image-independent effective linear conditional classifier.
+ geometry={}
+ for seed in SEEDS:
+  initial=torch.load(RUN/f'initial/g0_seed{seed}.pt',map_location='cpu',weights_only=False)
+  for v in VARIANTS:
+   state=torch.load(RUN/f'work/seed{seed}/{v}/best.pt',map_location='cpu',weights_only=False)['model']
+   u=state['ea']@state['Au'].T;vv=state['eo']@state['Av'].T
+   static=torch.einsum('dr,ar,or->oad',state['Wc'],u,vv)*3.
+   base=20*state['ec']+torch.einsum('dq,qr,oar->oad',state['Bc'],state['Cc'].T,state['ec'])+static
+   entry=dict(common_head_relative_update={n:float((state[n]-initial['model'][n]).norm()/initial['model'][n].norm().clamp_min(1e-9)) for n in ['Bc','Cc','Wc']})
+   if v!='base':
+    anchor=torch.cat([state['ea'],state['eo']]);diff=state['source']-anchor[state['target']]
+    low=torch.einsum('erd,ed->er',state['right'][state['types']],diff)
+    messages=diff+torch.einsum('edr,er->ed',state['left'][state['types']],low)
+    z=torch.nn.functional.normalize(anchor+.1*(state['incidence']@(messages/state['degree'][:,None])),dim=-1)
+    zu=z[:A]@state['Au'].T;zv=z[A:]@state['Av'].T
+    graphcp=3*torch.einsum('dr,ar,or->oad',state['Wc'],zu,zv)
+    delta=state['alpha']*(graphcp-static)
+    raw_lr=state['left']@state['right']
+    entry.update(alpha=float(state['alpha']),prototype_anchor_cosine_mean=float((z*anchor).sum(-1).mean()),
+      cp_coefficient_delta_ratio=float(delta.norm()/static.norm()),conditional_coefficient_delta_ratio=float(delta.norm()/base.norm()),
+      delta_coefficient_norm=float(delta.norm()),coefficient_cp_rank_upper_bound=64,
+      low_rank_operator_frobenius=[float(x.norm()) for x in raw_lr])
+   geometry[f'{seed}/{v}']=entry
+ result['geometry']=geometry
+ result['cost']={v:stats([metrics[f'{s}/{v}']['recorded_training_seconds'] for s in SEEDS]) for v in VARIANTS}
+ (OUT/'analysis.json').write_text(json.dumps(result,ensure_ascii=False,indent=2,allow_nan=False),encoding='utf-8')
+ with (OUT/'metrics_verified.csv').open('w',encoding='utf-8-sig',newline='') as f:
+  w=csv.DictWriter(f,fieldnames=list(rows_long[0]));w.writeheader();w.writerows(rows_long)
+ print(json.dumps({'paired':result['paired'],'records':records_count,'cost':result['cost'],'geometry':geometry},ensure_ascii=True),flush=True)
+
+if __name__=='__main__':main()

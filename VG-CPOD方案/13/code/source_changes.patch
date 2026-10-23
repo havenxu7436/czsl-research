@@ -1,0 +1,23 @@
+--- a/scripts/pack_results.py
++++ b/scripts/pack_results.py
+@@ -6,7 +6,7 @@
+ 
+ root = Path(__file__).resolve().parents[1]
+ stamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+-archive = root.parent / ('trustcpf_conditional_v2_results_' + stamp + '.tar.gz')
++archive = root.parent / (root.name + '_results_' + stamp + '.tar.gz')
+ work = Path(os.getenv('CPF_WORK', str(root / 'work'))).resolve()
+ items = ['run.py','requirements.txt','README.md','SERVER_COMMANDS.md','FORMULAS_AND_CODE.md','REVISED_PLAN.md',
+          'ckcpf','configs','assets','initial','scripts','tests','validation','logs','server_env.sh','setup.json','MANIFEST.json']
+@@ -14,9 +14,9 @@
+     for name in items:
+         p = root / name
+         if p.exists():
+-            tar.add(p, arcname='trustcpf_conditional_v2/' + name,
++            tar.add(p, arcname=root.name + '/' + name,
+                     filter=lambda t: None if '__pycache__' in t.name or t.name.endswith('.pyc') else t)
+-    if work.exists(): tar.add(work, arcname='trustcpf_conditional_v2/work')
++    if work.exists(): tar.add(work, arcname=root.name + '/work')
+ h = hashlib.sha256()
+ with archive.open('rb') as f:
+     for chunk in iter(lambda: f.read(4*1024*1024), b''): h.update(chunk)

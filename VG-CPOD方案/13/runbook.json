@@ -1,0 +1,67 @@
+{
+  "line": "VG-CPOD方案",
+  "stage": "13",
+  "primary_package": "vgcpod_v1_roundL",
+  "commands": [
+    {
+      "source": "README.md",
+      "language": "bash",
+      "text": "git lfs pull --include=\"VG-CPOD方案/13/**\"\npython tools/register_vgcpod_round_l.py --check\npython tools/reproduce.py materialize --line VG-CPOD方案 --stage 13 --dest \"$HOME/experiments/vgcpod-L-replay\"\ncd \"$HOME/experiments/vgcpod-L-replay/vgcpod_v1_roundL\"\npython -m unittest discover -s tests -v\n"
+    },
+    {
+      "source": "SERVER_COMMANDS.md",
+      "language": "powershell",
+      "text": "$cpfRepo = (Get-Location).Path\ngit lfs pull --include=\"VG-CPOD方案/13/**\"\n$cpfPython = \"C:\\Users\\llenovo\\anaconda3\\envs\\ai-lab\\python.exe\"\n& $cpfPython tools/register_vgcpod_round_l.py --check\n$cpfReplay = Join-Path $env:USERPROFILE \"experiments\\vgcpod-L-replay\"\n& $cpfPython tools/reproduce.py materialize --line VG-CPOD方案 --stage 13 --dest \"$cpfReplay\"\n"
+    },
+    {
+      "source": "SERVER_COMMANDS.md",
+      "language": "powershell",
+      "text": "$cpfServer = \"xhw@211.87.232.122\"\n$cpfZip = Join-Path $cpfRepo \"VG-CPOD方案\\13\\results\\deployment\\vgcpod_v1_roundL.zip\"\n\nssh $cpfServer 'mkdir -p \"$HOME/experiments\"'\nscp \"$cpfZip\" \"${cpfServer}:~/experiments/vgcpod_v1_roundL.zip\"\nif ($LASTEXITCODE -ne 0) { throw \"上传未完成，请重新执行 scp\" }\n\nssh $cpfServer\n"
+    },
+    {
+      "source": "SERVER_COMMANDS.md",
+      "language": "bash",
+      "text": "conda activate vgcpod_v1\npython -m zipfile -e \"$HOME/experiments/vgcpod_v1_roundL.zip\" \"$HOME/experiments\"\ncd \"$HOME/experiments/vgcpod_v1_roundL\"\n\npython run.py setup\nsource scripts/env.sh\n\"$CPF_PY\" -c 'import torch; print(\"PyTorch:\", torch.__version__, \"CUDA:\", torch.cuda.is_available())'\n\"$CPF_PY\" -m unittest discover -s tests -v\n"
+    },
+    {
+      "source": "SERVER_COMMANDS.md",
+      "language": "bash",
+      "text": "python run.py setup --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14\n"
+    },
+    {
+      "source": "SERVER_COMMANDS.md",
+      "language": "bash",
+      "text": "cd \"$HOME/experiments/vgcpod_v1_roundL\"\nmkdir -p logs\nnohup bash scripts/run_all.sh >> logs/queue.log 2>&1 &\necho $! > logs/queue.pid\ntail -f logs/queue.log\n"
+    },
+    {
+      "source": "SERVER_COMMANDS.md",
+      "language": "bash",
+      "text": "cd \"$HOME/experiments/vgcpod_v1_roundL\"\ntail -f logs/seed3351.log logs/seed3352.log logs/seed3353.log\n"
+    },
+    {
+      "source": "SERVER_COMMANDS.md",
+      "language": "bash",
+      "text": "nvidia-smi\n"
+    },
+    {
+      "source": "SERVER_COMMANDS.md",
+      "language": "bash",
+      "text": "cd \"$HOME/experiments/vgcpod_v1_roundL\"\nsource scripts/env.sh\n\"$CPF_PY\" run.py status --work \"$CPF_WORK\"\ntail -n 12 logs/queue.log\n"
+    },
+    {
+      "source": "SERVER_COMMANDS.md",
+      "language": "bash",
+      "text": "cd \"$HOME/experiments/vgcpod_v1_roundL\"\nsource scripts/env.sh\n\"$CPF_PY\" run.py report --work \"$CPF_WORK\"\ncat \"$CPF_WORK/aggregates.json\"\ncat \"$CPF_WORK/paired_comparisons.json\"\n"
+    },
+    {
+      "source": "SERVER_COMMANDS.md",
+      "language": "bash",
+      "text": "cd \"$HOME/experiments/vgcpod_v1_roundL\"\nbash scripts/pack_results.sh\ncat latest_archive.txt\n"
+    },
+    {
+      "source": "SERVER_COMMANDS.md",
+      "language": "powershell",
+      "text": "$cpfServer = \"xhw@211.87.232.122\"\n$cpfLocal = \"C:\\Users\\llenovo\\Documents\\ChatGPT\\USG\"\n$cpfProject = Join-Path $env:USERPROFILE \"experiments\\vgcpod-L-replay\\vgcpod_v1_roundL\"\n$cpfPython = \"C:\\Users\\llenovo\\anaconda3\\envs\\ai-lab\\python.exe\"\n\n$cpfRemoteReply = ssh $cpfServer 'cat \"$HOME/experiments/vgcpod_v1_roundL/latest_archive.txt\"'\nif ($LASTEXITCODE -ne 0 -or $null -eq $cpfRemoteReply) {\n    throw \"服务器结果路径未生成，请先完成第 5 节打包\"\n}\n$cpfRemoteArchive = ($cpfRemoteReply -join \"`n\").Trim()\n$cpfArchiveName = ($cpfRemoteArchive -split '/')[-1]\n$cpfLocalArchive = Join-Path $cpfLocal $cpfArchiveName\n\nscp \"${cpfServer}:$cpfRemoteArchive\" \"$cpfLocalArchive\"\nif ($LASTEXITCODE -ne 0) { throw \"下载未完成，请重新执行本节\" }\nscp \"${cpfServer}:${cpfRemoteArchive}.sha256\" \"${cpfLocalArchive}.sha256\"\nif ($LASTEXITCODE -ne 0) { throw \"校验文件下载未完成\" }\n\n$cpfExpectedHash = ((Get-Content -LiteralPath \"${cpfLocalArchive}.sha256\" -Raw) -split '\\s+')[0]\n$cpfActualHash = (Get-FileHash -LiteralPath $cpfLocalArchive -Algorithm SHA256).Hash\nif ($cpfActualHash -ine $cpfExpectedHash) { throw \"SHA256不一致，请重新下载压缩包\" }\n\n$cpfExtract = Join-Path $cpfLocal ($cpfArchiveName -replace '\\.tar\\.gz$', '')\n& $cpfPython \"$cpfProject\\scripts\\extract_results.py\" \"$cpfLocalArchive\" \"$cpfExtract\"\nif ($LASTEXITCODE -ne 0) { throw \"解压未完成\" }\n\nWrite-Host \"结果已保存：$cpfExtract\\vgcpod_v1_roundL\\work\"\nGet-Content -LiteralPath \"$cpfExtract\\vgcpod_v1_roundL\\work\\status.json\"\n"
+    }
+  ]
+}

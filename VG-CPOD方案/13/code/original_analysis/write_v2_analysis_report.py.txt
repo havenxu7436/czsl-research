@@ -1,0 +1,531 @@
+import json
+from pathlib import Path
+import numpy as np
+
+ROOT = Path(__file__).resolve().parents[1]
+DATA = ROOT / 'analysis_TRUST_CPF_v2_20261022'
+d = json.loads((DATA / 'analysis.json').read_text(encoding='utf8'))
+candidates = json.loads((DATA / 'candidate_sizes.json').read_text(encoding='utf8'))
+seeds = [3351, 3352, 3353]
+variants = ['base', 'knowledge', 'shuffle']
+names = dict(base='Base', knowledge='Knowledge', shuffle='Shuffle')
+
+def table(headers, rows):
+    return '\n'.join(['| ' + ' | '.join(headers) + ' |', '| ' + ' | '.join(['---'] * len(headers)) + ' |'] +
+                     ['| ' + ' | '.join(map(str, row)) + ' |' for row in rows])
+
+def mean_metric(v, world, path, phase='test'):
+    xs = []
+    for s in seeds:
+        val = d['metrics'][f'{s}/{v}'][phase][world]
+        for key in path:
+            val = val[key]
+        xs.append(val)
+    return np.mean(xs)
+
+def mean_group(v, group, key):
+    return np.mean([d['diagnostics'][f'{s}/{v}']['test']['groups'][group][key] for s in seeds])
+
+full_rows = []
+for s in seeds:
+    for v in variants:
+        m = d['metrics'][f'{s}/{v}']
+        full_rows.append([s, names[v], m['selected_epoch']] + [f'{m[p][w]["AUC_native"]:.4f}' for p, w in [('val','cw'),('val','ow'),('test','cw'),('test','ow')]])
+
+aggregates = []
+for v in variants:
+    row = [names[v]]
+    for w in ['cw','ow']:
+        st = d['aggregate'][v][w]['AUC_native']
+        row.append(f'{st["mean"]:.4f} ± {st["sd"]:.4f}')
+    aggregates.append(row)
+
+paired = []
+for key, label in [('knowledge-base','Knowledge − Base'),('shuffle-base','Shuffle − Base'),('knowledge-shuffle','Knowledge − Shuffle')]:
+    for w in ['cw','ow']:
+        p = d['paired'][key][w]
+        paired.append([label,w.upper()] + [f'{x:+.4f}' for x in p['values']] + [f'{p["mean"]:+.4f}'])
+
+extra_metrics = []
+for title, world, path, digits in [
+    ('CW exact AUC','cw',['AUC_exact'],4),('OW exact AUC','ow',['AUC_exact'],4),
+    ('CW：VAL bias 下的 TEST HM','cw',['at_val_bias','HM'],4),('OW：VAL bias 下的 TEST HM','ow',['at_val_bias','HM'],4),
+    ('CW 校准 NLL','cw',['calibrated','NLL'],4),('OW 校准 NLL','ow',['calibrated','NLL'],4),
+    ('CW 校准 ECE（%）','cw',['calibrated','ECE'],4),('OW 校准 ECE（%）','ow',['calibrated','ECE'],4)]:
+    extra_metrics.append([title] + [f'{mean_metric(v,world,path):.{digits}f}' for v in variants])
+
+diag_rows = []
+for title, group, key in [
+    ('真实物体、全部 16 属性：全部 TEST','all','attribute_accuracy'),
+    ('真实物体、全部 16 属性：seen TEST','seen','attribute_accuracy'),
+    ('真实物体、全部 16 属性：unseen TEST','unseen','attribute_accuracy'),
+    ('真实物体、全部 16 属性：unseen 组合宏平均','unseen','macro_pair_attribute_accuracy'),
+    ('真实物体、仅 CW 未见候选：unseen TEST','unseen','attribute_accuracy_within_unseen_partition')]:
+    diag_rows.append([title] + [f'{mean_group(v,group,key):.4f}' for v in variants])
+diag_rows.append(['上一行再排除只有 1 个候选的图像'] + [f'{np.mean([candidates["runs"][f"{s}/{v}"]["ambiguous_accuracy"] for s in seeds]):.4f}' for v in variants])
+diag_rows.append(['跨全部物体、仅 CW 未见候选：unseen TEST'] + [f'{np.mean([d["diagnostics"][f"{s}/{v}"]["test"]["partitions"]["cw"]["unseen_partition_accuracy"] for s in seeds]):.4f}' for v in variants])
+diag_rows.append(['独立物体分支准确率：全部 TEST'] + [f'{mean_metric(v,"cw",["object_marginal_accuracy"]):.4f}' for v in variants])
+
+taxonomy = []
+for s in seeds:
+    b = d['conditional_error_taxonomy'][f'{s}/base']
+    p = d['paired_images'][f'{s}/knowledge-base']['unseen']
+    taxonomy.append([s,b['correct'],b['wrong_seen_attachment'],b['wrong_unseen_attachment'],f'{100*b["seen_attachment_fraction_among_errors"]:.2f}%',f'{p["corrected"]} / {p["harmed"]}',f'+{p["corrected"]-p["harmed"]}'])
+
+attr_rows = []
+for a, item in d['diagnostics']['3351/base']['test']['groups']['unseen']['by_attribute'].items():
+    xs = [np.mean([d['diagnostics'][f'{s}/{v}']['test']['groups']['unseen']['by_attribute'][a]['accuracy'] for s in seeds]) for v in variants]
+    attr_rows.append([a,item['n']] + [f'{x:.2f}' for x in xs] + [f'{xs[1]-xs[0]:+.2f}'])
+
+geometry = []
+for s in seeds:
+    for v in ['knowledge','shuffle']:
+        g = d['geometry'][f'{s}/{v}']
+        delta = d['diagnostics'][f'{s}/{v}']['test']['delta_abs_mean']
+        geometry.append([s,names[v],f'{g["alpha"]:.4f}',f'{delta:.4f}',f'{100*g["conditional_coefficient_delta_ratio"]:.2f}%',f'{g["prototype_anchor_cosine_mean"]:.4f}'])
+
+text = r'''# TRUST-CPF v2：完整结果分析与下一步实验方案
+
+报告日期：2026-10-23；实验归档日期：2026-10-22。数据集：UT-Zappos，CLIP ViT-L/14。分析对象：`trustcpf_conditional_v2_results_20261022_232124.tar.gz` 内的九组完整训练、VAL/TEST 逐图像预测和模型权重。
+
+**建议结束当前“冻结视觉特征＋静态知识残差”的主线，把下一轮集中在可训练视觉下的属性判别：同一物体、同一位置先比较两个属性，再汇聚局部证据。安排 Global、Pool-first、Compare-first 三组，每组三个 seed，共九次训练，使用物理 GPU 1、2、3。**
+
+这个决定来自三条相互关联的结果：Knowledge 比 Base 平均提高 0.6170 CW AUC、0.6001 OW AUC，但 Shuffle 达到更高均值；Knowledge 在三个 seed 的 CW 上均低于 Shuffle。进一步看预测，Knowledge 的主要变化是减少未见样本被判成该物体的已见搭配；在未见候选之间比较时，它没有提高准确率。知识分支确实参与了训练，残差也足够大，因此继续增加效用建模、选图或噪声实验，已经偏离当前最有价值的问题。
+
+本文件先交代完整数据证据，再给出一套可以直接据此实现的下一轮方案。新方案中的视觉机制是待检验的研究假设；本次已完成的是结果重算、实现分析和公式核验。
+
+## 1. 数据完整性与评价口径
+
+| 核对对象 | 实际结果 |
+| --- | --- |
+| 原始压缩包 | 114,791,876 字节；SHA-256 与下载校验文件一致 |
+| 解压内容 | 181 个普通文件逐一核对，缺失 0、内容差异 0 |
+| 执行代码 | 发布清单中的 39 个文件全部一致 |
+| 训练完成情况 | 3 seed × 3 variant，共 9/9 个 `DONE.json`；metrics 哈希全部一致 |
+| 训练历史 | 每组均完成 10 epochs；所选 epoch 与 VAL CW native AUC 首次最大值一致 |
+| 预测重算 | 18 份 VAL/TEST 预测全部重算；与归档指标最大绝对差约 1.78×10⁻¹⁴ |
+| 样本对应关系 | 九组 VAL、九组 TEST 各自的样本顺序和标签完全一致 |
+| 冻结部分 | 各组的 Bo、Co、Au、Av 和文本向量相对对应 G0 均为零变化 |
+| VAL / TEST | VAL 3,214 张：seen 877、unseen 2,337；TEST 2,914 张：seen 1,023、unseen 1,891 |
+
+归档、执行版本与指标复算相互一致，这批数据可以直接用于判断方法。
+
+全文 AUC 沿用现有代码的百分数显示尺度；“提高 0.6”指该尺度上的 0.6 个点。准确率、HM、ECE 以百分数表示，NLL 和 logits margin 保留原单位。均值对三个 seed 求平均，“±”是样本标准差。三个 seed 重复评价的是同一 TEST 集。
+
+CW 的候选是训练组合与当前 split 组合的并集，OW 是全部 16×12 个组合。训练组合表有 83 项，VAL/TEST 表分别有 30/36 项，后两者含已见组合，不能把表长直接当作未见组合数。选模使用 VAL CW native AUC；每个 world 的 bias 和温度由 VAL 确定，再用于 TEST。
+
+## 2. 主结果：强基座已恢复，真实知识内容没有带来额外优势
+
+### 2.1 九组实验的完整 AUC
+
+@@FULL@@
+
+三 seed 汇总：
+
+@@AGG@@
+
+配对差值：
+
+@@PAIRED@@
+
+**Knowledge 对 Base 的提升，需要结合同容量 Shuffle 判断。** Shuffle 比 Base 提高更多；Knowledge−Shuffle 的 CW 差值在三个 seed 中都是负值。OW 的相对顺序随 seed 变化，真实知识也没有形成稳定优势。
+
+本轮 Shuffle 使用固定的 source 打乱规则，以上结论对应本轮真实附件与该打乱附件的比较。结合三 seed 的方向一致性，可以将研究投入转向新的判别机制。
+
+与此前结果放在同一尺度看：
+
+| 已有实验 | TEST CW AUC 均值 | TEST OW AUC 均值 | 对本次决策的作用 |
+| --- | --- | --- | --- |
+| TRUST v1 robust | 9.9013 | 8.1716 | 早期完整流程未建立有效的强基座 |
+| TRUST v1 capacity | 13.9015 | 11.2403 | 当时简单容量对照优于效用选择 |
+| 历史 G0，β=0.075 | 34.5117 | 25.1836 | 已有冻结 CLIP＋静态 CP 的强参考 |
+| 本轮 Base | 34.4384 | 25.1400 | 与历史 G0 几乎持平，基座问题已解决 |
+| 本轮 Knowledge | 35.0555 | 25.7402 | 静态残差有小幅收益 |
+| 本轮 Shuffle | 35.3067 | 25.9153 | 同容量打乱附件获得更高平均收益 |
+
+v1 与 v2 是不同训练设计，表中前两行用于回顾路径，不作为同配置消融。当前最有信息量的比较是同轮 Knowledge−Shuffle，而不是 v2−v1 的大幅提升。
+
+### 2.2 AUC 之外的工作点与校准
+
+下表均为 TEST 三 seed 平均：
+
+@@EXTRA@@
+
+native 与 exact AUC 给出相同的模型排序，结果没有依赖某一种 bias 扫描近似。CW 下 Knowledge 的固定工作点 HM 提高约 1.62 点；OW 下其 HM 从 39.3282 降至 38.8879，Shuffle 也下降。两个残差组的 OW ECE 均升高。
+
+因此，当前收益应写成“排序曲线 AUC 小幅改善”。它尚未转化为 CW、OW 两种条件下都更好的固定工作点，也没有带来一致的概率校准改善。继续实验时，AUC 和 VAL bias 下的 TEST HM 要同时保留。
+
+## 3. 逐图像分析：主要改变了已见搭配偏好
+
+### 3.1 先把几种属性指标分清
+
+“真实物体下的属性准确率”需要同时说明候选属性范围。以下结果全部来自已保存的 logits，没有重新训练：
+
+@@DIAG@@
+
+最关键的变化是：
+
+- 全部 16 属性竞争时，Knowledge 的 unseen 准确率由 24.5549% 升至 26.1237%，提高 1.5688 个百分点；Shuffle 恰好达到相同的三 seed 平均值。
+- 限制在 CW 未见候选后，Knowledge 从 84.6642% 降至 84.1178%。只保留至少两个候选的 1,544 张图，结果仍从 81.2176% 降至 80.5484%。
+- 取消“给定真实物体”，在全部 CW 未见组合之间竞争，准确率只有约 65%。条件内部排序和跨物体竞争是两个同时存在的问题。
+
+候选数量的影响也很明显：未见样本中 347 张只有 1 个候选属性、1,001 张有 2 个、543 张有 3 个；按每张图的候选数均匀随机选择，期望准确率为 54.3892%。因此，84% 不能与全部 16 属性下的 25% 当成同一个难度的任务。后续应把“多候选未见排序”作为实质判别指标。
+
+独立物体分支准确率三组都为 70.2128%，逐元素比较 object logits 的最大差为 0。这来自本轮冻结 Bo、Co 和视觉特征的设计。下一轮要让物体分支与视觉适配一起训练，否则只能改变联合组合偏好，无法直接改善这一分支的识别。
+
+### 3.2 Knowledge 到底修正了哪些样本
+
+下面只统计 1,891 张 unseen TEST 图像，在真实物体下让全部 16 个属性竞争。错误预测按“预测组合是否属于训练组合”分类：
+
+@@TAXONOMY@@
+
+Base 的属性错误中，88.37%—89.86% 是误选同一物体的已见搭配。例如真值是一个未见属性—物体组合，而模型更偏向该物体在 TRAIN 中出现过的另一属性。
+
+三个 seed 合计，Knowledge 修正了 124 次原本的错误、同时造成 35 次新错误；净增 89 次正确预测。其中，修正原先误选已见搭配的次数是 109，新增这类错误是 21，净改善 88 次；其余未见附件错误的净改善只有 1 次。这是跨 seed 的预测事件计数，不是新增了三份独立测试集。
+
+**这一组证据将当前收益定位为组合竞争关系的调整。** Knowledge 没有表现出更好的未见候选内部识别，Shuffle 又达到同样的完整候选 unseen 属性均值。把结果归因于“学到了可迁移知识关系”不符合当前数据。
+
+### 3.3 收益集中在哪里
+
+以下覆盖 unseen TEST 中实际出现的全部 13 个属性，仍使用真实物体＋全部 16 属性的口径：
+
+@@ATTRS@@
+
+Knowledge 的净正确数平均每个 seed 增加 29.67 张，其中 Satin 贡献 17.33 张，约占净增量的 58.4%。五个仍为零的属性共覆盖 284 张图，占 unseen TEST 的 15.0%。这个“零”指它们在全部属性竞争下没有排到第一，并不等同于在限制候选后也无法区分。
+
+未见组合宏平均准确率由 18.3238% 升至 19.8980%，Shuffle 为 20.3902%。宏平均也未支持真实知识优于打乱附件。与此同时，Knowledge 的平均 unseen margin 从 −1.3805 变为 −1.4222：少量样本跨过正确决策边界，与整体 margin 更负可以同时发生；只看准确率会遗漏这一点。
+
+综合这些结果，下一轮应同时改善两件事：让视觉证据克服同物体已见搭配偏好，并提高多候选未见组合之间的排序。仅把未见候选整体抬高，不能完成第二件事。
+
+## 4. 实现解释：分支已生效，作用仍是静态分类器重参数化
+
+### 4.1 分支已经产生实质作用
+
+| 组别 | 可训练参数 | 10 epochs＋逐 epoch VAL 平均耗时 | 最佳 epoch：3351 / 3352 / 3353 |
+| --- | --- | --- | --- |
+| Base | 36,864 | 32.56 秒 | 2 / 10 / 2 |
+| Knowledge | 110,593 | 47.01 秒 | 5 / 3 / 4 |
+| Shuffle | 110,593 | 47.18 秒 | 5 / 6 / 4 |
+
+这些是缓存特征训练的记录时间，不含全部启动、打包和最终评价开销。九组记录的训练耗时相加约 6.34 GPU 分钟，不能用它估计下一轮在线 CLIP 训练的速度。
+
+模型权重与预测中记录的作用量如下。“系数残差比例”是知识项的有效线性分类器系数范数，相对同一模型未加知识项的条件分类器系数范数：
+
+@@GEOMETRY@@
+
+Knowledge 的系数变化约为原条件分类器的 17%—19%，TEST 加权残差平均绝对值约为 0.421。三个 seed 的 alpha 都明显偏离零，训练 loss 持续下降，最佳验证 epoch 已在训练中出现。结合实际作用量，下一步应优先改变机制，而非单纯延长这条分支的训练。
+
+负 alpha 的精确含义来自：
+
+$$
+T_0+\alpha(T_K-T_0)=(1-\alpha)T_0+\alpha T_K.
+$$
+
+这是有符号的外推组合，不是知识置信度。由于 $T_K$ 本身也在训练，alpha 为负不能单独解释为“知识是错误的”。也没有理由仅因为负号而加 sigmoid 限制后重跑整条链路。
+
+### 4.2 为什么 Shuffle 也能获得收益
+
+令 $g(x)$ 是冻结 CLIP 的全局特征；$e_a,e_o,e_{ao}$ 为固定文本向量；$z_a,z_o$ 为训练后的知识原型。当前完整条件分数可以合并为：
+
+$$
+\begin{aligned}
+c_{ao}(x)&=g(x)^\top v_{ao},\\
+v_{ao}&=\kappa e_{ao}+B_c C_c^\top e_{ao}\\
+&\quad+\rho\kappa W_c\left[(1-\alpha)(A_u e_a\odot A_v e_o)
+ +\alpha(A_u z_a\odot A_v z_o)\right].
+\end{aligned}
+$$
+
+训练完成后，$v_{ao}$ 与图像无关。类型消息、原型更新和 CP 组合最终都变成静态分类器权重；条件 logits 对冻结的 $g(x)$ 仍是线性函数。它能改变原有视觉表示上的边界，却没有引入新的、随图像变化的局部语义证据。softmax 与联合归一化是后续概率运算，不改变这个条件打分层的性质。
+
+两份 CP 项相加的张量 CP 秩上界可以到 64，但它们共享同一个 $W_c$，视觉方向仍落在至多 32 维的共同子空间。把“秩上界变大”写成“增加了新的视觉信息”是不成立的。
+
+这给出一个与数据一致的机制解释：真实附件和打乱附件都给训练提供了可调整的静态参数化。模型利用这些自由度重排候选，而真实附件的语义对应关系没有额外胜出。
+
+### 4.3 与此前路径合并后的决策
+
+v1 的 capacity 优于效用选择，说明当时复杂的关系效用流程没有压过简单参数化。本轮恢复 G0 后，Knowledge 仍被同容量 Shuffle 超过；两轮结果共同削弱了继续投入静态外部知识选择的理由。
+
+另外，历史 β=0.05 的实验曾将 unseen 条件属性准确率提高至约 25.19%，但 TEST CW/OW 均值约为 34.03/24.35，低于 G0 的 34.51/25.18。仅调整训练支持集的偏好可以改变属性指标，却未形成更好的联合识别。这也是下一轮继续使用既有 β=0.075、把精力放到视觉学习上的依据。
+
+因此，本轮结果归档为静态知识路径的阶段性结论；下一轮直接进入一套完整的视觉判别比较。原有噪声、选图、效用审计不再进入下一轮训练队列。
+
+## 5. 下一轮主方案：可训练视觉中的“先比较，再汇聚”
+
+### 5.1 问题、定位与三组比较
+
+**研究问题：两个属性是否应先在同一个图像位置进行比较，再汇聚其对同一物体的判别证据？** 常规非线性局部汇聚允许每个属性分别寻找高响应位置；这些位置可以不同，也可能由共同响应推动。先比较逐位置差值，可以把任务梯度直接分配到区分属性的证据上。
+
+当前预测只包含全局 logits，没有 patch 响应，所以它不能直接证明“共同局部响应”已经是当前错误的成因。下一轮将这一定义明确的机制放进同参数对照中验证。目标同时包含减少已见搭配误选、改善多候选未见内部排序和提升联合 AUC。
+
+这条主线延续此前 VG-CPOD 的局部判别方向，并把规模收敛到 UT-Zappos 的九次训练：
+
+| 模型 | 视觉能力与条件读出 | 本轮回答的问题 |
+| --- | --- | --- |
+| R0：Global | 可训练视觉 Adapter，条件头读取 CLS | 让现有全局评分器获得视觉任务梯度能改善多少 |
+| R1：Pool-first | 同一 Adapter 与评分器；逐属性先汇聚 patch 响应 | 普通局部证据学习相对全局读取的收益 |
+| R2：Compare-first | 同一 Adapter 与评分器；同位置先比较，再汇聚并还原属性 logits | 比较与汇聚顺序本身是否有价值 |
+
+R2−R1 是核心机制比较；R1−R0 说明局部读取带来的变化。三组的可训练参数集合、数量、优化器步数和选模规则相同。历史 G0 作为已有参考，无须新增一组复训。
+
+条件属性学习已在 [CANet（CVPR 2023）](https://arxiv.org/abs/2305.17940) 中研究；[CPF（ICCV 2025）](https://arxiv.org/abs/2507.17377) 使用条件概率框架和条件视觉细化；[FILIP](https://arxiv.org/abs/2111.07783) 已使用视觉—文本 token 级晚交互。因此，Adapter、局部 token 或条件概率分解本身都不能作为创新结论。本方案的待验证贡献集中在“同位置成对比较后再边缘化”的算子及其对未见组合判别的作用。
+
+本地 G0/CPF＋CP 是当前工程中的条件概率评分实现，不能直接称为原 CPF 完整模型的复现；原论文的视觉细化等组件与本地基座不同。
+
+### 5.2 共同视觉模型与评分器
+
+使用同一份 OpenAI CLIP ViT-L/14、224×224 输入。视觉 Transformer 隐藏维度 1,024，最后层投影维度 768，patch 数为 256。冻结预训练主权重，在最后四个视觉 block 的 MLP 旁加入 bottleneck64 的并行 Adapter。以列向量记每个 token，在注意力残差之后的 $h$ 上计算：
+
+$$
+\begin{aligned}
+\widetilde h&=\operatorname{LN}_2(h),\\
+h'&=h+\operatorname{MLP}(\widetilde h)
+ +0.1\,U_b\operatorname{GELU}(D_b\widetilde h),\\
+D_b&\in\mathbb R^{64\times1024},\qquad U_b\in\mathbb R^{1024\times64}.
+\end{aligned}
+$$
+
+Adapter 不带 bias，$D_b$ 以标准差 0.01 的高斯分布初始化，$U_b=0$。零输出初始化使初始视觉前向等于原 CLIP。模型在最后层对 CLS 和 patch 使用 `ln_post`、视觉投影与 L2 归一化，得到 $g,p_n\in\mathbb R^{768}$。官方默认前向只输出 CLS；下一轮要显式返回 patch，并将这条路径接入梯度。[CLIP 官方模型实现](https://github.com/openai/CLIP/blob/main/clip/model.py)
+
+各组从同 seed 的 G0 载入头参数。冻结文本向量和 $A_u,A_v$，训练 $B_o,C_o,B_c,C_c,W_c$ 以及视觉 Adapter。与 v2 相比，物体头也参与更新，以便改进约 70% 的独立物体识别。
+
+共同条件评分函数对任意视觉向量 $v$ 定义为：
+
+$$
+\begin{aligned}
+u_a&=A_u e_a,\qquad v_o=A_v e_o,\\
+R(v,a,o)&=\kappa v^\top e_{ao}
+ +(v^\top B_c)(e_{ao}^\top C_c)^\top
+ +\rho\kappa v^\top W_c(u_a\odot v_o).
+\end{aligned}
+$$
+
+保持 CP rank32、低秩头 rank8、$\kappa=20$、$\rho=0.15$。R0 使用 $U_{ao}=R(g,a,o)$。R1/R2 使用相同的局部响应与物体条件位置权重：
+
+$$
+r_{nao}=R(p_n,a,o),\qquad
+w_{no}=\frac{\exp(\kappa p_n^\top e_o)}{\sum_{k=1}^{N}\exp(\kappa p_k^\top e_o)}.
+$$
+
+$w_{no}$ 对同一物体的全部属性相同，随视觉 Adapter 训练而变化。训练和推理都对所有候选物体计算，实际推理不提供真实物体标签。
+
+同一参数初始化不意味着三组的初始预测相同：R0 延续全局读出，R1/R2 从一开始就使用各自的局部读出。应保存 epoch0 的 VAL 结果说明读出转换的起点；正式选模仍统一使用 epoch1—10。
+
+### 5.3 R1 与 R2 的精确定义
+
+**R1：先分别汇聚，再比较。**
+
+$$
+\ell_{ao}=\log\sum_n w_{no}\exp(r_{nao}),\qquad
+U^{\rm pool}_{ao}=\ell_{ao}-\frac1A\sum_b\ell_{bo}.
+$$
+
+减去属性均值不改变 softmax，只使两组都采用零和 logits。
+
+**R2：先逐位置比较，再汇聚。** 对属性对 $(a,b)$：
+
+$$
+\begin{aligned}
+\delta_{n,ab,o}&=r_{nao}-r_{nbo},\\
+Z^{+}_{ab,o}&=\sum_n w_{no}\exp(\delta_{n,ab,o}/2),\\
+Z^{-}_{ab,o}&=\sum_n w_{no}\exp(-\delta_{n,ab,o}/2),\\
+m_{ab,o}&=\log Z^{+}_{ab,o}-\log Z^{-}_{ab,o}.
+\end{aligned}
+$$
+
+这是两个方向对称的局部能量配分函数之对数比。若定义二元概率 $q=Z^+/(Z^++Z^-)$，则 $m=\log[q/(1-q)]$。系数 $1/2$ 保证单 patch 时 $m_{ab,o}=r_{1ao}-r_{1bo}$。
+
+成对 log-odds 一般不满足传递一致性，需要投影成同一组多类 logits。UT 只有 16 个属性，直接使用全部 120 个无序属性对，不引入稀疏图超参数：
+
+$$
+U_o=\underset{\mathbf1^\top U=0}{\operatorname{argmin}}
+\frac12\sum_{a<b}\left[(U_a-U_b)-m_{ab,o}\right]^2.
+$$
+
+由于 $m_{ba,o}=-m_{ab,o}$，第 $a$ 个分量的一阶条件为
+
+$$
+A U_a-\sum_bU_b-\sum_bm_{ab,o}=0.
+$$
+
+代入零和约束得到唯一解：
+
+$$
+\boxed{U^{\rm compare}_{ao}=\frac1A\sum_bm_{ab,o}}.
+$$
+
+完整图在零和子空间上的 Hessian 是 $A I$，因此解唯一。计算只需成对 margin 的行均值，无须求逆、图网络或额外训练损失。将 R1 的 $m_{ab}=\ell_a-\ell_b$ 代入同一投影，恰好恢复 $\ell_a-\overline\ell$，所以 R1/R2 的比较确实落在局部边证据的计算方式上。
+
+### 5.4 算子能解决什么，不能由公式直接推出什么
+
+固定位置权重，给某物体全部属性在位置 $n$ 加上共同响应 $h_{no}$，R2 的差值保持不变：
+
+$$
+r'_{nao}=r_{nao}+h_{no}
+\quad\Longrightarrow\quad
+\delta'_{n,ab,o}=\delta_{n,ab,o}
+\quad\Longrightarrow\quad m'_{ab,o}=m_{ab,o}.
+$$
+
+分别做非线性汇聚通常不具备这个性质。例如两属性在三个位置的响应为 $(4,0,0)$、$(0,3,0)$，位置权重均匀，给两者都加 $(0,5,0)$：
+
+| 方法 | 添加共同项前的 a−b 分数 | 添加共同项后 |
+| --- | --- | --- |
+| R1：分别汇聚后相减 | +0.9411 | −2.6825 |
+| R2：先比较再汇聚 | +0.4274 | +0.4274 |
+
+这个例子说明两种算子不同，尚不代表真实图像上的性能。实际图像变化还可能改变 $w$，完整模型需要端到端评价。
+
+尤其要结合本轮错误模式澄清：**R2 不会自动去掉已见搭配偏好。** 如果加入属性特有、位置无关的偏置 $b_{ao}$，有
+
+$$
+\begin{aligned}
+r'_{nao}&=r_{nao}+b_{ao},\\
+m'_{ab,o}&=m_{ab,o}+b_{ao}-b_{bo},\\
+U'_{ao}&=U_{ao}+b_{ao}-\frac1A\sum_b b_{bo}.
+\end{aligned}
+$$
+
+类别偏置会被保留下来。因此，新机制的目标是学习足以区分属性的图像证据，而不是在代数上保证 seen/unseen 去偏。若只提高完整候选下的准确率，却不改善多候选未见排序，应继续解释为偏好变化。
+
+其梯度具有明确的局部作用。令
+
+$$
+\pi^{\pm}_{n,ab,o}=\frac{w_{no}\exp(\pm\delta_{n,ab,o}/2)}{Z^{\pm}_{ab,o}},\qquad
+\left.\frac{\partial m_{ab,o}}{\partial\delta_{n,ab,o}}\right|_{w}
+=\frac{\pi^+_{n,ab,o}+\pi^-_{n,ab,o}}{2}.
+$$
+
+这个偏导非负，对位置求和为 1；支持与反对该属性的差异位置都可以接收梯度。实际训练同时通过 $w$ 反传。单 patch 时，该机制退化为普通属性响应减去均值；多 patch 才能产生新的汇聚行为。
+
+上述反对称性、共同项不变性、类别偏置传递、单位置极限、完整图正规方程和梯度恒等式均已用 float64 构造数组核验，最大误差小于 10⁻¹⁵。数学定义已核验，实际识别表现由下一轮九组训练评价。
+
+### 5.5 概率与训练目标
+
+物体分支与条件分支共同形成联合分数：
+
+$$
+\begin{aligned}
+S_o(x)&=\kappa g^\top e_o+(g^\top B_o)(e_o^\top C_o)^\top,\\
+p(o\mid x)&=\operatorname{softmax}_o S_o(x),\\
+p(a\mid o,x)&=\operatorname{softmax}_a U_{ao}(x),\\
+J_{ao}(x)&=\log p(o\mid x)+\log p(a\mid o,x).
+\end{aligned}
+$$
+
+继续使用 G0 的训练目标。对训练真值 $y$ 与训练组合集合 $\mathcal C_{\rm tr}$，令
+
+$$
+\begin{aligned}
+\ell_{\rm pair}&=-J_y+\log\sum_{c\in\mathcal C_{\rm tr}}\exp J_c,\\
+\ell_{\rm support}&=-\log\sum_{c\in\mathcal C_{\rm tr}}\exp J_c.
+\end{aligned}
+$$
+
+因为 $\ell_{\rm cond}+\ell_{\rm obj}=-J_y=\ell_{\rm pair}+\ell_{\rm support}$，原损失可严格改写为：
+
+$$
+\begin{aligned}
+\mathcal L
+&=\frac{1.5}{1+\beta}\mathbb E\left[\ell_{\rm pair}+\beta(\ell_{\rm cond}+\ell_{\rm obj})\right]\\
+&=1.5\,\mathbb E\ell_{\rm pair}+\frac{1.5\beta}{1+\beta}\mathbb E\ell_{\rm support}\\
+&=1.5\,\mathbb E\ell_{\rm pair}+\frac9{86}\mathbb E\ell_{\rm support},\qquad\beta=0.075.
+\end{aligned}
+$$
+
+支持集项会把概率质量向训练组合集中，这是目标函数的明确性质；本轮数据尚不能将全部已见搭配误选归因于这一项。三组保持同一个目标，直接观察视觉算子能否带来更好的组合判别。
+
+## 6. 一套九次训练的执行规格与结果判断
+
+### 6.1 固定训练规格
+
+| 项目 | 下一轮统一设置 |
+| --- | --- |
+| 数据 | UT-Zappos 原有 split、样本和标签映射 |
+| 初始化 | 对应 seed 的 G0 头参数；同一 CLIP 权重与文本向量；相同 Adapter 初始化 |
+| 输入 | CLIP 官方 224 预处理；三组统一使用同一 resize、中心裁剪和归一化 |
+| 视觉训练 | 最后 4 个 block 的并行 Adapter；其余 CLIP 主权重冻结 |
+| 训练头 | Bo、Co、Bc、Cc、Wc；Au、Av 和文本向量固定 |
+| 参数量 | Adapter 524,288＋共同头 49,152＝573,440，三组相同 |
+| 训练长度 | 每组固定 10 epochs，有效 batch64 |
+| 显存安排 | microbatch4、累积 16 次；最后不足一组的累积按实际样本数归一化 |
+| 学习率 | 视觉 Adapter 5e-5；Bo/Co/Bc/Cc 2e-4；Wc 6e-5 |
+| 优化器 | AdamW，betas=(0.9,0.999)，eps=1e-8，weight decay=1e-4，梯度裁剪 1.0 |
+| 调度 | 按优化器步做余弦下降，首步为初始学习率，末步为初始学习率的 1%；三组使用相同步数 |
+| 数值 | AMP FP16＋GradScaler；softmax、logsumexp、最终损失在 FP32 中计算；梯度裁剪在 unscale 后执行 |
+| 选模 | epoch1—10 中 VAL CW native AUC 的首次最大值；保存 epoch0 VAL 作为起点记录 |
+| TEST | 选定同一权重评价 CW/OW，分别使用相应 VAL bias 与温度 |
+| 保存 | best/last、完整 epoch 历史、逐图像联合/条件/物体 logits、样本路径和标签、耗时与峰值显存 |
+
+参数量计算来自四个无 bias 的 1024→64→1024 Adapter，共 $4\times2\times1024\times64=524288$；四个 768×8 头矩阵加一个 768×32 的 CP 读出，共 $49152$。
+
+局部分数张量为 `[B,O,A,N]`。R2 的完整有序差值张量在 microbatch4 下有 $4\times12\times16\times16\times256=3145728$ 个元素，单个 FP32 张量约 12 MiB；反向图还会产生中间量，可按物体分块以降低峰值。这个估算不包含视觉 Transformer 激活。
+
+现有 `g/fa/fo` 缓存不能承担新 Adapter 的在线梯度。可继续复用图像路径、文本向量、G0 权重、数据 split 和评价程序；下一轮训练需要读取原图并运行视觉前向。`run.py` 的 v2 全局缓存入口尚不是这套新方案的训练实现。
+
+### 6.2 三张卡直接覆盖完整比较
+
+| 物理 GPU | seed | 同卡依次运行 |
+| --- | --- | --- |
+| 1 | 3351 | R0 → R1 → R2 |
+| 2 | 3352 | R0 → R1 → R2 |
+| 3 | 3353 | R0 → R1 → R2 |
+
+共九个完整任务，每个模型都有三个配对 seed。当前一轮集中在 UT-Zappos；跨数据集扩展在这套比较形成结论后单独安排。下一轮实际耗时需要按在线 CLIP 测量，不能照搬 v2 的几十秒缓存训练时间。
+
+### 6.3 一张主结果表回答三个问题
+
+| 问题 | 保留的核心指标 | 对结果的解释 |
+| --- | --- | --- |
+| 联合识别是否提高 | CW/OW native AUC、exact AUC、VAL bias 下 TEST HM；逐 seed 配对差值与均值±标准差 | 关注 R2−R1，再看 R1−R0 与历史 G0 的关系 |
+| 是否学到更好的属性判别 | unseen 全 16 属性准确率、组合宏平均；多候选未见内部准确率；错选已见搭配的纠正/新增数量 | 分开识别“减少已见偏好”和“改善未见之间排序” |
+| 是否改善跨物体竞争及实用性 | 独立物体准确率、CW 未见分区联合准确率；OW HM/NLL/ECE；训练耗时、峰值显存 | 避免只在给定真实物体的诊断任务上得到收益 |
+
+这些指标从同一组预测文件计算，不增加训练任务。局部机制还可从同一 best 权重导出真实错误样本的响应图，并记录成对 margin 到一致属性分数的投影残差，帮助解释算子；它们作为结果诊断，不再拆成新的模型队列。
+
+结果解释采用直接的比较关系：R2 若在 R1 之上同时改善联合 AUC 和多候选未见排序，才支持“先比较后汇聚”的机制价值；若 R1/R2 都优于 R0 而彼此接近，主要贡献应归于局部视觉学习；若仅完整候选属性准确率上升、未见内部排序未变，则延续本轮的“组合偏好重排”解释。这样九次训练就能回答主要研究问题。
+
+## 7. 证据文件与复算入口
+
+本报告主要数值均由归档预测重新计算，表格由分析文件自动填充。原始结果和复算产物如下：
+
+| 内容 | 本地文件 |
+| --- | --- |
+| 原始完整结果 | [归档解压目录](<C:/Users/llenovo/Documents/ChatGPT/USG/trustcpf_conditional_v2_results_20261022_232124/trustcpf_conditional_v2>) |
+| 全部分析数值 | [analysis.json](<C:/Users/llenovo/Documents/ChatGPT/USG/analysis_TRUST_CPF_v2_20261022/analysis.json>) |
+| 36 行 VAL/TEST × CW/OW 指标 | [metrics_verified.csv](<C:/Users/llenovo/Documents/ChatGPT/USG/analysis_TRUST_CPF_v2_20261022/metrics_verified.csv>) |
+| 未见候选数量与多候选准确率 | [candidate_sizes.json](<C:/Users/llenovo/Documents/ChatGPT/USG/analysis_TRUST_CPF_v2_20261022/candidate_sizes.json>) |
+| 下一轮算子数学核验 | [next_operator_math_checks.json](<C:/Users/llenovo/Documents/ChatGPT/USG/analysis_TRUST_CPF_v2_20261022/next_operator_math_checks.json>) |
+| 完整重算脚本 | [analyze_conditional_v2.py](<C:/Users/llenovo/Documents/ChatGPT/USG/tmp/analyze_conditional_v2.py>) |
+| 多候选诊断脚本 | [analyze_v2_candidate_sizes.py](<C:/Users/llenovo/Documents/ChatGPT/USG/tmp/analyze_v2_candidate_sizes.py>) |
+| 算子验证脚本 | [check_next_visual_operator.py](<C:/Users/llenovo/Documents/ChatGPT/USG/tmp/check_next_visual_operator.py>) |
+| 上轮 TRUST 完整分析 | [v1 完整结果与下一轮方向](<C:/Users/llenovo/Documents/ChatGPT/USG/output/TRUST-CPF_v1_完整结果分析与下一轮实验方向_20261022.md>) |
+| 历史 G0 指标 | [roundK matched_native_summary.csv](<C:/Users/llenovo/Documents/ChatGPT/VG-CPOD/server_results_roundK_20261021/roundK_20261021/matched_native_summary.csv>) |
+| 此前局部比较方向 | [VG-CPOD research_direction.md](<C:/Users/llenovo/Documents/ChatGPT/VG-CPOD/analysis_roundK_results_20261021/research_direction.md>) |
+
+原始压缩包 SHA-256：
+
+```text
+5680c9a8c66007f4582f613efd44d55a48a155a625fa1201ab60260b88f3074e
+```
+
+当前结果的最直接结论是：强基座已经恢复，静态知识分支也确实工作，但真实知识内容没有胜过同容量打乱附件。下一轮的研究投入应落到可训练的图像证据及其判别方式上，用一套九次训练完成机制与性能的共同判断。
+'''
+
+replacements = {
+    '@@FULL@@': table(['seed','组别','所选 epoch','VAL CW','VAL OW','TEST CW','TEST OW'],full_rows),
+    '@@AGG@@': table(['组别','TEST CW AUC','TEST OW AUC'],aggregates),
+    '@@PAIRED@@': table(['比较','协议','3351','3352','3353','平均差值'],paired),
+    '@@EXTRA@@': table(['指标','Base','Knowledge','Shuffle'],extra_metrics),
+    '@@DIAG@@': table(['诊断口径（准确率，%）','Base','Knowledge','Shuffle'],diag_rows),
+    '@@TAXONOMY@@': table(['seed','Base 正确','Base 错选已见搭配','Base 错选其他未见附件','错误中已见搭配占比','Knowledge 修正 / 新增错误','净改善'],taxonomy),
+    '@@ATTRS@@': table(['属性','图像数','Base（%）','Knowledge（%）','Shuffle（%）','K−B（点）'],attr_rows),
+    '@@GEOMETRY@@': table(['seed','组别','alpha','TEST 加权残差绝对均值','系数残差比例','原型与原词向量平均余弦'],geometry),
+}
+for key, value in replacements.items():
+    text = text.replace(key,value)
+assert '@@' not in text
+out = ROOT / 'output/TRUST-CPF_v2_完整数据分析与下一步实验方案_20261023.md'
+out.write_text(text.strip()+'\n',encoding='utf8')
+print(out)
+print('characters',len(text),'lines',len(text.splitlines()))

@@ -1,0 +1,38 @@
+import json
+from pathlib import Path
+import numpy as np
+
+ROOT = Path(__file__).resolve().parents[1]
+RUN = ROOT / 'trustcpf_conditional_v2_results_20261022_232124/trustcpf_conditional_v2'
+manifest = json.loads((RUN / 'assets/expected_cache.json').read_text(encoding='utf8'))
+attrs, objs = manifest['labels']['attrs'], manifest['labels']['objs']
+train = set(map(tuple, manifest['pairs']['train']))
+unseen_pairs = set(map(tuple, manifest['pairs']['test'])) - train
+allowed = np.zeros((len(objs), len(attrs)), dtype=bool)
+for a, o in unseen_pairs:
+    allowed[objs.index(o), attrs.index(a)] = True
+counts = allowed.sum(1)
+result = {'candidates_per_object': dict(zip(objs, counts.tolist())), 'runs': {}}
+for seed in [3351, 3352, 3353]:
+    for variant in ['base', 'knowledge', 'shuffle']:
+        with np.load(RUN / f'work/seed{seed}/{variant}/test_predictions.npz') as z:
+            a, o, cond = z['attrs'], z['objs'], z['cond']
+        unseen = np.array([(attrs[aa], objs[oo]) not in train for aa, oo in zip(a, o)])
+        score = np.where(allowed[o], cond[np.arange(len(a)), o], -np.inf)
+        correct = score.argmax(-1) == a
+        ambiguous = unseen & (counts[o] > 1)
+        grouped = {}
+        for count in sorted(set(counts[o[unseen]])):
+            mask = unseen & (counts[o] == count)
+            grouped[str(count)] = {'n': int(mask.sum()), 'accuracy': float(correct[mask].mean() * 100)}
+        result['runs'][f'{seed}/{variant}'] = {
+            'by_candidate_count': grouped,
+            'ambiguous_n': int(ambiguous.sum()),
+            'ambiguous_accuracy': float(correct[ambiguous].mean() * 100),
+            'uniform_choice_expected_accuracy': float(np.mean(1 / counts[o[unseen]]) * 100),
+        }
+out = ROOT / 'analysis_TRUST_CPF_v2_20261022/candidate_sizes.json'
+out.write_text(json.dumps(result, indent=2, ensure_ascii=False) + '\n', encoding='utf8')
+for variant in ['base', 'knowledge', 'shuffle']:
+    print(variant, np.mean([result['runs'][f'{seed}/{variant}']['ambiguous_accuracy'] for seed in [3351, 3352, 3353]]))
+print(result['runs']['3351/base'])

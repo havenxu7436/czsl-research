@@ -18,4 +18,3 @@
 
 - [22个终端模型运行清单](server-results-20261022/run_inventory.json)保存选中epoch、指标和checkpoint位置。
 - [工作目录最终配置快照](server-results-20261022/runtime/)按原字节保存；各运行的实际训练配置随对应checkpoint保存。
-- [下一轮三组实验配置说明](server-results-20261022/next_experiment_planned.json)标为planned，仅对应分析文件中的公式规格，尚未执行。

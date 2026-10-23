@@ -2,9 +2,8 @@
 
 ## 2026-10-22 · 完整服务器结果
 
-**[完整分析与下一轮实验方向](server-results-20261022/README.md)** · [全部数据与权重](../results/server-results-20261022/README.md) · [重算入口](server-results-20261022/REPRODUCE.md)
+**[完整结果分析](server-results-20261022/README.md)** · [全部数据与权重](../results/server-results-20261022/README.md) · [重算入口](server-results-20261022/REPRODUCE.md)
 
-覆盖 21 组主实验、知识打乱、两项效用消融审计及 600 次噪声评估。结论是结束 v1 的效用选图扩展，下一轮在强 CPF 静态 CP 基底上比较 Base、Knowledge、Shuffle，三 seed 使用 GPU **1、2、3**；以上为 v1 分析时的提案；后续实现与修订配方见 [v2](../../v2/README.md)，其正式训练结果待服务器产生。
 
 | 模型 | TEST CW AUC | TEST OW AUC |
 | --- | --- | --- |
