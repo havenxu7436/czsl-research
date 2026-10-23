@@ -1,0 +1,80 @@
+<article class="markdown-body entry-content container-lg" itemprop="text"><div class="markdown-heading" dir="auto"><h1 tabindex="-1" class="heading-element" dir="auto">VG-CPOD方案</h1><a id="user-content-vg-cpod方案" class="anchor" aria-label="Permalink: VG-CPOD方案" href="#vg-cpod方案"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">CLIP 图文框架上的组合评分、条件知识对照与视觉判别研究。</p>
+<p dir="auto"><strong><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/v1/VG-CPOD%E5%85%AC%E5%BC%8F%E5%8F%8A%E4%BB%A3%E7%A0%81v1.md">完整公式及核心代码v1</a></strong> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/v1/%E6%95%B0%E5%AD%A6%E4%B8%8E%E5%AE%9E%E9%AA%8C%E8%AE%BE%E8%AE%A1_v1.md">数学与实验设计</a></p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>编号</th>
+<th>实验</th>
+<th>入口</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>01</td>
+<td>CLIP ViT-L/14；UT-Zappos natural split</td>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/v1/README.md">版本索引</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/v1/results/ut-zap50k-3seeds-20261018/README.md">结果</a></td>
+</tr>
+<tr>
+<td>02</td>
+<td>支持损失重加权与 CP 分组学习率（A 组）；12 次训练，A1/A5/A6 三 seed</td>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/02/README.md">修订说明</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/02/code/README.md">代码</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/02/configs/README.md">配置</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/02/results/README.md">结果</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/02/analysis/README.md">数据分析</a></td>
+</tr>
+<tr>
+<td>03</td>
+<td>读出解耦与局部弱门控（B 组）；B1/B2/B3 各 seed3351，3 次训练</td>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/03/README.md">修订说明</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/03/code/README.md">代码</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/03/configs/README.md">配置</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/03/results/README.md">结果</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/03/analysis/README.md">数据分析</a></td>
+</tr>
+<tr>
+<td>04</td>
+<td>静态幅度对照与模式中心化门控（C 组）；C1/C2 各 seed3351，另纳入 B3/3352</td>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/04/README.md">修订说明</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/04/code/README.md">代码</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/04/configs/README.md">配置</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/04/results/README.md">结果</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/04/analysis/README.md">数据分析</a></td>
+</tr>
+<tr>
+<td>05</td>
+<td>中心化 CP 幅度联动与均值门控评估（D 组）；D1 三 seed，C2 两个补 seed、C1/3352，六 checkpoint 干预</td>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/05/README.md">修订说明</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/05/code/README.md">代码</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/05/configs/README.md">配置</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/05/results/README.md">结果</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/05/analysis/README.md">数据分析</a></td>
+</tr>
+<tr>
+<td>06</td>
+<td>中心化 CP 强度扩展与双准则选权重（E 组）；E1 三 seed、两套最优权重及六项均值评估</td>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/06/README.md">修订说明</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/06/code/README.md">代码</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/06/configs/README.md">配置</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/06/results/README.md">结果</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/06/analysis/README.md">数据分析</a></td>
+</tr>
+<tr>
+<td>07</td>
+<td>支持集权重下调与跨组合排序诊断（F 组）；F1 三 seed、加权损失日志、双准则选权重及六项均值评估</td>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/07/README.md">修订说明</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/07/code/README.md">代码</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/07/configs/README.md">配置</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/07/results/README.md">结果</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/07/analysis/README.md">数据分析</a></td>
+</tr>
+<tr>
+<td>08</td>
+<td>支持集权重折中与门控训练对照（G 组）；G0/G1各三seed、β=0.075、双准则选择与六项均值评估</td>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/08/README.md">修订说明</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/08/code/README.md">代码</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/08/configs/README.md">配置</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/08/results/README.md">结果</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/08/analysis/README.md">数据分析</a></td>
+</tr>
+<tr>
+<td>09</td>
+<td>训练均值中心化与归一化残差门控（H 组）；H1三seed、共享TRAIN均值、双准则选择与六项均值评估</td>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/09/README.md">修订说明</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/09/code/README.md">代码</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/09/configs/README.md">配置</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/09/results/README.md">结果</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/09/analysis/README.md">数据分析</a></td>
+</tr>
+<tr>
+<td>10</td>
+<td>残差幅值保留与门控温度对照（I 组）；I1/I2各三seed、双准则选择与十二项均值评估</td>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/10/README.md">修订说明</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/10/code/README.md">代码</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/10/configs/README.md">配置</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/10/results/README.md">结果</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/10/analysis/README.md">数据分析</a></td>
+</tr>
+<tr>
+<td>11</td>
+<td>静态与动态CP独立读出（J 组）；J1三seed、双准则选择与六项均值评估</td>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/11/README.md">修订说明</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/11/code/README.md">代码</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/11/configs/README.md">配置</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/11/results/README.md">结果</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/11/analysis/README.md">数据分析</a></td>
+</tr>
+<tr>
+<td>12</td>
+<td>动态读出学习率分组与更新尺度对照（K 组）；K1/K2各三seed、双准则及十二项均值评估</td>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/12/README.md">修订说明</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/12/code/README.md">代码</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/12/configs/README.md">配置</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/12/results/README.md">结果</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/12/analysis/README.md">数据分析</a></td>
+</tr>
+<tr>
+<td>13</td>
+<td>G0条件知识残差与语义附件对照（L组）；L0/L1/L2各三seed，九组完整训练</td>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/13/README.md">实验入口</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/13/FORMULAS_AND_CODE.md">公式代码</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/13/results/README.md">结果</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/13/analysis/README.md">数据分析</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/13/NEXT_DIRECTION.md">下一步方向</a></td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+</article>

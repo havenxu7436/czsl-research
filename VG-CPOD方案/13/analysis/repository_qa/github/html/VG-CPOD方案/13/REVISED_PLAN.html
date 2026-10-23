@@ -1,0 +1,81 @@
+<article class="markdown-body entry-content container-lg" itemprop="text"><div class="markdown-heading" dir="auto"><h1 tabindex="-1" class="heading-element" dir="auto">L组条件知识残差：合理性复核与最终执行方案</h1><a id="user-content-l组条件知识残差合理性复核与最终执行方案" class="anchor" aria-label="Permalink: L组条件知识残差：合理性复核与最终执行方案" href="#l组条件知识残差合理性复核与最终执行方案"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">本轮定位为一组集中的机制实验：检验正确知识能否在已验证的强 CPF 基底上改善条件属性判别。正式执行 Base / Knowledge / Shuffle × 三 seed，共 9 次训练；GPU1/2/3 各负责一个 seed。现有 v1 的效用预测与选图路线已经结束。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">1. 合理的部分</h2><a id="user-content-1-合理的部分" class="anchor" aria-label="Permalink: 1. 合理的部分" href="#1-合理的部分"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">历史 G0 的三 seed TEST 平均约为 34.51 CW / 25.18 OW，明显高于当前 v1 的基底。恢复它的评分参数化可以避免在一个明显偏弱的起点上解释知识作用。完整静态 CP 始终保留，消除了上一版 capacity 用完整三元项、图组仅用三元差分的函数形式差异。</p>
+<p dir="auto">v1 中，robust 给定真实物体后的属性准确率为 37.90%，capacity 为 28.13%；robust 的联合物体命中率却更低。因而本轮固定物体概率，把修改集中到条件属性项，是与现有误差证据一致的选择。该物体命中率来自联合 top-1，不能据此断言独立物体头是唯一原因；新版会同时保存物体 logits 与条件 logits，直接区分两者。</p>
+<p dir="auto">三组对照覆盖主要问题：Knowledge−Base 衡量整个分支，Knowledge−Shuffle 在参数量相同的分支间比较正确知识附件。两个差值一起报告，避免把增加参数的作用算作知识内容的作用。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">2. 公式复核发现的可辨识性问题</h2><a id="user-content-2-公式复核发现的可辨识性问题" class="anchor" aria-label="Permalink: 2. 公式复核发现的可辨识性问题" href="#2-公式复核发现的可辨识性问题"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">前一份方向方案允许属性和物体 CP 投影 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c9f1438da575faa9c5c2bd7f20a69915">$A_u,A_v$</math-renderer> 与知识消息同时自由训练。设属性文本行矩阵为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c9f1438da575faa9c5c2bd7f20a69915">$E_a$</math-renderer>，属性因子为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c9f1438da575faa9c5c2bd7f20a69915">$U=E_aA_u^\top$</math-renderer>。当文本矩阵具有满行秩时，对任意目标因子 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c9f1438da575faa9c5c2bd7f20a69915">$U_*$</math-renderer>，都可以取：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="c9f1438da575faa9c5c2bd7f20a69915">$$A_u^\top=E_a^{+}U_*+N,
+\qquad E_aN=0.$$</math-renderer>
+<p dir="auto">因此原始属性文本经自由投影就能表达任意该词表上的低维属性因子。物体一侧同理。改变知识原型后再自由更新两套投影，知识几何与投影参数可能互相补偿，最终差异不容易归于知识内容。</p>
+<p dir="auto">另一个代数事实是，本轮残差形式可写为：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="c9f1438da575faa9c5c2bd7f20a69915">$$T_0+\alpha(T_K-T_0)=(1-\alpha)T_0+\alpha T_K.$$</math-renderer>
+<p dir="auto">它是两个共享视觉读出的 CP 项之和，CP 秩上界为原秩的两倍；这不保证实际秩加倍。Knowledge 相对 Base 的提升可能包含表示容量变化，所以 Shuffle 必须保留。这一结构本身不是已经确立的新方法贡献。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">3. 已落实到代码的两项优化</h2><a id="user-content-3-已落实到代码的两项优化" class="anchor" aria-label="Permalink: 3. 已落实到代码的两项优化" href="#3-已落实到代码的两项优化"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto"><strong>固定 G0 已学好的属性／物体 CP 投影。</strong> 三组都冻结 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c9f1438da575faa9c5c2bd7f20a69915">$A_u,A_v$</math-renderer>，同时冻结物体评分的 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c9f1438da575faa9c5c2bd7f20a69915">$B_o,C_o$</math-renderer>。共同可训练参数为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c9f1438da575faa9c5c2bd7f20a69915">$B_c,C_c,W_c$</math-renderer>。Knowledge 与 Shuffle 另外训练类型消息矩阵 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c9f1438da575faa9c5c2bd7f20a69915">$L_t,R_t$</math-renderer> 和标量 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c9f1438da575faa9c5c2bd7f20a69915">$\alpha$</math-renderer>。这样保留了一个稳定的 primitive 坐标系，减少知识原型与自由投影之间的补偿；语义内容的收益仍通过真实／打乱附件比较判断。</p>
+<p dir="auto"><strong>降低已有条件头的续训学习率。</strong> G0 已经完成训练并经过 VAL 选模，继续训练采用原学习率的 1/5：<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c9f1438da575faa9c5c2bd7f20a69915">$B_c,C_c$</math-renderer> 使用 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c9f1438da575faa9c5c2bd7f20a69915">$2\times10^{-4}$</math-renderer>，<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c9f1438da575faa9c5c2bd7f20a69915">$W_c$</math-renderer> 使用 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c9f1438da575faa9c5c2bd7f20a69915">$6\times10^{-5}$</math-renderer>。新消息参数保持 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c9f1438da575faa9c5c2bd7f20a69915">$3\times10^{-4}$</math-renderer>，新标量 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c9f1438da575faa9c5c2bd7f20a69915">$\alpha$</math-renderer> 使用 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c9f1438da575faa9c5c2bd7f20a69915">$10^{-3}$</math-renderer>。三组共同参数使用相同配方，不增加学习率网格。</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>项目</th>
+<th>最终设置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>数据</td>
+<td>现有 UT-Zappos natural split；精确复用 G0 全局 CLIP 缓存</td>
+</tr>
+<tr>
+<td>初始权重</td>
+<td>三个 G0 的 best_native.pt，原选中 epoch 为 8、8、9，已随包提供</td>
+</tr>
+<tr>
+<td>冻结</td>
+<td>CLIP、文本、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c9f1438da575faa9c5c2bd7f20a69915">$B_o,C_o,A_u,A_v$</math-renderer>
+</td>
+</tr>
+<tr>
+<td>三组共同训练</td>
+<td>
+<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c9f1438da575faa9c5c2bd7f20a69915">$B_c,C_c,W_c$</math-renderer>，共 36,864 个参数</td>
+</tr>
+<tr>
+<td>知识两组新增训练</td>
+<td>
+<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c9f1438da575faa9c5c2bd7f20a69915">$L_t,R_t,\alpha$</math-renderer>，新增 73,729 个；合计 110,593 个</td>
+</tr>
+<tr>
+<td>知识</td>
+<td>OI12、OE36、AE48，确定性聚合；Shuffle 使用 seed7101 的固定附件映射</td>
+</tr>
+<tr>
+<td>初始残差</td>
+<td>
+<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c9f1438da575faa9c5c2bd7f20a69915">$\alpha=0$</math-renderer>，<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c9f1438da575faa9c5c2bd7f20a69915">$L_t$</math-renderer> 高斯标准差0.01，<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c9f1438da575faa9c5c2bd7f20a69915">$R_t=0$</math-renderer>；三组初始输出与原 G0 完全一致</td>
+</tr>
+<tr>
+<td>训练</td>
+<td>10 epochs、batch64、AdamW、梯度范数裁剪1.0</td>
+</tr>
+<tr>
+<td>调度</td>
+<td>逐 epoch 余弦衰减，最后一个 epoch 为初始学习率的1%</td>
+</tr>
+<tr>
+<td>选模</td>
+<td>epoch1–10 的 VAL CW native AUC 最大值；相同值选更早 epoch</td>
+</tr>
+<tr>
+<td>评估</td>
+<td>同一权重评价 CW/OW；TEST 的 bias、temperature 均来自对应 world 的 VAL</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">训练目标继续使用 G0 的 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="c9f1438da575faa9c5c2bd7f20a69915">$\beta=0.075$</math-renderer> 配方，不加入新损失。代码记录 G0 起始 VAL AUC，便于判断续训相对初始点的变化；它不参与 epoch1–10 的选模候选。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">4. 这轮能够回答什么</h2><a id="user-content-4-这轮能够回答什么" class="anchor" aria-label="Permalink: 4. 这轮能够回答什么" href="#4-这轮能够回答什么"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">主指标是 CW/OW AUC 与 Knowledge−Base、Knowledge−Shuffle 的逐 seed 差值。同步报告未见组合的真实物体条件属性准确率、真实属性对最强错误属性的 margin、独立物体 top-1、联合物体命中率，以及 alpha 和残差幅值。</p>
+<p dir="auto">Knowledge 同时优于另外两组，说明在稳定基底和固定 primitive 坐标下，正确附件能够提供有用的条件信息。只有相对 Base 的优势，主要应解释为新增分支或容量带来的收益。如果两项差值都没有清楚增益，本轮已经完成知识方向的主要验证，后续投入转向此前讨论的可训练局部视觉判别。</p>
+<p dir="auto"><strong>研究价值判断：这套方案适合做下一轮集中的知识机制实验；其直接性和可解释性优于继续扩展 v1 的效用链。它的当前目标是检验知识增益，论文方法的创新定位要建立在该增益及其机制结果之上。</strong></p>
+</article>

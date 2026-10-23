@@ -1,0 +1,51 @@
+<article class="markdown-body entry-content container-lg" itemprop="text"><div class="markdown-heading" dir="auto"><h1 tabindex="-1" class="heading-element" dir="auto">L组代码与全部修订</h1><a id="user-content-l组代码与全部修订" class="anchor" aria-label="Permalink: L组代码与全部修订" href="#l组代码与全部修订"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto"><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/13/code/vgcpod_v1_roundL/run.py">执行入口</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/13/code/vgcpod_v1_roundL/ckcpf/model.py">模型</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/13/code/vgcpod_v1_roundL/ckcpf/runtime.py">训练与续训</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/13/code/vgcpod_v1_roundL/ckcpf/evaluation.py">评价</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/13/code/vgcpod_v1_roundL/ckcpf/metrics.py">AUC算法</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/13/code/vgcpod_v1_roundL/ckcpf/data.py">数据与缓存轴</a></p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>修订内容</th>
+<th>最终实现与目的</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>完整保留G0静态CP</td>
+<td>在条件属性项增加真实／打乱原型的差分残差，恢复强共同基座</td>
+</tr>
+<tr>
+<td>固定Bo/Co/Au/Av</td>
+<td>同时保留物体评分和primitive坐标，三组共同续训Bc/Cc/Wc</td>
+</tr>
+<tr>
+<td>分组学习率</td>
+<td>已有条件头2e-4、CP读出6e-5；新增消息3e-4、alpha1e-3</td>
+</tr>
+<tr>
+<td>按类型平均96条关系</td>
+<td>OI12/OE36/AE48；Shuffle保持目标、类型、度数和source多重集</td>
+</tr>
+<tr>
+<td>初始残差为零</td>
+<td>alpha=0、右消息矩阵为0；训练起点还原对应G0</td>
+</tr>
+<tr>
+<td>续训与完成标记</td>
+<td>优化器/调度/随机状态恢复，最终评价和预测导出后写DONE及metrics哈希</td>
+</tr>
+<tr>
+<td>完整预测与校准</td>
+<td>固定VAL选定权重、bias、温度，保存CW/OW和全部样本轴</td>
+</tr>
+<tr>
+<td>三卡队列与跨平台打包</td>
+<td>GPU1/2/3各负责一个seed；Python UTF-8解压和哈希核验</td>
+</tr>
+<tr>
+<td>归档重命名</td>
+<td>仅将pack_results的固定旧包名改为实际目录名，科学运算未改动</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">最后一项的精确补丁见<a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/13/code/source_changes.patch">source_changes.patch</a>；逐文件来源与差异见<a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/13/results/server_source_identity.json">server_source_identity.json</a>。<a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/13/results/raw_export/trustcpf_conditional_v2/ckcpf">原始服务器执行源码</a>和归档ZIP均保持原字节。</p>
+<p dir="auto"><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/13/code/vgcpod_v1_roundL/tests/test_experiment.py">五项模型/损失/评价测试</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/13/code/vgcpod_v1_roundL/tests/reference_g0.py">原G0对照</a> · <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/13/FORMULAS_AND_CODE.md">完整公式及核心实现</a>。分析重算脚本位于<a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/VG-CPOD%E6%96%B9%E6%A1%88/13/analysis/README.md">analysis/</a>。</p>
+</article>

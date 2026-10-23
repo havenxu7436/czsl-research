@@ -1,0 +1,130 @@
+<article class="markdown-body entry-content container-lg" itemprop="text"><div class="markdown-heading" dir="auto"><h1 tabindex="-1" class="heading-element" dir="auto">TRUST-CPF v1 · 2026-10-22 服务器完整结果</h1><a id="user-content-trust-cpf-v1--2026-10-22-服务器完整结果" class="anchor" aria-label="Permalink: TRUST-CPF v1 · 2026-10-22 服务器完整结果" href="#trust-cpf-v1--2026-10-22-服务器完整结果"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">主矩阵 7 组 × 3 seed，共 <strong>21 组最终识别模型</strong>；另有一次知识打乱完整流程、两项效用消融审计及 600 次噪声评估。53 个发布成员复用既有源码归档，381 个新增服务器成员按原目录保存；434 个成员均可通过映射核对 SHA256。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">主结果</h2><a id="user-content-主结果" class="anchor" aria-label="Permalink: 主结果" href="#主结果"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">以下为三个训练 seed 的 TEST native AUC 均值 ± 样本标准差，单位为点。</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>模型</th>
+<th>TEST CW AUC</th>
+<th>TEST OW AUC</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>r0</code></td>
+<td>2.020 ± 2.232</td>
+<td>2.010 ± 2.215</td>
+</tr>
+<tr>
+<td><code>capacity</code></td>
+<td>13.902 ± 0.885</td>
+<td>11.240 ± 1.065</td>
+</tr>
+<tr>
+<td><code>dense</code></td>
+<td>11.169 ± 2.488</td>
+<td>9.214 ± 2.309</td>
+</tr>
+<tr>
+<td><code>drop</code></td>
+<td>10.915 ± 1.545</td>
+<td>9.047 ± 1.257</td>
+</tr>
+<tr>
+<td><code>free</code></td>
+<td>10.896 ± 1.519</td>
+<td>9.011 ± 1.319</td>
+</tr>
+<tr>
+<td><code>mean</code></td>
+<td>10.080 ± 2.102</td>
+<td>8.249 ± 1.692</td>
+</tr>
+<tr>
+<td><code>robust</code></td>
+<td>9.901 ± 1.890</td>
+<td>8.172 ± 1.515</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto"><a target="_blank" rel="noopener noreferrer" href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/TRUST-CPF%E6%96%B9%E6%A1%88/v1/analysis/server-results-20261022/confirmed/figures/01_main_auc.png"><img src="/havenxu7436/czsl-research/raw/f16c6aa7ae2273cdb02043e77f773ffaa08001de/TRUST-CPF%E6%96%B9%E6%A1%88/v1/analysis/server-results-20261022/confirmed/figures/01_main_auc.png" alt="三 seed 主结果" style="max-width: 100%;"></a></p>
+<p dir="auto"><code>robust</code> 相对 <code>capacity</code> 平均低 4.000 CW 点、3.069 OW 点；相对 <code>drop</code> 平均低 1.014 CW 点、0.875 OW 点。完整解释及下一轮三组实验见 <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/TRUST-CPF%E6%96%B9%E6%A1%88/v1/analysis/server-results-20261022/README.md">完整分析</a>。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">数据位置</h2><a id="user-content-数据位置" class="anchor" aria-label="Permalink: 数据位置" href="#数据位置"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>位置</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/TRUST-CPF%E6%96%B9%E6%A1%88/v1/results/server-results-20261022/raw_export/trustcpf_clip_v1/work">raw_export/trustcpf_clip_v1/work</a></td>
+<td>五折教师、效用测量／模型／审计、参考模型、21 主模型及 shuffled 的全部权重与历史</td>
+</tr>
+<tr>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/TRUST-CPF%E6%96%B9%E6%A1%88/v1/results/server-results-20261022/raw_export/trustcpf_clip_v1/logs">原始任务日志</a></td>
+<td>三 seed、知识打乱、噪声及消融完整日志</td>
+</tr>
+<tr>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/TRUST-CPF%E6%96%B9%E6%A1%88/v1/results/server-results-20261022/raw_export/trustcpf_clip_v1/work/summary.csv">原始总表</a></td>
+<td>服务器 report 导出的全部结果</td>
+</tr>
+<tr>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/TRUST-CPF%E6%96%B9%E6%A1%88/v1/results/server-results-20261022/archives/trustcpf_clip_v1_results_20261022.tar.gz">原始压缩包</a></td>
+<td>下载的完整 TAR.GZ，保持原字节，Git LFS 保存</td>
+</tr>
+<tr>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/TRUST-CPF%E6%96%B9%E6%A1%88/v1/results/server-results-20261022/archives/trustcpf_clip_v1_results_20261022.tar.gz.sha256">压缩包 SHA256</a></td>
+<td>原包校验值</td>
+</tr>
+<tr>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/TRUST-CPF%E6%96%B9%E6%A1%88/v1/results/server-results-20261022/server_member_map.json">434 个成员映射</a></td>
+<td>原始运行路径 → 仓库规范路径 → 大小／SHA256</td>
+</tr>
+<tr>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/TRUST-CPF%E6%96%B9%E6%A1%88/v1/results/server-results-20261022/validation/source_archive_integrity.json">归档完整性核对</a></td>
+<td>gzip CRC、中文路径修复、434 文件逐字节身份记录</td>
+</tr>
+<tr>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/TRUST-CPF%E6%96%B9%E6%A1%88/v1/results/server-results-20261022/validation/markdown_checks.json">Markdown 与公式检查</a></td>
+<td>归档文档的公式、相对链接及表格结构检查记录</td>
+</tr>
+<tr>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/TRUST-CPF%E6%96%B9%E6%A1%88/v1/results/server-results-20261022/validation/local_browser_layout.json">页面渲染记录</a></td>
+<td>完整分析的11个块公式、52个行内公式及4张统计图均正常，未见横向溢出</td>
+</tr>
+<tr>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/TRUST-CPF%E6%96%B9%E6%A1%88/v1/results/server-results-20261022/validation/repository_verify.json">仓库总校验</a></td>
+<td>文件哈希、Markdown、Python语法及12条既有路线校验通过</td>
+</tr>
+<tr>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/TRUST-CPF%E6%96%B9%E6%A1%88/v1/configs/server-results-20261022/run_inventory.json">全部运行清单</a></td>
+<td>22 个终端识别模型的选中 epoch、指标与 checkpoint</td>
+</tr>
+<tr>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/TRUST-CPF%E6%96%B9%E6%A1%88/v1/analysis/server-results-20261022/confirmed">完整派生分析与 CSV</a></td>
+<td>主结果、配对差值、效用审计、同样本消融及噪声长表</td>
+</tr>
+<tr>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/TRUST-CPF%E6%96%B9%E6%A1%88/v1/results/server-results-20261022/images/README.md">图像与运行截图</a></td>
+<td>15 张原图及其 SHA256；完整数据统计图另存 analysis</td>
+</tr>
+<tr>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/TRUST-CPF%E6%96%B9%E6%A1%88/v1/results/server-results-20261022/package_support">原分析文档字节</a></td>
+<td>发布到仓库前的 Markdown 原文</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">噪声数据恢复</h2><a id="user-content-噪声数据恢复" class="anchor" aria-label="Permalink: 噪声数据恢复" href="#噪声数据恢复"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">原噪声队列完成 600 次评估。后续快速检查覆盖了 <code>robust/noise_mismatch.json</code>，现存 JSON 总计 529 次评估；完整日志保留 600 条 OW AUC。恢复结果与全部现存对应 OW 数值逐条一致，最大误差为 0。</p>
+<p dir="auto">完整 OW 比较使用 <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/TRUST-CPF%E6%96%B9%E6%A1%88/v1/analysis/server-results-20261022/confirmed/noise_ow_recovered.csv">600 条恢复记录</a>。robust 错配的完整 CW 数值未记录在日志中，原文件的 4 条记录保持原样，不与其他完整 CW 曲线混合汇总。噪声仅使用训练 seed3351；五个扰动 seed 不作为五次模型训练。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">校验与重算</h2><a id="user-content-校验与重算" class="anchor" aria-label="Permalink: 校验与重算" href="#校验与重算"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<div class="highlight highlight-source-shell notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="python tools/register_trustcpf_v1.py --check
+python tools/register_trustcpf_results_20261022.py --check
+python tools/reproduce.py verify"><pre>python tools/register_trustcpf_v1.py --check
+python tools/register_trustcpf_results_20261022.py --check
+python tools/reproduce.py verify</pre></div>
+<p dir="auto">命令在仓库根目录执行。分析重算见 <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/TRUST-CPF%E6%96%B9%E6%A1%88/v1/analysis/server-results-20261022/REPRODUCE.md">REPRODUCE.md</a>。UT 数据集原图、原始 metadata/split 与 CLIP 预训练权重继续按 <a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/TRUST-CPF%E6%96%B9%E6%A1%88/v1/external_inputs.json">外部输入索引</a>提供；本批完整保留服务器导出的实验数据、权重、日志、统计图和讨论截图。</p>
+</article>

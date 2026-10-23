@@ -37,3 +37,7 @@ python -m unittest discover -s tests -v
 恢复目录须为新的绝对路径；正式复训使用现有CLIP缓存。当前已完成的九组原始运行仍保留原始名称与哈希，统一的仓库身份为13/L组；重命名执行包只改变打包标签和阅读文档，模型、损失、训练与评价运算保持相同。
 
 下一步R0/R1/R2是独立的可训练视觉研究提案，代码尚未实现；它不计入本轮已完成实验。
+
+## 校验记录
+
+[全仓库校验](analysis/repository_qa/repository_verify.json) · [GitHub网页公式与表格核验](analysis/repository_qa/github/checks.json) · [复算与单元验证](analysis/confirmed/reproduction_checks.json)

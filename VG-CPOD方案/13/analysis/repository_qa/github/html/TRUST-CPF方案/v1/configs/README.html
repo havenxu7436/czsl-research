@@ -1,0 +1,54 @@
+<article class="markdown-body entry-content container-lg" itemprop="text"><div class="markdown-heading" dir="auto"><h1 tabindex="-1" class="heading-element" dir="auto">配置与知识</h1><a id="user-content-配置与知识" class="anchor" aria-label="Permalink: 配置与知识" href="#配置与知识"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>文件</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/TRUST-CPF%E6%96%B9%E6%A1%88/v1/configs/trustcpf_clip_v1/configs/default.json">default.json</a></td>
+<td>768维CLIP、batch64、教师10epoch、适配3epoch、三效用模型、16支持摘要/推理图</td>
+</tr>
+<tr>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/TRUST-CPF%E6%96%B9%E6%A1%88/v1/configs/trustcpf_clip_v1/configs/semantic.json">semantic.json</a></td>
+<td>纯语义效用输入</td>
+</tr>
+<tr>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/TRUST-CPF%E6%96%B9%E6%A1%88/v1/configs/trustcpf_clip_v1/configs/unmeasured.json">unmeasured.json</a></td>
+<td>每类型留出20%边，检验未测关系迁移</td>
+</tr>
+<tr>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/TRUST-CPF%E6%96%B9%E6%A1%88/v1/configs/experiment_matrix.json">experiment_matrix.json</a></td>
+<td>七组×三seed主矩阵与附加队列</td>
+</tr>
+<tr>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/TRUST-CPF%E6%96%B9%E6%A1%88/v1/configs/trustcpf_clip_v1/assets/labels.json">labels.json</a></td>
+<td>属性/对象轴及组合划分</td>
+</tr>
+<tr>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/TRUST-CPF%E6%96%B9%E6%A1%88/v1/configs/trustcpf_clip_v1/assets/names.json">names.json</a></td>
+<td>CLIP名称映射</td>
+</tr>
+<tr>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/TRUST-CPF%E6%96%B9%E6%A1%88/v1/configs/trustcpf_clip_v1/assets/path_aliases.json">path_aliases.json</a></td>
+<td>UT图像路径映射</td>
+</tr>
+<tr>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/TRUST-CPF%E6%96%B9%E6%A1%88/v1/configs/trustcpf_clip_v1/assets/historical_inputs.json">historical_inputs.json</a></td>
+<td>原始metadata与split哈希</td>
+</tr>
+<tr>
+<td><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/TRUST-CPF%E6%96%B9%E6%A1%88/v1/configs/trustcpf_clip_v1/assets/knowledge">assets/knowledge/</a></td>
+<td>reviewed-v2 OI/OE/AE，12/36/48条候选关系</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">主矩阵的每个seed先完成五折教师与效用学习。<code>shuffled</code>另建work完成全流程；噪声队列在选中权重上执行关系错配和删除。全部原始JSON与发布包保持一致。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">2026-10-22 实际运行与下一轮规格</h2><a id="user-content-2026-10-22-实际运行与下一轮规格" class="anchor" aria-label="Permalink: 2026-10-22 实际运行与下一轮规格" href="#2026-10-22-实际运行与下一轮规格"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<ul dir="auto">
+<li><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/TRUST-CPF%E6%96%B9%E6%A1%88/v1/configs/server-results-20261022/run_inventory.json">22个终端模型运行清单</a>保存选中epoch、指标和checkpoint位置。</li>
+<li><a href="/havenxu7436/czsl-research/blob/f16c6aa7ae2273cdb02043e77f773ffaa08001de/TRUST-CPF%E6%96%B9%E6%A1%88/v1/configs/server-results-20261022/runtime">工作目录最终配置快照</a>按原字节保存；各运行的实际训练配置随对应checkpoint保存。</li>
+</ul>
+</article>
