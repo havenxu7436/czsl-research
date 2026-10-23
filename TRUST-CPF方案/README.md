@@ -14,7 +14,3 @@
 ## 最新归档
 
 [完整分析与下一轮方向](v1/analysis/server-results-20261022/README.md) · [原始数据、模型、日志与图像](v1/results/server-results-20261022/README.md) · [分析重算](v1/analysis/server-results-20261022/REPRODUCE.md)
-
-## 当前执行版本
-
-[v2](v2/README.md)冻结物体评分和Au/Av，降低已有条件头学习率；GPU1/2/3分别运行三个seed。部署ZIP、三个G0初始权重及验证记录见[v2交付](v2/results/README.md)。
