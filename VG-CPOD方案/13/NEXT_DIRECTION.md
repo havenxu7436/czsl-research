@@ -34,9 +34,9 @@ R2−R1 是核心机制比较；R1−R0 说明局部读取带来的变化。三�
 
 ```math
 \begin{aligned}
-\widetilde h&=\operatorname{LN}_2(h),\\
+\widetilde h&=\operatorname{LN}_2(h),\\[4pt]
 h'&=h+\operatorname{MLP}(\widetilde h)
- +0.1\,U_b\operatorname{GELU}(D_b\widetilde h),\\
+ +0.1\,U_b\operatorname{GELU}(D_b\widetilde h),\\[4pt]
 D_b&\in\mathbb R^{64\times1024},\qquad U_b\in\mathbb R^{1024\times64}.
 \end{aligned}
 ```
@@ -51,7 +51,7 @@ Adapter 不带 bias，$`D_b`$ 以标准差 0.01 的高斯分布初始化，$`U_b
 
 ```math
 \begin{aligned}
-u_a&=A_u e_a,\qquad v_o=A_v e_o,\\
+u_a&=A_u e_a,\qquad v_o=A_v e_o,\\[4pt]
 R(v,a,o)&=\kappa v^\top e_{ao}
  +(v^\top B_c)(e_{ao}^\top C_c)^\top
  +\rho\kappa v^\top W_c(u_a\odot v_o).
@@ -90,9 +90,9 @@ U^{\rm pool}_{ao}=\ell_{ao}-\frac1A\sum_b\ell_{bo}.
 
 ```math
 \begin{aligned}
-\delta_{n,ab,o}&=r_{nao}-r_{nbo},\\
-Z^{+}_{ab,o}&=\sum_n w_{no}\exp(\delta_{n,ab,o}/2),\\
-Z^{-}_{ab,o}&=\sum_n w_{no}\exp(-\delta_{n,ab,o}/2),\\
+\delta_{n,ab,o}&=r_{nao}-r_{nbo},\\[4pt]
+Z^{+}_{ab,o}&=\sum_n w_{no}\exp(\delta_{n,ab,o}/2),\\[4pt]
+Z^{-}_{ab,o}&=\sum_n w_{no}\exp(-\delta_{n,ab,o}/2),\\[4pt]
 m_{ab,o}&=\log Z^{+}_{ab,o}-\log Z^{-}_{ab,o}.
 \end{aligned}
 ```
@@ -154,8 +154,8 @@ r'_{nao}=r_{nao}+h_{no}
 
 ```math
 \begin{aligned}
-r'_{nao}&=r_{nao}+b_{ao},\\
-m'_{ab,o}&=m_{ab,o}+b_{ao}-b_{bo},\\
+r'_{nao}&=r_{nao}+b_{ao},\\[4pt]
+m'_{ab,o}&=m_{ab,o}+b_{ao}-b_{bo},\\[4pt]
 U'_{ao}&=U_{ao}+b_{ao}-\frac1A\sum_b b_{bo}.
 \end{aligned}
 ```
@@ -184,9 +184,9 @@ U'_{ao}&=U_{ao}+b_{ao}-\frac1A\sum_b b_{bo}.
 
 ```math
 \begin{aligned}
-S_o(x)&=\kappa g^\top e_o+(g^\top B_o)(e_o^\top C_o)^\top,\\
-p(o\mid x)&=\operatorname{softmax}_o S_o(x),\\
-p(a\mid o,x)&=\operatorname{softmax}_a U_{ao}(x),\\
+S_o(x)&=\kappa g^\top e_o+(g^\top B_o)(e_o^\top C_o)^\top,\\[4pt]
+p(o\mid x)&=\operatorname{softmax}_o S_o(x),\\[4pt]
+p(a\mid o,x)&=\operatorname{softmax}_a U_{ao}(x),\\[4pt]
 J_{ao}(x)&=\log p(o\mid x)+\log p(a\mid o,x).
 \end{aligned}
 ```
@@ -197,7 +197,7 @@ J_{ao}(x)&=\log p(o\mid x)+\log p(a\mid o,x).
 
 ```math
 \begin{aligned}
-\ell_{\rm pair}&=-J_y+\log\sum_{c\in\mathcal C_{\rm tr}}\exp J_c,\\
+\ell_{\rm pair}&=-J_y+\log\sum_{c\in\mathcal C_{\rm tr}}\exp J_c,\\[4pt]
 \ell_{\rm support}&=-\log\sum_{c\in\mathcal C_{\rm tr}}\exp J_c.
 \end{aligned}
 ```
@@ -209,8 +209,8 @@ J_{ao}(x)&=\log p(o\mid x)+\log p(a\mid o,x).
 ```math
 \begin{aligned}
 \mathcal L
-&=\frac{1.5}{1+\beta}\mathbb E\left[\ell_{\rm pair}+\beta(\ell_{\rm cond}+\ell_{\rm obj})\right]\\
-&=1.5\,\mathbb E\ell_{\rm pair}+\frac{1.5\beta}{1+\beta}\mathbb E\ell_{\rm support}\\
+&=\frac{1.5}{1+\beta}\mathbb E\left[\ell_{\rm pair}+\beta(\ell_{\rm cond}+\ell_{\rm obj})\right]\\[4pt]
+&=1.5\,\mathbb E\ell_{\rm pair}+\frac{1.5\beta}{1+\beta}\mathbb E\ell_{\rm support}\\[4pt]
 &=1.5\,\mathbb E\ell_{\rm pair}+\frac9{86}\mathbb E\ell_{\rm support},\qquad\beta=0.075.
 \end{aligned}
 ```
