@@ -1,0 +1,55 @@
+<article class="markdown-body entry-content container-lg" itemprop="text"><div class="markdown-heading" dir="auto"><h1 tabindex="-1" class="heading-element" dir="auto">06 · Competition 三目标与 10 epoch</h1><a id="user-content-06--competition-三目标与-10-epoch" class="anchor" aria-label="Permalink: 06 · Competition 三目标与 10 epoch" href="#06--competition-三目标与-10-epoch"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">实验完成及归档日期：2026-10-24。UT-Zappos natural split；冻结 CLIP ViT-L/14 特征和强 CPF；seed 3351 / 3352 / 3353。</p>
+<p dir="auto">42/42 阶段、15 份识别结果、3 份 Q5 审计；6 次实际适配、9 份同 seed Uniform 复用。15 个新教师；五方法适配 10 epoch，360 行识别、96 行扫描、312 行 Q5 图 bank 风险、165 行训练曲线。</p>
+<p dir="auto"><a href="/havenxu7436/czsl-research/blob/main/TRUST-CPF%E6%96%B9%E6%A1%88/06/PLAN.md">实验方案</a> · <a href="/havenxu7436/czsl-research/blob/main/TRUST-CPF%E6%96%B9%E6%A1%88/06/FORMULAS_AND_CODE.md">公式与核心实现</a> · <a href="/havenxu7436/czsl-research/blob/main/TRUST-CPF%E6%96%B9%E6%A1%88/06/code/README.md">代码</a> · <a href="/havenxu7436/czsl-research/blob/main/TRUST-CPF%E6%96%B9%E6%A1%88/06/configs/README.md">配置与实验清单</a> · <a href="/havenxu7436/czsl-research/blob/main/TRUST-CPF%E6%96%B9%E6%A1%88/06/results/README.md">完整结果</a> · <a href="/havenxu7436/czsl-research/blob/main/TRUST-CPF%E6%96%B9%E6%A1%88/06/analysis/README.md">完整分析</a> · <a href="/havenxu7436/czsl-research/blob/main/TRUST-CPF%E6%96%B9%E6%A1%88/06/analysis/REPRODUCE.md">复算</a> · <a href="/havenxu7436/czsl-research/blob/main/TRUST-CPF%E6%96%B9%E6%A1%88/06/SERVER_COMMANDS.md">服务器命令</a></p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>TEST CW AUC</th>
+<th>TEST OW AUC</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>uniform</td>
+<td>35.9343 ± 0.7712</td>
+<td>26.5317 ± 1.3662</td>
+</tr>
+<tr>
+<td>unll</td>
+<td>35.7292 ± 0.4261</td>
+<td>26.3156 ± 1.5334</td>
+</tr>
+<tr>
+<td>balanced</td>
+<td>35.9343 ± 0.7712</td>
+<td>26.5317 ± 1.3662</td>
+</tr>
+<tr>
+<td>competition</td>
+<td>35.9500 ± 0.7624</td>
+<td>26.4935 ± 1.4100</td>
+</tr>
+<tr>
+<td>permuted</td>
+<td>35.8408 ± 0.8400</td>
+<td>26.5057 ± 1.3958</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">主图 bank 1701，按 VAL CW native AUC 从 epoch 0–10 选同一权重评价 TEST CW/OW。数值为百分数尺度，均值 ± 三训练 seed 样本标准差。多个图 bank 用于描述图采样变化。</p>
+<p dir="auto">Uniform 为 35.9343 / 26.5317；Competition 为 35.9500 / 26.4935。测量效用在独立 Q5 图像上提高实际 AUC；当前预测及向最终 reference 迁移仍限制终端收益。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">恢复执行包</h2><a id="user-content-恢复执行包" class="anchor" aria-label="Permalink: 恢复执行包" href="#恢复执行包"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">在仓库根目录执行：</p>
+<div class="highlight highlight-source-shell notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="git lfs pull --include=&quot;TRUST-CPF方案/06/**&quot;
+python tools/register_trustcpf_followup.py --stage 06 --check
+python tools/reproduce.py materialize --line TRUST-CPF方案 --stage 06 --dest &quot;$HOME/experiments/trust-06-replay&quot;
+cd &quot;$HOME/experiments/trust-06-replay/trustcpf_competition_v1_10ep&quot;
+python -m unittest discover -s tests -v"><pre>git lfs pull --include=<span class="pl-s"><span class="pl-pds">"</span>TRUST-CPF方案/06/**<span class="pl-pds">"</span></span>
+python tools/register_trustcpf_followup.py --stage 06 --check
+python tools/reproduce.py materialize --line TRUST-CPF方案 --stage 06 --dest <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$HOME</span>/experiments/trust-06-replay<span class="pl-pds">"</span></span>
+<span class="pl-c1">cd</span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$HOME</span>/experiments/trust-06-replay/trustcpf_competition_v1_10ep<span class="pl-pds">"</span></span>
+python -m unittest discover -s tests -v</pre></div>
+<p dir="auto"><a href="/havenxu7436/czsl-research/blob/main/TRUST-CPF%E6%96%B9%E6%A1%88/06/file_manifest.json">文件清单</a> · <a href="/havenxu7436/czsl-research/blob/main/TRUST-CPF%E6%96%B9%E6%A1%88/06/package_members.json">发布包成员映射</a> · <a href="/havenxu7436/czsl-research/blob/main/TRUST-CPF%E6%96%B9%E6%A1%88/06/results/raw_export_members.json">服务器原始成员映射</a> · <a href="/havenxu7436/czsl-research/blob/main/TRUST-CPF%E6%96%B9%E6%A1%88/06/inputs.json">输入与完成状态</a> · <a href="/havenxu7436/czsl-research/blob/main/TRUST-CPF%E6%96%B9%E6%A1%88/06/runbook.json">执行命令清单</a> · <a href="/havenxu7436/czsl-research/blob/main/TRUST-CPF%E6%96%B9%E6%A1%88/06/%E6%9D%A5%E6%BA%90%E4%B8%8E%E8%AE%B8%E5%8F%AF.md">来源与许可</a></p>
+</article>

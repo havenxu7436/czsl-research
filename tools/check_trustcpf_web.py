@@ -5,6 +5,8 @@ import html
 import json
 from pathlib import Path
 import re
+import time
+from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, ProxyHandler, build_opener
 
@@ -16,8 +18,15 @@ def audit(path,ref,out):
     relative=path.relative_to(ROOT).as_posix()
     url='https://github.com/havenxu7436/czsl-research/blob/'+ref+'/'+quote(relative)
     opener=build_opener(ProxyHandler({}))
-    with opener.open(Request(url,headers={'User-Agent':'CZSL-Repository-Markdown-QA'}),timeout=35) as response:
-        document=response.read().decode('utf8')
+    for attempt in range(4):
+        try:
+            with opener.open(Request(url,headers={'User-Agent':'CZSL-Repository-Markdown-QA'}),timeout=35) as response:
+                document=response.read().decode('utf8')
+            break
+        except (HTTPError, URLError, TimeoutError) as exc:
+            if isinstance(exc,HTTPError) and exc.code not in (429,500,502,503,504):raise
+            if attempt==3:raise RuntimeError('GitHub page unavailable after retries: '+relative) from exc
+            time.sleep(min(5,attempt+1))
     match=re.search(r'<article\b[^>]*class="[^"]*markdown-body[^"]*"[^>]*>[\s\S]*?</article>',document)
     if not match:raise AssertionError('No rendered Markdown article: '+relative)
     article=match[0]
