@@ -1,0 +1,167 @@
+<article class="markdown-body entry-content container-lg" itemprop="text"><div class="markdown-heading" dir="auto"><h1 tabindex="-1" class="heading-element" dir="auto">TRUST-CPF 模型响应条件化方案 v1</h1><a id="user-content-trust-cpf-模型响应条件化方案-v1" class="anchor" aria-label="Permalink: TRUST-CPF 模型响应条件化方案 v1" href="#trust-cpf-模型响应条件化方案-v1"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">日期：2026-10-23。目录：trustcpf_modelcond_v1。GPU 1、2、3 对应 seed 3351、3352、3353。</p>
+<p dir="auto">本轮研究“以配对泛化收益为监督的模型条件化关系效用学习”。完整强 CPF、关系消息、三元交互及 Query 配对效用标签沿用 Strong v1。新增八维 Inner 模型响应，检验它能否提高跨组合效用迁移及同预算识别。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">1. 实验范围和复用方式</h2><a id="user-content-1-实验范围和复用方式" class="anchor" aria-label="Permalink: 1. 实验范围和复用方式" href="#1-实验范围和复用方式"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>组别</th>
+<th>处理</th>
+<th>结果数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>drop</td>
+<td>逐类型常数 Bernoulli 概率，直接复用 Strong v1</td>
+<td>3</td>
+</tr>
+<tr>
+<td>original</td>
+<td>原 robust 模型、预测、审计结果，直接复用 Strong v1</td>
+<td>3</td>
+</tr>
+<tr>
+<td>conditioned</td>
+<td>新效用输入、效用拟合、结构生成、3 epoch 适配</td>
+<td>3</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">共九组识别结果，其中新增三组。旧五折教师、每 seed 43,008 条 Query 效用观测、主 reference checkpoint 都直接复用。程序只读取旧 work，新增结果写入独立目录；旧 r0、capacity、dense 保存为参考表。</p>
+<p dir="auto">每个 seed 按 import → responses → fit → audit → fit_all → structure → adapt 执行，共 7 阶段；三 seed 共 21 阶段。六份效用审计为三个 original 加三个 conditioned；响应缓存为每 seed 五折教师加主 reference，共 18 份。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">2. 保留效用监督，新增模型条件</h2><a id="user-content-2-保留效用监督新增模型条件" class="anchor" aria-label="Permalink: 2. 保留效用监督，新增模型条件" href="#2-保留效用监督新增模型条件"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">原 Query 标签保持：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="ed3cc0b6e0f9534a9760c0bc9c5ce6c4">$$y_e=\frac1K\sum_{k=1}^K
+\left[R_Q(\theta,G_{-e}^{(k)})-R_Q(\theta,G_{+e}^{(k)})\right].$$</math-renderer>
+<p dir="auto">Query 是 TRAIN 内部按组合留出的图像。Q1–Q3 拟合，Q4 选效用网络 epoch，Q5 审计；最后按选定 epoch 合并五折标签拟合部署网络。保存的 y、noise、edge、inclusion 原样复用。候选集为全部 TRAIN 组合。</p>
+<p dir="auto">对每个教师，从 Inner 每个组合固定抽最多两张图像，组合间等权、组合内图像等权；主 reference 使用完整 TRAIN。支持集种子为 20261023+j，五折 j=1…5，reference 为 j=6。每个教师使用四个共同 Bernoulli(0.5) 背景。</p>
+<p dir="auto">定义开启和关闭后的候选联合 log score 差：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="ed3cc0b6e0f9534a9760c0bc9c5ce6c4">$$d_{e,k,c}(x)=J^+_{e,k,c}(x)-J^-_{e,k,c}(x).$$</math-renderer>
+<p dir="auto">对候选集归一化后，支持效用为：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="ed3cc0b6e0f9534a9760c0bc9c5ce6c4">$$\begin{aligned}
+\delta_{e,k}(x,y)
+&amp;=\log p^+_{e,k}(y\mid x)-\log p^-_{e,k}(y\mid x)\\[4pt]
+&amp;=d_{e,k,y}(x)-\log\sum_c p^-_{e,k}(c\mid x)\exp d_{e,k,c}(x).
+\end{aligned}$$</math-renderer>
+<p dir="auto">公式由两次 log-softmax 相减得到。代码以 float32 计算模型分数，再以 float64 累计支持统计；开启和关闭共享支持样本及其他边。</p>
+<p dir="auto">去除候选共同平移：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="ed3cc0b6e0f9534a9760c0bc9c5ce6c4">$$\widetilde d_{e,k,c}=d_{e,k,c}-\frac1{|\mathcal C|}\sum_{c'}d_{e,k,c'}.$$</math-renderer>
+<p dir="auto">分别在全部支持集 S 和目标原词相关子集 S_e 上计算四个统计。OI/OE 按真实物体筛选，AE 按真实属性筛选；子集内重新归一化组合权重：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="ed3cc0b6e0f9534a9760c0bc9c5ce6c4">$$h_e^B=\left[
+\mathbb E_{B,k}\delta,\;
+\sqrt{\mathop{\mathrm{Var}}\nolimits_{B,k}(\delta)},\;
+\sqrt{\mathbb E_{B,k}\frac{\|\widetilde d\|_2^2}{|\mathcal C|}},\;
+\mathbb E_{B,k}\{H(p^+)-H(p^-)\}
+\right],\quad B\in\{S,S_e\}.$$</math-renderer>
+<p dir="auto">其中 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="ed3cc0b6e0f9534a9760c0bc9c5ce6c4">$H(p)=-\sum_c p_c\log p_c$</math-renderer>。新增特征只来自 Inner 当前模型响应；Query 标签继续承担监督作用。</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="ed3cc0b6e0f9534a9760c0bc9c5ce6c4">$$\Phi_e^{\rm new}=[\phi_e(S),h_e^S,h_e^{S_e}],
+\qquad(\mu_e,\sigma_e^2)=f_\psi(\Phi_e^{\rm new}).$$</math-renderer>
+<p dir="auto">正式输入由 6157 维增至 6165 维，三成员网络保持 256→128→2。新增 8 维按拟合集均值/标准差归一化，下限 10⁻⁶；原输入标准差下限保持 0.01。审计前统计仅来自 Q1–Q3；最终五折拟合重新计算其统计。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">3. 拟合目标与固定图密度</h2><a id="user-content-3-拟合目标与固定图密度" class="anchor" aria-label="Permalink: 3. 拟合目标与固定图密度" href="#3-拟合目标与固定图密度"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">类型尺度、配对测量噪声及分层采边权重沿用原代码。标签 y、噪声方差 ν、采边包含概率 q 对应：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="ed3cc0b6e0f9534a9760c0bc9c5ce6c4">$$\mathcal L_u=\frac{|B|}{|E|}\frac1{|B|}\sum_{e\in B}
+\frac1{q_e}\frac12\left[
+\log(\sigma_e^2+\nu_e)+\frac{(\mu_e-y_e)^2}{\sigma_e^2+\nu_e}
+\right].$$</math-renderer>
+<p dir="auto">标准化时，均值除以类型尺度、方差除以尺度平方；预测后恢复原单位。每成员最多 50 epoch，Q4 NLL 选择首次最优 epoch。响应特征按教师和边计算一次，连接到该教师全部 episode。</p>
+<p dir="auto">部署仍使用 16 次原视觉摘要。响应来自固定主 reference，只计算一次。任务方差加摘要变化组成 v，成员均值方差组成 u：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="ed3cc0b6e0f9534a9760c0bc9c5ce6c4">$$r_e=\mu_e-\lambda_{\rm var}\sqrt{v_e}-\lambda_{\rm ens}\sqrt{u_e}.$$</math-renderer>
+<p dir="auto">风险系数和温度继承各 seed 原 Q4 的选择。逐类型期望边数 B_t 取原 robust 实际概率和：</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>seed</th>
+<th>OI</th>
+<th>OE</th>
+<th>AE</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3351</td>
+<td>0.381057</td>
+<td>6.668088</td>
+<td>12.000001</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>0.890846</td>
+<td>9.000001</td>
+<td>12.000000</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>0.896474</td>
+<td>6.433821</td>
+<td>12.000001</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">求解使用保存概率的 float64 求和，表格仅作展示。</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="ed3cc0b6e0f9534a9760c0bc9c5ce6c4">$$\begin{aligned}
+\max_\pi\quad&amp;
+\sum_e r_e\pi_e-\tau\sum_e
+D_{\rm KL}(\mathop{\mathrm{Bern}}\nolimits(\pi_e)\,\|\,\mathop{\mathrm{Bern}}\nolimits(1/2)),\\[4pt]
+\text{s.t.}\quad&amp;\sum_{e:t(e)=t}\pi_e=B_t.
+\end{aligned}$$</math-renderer>
+<p dir="auto">驻点为：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="ed3cc0b6e0f9534a9760c0bc9c5ce6c4">$$r_e-\tau\mathop{\mathrm{logit}}\nolimits(\pi_e)-\gamma_{t(e)}=0,\qquad
+\pi_e=\mathop{\mathrm{sigmoid}}\nolimits\left(\frac{r_e-\gamma_{t(e)}}{\tau}\right).$$</math-renderer>
+<p dir="auto">乘子允许为负；每类型做 80 次 float64 二分，再转回模型精度。程序用旧奖励回代，验证恢复旧 robust 概率，并核对 drop 的类型概率和。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">4. 识别训练与选模</h2><a id="user-content-4-识别训练与选模" class="anchor" aria-label="Permalink: 4. 识别训练与选模" href="#4-识别训练与选模"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">从对应 seed 原 reference/last.pt 加载权重，冻结全部 CPF，只训练原 221,184 参数的关系分支。效用网络不进入识别模型前向。</p>
+<p dir="auto">固定新概率做 3 epoch 适配，epoch 0 也参与 VAL CW native AUC 选模。损失、学习率、batch size、图种子和 16 图概率平均继承原配置，CW/OW 分别按候选集归一化；bias 和温度由 VAL 确定。</p>
+<p dir="auto">GPU 1/2/3 各运行一个 seed。各进程逻辑 cuda:0 对应 CUDA_VISIBLE_DEVICES 指定的物理卡。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">5. 核心验证指标</h2><a id="user-content-5-核心验证指标" class="anchor" aria-label="Permalink: 5. 核心验证指标" href="#5-核心验证指标"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>层面</th>
+<th>指标</th>
+<th>产物</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>效用监督迁移</td>
+<td>Q5 总体及 OI/OE/AE Spearman、方向平衡准确率、RMSE、类型常数/边查表、90% 覆盖率</td>
+<td>utility_comparison.json；各 seed/utility/audit.json</td>
+</tr>
+<tr>
+<td>识别收益</td>
+<td>CW/OW native、exact AUC；相对 original/drop 逐 seed 差值</td>
+<td>summary.csv、aggregates.json、paired_comparisons.json</td>
+</tr>
+<tr>
+<td>工作点与校准</td>
+<td>VAL bias 下 TEST HM、校准 NLL/ECE</td>
+<td>summary.csv、runs/*/metrics.json</td>
+</tr>
+<tr>
+<td>未见属性判别</td>
+<td>给定真实物体的完整属性准确率、多未见候选子集准确率</td>
+<td>conditional_diagnostics.json</td>
+</tr>
+<tr>
+<td>结构与成本</td>
+<td>类型期望边数、预算恢复误差、所选 epoch、各阶段耗时</td>
+<td>budget_checks.json、structure.json、progress/<em>/</em>.json</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">重点是“跨折效用排序提高”和“同预算识别提高”是否同时出现。旧噪声矩阵和消融继续引用 Strong v1；本轮集中完成三组方法的九行主结果。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">6. 数据组织</h2><a id="user-content-6-数据组织" class="anchor" aria-label="Permalink: 6. 数据组织" href="#6-数据组织"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">旧数据在 /data/xhw/experiments/trustcpf_strong_v1/work；新数据在 /data/xhw/experiments/trustcpf_modelcond_v1/work。</p>
+<ul dir="auto">
+<li>reuse.json 和进度 identity.json：原输入路径及教师、配对标签、对照文件哈希。</li>
+<li>responses/fold1.pt…fold5.pt、reference.pt：96×8 特征、支持图像编号、权重、教师哈希。</li>
+<li>utility、utility_all：网络、标准化统计、选模历史和 Q5 预测。</li>
+<li>runs/drop、runs/original：旧对照；runs/conditioned：新增模型及 VAL/TEST 逐图像预测。</li>
+</ul>
+<p dir="auto">完成状态：21/21 阶段、9/9 识别结果、6/6 审计、18/18 响应缓存，complete=true。</p>
+<p dir="auto">打包包含本轮全部新增结果、六组复用对照、执行代码与溯源信息。原始大体积教师和配对输入继续保存在 Strong v1 目录及先前下载的归档中。新下载包通过 JSON 清单定位，SHA-256 校验后用 Python 解压。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">7. 本机验证</h2><a id="user-content-7-本机验证" class="anchor" aria-label="Permalink: 7. 本机验证" href="#7-本机验证"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">已检查公式、支持加权、响应的模型依赖性、分批一致性、预算 KKT、Query 标签复用、三 seed 全流程、冻结 CPF、旧结果不改写及续跑。另用归档真实教师权重验证 96×8 计算，并对三个实际 seed 验证预算恢复。</p>
+<p dir="auto">下载脚本通过模拟传输测试：清单解析、失败重试、完整包复用、损坏包拒绝、中文文件名解压。正式 UT-Zappos 新训练由服务器命令启动。</p>
+</article>

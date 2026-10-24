@@ -1,0 +1,627 @@
+<article class="markdown-body entry-content container-lg" itemprop="text"><div class="markdown-heading" dir="auto"><h1 tabindex="-1" class="heading-element" dir="auto">TRUST 强 CPF 基底：公式与核心实现</h1><a id="user-content-trust-强-cpf-基底公式与核心实现" class="anchor" aria-label="Permalink: TRUST 强 CPF 基底：公式与核心实现" href="#trust-强-cpf-基底公式与核心实现"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">日期：2026-10-23。公式与协议见 <a href="/havenxu7436/czsl-research/blob/main/TRUST-CPF%E6%96%B9%E6%A1%88/02/PLAN.md">PLAN.md</a>。以下代码从交付源码自动摘取，与执行版本一致。</p>
+<p dir="auto">设冻结全局特征为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="ab29a98c2d317b79096e97cb261c1373">$g$</math-renderer>，原词与组合文本向量为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="ab29a98c2d317b79096e97cb261c1373">$e_a,e_o,e_{ao}$</math-renderer>。G0 的完整分数为：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="ab29a98c2d317b79096e97cb261c1373">$$\begin{aligned}
+s_o^0&amp;=20g^\top e_o+(g^\top B_o)(e_o^\top C_o)^\top,\\[4pt]
+c_{ao}^0&amp;=20g^\top e_{ao}+(g^\top B_c)(e_{ao}^\top C_c)^\top
++3g^\top W_c[(A_u e_a)\odot(A_v e_o)].
+\end{aligned}$$</math-renderer>
+<p dir="auto">低秩头 rank8，CP rank32。主实验加载对应 seed 的 G0，冻结这些基底参数，使无关系图时始终恢复同一个强基底。没有删除静态 CP，也没有用随机初始化的弱分类头替换它。</p>
+<p dir="auto">TRUST 保留物体条件局部上下文：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="ab29a98c2d317b79096e97cb261c1373">$$v_o(x)=\mathcal N\bigl(\mathcal N(g)+0.5\mathcal N(f_o(x))\bigr).$$</math-renderer>
+<p dir="auto"><math-renderer class="js-inline-math" style="display: inline-block" data-run-id="ab29a98c2d317b79096e97cb261c1373">$f_o$</math-renderer> 是原 CLIP 缓存中的物体查询局部特征；只为 TRUST 残差使用。G0 本身仍按原代码读取全局 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="ab29a98c2d317b79096e97cb261c1373">$g$</math-renderer>。无需重新提取图像特征。</p>
+<p dir="auto">对 96 条 OI/OE/AE 关系，类型消息与节点原型为：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="ab29a98c2d317b79096e97cb261c1373">$$\begin{aligned}
+m_e&amp;=(I+L_{t(e)}R_{t(e)})(h_e-e_{v(e)}),\\[4pt]
+z_v(G)&amp;=\mathcal N\left(e_v+0.1\sum_{e:v(e)=v}\frac{b_e}{d_{v,t(e)}}m_e\right).
+\end{aligned}$$</math-renderer>
+<p dir="auto">每种关系类型的消息秩为 16。定义 v1 的归一化三元交互，秩为 64：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="ab29a98c2d317b79096e97cb261c1373">$$T(x,o,a;z)=\sum_{k=1}^{64}
+\mathcal N(P_vv_o(x))_k\mathcal N(P_oz_o)_k\mathcal N(P_az_a)_k.$$</math-renderer>
+<p dir="auto">完整模型为：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="ab29a98c2d317b79096e97cb261c1373">$$\begin{aligned}
+s_o&amp;=s_o^0+\frac\alpha{t_g}g^\top(z_o-e_o),\\[4pt]
+c_{ao}&amp;=c_{ao}^0+\frac\alpha{t_g}\left[T(x,o,a;z)-T(x,o,a;e)\right],\\[4pt]
+J_{ao}&amp;=\log\mathop{\mathrm{softmax}}\nolimits_o(s)_o+
+\log\mathop{\mathrm{softmax}}\nolimits_a(c_{\cdot o})_a.
+\end{aligned}$$</math-renderer>
+<p dir="auto">保持 v1 的固定 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="ab29a98c2d317b79096e97cb261c1373">$\alpha=0.1,t_g=0.1$</math-renderer>，没有引入 v2 的可学习有符号 alpha。所有边关闭时直接使用原型锚点，使两个残差精确为零。三个实际 G0 checkpoint 的该性质已逐元素验证。</p>
+<p dir="auto">原 v1 的弱视觉 Adapter 由完整冻结 G0 代替。训练参数为类型消息 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="ab29a98c2d317b79096e97cb261c1373">$L,R$</math-renderer> 与三元投影 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="ab29a98c2d317b79096e97cb261c1373">$P_v,P_o,P_a$</math-renderer>，共 221,184 个；capacity 使用相同参数集合构造不依赖关系附件的容量分支。r0 是已训练好的固定 G0，残差对输出为零。</p>
+<p dir="auto">任务损失与强 G0 保持一致：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="ab29a98c2d317b79096e97cb261c1373">$$\begin{aligned}
+\ell_{\rm pair}&amp;=-J_{a_i o_i}+\log\sum_{c\in\mathcal C_{\rm train}}\exp J_c,\\[4pt]
+\ell_o&amp;=-\log p(o_i\mid x_i),\qquad
+\ell_a=-\log p(a_i\mid o_i,x_i),\\[4pt]
+\mathcal L&amp;=\frac{1.5}{1.075}\mathbb E[\ell_{\rm pair}+0.075(\ell_o+\ell_a)]
++\lambda_W\mathcal R_W,\\[4pt]
+\mathcal R_W&amp;=\frac1{768^2}\sum_{t=0}^{2}\|L_tR_t\|_F^2,\qquad\lambda_W=0.001.
+\end{aligned}$$</math-renderer>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">3. 教师与效用测量</h2><a id="user-content-3-教师与效用测量" class="anchor" aria-label="Permalink: 3. 教师与效用测量" href="#3-教师与效用测量"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto"><strong>全量 G0 用于正式主实验，五折教师使用各自 Inner 上重新训练的同构 G0。</strong> 全量 G0 已使用完整 TRAIN，直接作为五折教师会让 Query 组合进入基底训练；因此程序为每折执行：</p>
+<ol dir="auto">
+<li>新初始化 G0 架构，在该折 Inner 上训练 10 epochs，完整任务损失使用 Inner 组合候选；使用最后一个 epoch。</li>
+<li>冻结该折 G0，在同一 Inner 上训练 TRUST 消息和三元残差 10 epochs，每 batch 使用 Bernoulli(0.5) 参考图。</li>
+<li>在留出的 Query 组合上测量配对关系增益。支持摘要仅使用该折 Inner 图像。</li>
+</ol>
+<p dir="auto">五折角色保持 Q1–Q3 拟合、Q4 开发、Q5 独立审计。拟合折各 512 个 episode，开发和审计各 128 个；每个 episode 最多 8 个 Query 组合、每组合 8 张图；每类型采 8 条边，共 24 条。普通配对使用 4 个背景图，Q5 使用 16 个背景图。</p>
+<p dir="auto">对同一背景图，边关闭和开启共享所有其他关系及 Query 样本：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="ab29a98c2d317b79096e97cb261c1373">$$\begin{aligned}
+d_{e,k}&amp;=R_Q(G_{-e}^{(k)})-R_Q(G_{+e}^{(k)}),\\[4pt]
+y_e&amp;=\frac1K\sum_kd_{e,k},\qquad
+\nu_e=\frac{\mathop{\mathrm{Var}}\nolimits_{k}(d_{e,k})}{K}.
+\end{aligned}$$</math-renderer>
+<p dir="auto"><math-renderer class="js-inline-math" style="display: inline-block" data-run-id="ab29a98c2d317b79096e97cb261c1373">$R_Q$</math-renderer> 是 Query 组合等权、组合内图像等权的候选 NLL，候选包含全部 TRAIN 组合。<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="ab29a98c2d317b79096e97cb261c1373">$y_e\gt 0$</math-renderer> 表示开启该关系降低 Query 风险。每个真实/打乱知识流程产生 1,792 个 episode、43,008 条效用观测和 417,792 次关系头前向；原始配对差也保存。</p>
+<p dir="auto">效用输入保持 v1：语义、Inner 视觉摘要、类型与来源特征。三成员网络输出均值与正方差；每类型尺度仅从拟合标签计算。带测量噪声的目标为：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="ab29a98c2d317b79096e97cb261c1373">$$\mathcal L_u=\frac{|B|}{|E|}\frac1{|B|}\sum_{e\in B}
+\frac1{q_e}\frac12\left[\log(\sigma_e^2+\nu_e)
++\frac{(\mu_e-y_e)^2}{\sigma_e^2+\nu_e}\right].$$</math-renderer>
+<p dir="auto"><math-renderer class="js-inline-math" style="display: inline-block" data-run-id="ab29a98c2d317b79096e97cb261c1373">$q_e$</math-renderer> 为分层采边包含概率。类型标准化时，目标与噪声分别除以尺度及尺度平方，预测后恢复原单位。Q4 选择各成员训练 epoch；Q5 审计在最终五折标签合并拟合之前完成。</p>
+<p dir="auto">部署时使用 16 次 TRAIN 支持摘要，合并任务方差、摘要方差和集成方差。关系奖励与结构为：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="ab29a98c2d317b79096e97cb261c1373">$$\begin{aligned}
+r_e&amp;=\mu_e-\lambda_{\rm var}\sqrt{v_e}-\lambda_{\rm ens}\sqrt{u_e},\\[4pt]
+\pi_e&amp;=\mathop{\mathrm{sigmoid}}\nolimits\left(\mathop{\mathrm{logit}}\nolimits(0.5)+\frac{r_e-\gamma_{t(e)}}\tau\right),\\[4pt]
+\gamma_t&amp;\ge0,\qquad\sum_{e:t(e)=t}\pi_e\le b|E_t|.
+\end{aligned}$$</math-renderer>
+<p dir="auto">通过非负乘子二分求解类型上界预算。Q4 顺序选择风险系数、预算比例和温度尺度；使用原 v1 的固定候选集合。mean 把两项风险系数置零，robust 使用所选风险系数。drop 在每个类型内使用与 robust 相同的平均边概率，实际采图是独立 Bernoulli。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">1. 强基底、关系残差与任务损失</h2><a id="user-content-1-强基底关系残差与任务损失" class="anchor" aria-label="Permalink: 1. 强基底、关系残差与任务损失" href="#1-强基底关系残差与任务损失"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">源码：<code>trustcpf/model.py</code></p>
+<div class="highlight highlight-source-python notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="class TypedGraph(nn.Module):
+    def __init__(self, bank, rank=16, eta=.1):
+        super().__init__()
+        for key in ('anchors', 'source', 'target', 'types', 'degree'):
+            self.register_buffer(key, bank[key].clone())
+        d = bank['anchors'].shape[1]
+        self.left = nn.Parameter(torch.randn(3, d, rank) * .01)
+        self.right = nn.Parameter(torch.zeros(3, rank, d))
+        self.eta = eta
+
+    def messages(self):
+        diff = self.source - self.anchors[self.target]
+        low = torch.einsum('erd,ed-&gt;er', self.right[self.types], diff)
+        return diff + torch.einsum('edr,er-&gt;ed', self.left[self.types], low)
+
+    def forward(self, edges):
+        msg = self.messages() * (edges / self.degree)[:, None]
+        # Dense incidence avoids CUDA scatter nondeterminism for this small graph.
+        incidence = F.one_hot(self.target, len(self.anchors)).to(msg.dtype).T
+        return unit(self.anchors + self.eta * (incidence @ msg))
+
+    def regularizer(self):
+        delta = self.left @ self.right
+        return delta.square().sum() / self.anchors.shape[1] ** 2
+
+class TrustCPF(nn.Module):
+    def __init__(self, text, bank, cfg):
+        super().__init__()
+        for k in ('ea', 'eo', 'ec'):
+            self.register_buffer(k, text[k].clone())
+        d = text['ea'].shape[1]
+        self.na, self.no = len(text['ea']), len(text['eo'])
+        self.cfg = cfg
+        gcfg=read_json(ROOT/'initial/g0_seed3351_protocol.json')['config'].copy()
+        gcfg.update(rank=cfg.get('backbone_rank',min(32,d)),adapter_rank=cfg.get('backbone_adapter_rank',min(8,d)))
+        self.backbone=VGCPOD(text['ea'],text['eo'],text['ec'],gcfg,cfg.get('seed',3351))
+        self.backbone.requires_grad_(False)
+        self.graph = TypedGraph(bank, cfg.get('message_rank', 16), cfg.get('eta', .1))
+        r = cfg.get('rank', 64)
+        self.pv = nn.Linear(d, r, bias=False)
+        self.po = nn.Linear(d, r, bias=False)
+        self.pa = nn.Linear(d, r, bias=False)
+
+    def base(self, g, fa, fo):
+        out=self.backbone(g,fa,fo)
+        return {'g':g,'obj':out['obj'],'cond':out['cond'],
+                'context':unit(unit(g)[:,None,:]+self.cfg.get('object_context',.5)*unit(fo))}
+
+    def score(self, base, edges, capacity=False):
+        anchors = self.graph.anchors
+        z = self.graph(edges) if torch.count_nonzero(edges) else anchors
+        ao, aa = anchors[self.na:], anchors[:self.na]
+        zo, za = z[self.na:], z[:self.na]
+        qx = unit(self.pv(base['context']))
+        def tri(o, a):
+            return torch.einsum('bor,or,ar-&gt;boa', qx, unit(self.po(o)), unit(self.pa(a)))
+        delta_o = base['g'] @ (zo - ao).T
+        delta_u = tri(zo, za) - tri(ao, aa)
+        if capacity:
+            # Same effective projection matrices; no relation attachment is used.
+            o = unit(ao + .1 * ((ao @ self.graph.right[0].T) @ self.graph.left[0].T))
+            a = unit(aa + .1 * ((aa @ self.graph.right[1].T) @ self.graph.left[1].T
+                            + (aa @ self.graph.right[2].T) @ self.graph.left[2].T))
+            delta_o = base['g'] @ (o - ao).T
+            delta_u = tri(o, a)  # generic trainable three-way head
+        gain = self.cfg.get('alpha', .1) / self.cfg.get('tg', .1)
+        obj = base['obj'] + gain * delta_o
+        conditional = base['cond'] + gain * delta_u
+        lo, lc = obj.log_softmax(-1), conditional.log_softmax(-1)
+        return lo[:, :, None] + lc, lo, lc
+
+    def forward(self, g, fa, fo, edges, capacity=False):
+        return self.score(self.base(g, fa, fo), edges, capacity)
+
+def task_loss(joint, lo, lc, attrs, objs, candidates):
+    flat = joint.flatten(1)
+    target = objs * joint.shape[2] + attrs
+    lp = -flat.gather(1, target[:, None]).mean() + flat[:, candidates].logsumexp(-1).mean()
+    rows = torch.arange(len(attrs), device=attrs.device)
+    return 1.5/1.075*(lp+.075*(F.nll_loss(lo,objs)+F.nll_loss(lc[rows,objs],attrs)))
+
+def task_logit_gradients(obj_logits, conditional_logits, attrs, objs, candidates):
+    &quot;&quot;&quot;Analytic task-loss derivatives; used to verify the autograd implementation.&quot;&quot;&quot;
+    po,pc=obj_logits.softmax(-1),conditional_logits.softmax(-1)
+    joint=obj_logits.log_softmax(-1)[:,:,None]+conditional_logits.log_softmax(-1)
+    h=torch.zeros_like(joint).flatten(1)
+    h[:,candidates]=candidate_logprob(joint,candidates).exp()
+    row=torch.arange(len(attrs),device=attrs.device)
+    h[row,objs*joint.shape[2]+attrs]-=1
+    h=h.reshape_as(joint); by_object=h.sum(-1)
+    go=by_object+.075*po
+    go[row,objs]-=.075
+    gu=h-pc*by_object[:,:,None]
+    gu[row,objs]+=.075*pc[row,objs]
+    gu[row,objs,attrs]-=.075
+    return 1.5/1.075*go/len(attrs),1.5/1.075*gu/len(attrs)
+
+def average_graphs(model, batch, pi, candidates, count=16, seed=1701, mode='probability', capacity=False, return_joint=False):
+    base = model.base(*batch)
+    gen = torch.Generator(device=pi.device).manual_seed(seed)
+    outputs = []
+    for _ in range(count):
+        edges = pi if mode == 'mean_graph' else (torch.rand(pi.shape, generator=gen, device=pi.device) &lt; pi).float()
+        outputs.append(model.score(base, edges, capacity)[0])
+    stack = torch.stack(outputs)
+    if mode in ('mean_graph', 'mean_logit'):
+        logs = candidate_logprob(stack.mean(0), candidates)
+    else:
+        logs = torch.stack([candidate_logprob(j, candidates) for j in outputs]).logsumexp(0) - torch.log(pi.new_tensor(count))
+    probs = torch.stack([candidate_logprob(j, candidates).exp() for j in outputs])
+    variance = (probs - probs.mean(0)).square().sum(-1).mean(0)
+    if return_joint:
+        full = stack.mean(0) if mode in ('mean_graph','mean_logit') else stack.logsumexp(0)-torch.log(pi.new_tensor(count))
+        return logs, variance, full
+    return logs, variance"><pre><span class="pl-k">class</span> <span class="pl-v">TypedGraph</span>(<span class="pl-s1">nn</span>.<span class="pl-c1">Module</span>):
+    <span class="pl-k">def</span> <span class="pl-en">__init__</span>(<span class="pl-s1">self</span>, <span class="pl-s1">bank</span>, <span class="pl-s1">rank</span><span class="pl-c1">=</span><span class="pl-c1">16</span>, <span class="pl-s1">eta</span><span class="pl-c1">=</span><span class="pl-c1">.1</span>):
+        <span class="pl-en">super</span>().<span class="pl-c1">__init__</span>()
+        <span class="pl-k">for</span> <span class="pl-s1">key</span> <span class="pl-c1">in</span> (<span class="pl-s">'anchors'</span>, <span class="pl-s">'source'</span>, <span class="pl-s">'target'</span>, <span class="pl-s">'types'</span>, <span class="pl-s">'degree'</span>):
+            <span class="pl-s1">self</span>.<span class="pl-c1">register_buffer</span>(<span class="pl-s1">key</span>, <span class="pl-s1">bank</span>[<span class="pl-s1">key</span>].<span class="pl-c1">clone</span>())
+        <span class="pl-s1">d</span> <span class="pl-c1">=</span> <span class="pl-s1">bank</span>[<span class="pl-s">'anchors'</span>].<span class="pl-c1">shape</span>[<span class="pl-c1">1</span>]
+        <span class="pl-s1">self</span>.<span class="pl-c1">left</span> <span class="pl-c1">=</span> <span class="pl-s1">nn</span>.<span class="pl-c1">Parameter</span>(<span class="pl-s1">torch</span>.<span class="pl-c1">randn</span>(<span class="pl-c1">3</span>, <span class="pl-s1">d</span>, <span class="pl-s1">rank</span>) <span class="pl-c1">*</span> <span class="pl-c1">.01</span>)
+        <span class="pl-s1">self</span>.<span class="pl-c1">right</span> <span class="pl-c1">=</span> <span class="pl-s1">nn</span>.<span class="pl-c1">Parameter</span>(<span class="pl-s1">torch</span>.<span class="pl-c1">zeros</span>(<span class="pl-c1">3</span>, <span class="pl-s1">rank</span>, <span class="pl-s1">d</span>))
+        <span class="pl-s1">self</span>.<span class="pl-c1">eta</span> <span class="pl-c1">=</span> <span class="pl-s1">eta</span>
+
+    <span class="pl-k">def</span> <span class="pl-en">messages</span>(<span class="pl-s1">self</span>):
+        <span class="pl-s1">diff</span> <span class="pl-c1">=</span> <span class="pl-s1">self</span>.<span class="pl-c1">source</span> <span class="pl-c1">-</span> <span class="pl-s1">self</span>.<span class="pl-c1">anchors</span>[<span class="pl-s1">self</span>.<span class="pl-c1">target</span>]
+        <span class="pl-s1">low</span> <span class="pl-c1">=</span> <span class="pl-s1">torch</span>.<span class="pl-c1">einsum</span>(<span class="pl-s">'erd,ed-&gt;er'</span>, <span class="pl-s1">self</span>.<span class="pl-c1">right</span>[<span class="pl-s1">self</span>.<span class="pl-c1">types</span>], <span class="pl-s1">diff</span>)
+        <span class="pl-k">return</span> <span class="pl-s1">diff</span> <span class="pl-c1">+</span> <span class="pl-s1">torch</span>.<span class="pl-c1">einsum</span>(<span class="pl-s">'edr,er-&gt;ed'</span>, <span class="pl-s1">self</span>.<span class="pl-c1">left</span>[<span class="pl-s1">self</span>.<span class="pl-c1">types</span>], <span class="pl-s1">low</span>)
+
+    <span class="pl-k">def</span> <span class="pl-en">forward</span>(<span class="pl-s1">self</span>, <span class="pl-s1">edges</span>):
+        <span class="pl-s1">msg</span> <span class="pl-c1">=</span> <span class="pl-s1">self</span>.<span class="pl-c1">messages</span>() <span class="pl-c1">*</span> (<span class="pl-s1">edges</span> <span class="pl-c1">/</span> <span class="pl-s1">self</span>.<span class="pl-c1">degree</span>)[:, <span class="pl-c1">None</span>]
+        <span class="pl-c"># Dense incidence avoids CUDA scatter nondeterminism for this small graph.</span>
+        <span class="pl-s1">incidence</span> <span class="pl-c1">=</span> <span class="pl-c1">F</span>.<span class="pl-c1">one_hot</span>(<span class="pl-s1">self</span>.<span class="pl-c1">target</span>, <span class="pl-en">len</span>(<span class="pl-s1">self</span>.<span class="pl-c1">anchors</span>)).<span class="pl-c1">to</span>(<span class="pl-s1">msg</span>.<span class="pl-c1">dtype</span>).<span class="pl-c1">T</span>
+        <span class="pl-k">return</span> <span class="pl-en">unit</span>(<span class="pl-s1">self</span>.<span class="pl-c1">anchors</span> <span class="pl-c1">+</span> <span class="pl-s1">self</span>.<span class="pl-c1">eta</span> <span class="pl-c1">*</span> (<span class="pl-s1">incidence</span> @ <span class="pl-s1">msg</span>))
+
+    <span class="pl-k">def</span> <span class="pl-en">regularizer</span>(<span class="pl-s1">self</span>):
+        <span class="pl-s1">delta</span> <span class="pl-c1">=</span> <span class="pl-s1">self</span>.<span class="pl-c1">left</span> @ <span class="pl-s1">self</span>.<span class="pl-c1">right</span>
+        <span class="pl-k">return</span> <span class="pl-s1">delta</span>.<span class="pl-c1">square</span>().<span class="pl-c1">sum</span>() <span class="pl-c1">/</span> <span class="pl-s1">self</span>.<span class="pl-c1">anchors</span>.<span class="pl-c1">shape</span>[<span class="pl-c1">1</span>] <span class="pl-c1">**</span> <span class="pl-c1">2</span>
+
+<span class="pl-k">class</span> <span class="pl-v">TrustCPF</span>(<span class="pl-s1">nn</span>.<span class="pl-c1">Module</span>):
+    <span class="pl-k">def</span> <span class="pl-en">__init__</span>(<span class="pl-s1">self</span>, <span class="pl-s1">text</span>, <span class="pl-s1">bank</span>, <span class="pl-s1">cfg</span>):
+        <span class="pl-en">super</span>().<span class="pl-c1">__init__</span>()
+        <span class="pl-k">for</span> <span class="pl-s1">k</span> <span class="pl-c1">in</span> (<span class="pl-s">'ea'</span>, <span class="pl-s">'eo'</span>, <span class="pl-s">'ec'</span>):
+            <span class="pl-s1">self</span>.<span class="pl-c1">register_buffer</span>(<span class="pl-s1">k</span>, <span class="pl-s1">text</span>[<span class="pl-s1">k</span>].<span class="pl-c1">clone</span>())
+        <span class="pl-s1">d</span> <span class="pl-c1">=</span> <span class="pl-s1">text</span>[<span class="pl-s">'ea'</span>].<span class="pl-c1">shape</span>[<span class="pl-c1">1</span>]
+        <span class="pl-s1">self</span>.<span class="pl-c1">na</span>, <span class="pl-s1">self</span>.<span class="pl-c1">no</span> <span class="pl-c1">=</span> <span class="pl-en">len</span>(<span class="pl-s1">text</span>[<span class="pl-s">'ea'</span>]), <span class="pl-en">len</span>(<span class="pl-s1">text</span>[<span class="pl-s">'eo'</span>])
+        <span class="pl-s1">self</span>.<span class="pl-c1">cfg</span> <span class="pl-c1">=</span> <span class="pl-s1">cfg</span>
+        <span class="pl-s1">gcfg</span><span class="pl-c1">=</span><span class="pl-en">read_json</span>(<span class="pl-c1">ROOT</span><span class="pl-c1">/</span><span class="pl-s">'initial/g0_seed3351_protocol.json'</span>)[<span class="pl-s">'config'</span>].<span class="pl-c1">copy</span>()
+        <span class="pl-s1">gcfg</span>.<span class="pl-c1">update</span>(<span class="pl-s1">rank</span><span class="pl-c1">=</span><span class="pl-s1">cfg</span>.<span class="pl-c1">get</span>(<span class="pl-s">'backbone_rank'</span>,<span class="pl-en">min</span>(<span class="pl-c1">32</span>,<span class="pl-s1">d</span>)),<span class="pl-s1">adapter_rank</span><span class="pl-c1">=</span><span class="pl-s1">cfg</span>.<span class="pl-c1">get</span>(<span class="pl-s">'backbone_adapter_rank'</span>,<span class="pl-en">min</span>(<span class="pl-c1">8</span>,<span class="pl-s1">d</span>)))
+        <span class="pl-s1">self</span>.<span class="pl-c1">backbone</span><span class="pl-c1">=</span><span class="pl-en">VGCPOD</span>(<span class="pl-s1">text</span>[<span class="pl-s">'ea'</span>],<span class="pl-s1">text</span>[<span class="pl-s">'eo'</span>],<span class="pl-s1">text</span>[<span class="pl-s">'ec'</span>],<span class="pl-s1">gcfg</span>,<span class="pl-s1">cfg</span>.<span class="pl-c1">get</span>(<span class="pl-s">'seed'</span>,<span class="pl-c1">3351</span>))
+        <span class="pl-s1">self</span>.<span class="pl-c1">backbone</span>.<span class="pl-c1">requires_grad_</span>(<span class="pl-c1">False</span>)
+        <span class="pl-s1">self</span>.<span class="pl-c1">graph</span> <span class="pl-c1">=</span> <span class="pl-en">TypedGraph</span>(<span class="pl-s1">bank</span>, <span class="pl-s1">cfg</span>.<span class="pl-c1">get</span>(<span class="pl-s">'message_rank'</span>, <span class="pl-c1">16</span>), <span class="pl-s1">cfg</span>.<span class="pl-c1">get</span>(<span class="pl-s">'eta'</span>, <span class="pl-c1">.1</span>))
+        <span class="pl-s1">r</span> <span class="pl-c1">=</span> <span class="pl-s1">cfg</span>.<span class="pl-c1">get</span>(<span class="pl-s">'rank'</span>, <span class="pl-c1">64</span>)
+        <span class="pl-s1">self</span>.<span class="pl-c1">pv</span> <span class="pl-c1">=</span> <span class="pl-s1">nn</span>.<span class="pl-c1">Linear</span>(<span class="pl-s1">d</span>, <span class="pl-s1">r</span>, <span class="pl-s1">bias</span><span class="pl-c1">=</span><span class="pl-c1">False</span>)
+        <span class="pl-s1">self</span>.<span class="pl-c1">po</span> <span class="pl-c1">=</span> <span class="pl-s1">nn</span>.<span class="pl-c1">Linear</span>(<span class="pl-s1">d</span>, <span class="pl-s1">r</span>, <span class="pl-s1">bias</span><span class="pl-c1">=</span><span class="pl-c1">False</span>)
+        <span class="pl-s1">self</span>.<span class="pl-c1">pa</span> <span class="pl-c1">=</span> <span class="pl-s1">nn</span>.<span class="pl-c1">Linear</span>(<span class="pl-s1">d</span>, <span class="pl-s1">r</span>, <span class="pl-s1">bias</span><span class="pl-c1">=</span><span class="pl-c1">False</span>)
+
+    <span class="pl-k">def</span> <span class="pl-en">base</span>(<span class="pl-s1">self</span>, <span class="pl-s1">g</span>, <span class="pl-s1">fa</span>, <span class="pl-s1">fo</span>):
+        <span class="pl-s1">out</span><span class="pl-c1">=</span><span class="pl-s1">self</span>.<span class="pl-c1">backbone</span>(<span class="pl-s1">g</span>,<span class="pl-s1">fa</span>,<span class="pl-s1">fo</span>)
+        <span class="pl-k">return</span> {<span class="pl-s">'g'</span>:<span class="pl-s1">g</span>,<span class="pl-s">'obj'</span>:<span class="pl-s1">out</span>[<span class="pl-s">'obj'</span>],<span class="pl-s">'cond'</span>:<span class="pl-s1">out</span>[<span class="pl-s">'cond'</span>],
+                <span class="pl-s">'context'</span>:<span class="pl-en">unit</span>(<span class="pl-en">unit</span>(<span class="pl-s1">g</span>)[:,<span class="pl-c1">None</span>,:]<span class="pl-c1">+</span><span class="pl-s1">self</span>.<span class="pl-c1">cfg</span>.<span class="pl-c1">get</span>(<span class="pl-s">'object_context'</span>,<span class="pl-c1">.5</span>)<span class="pl-c1">*</span><span class="pl-en">unit</span>(<span class="pl-s1">fo</span>))}
+
+    <span class="pl-k">def</span> <span class="pl-en">score</span>(<span class="pl-s1">self</span>, <span class="pl-s1">base</span>, <span class="pl-s1">edges</span>, <span class="pl-s1">capacity</span><span class="pl-c1">=</span><span class="pl-c1">False</span>):
+        <span class="pl-s1">anchors</span> <span class="pl-c1">=</span> <span class="pl-s1">self</span>.<span class="pl-c1">graph</span>.<span class="pl-c1">anchors</span>
+        <span class="pl-s1">z</span> <span class="pl-c1">=</span> <span class="pl-s1">self</span>.<span class="pl-c1">graph</span>(<span class="pl-s1">edges</span>) <span class="pl-k">if</span> <span class="pl-s1">torch</span>.<span class="pl-c1">count_nonzero</span>(<span class="pl-s1">edges</span>) <span class="pl-k">else</span> <span class="pl-s1">anchors</span>
+        <span class="pl-s1">ao</span>, <span class="pl-s1">aa</span> <span class="pl-c1">=</span> <span class="pl-s1">anchors</span>[<span class="pl-s1">self</span>.<span class="pl-c1">na</span>:], <span class="pl-s1">anchors</span>[:<span class="pl-s1">self</span>.<span class="pl-c1">na</span>]
+        <span class="pl-s1">zo</span>, <span class="pl-s1">za</span> <span class="pl-c1">=</span> <span class="pl-s1">z</span>[<span class="pl-s1">self</span>.<span class="pl-c1">na</span>:], <span class="pl-s1">z</span>[:<span class="pl-s1">self</span>.<span class="pl-c1">na</span>]
+        <span class="pl-s1">qx</span> <span class="pl-c1">=</span> <span class="pl-en">unit</span>(<span class="pl-s1">self</span>.<span class="pl-c1">pv</span>(<span class="pl-s1">base</span>[<span class="pl-s">'context'</span>]))
+        <span class="pl-k">def</span> <span class="pl-en">tri</span>(<span class="pl-s1">o</span>, <span class="pl-s1">a</span>):
+            <span class="pl-k">return</span> <span class="pl-s1">torch</span>.<span class="pl-c1">einsum</span>(<span class="pl-s">'bor,or,ar-&gt;boa'</span>, <span class="pl-s1">qx</span>, <span class="pl-en">unit</span>(<span class="pl-s1">self</span>.<span class="pl-c1">po</span>(<span class="pl-s1">o</span>)), <span class="pl-en">unit</span>(<span class="pl-s1">self</span>.<span class="pl-c1">pa</span>(<span class="pl-s1">a</span>)))
+        <span class="pl-s1">delta_o</span> <span class="pl-c1">=</span> <span class="pl-s1">base</span>[<span class="pl-s">'g'</span>] @ (<span class="pl-s1">zo</span> <span class="pl-c1">-</span> <span class="pl-s1">ao</span>).<span class="pl-c1">T</span>
+        <span class="pl-s1">delta_u</span> <span class="pl-c1">=</span> <span class="pl-en">tri</span>(<span class="pl-s1">zo</span>, <span class="pl-s1">za</span>) <span class="pl-c1">-</span> <span class="pl-en">tri</span>(<span class="pl-s1">ao</span>, <span class="pl-s1">aa</span>)
+        <span class="pl-k">if</span> <span class="pl-s1">capacity</span>:
+            <span class="pl-c"># Same effective projection matrices; no relation attachment is used.</span>
+            <span class="pl-s1">o</span> <span class="pl-c1">=</span> <span class="pl-en">unit</span>(<span class="pl-s1">ao</span> <span class="pl-c1">+</span> <span class="pl-c1">.1</span> <span class="pl-c1">*</span> ((<span class="pl-s1">ao</span> @ <span class="pl-s1">self</span>.<span class="pl-c1">graph</span>.<span class="pl-c1">right</span>[<span class="pl-c1">0</span>].<span class="pl-c1">T</span>) @ <span class="pl-s1">self</span>.<span class="pl-c1">graph</span>.<span class="pl-c1">left</span>[<span class="pl-c1">0</span>].<span class="pl-c1">T</span>))
+            <span class="pl-s1">a</span> <span class="pl-c1">=</span> <span class="pl-en">unit</span>(<span class="pl-s1">aa</span> <span class="pl-c1">+</span> <span class="pl-c1">.1</span> <span class="pl-c1">*</span> ((<span class="pl-s1">aa</span> @ <span class="pl-s1">self</span>.<span class="pl-c1">graph</span>.<span class="pl-c1">right</span>[<span class="pl-c1">1</span>].<span class="pl-c1">T</span>) @ <span class="pl-s1">self</span>.<span class="pl-c1">graph</span>.<span class="pl-c1">left</span>[<span class="pl-c1">1</span>].<span class="pl-c1">T</span>
+                            <span class="pl-c1">+</span> (<span class="pl-s1">aa</span> @ <span class="pl-s1">self</span>.<span class="pl-c1">graph</span>.<span class="pl-c1">right</span>[<span class="pl-c1">2</span>].<span class="pl-c1">T</span>) @ <span class="pl-s1">self</span>.<span class="pl-c1">graph</span>.<span class="pl-c1">left</span>[<span class="pl-c1">2</span>].<span class="pl-c1">T</span>))
+            <span class="pl-s1">delta_o</span> <span class="pl-c1">=</span> <span class="pl-s1">base</span>[<span class="pl-s">'g'</span>] @ (<span class="pl-s1">o</span> <span class="pl-c1">-</span> <span class="pl-s1">ao</span>).<span class="pl-c1">T</span>
+            <span class="pl-s1">delta_u</span> <span class="pl-c1">=</span> <span class="pl-en">tri</span>(<span class="pl-s1">o</span>, <span class="pl-s1">a</span>)  <span class="pl-c"># generic trainable three-way head</span>
+        <span class="pl-s1">gain</span> <span class="pl-c1">=</span> <span class="pl-s1">self</span>.<span class="pl-c1">cfg</span>.<span class="pl-c1">get</span>(<span class="pl-s">'alpha'</span>, <span class="pl-c1">.1</span>) <span class="pl-c1">/</span> <span class="pl-s1">self</span>.<span class="pl-c1">cfg</span>.<span class="pl-c1">get</span>(<span class="pl-s">'tg'</span>, <span class="pl-c1">.1</span>)
+        <span class="pl-s1">obj</span> <span class="pl-c1">=</span> <span class="pl-s1">base</span>[<span class="pl-s">'obj'</span>] <span class="pl-c1">+</span> <span class="pl-s1">gain</span> <span class="pl-c1">*</span> <span class="pl-s1">delta_o</span>
+        <span class="pl-s1">conditional</span> <span class="pl-c1">=</span> <span class="pl-s1">base</span>[<span class="pl-s">'cond'</span>] <span class="pl-c1">+</span> <span class="pl-s1">gain</span> <span class="pl-c1">*</span> <span class="pl-s1">delta_u</span>
+        <span class="pl-s1">lo</span>, <span class="pl-s1">lc</span> <span class="pl-c1">=</span> <span class="pl-s1">obj</span>.<span class="pl-c1">log_softmax</span>(<span class="pl-c1">-</span><span class="pl-c1">1</span>), <span class="pl-s1">conditional</span>.<span class="pl-c1">log_softmax</span>(<span class="pl-c1">-</span><span class="pl-c1">1</span>)
+        <span class="pl-k">return</span> <span class="pl-s1">lo</span>[:, :, <span class="pl-c1">None</span>] <span class="pl-c1">+</span> <span class="pl-s1">lc</span>, <span class="pl-s1">lo</span>, <span class="pl-s1">lc</span>
+
+    <span class="pl-k">def</span> <span class="pl-en">forward</span>(<span class="pl-s1">self</span>, <span class="pl-s1">g</span>, <span class="pl-s1">fa</span>, <span class="pl-s1">fo</span>, <span class="pl-s1">edges</span>, <span class="pl-s1">capacity</span><span class="pl-c1">=</span><span class="pl-c1">False</span>):
+        <span class="pl-k">return</span> <span class="pl-s1">self</span>.<span class="pl-c1">score</span>(<span class="pl-s1">self</span>.<span class="pl-c1">base</span>(<span class="pl-s1">g</span>, <span class="pl-s1">fa</span>, <span class="pl-s1">fo</span>), <span class="pl-s1">edges</span>, <span class="pl-s1">capacity</span>)
+
+<span class="pl-k">def</span> <span class="pl-en">task_loss</span>(<span class="pl-s1">joint</span>, <span class="pl-s1">lo</span>, <span class="pl-s1">lc</span>, <span class="pl-s1">attrs</span>, <span class="pl-s1">objs</span>, <span class="pl-s1">candidates</span>):
+    <span class="pl-s1">flat</span> <span class="pl-c1">=</span> <span class="pl-s1">joint</span>.<span class="pl-c1">flatten</span>(<span class="pl-c1">1</span>)
+    <span class="pl-s1">target</span> <span class="pl-c1">=</span> <span class="pl-s1">objs</span> <span class="pl-c1">*</span> <span class="pl-s1">joint</span>.<span class="pl-c1">shape</span>[<span class="pl-c1">2</span>] <span class="pl-c1">+</span> <span class="pl-s1">attrs</span>
+    <span class="pl-s1">lp</span> <span class="pl-c1">=</span> <span class="pl-c1">-</span><span class="pl-s1">flat</span>.<span class="pl-c1">gather</span>(<span class="pl-c1">1</span>, <span class="pl-s1">target</span>[:, <span class="pl-c1">None</span>]).<span class="pl-c1">mean</span>() <span class="pl-c1">+</span> <span class="pl-s1">flat</span>[:, <span class="pl-s1">candidates</span>].<span class="pl-c1">logsumexp</span>(<span class="pl-c1">-</span><span class="pl-c1">1</span>).<span class="pl-c1">mean</span>()
+    <span class="pl-s1">rows</span> <span class="pl-c1">=</span> <span class="pl-s1">torch</span>.<span class="pl-c1">arange</span>(<span class="pl-en">len</span>(<span class="pl-s1">attrs</span>), <span class="pl-s1">device</span><span class="pl-c1">=</span><span class="pl-s1">attrs</span>.<span class="pl-c1">device</span>)
+    <span class="pl-k">return</span> <span class="pl-c1">1.5</span><span class="pl-c1">/</span><span class="pl-c1">1.075</span><span class="pl-c1">*</span>(<span class="pl-s1">lp</span><span class="pl-c1">+</span><span class="pl-c1">.075</span><span class="pl-c1">*</span>(<span class="pl-c1">F</span>.<span class="pl-c1">nll_loss</span>(<span class="pl-s1">lo</span>,<span class="pl-s1">objs</span>)<span class="pl-c1">+</span><span class="pl-c1">F</span>.<span class="pl-c1">nll_loss</span>(<span class="pl-s1">lc</span>[<span class="pl-s1">rows</span>,<span class="pl-s1">objs</span>],<span class="pl-s1">attrs</span>)))
+
+<span class="pl-k">def</span> <span class="pl-en">task_logit_gradients</span>(<span class="pl-s1">obj_logits</span>, <span class="pl-s1">conditional_logits</span>, <span class="pl-s1">attrs</span>, <span class="pl-s1">objs</span>, <span class="pl-s1">candidates</span>):
+    <span class="pl-s">"""Analytic task-loss derivatives; used to verify the autograd implementation."""</span>
+    <span class="pl-s1">po</span>,<span class="pl-s1">pc</span><span class="pl-c1">=</span><span class="pl-s1">obj_logits</span>.<span class="pl-c1">softmax</span>(<span class="pl-c1">-</span><span class="pl-c1">1</span>),<span class="pl-s1">conditional_logits</span>.<span class="pl-c1">softmax</span>(<span class="pl-c1">-</span><span class="pl-c1">1</span>)
+    <span class="pl-s1">joint</span><span class="pl-c1">=</span><span class="pl-s1">obj_logits</span>.<span class="pl-c1">log_softmax</span>(<span class="pl-c1">-</span><span class="pl-c1">1</span>)[:,:,<span class="pl-c1">None</span>]<span class="pl-c1">+</span><span class="pl-s1">conditional_logits</span>.<span class="pl-c1">log_softmax</span>(<span class="pl-c1">-</span><span class="pl-c1">1</span>)
+    <span class="pl-s1">h</span><span class="pl-c1">=</span><span class="pl-s1">torch</span>.<span class="pl-c1">zeros_like</span>(<span class="pl-s1">joint</span>).<span class="pl-c1">flatten</span>(<span class="pl-c1">1</span>)
+    <span class="pl-s1">h</span>[:,<span class="pl-s1">candidates</span>]<span class="pl-c1">=</span><span class="pl-en">candidate_logprob</span>(<span class="pl-s1">joint</span>,<span class="pl-s1">candidates</span>).<span class="pl-c1">exp</span>()
+    <span class="pl-s1">row</span><span class="pl-c1">=</span><span class="pl-s1">torch</span>.<span class="pl-c1">arange</span>(<span class="pl-en">len</span>(<span class="pl-s1">attrs</span>),<span class="pl-s1">device</span><span class="pl-c1">=</span><span class="pl-s1">attrs</span>.<span class="pl-c1">device</span>)
+    <span class="pl-s1">h</span>[<span class="pl-s1">row</span>,<span class="pl-s1">objs</span><span class="pl-c1">*</span><span class="pl-s1">joint</span>.<span class="pl-c1">shape</span>[<span class="pl-c1">2</span>]<span class="pl-c1">+</span><span class="pl-s1">attrs</span>]<span class="pl-c1">-=</span><span class="pl-c1">1</span>
+    <span class="pl-s1">h</span><span class="pl-c1">=</span><span class="pl-s1">h</span>.<span class="pl-c1">reshape_as</span>(<span class="pl-s1">joint</span>); <span class="pl-s1">by_object</span><span class="pl-c1">=</span><span class="pl-s1">h</span>.<span class="pl-c1">sum</span>(<span class="pl-c1">-</span><span class="pl-c1">1</span>)
+    <span class="pl-s1">go</span><span class="pl-c1">=</span><span class="pl-s1">by_object</span><span class="pl-c1">+</span><span class="pl-c1">.075</span><span class="pl-c1">*</span><span class="pl-s1">po</span>
+    <span class="pl-s1">go</span>[<span class="pl-s1">row</span>,<span class="pl-s1">objs</span>]<span class="pl-c1">-=</span><span class="pl-c1">.075</span>
+    <span class="pl-s1">gu</span><span class="pl-c1">=</span><span class="pl-s1">h</span><span class="pl-c1">-</span><span class="pl-s1">pc</span><span class="pl-c1">*</span><span class="pl-s1">by_object</span>[:,:,<span class="pl-c1">None</span>]
+    <span class="pl-s1">gu</span>[<span class="pl-s1">row</span>,<span class="pl-s1">objs</span>]<span class="pl-c1">+=</span><span class="pl-c1">.075</span><span class="pl-c1">*</span><span class="pl-s1">pc</span>[<span class="pl-s1">row</span>,<span class="pl-s1">objs</span>]
+    <span class="pl-s1">gu</span>[<span class="pl-s1">row</span>,<span class="pl-s1">objs</span>,<span class="pl-s1">attrs</span>]<span class="pl-c1">-=</span><span class="pl-c1">.075</span>
+    <span class="pl-k">return</span> <span class="pl-c1">1.5</span><span class="pl-c1">/</span><span class="pl-c1">1.075</span><span class="pl-c1">*</span><span class="pl-s1">go</span><span class="pl-c1">/</span><span class="pl-en">len</span>(<span class="pl-s1">attrs</span>),<span class="pl-c1">1.5</span><span class="pl-c1">/</span><span class="pl-c1">1.075</span><span class="pl-c1">*</span><span class="pl-s1">gu</span><span class="pl-c1">/</span><span class="pl-en">len</span>(<span class="pl-s1">attrs</span>)
+
+<span class="pl-k">def</span> <span class="pl-en">average_graphs</span>(<span class="pl-s1">model</span>, <span class="pl-s1">batch</span>, <span class="pl-s1">pi</span>, <span class="pl-s1">candidates</span>, <span class="pl-s1">count</span><span class="pl-c1">=</span><span class="pl-c1">16</span>, <span class="pl-s1">seed</span><span class="pl-c1">=</span><span class="pl-c1">1701</span>, <span class="pl-s1">mode</span><span class="pl-c1">=</span><span class="pl-s">'probability'</span>, <span class="pl-s1">capacity</span><span class="pl-c1">=</span><span class="pl-c1">False</span>, <span class="pl-s1">return_joint</span><span class="pl-c1">=</span><span class="pl-c1">False</span>):
+    <span class="pl-s1">base</span> <span class="pl-c1">=</span> <span class="pl-s1">model</span>.<span class="pl-c1">base</span>(<span class="pl-c1">*</span><span class="pl-s1">batch</span>)
+    <span class="pl-s1">gen</span> <span class="pl-c1">=</span> <span class="pl-s1">torch</span>.<span class="pl-c1">Generator</span>(<span class="pl-s1">device</span><span class="pl-c1">=</span><span class="pl-s1">pi</span>.<span class="pl-c1">device</span>).<span class="pl-c1">manual_seed</span>(<span class="pl-s1">seed</span>)
+    <span class="pl-s1">outputs</span> <span class="pl-c1">=</span> []
+    <span class="pl-k">for</span> <span class="pl-s1">_</span> <span class="pl-c1">in</span> <span class="pl-en">range</span>(<span class="pl-s1">count</span>):
+        <span class="pl-s1">edges</span> <span class="pl-c1">=</span> <span class="pl-s1">pi</span> <span class="pl-k">if</span> <span class="pl-s1">mode</span> <span class="pl-c1">==</span> <span class="pl-s">'mean_graph'</span> <span class="pl-k">else</span> (<span class="pl-s1">torch</span>.<span class="pl-c1">rand</span>(<span class="pl-s1">pi</span>.<span class="pl-c1">shape</span>, <span class="pl-s1">generator</span><span class="pl-c1">=</span><span class="pl-s1">gen</span>, <span class="pl-s1">device</span><span class="pl-c1">=</span><span class="pl-s1">pi</span>.<span class="pl-c1">device</span>) <span class="pl-c1">&lt;</span> <span class="pl-s1">pi</span>).<span class="pl-c1">float</span>()
+        <span class="pl-s1">outputs</span>.<span class="pl-c1">append</span>(<span class="pl-s1">model</span>.<span class="pl-c1">score</span>(<span class="pl-s1">base</span>, <span class="pl-s1">edges</span>, <span class="pl-s1">capacity</span>)[<span class="pl-c1">0</span>])
+    <span class="pl-s1">stack</span> <span class="pl-c1">=</span> <span class="pl-s1">torch</span>.<span class="pl-c1">stack</span>(<span class="pl-s1">outputs</span>)
+    <span class="pl-k">if</span> <span class="pl-s1">mode</span> <span class="pl-c1">in</span> (<span class="pl-s">'mean_graph'</span>, <span class="pl-s">'mean_logit'</span>):
+        <span class="pl-s1">logs</span> <span class="pl-c1">=</span> <span class="pl-en">candidate_logprob</span>(<span class="pl-s1">stack</span>.<span class="pl-c1">mean</span>(<span class="pl-c1">0</span>), <span class="pl-s1">candidates</span>)
+    <span class="pl-k">else</span>:
+        <span class="pl-s1">logs</span> <span class="pl-c1">=</span> <span class="pl-s1">torch</span>.<span class="pl-c1">stack</span>([<span class="pl-en">candidate_logprob</span>(<span class="pl-s1">j</span>, <span class="pl-s1">candidates</span>) <span class="pl-k">for</span> <span class="pl-s1">j</span> <span class="pl-c1">in</span> <span class="pl-s1">outputs</span>]).<span class="pl-c1">logsumexp</span>(<span class="pl-c1">0</span>) <span class="pl-c1">-</span> <span class="pl-s1">torch</span>.<span class="pl-c1">log</span>(<span class="pl-s1">pi</span>.<span class="pl-c1">new_tensor</span>(<span class="pl-s1">count</span>))
+    <span class="pl-s1">probs</span> <span class="pl-c1">=</span> <span class="pl-s1">torch</span>.<span class="pl-c1">stack</span>([<span class="pl-en">candidate_logprob</span>(<span class="pl-s1">j</span>, <span class="pl-s1">candidates</span>).<span class="pl-c1">exp</span>() <span class="pl-k">for</span> <span class="pl-s1">j</span> <span class="pl-c1">in</span> <span class="pl-s1">outputs</span>])
+    <span class="pl-s1">variance</span> <span class="pl-c1">=</span> (<span class="pl-s1">probs</span> <span class="pl-c1">-</span> <span class="pl-s1">probs</span>.<span class="pl-c1">mean</span>(<span class="pl-c1">0</span>)).<span class="pl-c1">square</span>().<span class="pl-c1">sum</span>(<span class="pl-c1">-</span><span class="pl-c1">1</span>).<span class="pl-c1">mean</span>(<span class="pl-c1">0</span>)
+    <span class="pl-k">if</span> <span class="pl-s1">return_joint</span>:
+        <span class="pl-s1">full</span> <span class="pl-c1">=</span> <span class="pl-s1">stack</span>.<span class="pl-c1">mean</span>(<span class="pl-c1">0</span>) <span class="pl-k">if</span> <span class="pl-s1">mode</span> <span class="pl-c1">in</span> (<span class="pl-s">'mean_graph'</span>,<span class="pl-s">'mean_logit'</span>) <span class="pl-k">else</span> <span class="pl-s1">stack</span>.<span class="pl-c1">logsumexp</span>(<span class="pl-c1">0</span>)<span class="pl-c1">-</span><span class="pl-s1">torch</span>.<span class="pl-c1">log</span>(<span class="pl-s1">pi</span>.<span class="pl-c1">new_tensor</span>(<span class="pl-s1">count</span>))
+        <span class="pl-k">return</span> <span class="pl-s1">logs</span>, <span class="pl-s1">variance</span>, <span class="pl-s1">full</span>
+    <span class="pl-k">return</span> <span class="pl-s1">logs</span>, <span class="pl-s1">variance</span></pre></div>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">2. 折内强教师初始化与训练</h2><a id="user-content-2-折内强教师初始化与训练" class="anchor" aria-label="Permalink: 2. 折内强教师初始化与训练" href="#2-折内强教师初始化与训练"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">源码：<code>trustcpf/strong.py</code></p>
+<div class="highlight highlight-source-python notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="def initialize(model,cfg):
+    if cfg.get('_cold_backbone') or cfg.get('synthetic'):
+        return
+    source=ROOT/'initial'/('g0_seed%d.pt'%cfg['seed'])
+    state=load_torch(source)
+    model.backbone.load_state_dict(state['model'])
+
+def fold_backbone(args,cfg,text,bank,manifest,pairs,out):
+    from .engine import new_model,batches,row_ids
+    from .data import mask_from_pairs
+    out=Path(out);out.mkdir(parents=True,exist_ok=True)
+    checkpoint=out/'last.pt'
+    inner_cfg=dict(cfg,_cold_backbone=True)
+    model=new_model(text,bank,inner_cfg,args.device)
+    head=model.backbone
+    head.requires_grad_(False)
+    for n in ('Bo','Co','Bc','Cc','Au','Av','Wc'):getattr(head,n).requires_grad_(True)
+    groups=[]
+    for names,scale in [(('Bo','Co','Bc','Cc'),1.),(('Au','Av','Wc'),cfg['backbone_cp_scale'])]:
+        groups.append(dict(params=[getattr(head,n) for n in names],lr=cfg['backbone_lr']*scale,
+                           initial_lr=cfg['backbone_lr']*scale))
+    opt=torch.optim.AdamW(groups,weight_decay=cfg['weight_decay'])
+    mask=mask_from_pairs(manifest['labels'],pairs).to(args.device)
+    loader=batches(args.cache,'train',cfg,row_ids(args.cache,pairs,manifest['labels']),True)
+    history=[];start=0
+    if checkpoint.exists():
+        state=load_torch(checkpoint)
+        if state['train_pairs']!=pairs:raise ValueError('Fold pair identity changed')
+        head.load_state_dict(state['model']);opt.load_state_dict(state['optimizer'])
+        start=state['epoch'];history=state['history']
+        torch.set_rng_state(state['torch_rng'])
+        if str(args.device).startswith('cuda'):torch.cuda.set_rng_state_all(state['cuda_rng'])
+    for epoch in range(start,cfg['backbone_epochs']):
+        factor=.01+.99*(1+math.cos(math.pi*epoch/max(1,cfg['backbone_epochs']-1)))/2
+        for group in opt.param_groups:group['lr']=group['initial_lr']*factor
+        losses=[]
+        for g,fa,fo,a,o in loader:
+            g,fa,fo,a,o=[x.to(args.device) for x in (g,fa,fo,a,o)]
+            loss=head.objective(head(g,fa,fo),a,o,mask)['total']
+            opt.zero_grad();loss.backward();torch.nn.utils.clip_grad_norm_(head.parameters(),cfg['gradient_clip']);opt.step()
+            losses.append(float(loss.detach()))
+        history.append(dict(epoch=epoch+1,loss=float(np.mean(losses))))
+        save_torch(checkpoint,dict(model=head.state_dict(),optimizer=opt.state_dict(),epoch=epoch+1,
+            history=history,train_pairs=pairs,initialization='fresh_G0_architecture',torch_rng=torch.get_rng_state(),
+            cuda_rng=torch.cuda.get_rng_state_all() if str(args.device).startswith('cuda') else None))
+        write_json(out/'history.json',history)
+        print('FOLD_BACKBONE',out.parent.name,epoch+1,history[-1]['loss'],flush=True)
+    model.backbone.requires_grad_(False)
+    wrapper=out/'trust_initial.pt'
+    save_torch(wrapper,dict(model=model.state_dict(),train_pairs=pairs,base_source=sha(checkpoint)))
+    return wrapper"><pre><span class="pl-k">def</span> <span class="pl-en">initialize</span>(<span class="pl-s1">model</span>,<span class="pl-s1">cfg</span>):
+    <span class="pl-k">if</span> <span class="pl-s1">cfg</span>.<span class="pl-c1">get</span>(<span class="pl-s">'_cold_backbone'</span>) <span class="pl-c1">or</span> <span class="pl-s1">cfg</span>.<span class="pl-c1">get</span>(<span class="pl-s">'synthetic'</span>):
+        <span class="pl-k">return</span>
+    <span class="pl-s1">source</span><span class="pl-c1">=</span><span class="pl-c1">ROOT</span><span class="pl-c1">/</span><span class="pl-s">'initial'</span><span class="pl-c1">/</span>(<span class="pl-s">'g0_seed%d.pt'</span><span class="pl-c1">%</span><span class="pl-s1">cfg</span>[<span class="pl-s">'seed'</span>])
+    <span class="pl-s1">state</span><span class="pl-c1">=</span><span class="pl-en">load_torch</span>(<span class="pl-s1">source</span>)
+    <span class="pl-s1">model</span>.<span class="pl-c1">backbone</span>.<span class="pl-c1">load_state_dict</span>(<span class="pl-s1">state</span>[<span class="pl-s">'model'</span>])
+
+<span class="pl-k">def</span> <span class="pl-en">fold_backbone</span>(<span class="pl-s1">args</span>,<span class="pl-s1">cfg</span>,<span class="pl-s1">text</span>,<span class="pl-s1">bank</span>,<span class="pl-s1">manifest</span>,<span class="pl-s1">pairs</span>,<span class="pl-s1">out</span>):
+    <span class="pl-k">from</span> .<span class="pl-s1">engine</span> <span class="pl-k">import</span> <span class="pl-s1">new_model</span>,<span class="pl-s1">batches</span>,<span class="pl-s1">row_ids</span>
+    <span class="pl-k">from</span> .<span class="pl-s1">data</span> <span class="pl-k">import</span> <span class="pl-s1">mask_from_pairs</span>
+    <span class="pl-s1">out</span><span class="pl-c1">=</span><span class="pl-en">Path</span>(<span class="pl-s1">out</span>);<span class="pl-s1">out</span>.<span class="pl-c1">mkdir</span>(<span class="pl-s1">parents</span><span class="pl-c1">=</span><span class="pl-c1">True</span>,<span class="pl-s1">exist_ok</span><span class="pl-c1">=</span><span class="pl-c1">True</span>)
+    <span class="pl-s1">checkpoint</span><span class="pl-c1">=</span><span class="pl-s1">out</span><span class="pl-c1">/</span><span class="pl-s">'last.pt'</span>
+    <span class="pl-s1">inner_cfg</span><span class="pl-c1">=</span><span class="pl-en">dict</span>(<span class="pl-s1">cfg</span>,<span class="pl-s1">_cold_backbone</span><span class="pl-c1">=</span><span class="pl-c1">True</span>)
+    <span class="pl-s1">model</span><span class="pl-c1">=</span><span class="pl-en">new_model</span>(<span class="pl-s1">text</span>,<span class="pl-s1">bank</span>,<span class="pl-s1">inner_cfg</span>,<span class="pl-s1">args</span>.<span class="pl-c1">device</span>)
+    <span class="pl-s1">head</span><span class="pl-c1">=</span><span class="pl-s1">model</span>.<span class="pl-c1">backbone</span>
+    <span class="pl-s1">head</span>.<span class="pl-c1">requires_grad_</span>(<span class="pl-c1">False</span>)
+    <span class="pl-k">for</span> <span class="pl-s1">n</span> <span class="pl-c1">in</span> (<span class="pl-s">'Bo'</span>,<span class="pl-s">'Co'</span>,<span class="pl-s">'Bc'</span>,<span class="pl-s">'Cc'</span>,<span class="pl-s">'Au'</span>,<span class="pl-s">'Av'</span>,<span class="pl-s">'Wc'</span>):<span class="pl-en">getattr</span>(<span class="pl-s1">head</span>,<span class="pl-s1">n</span>).<span class="pl-c1">requires_grad_</span>(<span class="pl-c1">True</span>)
+    <span class="pl-s1">groups</span><span class="pl-c1">=</span>[]
+    <span class="pl-k">for</span> <span class="pl-s1">names</span>,<span class="pl-s1">scale</span> <span class="pl-c1">in</span> [((<span class="pl-s">'Bo'</span>,<span class="pl-s">'Co'</span>,<span class="pl-s">'Bc'</span>,<span class="pl-s">'Cc'</span>),<span class="pl-c1">1.</span>),((<span class="pl-s">'Au'</span>,<span class="pl-s">'Av'</span>,<span class="pl-s">'Wc'</span>),<span class="pl-s1">cfg</span>[<span class="pl-s">'backbone_cp_scale'</span>])]:
+        <span class="pl-s1">groups</span>.<span class="pl-c1">append</span>(<span class="pl-en">dict</span>(<span class="pl-s1">params</span><span class="pl-c1">=</span>[<span class="pl-en">getattr</span>(<span class="pl-s1">head</span>,<span class="pl-s1">n</span>) <span class="pl-k">for</span> <span class="pl-s1">n</span> <span class="pl-c1">in</span> <span class="pl-s1">names</span>],<span class="pl-s1">lr</span><span class="pl-c1">=</span><span class="pl-s1">cfg</span>[<span class="pl-s">'backbone_lr'</span>]<span class="pl-c1">*</span><span class="pl-s1">scale</span>,
+                           <span class="pl-s1">initial_lr</span><span class="pl-c1">=</span><span class="pl-s1">cfg</span>[<span class="pl-s">'backbone_lr'</span>]<span class="pl-c1">*</span><span class="pl-s1">scale</span>))
+    <span class="pl-s1">opt</span><span class="pl-c1">=</span><span class="pl-s1">torch</span>.<span class="pl-c1">optim</span>.<span class="pl-c1">AdamW</span>(<span class="pl-s1">groups</span>,<span class="pl-s1">weight_decay</span><span class="pl-c1">=</span><span class="pl-s1">cfg</span>[<span class="pl-s">'weight_decay'</span>])
+    <span class="pl-s1">mask</span><span class="pl-c1">=</span><span class="pl-en">mask_from_pairs</span>(<span class="pl-s1">manifest</span>[<span class="pl-s">'labels'</span>],<span class="pl-s1">pairs</span>).<span class="pl-c1">to</span>(<span class="pl-s1">args</span>.<span class="pl-c1">device</span>)
+    <span class="pl-s1">loader</span><span class="pl-c1">=</span><span class="pl-en">batches</span>(<span class="pl-s1">args</span>.<span class="pl-c1">cache</span>,<span class="pl-s">'train'</span>,<span class="pl-s1">cfg</span>,<span class="pl-en">row_ids</span>(<span class="pl-s1">args</span>.<span class="pl-c1">cache</span>,<span class="pl-s1">pairs</span>,<span class="pl-s1">manifest</span>[<span class="pl-s">'labels'</span>]),<span class="pl-c1">True</span>)
+    <span class="pl-s1">history</span><span class="pl-c1">=</span>[];<span class="pl-s1">start</span><span class="pl-c1">=</span><span class="pl-c1">0</span>
+    <span class="pl-k">if</span> <span class="pl-s1">checkpoint</span>.<span class="pl-c1">exists</span>():
+        <span class="pl-s1">state</span><span class="pl-c1">=</span><span class="pl-en">load_torch</span>(<span class="pl-s1">checkpoint</span>)
+        <span class="pl-k">if</span> <span class="pl-s1">state</span>[<span class="pl-s">'train_pairs'</span>]<span class="pl-c1">!=</span><span class="pl-s1">pairs</span>:<span class="pl-k">raise</span> <span class="pl-en">ValueError</span>(<span class="pl-s">'Fold pair identity changed'</span>)
+        <span class="pl-s1">head</span>.<span class="pl-c1">load_state_dict</span>(<span class="pl-s1">state</span>[<span class="pl-s">'model'</span>]);<span class="pl-s1">opt</span>.<span class="pl-c1">load_state_dict</span>(<span class="pl-s1">state</span>[<span class="pl-s">'optimizer'</span>])
+        <span class="pl-s1">start</span><span class="pl-c1">=</span><span class="pl-s1">state</span>[<span class="pl-s">'epoch'</span>];<span class="pl-s1">history</span><span class="pl-c1">=</span><span class="pl-s1">state</span>[<span class="pl-s">'history'</span>]
+        <span class="pl-s1">torch</span>.<span class="pl-c1">set_rng_state</span>(<span class="pl-s1">state</span>[<span class="pl-s">'torch_rng'</span>])
+        <span class="pl-k">if</span> <span class="pl-en">str</span>(<span class="pl-s1">args</span>.<span class="pl-c1">device</span>).<span class="pl-c1">startswith</span>(<span class="pl-s">'cuda'</span>):<span class="pl-s1">torch</span>.<span class="pl-c1">cuda</span>.<span class="pl-c1">set_rng_state_all</span>(<span class="pl-s1">state</span>[<span class="pl-s">'cuda_rng'</span>])
+    <span class="pl-k">for</span> <span class="pl-s1">epoch</span> <span class="pl-c1">in</span> <span class="pl-en">range</span>(<span class="pl-s1">start</span>,<span class="pl-s1">cfg</span>[<span class="pl-s">'backbone_epochs'</span>]):
+        <span class="pl-s1">factor</span><span class="pl-c1">=</span><span class="pl-c1">.01</span><span class="pl-c1">+</span><span class="pl-c1">.99</span><span class="pl-c1">*</span>(<span class="pl-c1">1</span><span class="pl-c1">+</span><span class="pl-s1">math</span>.<span class="pl-c1">cos</span>(<span class="pl-s1">math</span>.<span class="pl-c1">pi</span><span class="pl-c1">*</span><span class="pl-s1">epoch</span><span class="pl-c1">/</span><span class="pl-en">max</span>(<span class="pl-c1">1</span>,<span class="pl-s1">cfg</span>[<span class="pl-s">'backbone_epochs'</span>]<span class="pl-c1">-</span><span class="pl-c1">1</span>)))<span class="pl-c1">/</span><span class="pl-c1">2</span>
+        <span class="pl-k">for</span> <span class="pl-s1">group</span> <span class="pl-c1">in</span> <span class="pl-s1">opt</span>.<span class="pl-c1">param_groups</span>:<span class="pl-s1">group</span>[<span class="pl-s">'lr'</span>]<span class="pl-c1">=</span><span class="pl-s1">group</span>[<span class="pl-s">'initial_lr'</span>]<span class="pl-c1">*</span><span class="pl-s1">factor</span>
+        <span class="pl-s1">losses</span><span class="pl-c1">=</span>[]
+        <span class="pl-k">for</span> <span class="pl-s1">g</span>,<span class="pl-s1">fa</span>,<span class="pl-s1">fo</span>,<span class="pl-s1">a</span>,<span class="pl-s1">o</span> <span class="pl-c1">in</span> <span class="pl-s1">loader</span>:
+            <span class="pl-s1">g</span>,<span class="pl-s1">fa</span>,<span class="pl-s1">fo</span>,<span class="pl-s1">a</span>,<span class="pl-s1">o</span><span class="pl-c1">=</span>[<span class="pl-s1">x</span>.<span class="pl-c1">to</span>(<span class="pl-s1">args</span>.<span class="pl-c1">device</span>) <span class="pl-k">for</span> <span class="pl-s1">x</span> <span class="pl-c1">in</span> (<span class="pl-s1">g</span>,<span class="pl-s1">fa</span>,<span class="pl-s1">fo</span>,<span class="pl-s1">a</span>,<span class="pl-s1">o</span>)]
+            <span class="pl-s1">loss</span><span class="pl-c1">=</span><span class="pl-s1">head</span>.<span class="pl-c1">objective</span>(<span class="pl-en">head</span>(<span class="pl-s1">g</span>,<span class="pl-s1">fa</span>,<span class="pl-s1">fo</span>),<span class="pl-s1">a</span>,<span class="pl-s1">o</span>,<span class="pl-s1">mask</span>)[<span class="pl-s">'total'</span>]
+            <span class="pl-s1">opt</span>.<span class="pl-c1">zero_grad</span>();<span class="pl-s1">loss</span>.<span class="pl-c1">backward</span>();<span class="pl-s1">torch</span>.<span class="pl-c1">nn</span>.<span class="pl-c1">utils</span>.<span class="pl-c1">clip_grad_norm_</span>(<span class="pl-s1">head</span>.<span class="pl-c1">parameters</span>(),<span class="pl-s1">cfg</span>[<span class="pl-s">'gradient_clip'</span>]);<span class="pl-s1">opt</span>.<span class="pl-c1">step</span>()
+            <span class="pl-s1">losses</span>.<span class="pl-c1">append</span>(<span class="pl-en">float</span>(<span class="pl-s1">loss</span>.<span class="pl-c1">detach</span>()))
+        <span class="pl-s1">history</span>.<span class="pl-c1">append</span>(<span class="pl-en">dict</span>(<span class="pl-s1">epoch</span><span class="pl-c1">=</span><span class="pl-s1">epoch</span><span class="pl-c1">+</span><span class="pl-c1">1</span>,<span class="pl-s1">loss</span><span class="pl-c1">=</span><span class="pl-en">float</span>(<span class="pl-s1">np</span>.<span class="pl-c1">mean</span>(<span class="pl-s1">losses</span>))))
+        <span class="pl-en">save_torch</span>(<span class="pl-s1">checkpoint</span>,<span class="pl-en">dict</span>(<span class="pl-s1">model</span><span class="pl-c1">=</span><span class="pl-s1">head</span>.<span class="pl-c1">state_dict</span>(),<span class="pl-s1">optimizer</span><span class="pl-c1">=</span><span class="pl-s1">opt</span>.<span class="pl-c1">state_dict</span>(),<span class="pl-s1">epoch</span><span class="pl-c1">=</span><span class="pl-s1">epoch</span><span class="pl-c1">+</span><span class="pl-c1">1</span>,
+            <span class="pl-s1">history</span><span class="pl-c1">=</span><span class="pl-s1">history</span>,<span class="pl-s1">train_pairs</span><span class="pl-c1">=</span><span class="pl-s1">pairs</span>,<span class="pl-s1">initialization</span><span class="pl-c1">=</span><span class="pl-s">'fresh_G0_architecture'</span>,<span class="pl-s1">torch_rng</span><span class="pl-c1">=</span><span class="pl-s1">torch</span>.<span class="pl-c1">get_rng_state</span>(),
+            <span class="pl-s1">cuda_rng</span><span class="pl-c1">=</span><span class="pl-s1">torch</span>.<span class="pl-c1">cuda</span>.<span class="pl-c1">get_rng_state_all</span>() <span class="pl-k">if</span> <span class="pl-en">str</span>(<span class="pl-s1">args</span>.<span class="pl-c1">device</span>).<span class="pl-c1">startswith</span>(<span class="pl-s">'cuda'</span>) <span class="pl-k">else</span> <span class="pl-c1">None</span>))
+        <span class="pl-en">write_json</span>(<span class="pl-s1">out</span><span class="pl-c1">/</span><span class="pl-s">'history.json'</span>,<span class="pl-s1">history</span>)
+        <span class="pl-en">print</span>(<span class="pl-s">'FOLD_BACKBONE'</span>,<span class="pl-s1">out</span>.<span class="pl-c1">parent</span>.<span class="pl-c1">name</span>,<span class="pl-s1">epoch</span><span class="pl-c1">+</span><span class="pl-c1">1</span>,<span class="pl-s1">history</span>[<span class="pl-c1">-</span><span class="pl-c1">1</span>][<span class="pl-s">'loss'</span>],<span class="pl-s1">flush</span><span class="pl-c1">=</span><span class="pl-c1">True</span>)
+    <span class="pl-s1">model</span>.<span class="pl-c1">backbone</span>.<span class="pl-c1">requires_grad_</span>(<span class="pl-c1">False</span>)
+    <span class="pl-s1">wrapper</span><span class="pl-c1">=</span><span class="pl-s1">out</span><span class="pl-c1">/</span><span class="pl-s">'trust_initial.pt'</span>
+    <span class="pl-en">save_torch</span>(<span class="pl-s1">wrapper</span>,<span class="pl-en">dict</span>(<span class="pl-s1">model</span><span class="pl-c1">=</span><span class="pl-s1">model</span>.<span class="pl-c1">state_dict</span>(),<span class="pl-s1">train_pairs</span><span class="pl-c1">=</span><span class="pl-s1">pairs</span>,<span class="pl-s1">base_source</span><span class="pl-c1">=</span><span class="pl-en">sha</span>(<span class="pl-s1">checkpoint</span>)))
+    <span class="pl-k">return</span> <span class="pl-s1">wrapper</span></pre></div>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">3. 配对效用、方差与异方差目标</h2><a id="user-content-3-配对效用方差与异方差目标" class="anchor" aria-label="Permalink: 3. 配对效用、方差与异方差目标" href="#3-配对效用方差与异方差目标"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">源码：<code>trustcpf/utility.py</code></p>
+<div class="highlight highlight-source-python notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="@torch.no_grad()
+def paired_utility(model, base, target_local, candidates, edge_ids, weights, backgrounds, generator):
+    ecount = len(model.graph.types)
+    ys, vs, differences = [], [], []
+    for e in edge_ids.tolist():
+        diffs = []
+        for _ in range(backgrounds):
+            b = (torch.rand(ecount,device=weights.device,generator=generator)&lt;.5).float()
+            b[e]=0
+            minus=candidate_logprob(model.score(base,b)[0],candidates)
+            b[e]=1
+            plus=candidate_logprob(model.score(base,b)[0],candidates)
+            rows=torch.arange(len(weights),device=weights.device)
+            diff=((minus[rows,target_local]-plus[rows,target_local]) * -weights).sum()
+            diffs.append(diff)
+        ds=torch.stack(diffs)
+        ys.append(ds.mean()); vs.append(ds.var(unbiased=True)/backgrounds)
+        differences.append(ds)
+    return torch.stack(ys), torch.stack(vs), torch.stack(differences)
+
+class UtilityNet(nn.Module):
+    def __init__(self, dim, center, spread):
+        super().__init__()
+        self.register_buffer('center',center)
+        self.register_buffer('spread',spread)
+        self.net=nn.Sequential(nn.Linear(dim,256),nn.GELU(),nn.Linear(256,128),nn.GELU(),nn.Linear(128,2))
+
+    def forward(self,x):
+        v=self.net((x-self.center)/self.spread)
+        return v[:,0], F.softplus(v[:,1])+1e-4
+
+def utility_nll(mean, variance, target, noise, inclusion, edges):
+    v=variance+noise.detach()
+    loss=.5*(v.log()+(mean-target.detach()).square()/v)
+    # Records sample uniformly within the fixed-size stratified subsets B_t.
+    # Multiplying by |B_t|/|E| implements the full-edge HT objective.
+    return (loss/inclusion).mean()*edges['sampled']/edges['total']
+
+@torch.no_grad()
+def ensemble_moments(models, x, scales, types):
+    pred=[net(x) for net in models]
+    ms=torch.stack([p[0]*scales[types] for p in pred])
+    vs=torch.stack([p[1]*scales[types].square() for p in pred])
+    return ms.mean(0),vs.mean(0),ms.var(0,unbiased=False)
+
+def aggregate_moments(means, variances, ensemble_vars):
+    return means.mean(0),variances.mean(0)+means.var(0,unbiased=False),ensemble_vars.mean(0)"><pre><span class="pl-en">@<span class="pl-s1">torch</span>.<span class="pl-c1">no_grad</span>()</span>
+<span class="pl-k">def</span> <span class="pl-en">paired_utility</span>(<span class="pl-s1">model</span>, <span class="pl-s1">base</span>, <span class="pl-s1">target_local</span>, <span class="pl-s1">candidates</span>, <span class="pl-s1">edge_ids</span>, <span class="pl-s1">weights</span>, <span class="pl-s1">backgrounds</span>, <span class="pl-s1">generator</span>):
+    <span class="pl-s1">ecount</span> <span class="pl-c1">=</span> <span class="pl-en">len</span>(<span class="pl-s1">model</span>.<span class="pl-c1">graph</span>.<span class="pl-c1">types</span>)
+    <span class="pl-s1">ys</span>, <span class="pl-s1">vs</span>, <span class="pl-s1">differences</span> <span class="pl-c1">=</span> [], [], []
+    <span class="pl-k">for</span> <span class="pl-s1">e</span> <span class="pl-c1">in</span> <span class="pl-s1">edge_ids</span>.<span class="pl-c1">tolist</span>():
+        <span class="pl-s1">diffs</span> <span class="pl-c1">=</span> []
+        <span class="pl-k">for</span> <span class="pl-s1">_</span> <span class="pl-c1">in</span> <span class="pl-en">range</span>(<span class="pl-s1">backgrounds</span>):
+            <span class="pl-s1">b</span> <span class="pl-c1">=</span> (<span class="pl-s1">torch</span>.<span class="pl-c1">rand</span>(<span class="pl-s1">ecount</span>,<span class="pl-s1">device</span><span class="pl-c1">=</span><span class="pl-s1">weights</span>.<span class="pl-c1">device</span>,<span class="pl-s1">generator</span><span class="pl-c1">=</span><span class="pl-s1">generator</span>)<span class="pl-c1">&lt;</span><span class="pl-c1">.5</span>).<span class="pl-c1">float</span>()
+            <span class="pl-s1">b</span>[<span class="pl-s1">e</span>]<span class="pl-c1">=</span><span class="pl-c1">0</span>
+            <span class="pl-s1">minus</span><span class="pl-c1">=</span><span class="pl-en">candidate_logprob</span>(<span class="pl-s1">model</span>.<span class="pl-c1">score</span>(<span class="pl-s1">base</span>,<span class="pl-s1">b</span>)[<span class="pl-c1">0</span>],<span class="pl-s1">candidates</span>)
+            <span class="pl-s1">b</span>[<span class="pl-s1">e</span>]<span class="pl-c1">=</span><span class="pl-c1">1</span>
+            <span class="pl-s1">plus</span><span class="pl-c1">=</span><span class="pl-en">candidate_logprob</span>(<span class="pl-s1">model</span>.<span class="pl-c1">score</span>(<span class="pl-s1">base</span>,<span class="pl-s1">b</span>)[<span class="pl-c1">0</span>],<span class="pl-s1">candidates</span>)
+            <span class="pl-s1">rows</span><span class="pl-c1">=</span><span class="pl-s1">torch</span>.<span class="pl-c1">arange</span>(<span class="pl-en">len</span>(<span class="pl-s1">weights</span>),<span class="pl-s1">device</span><span class="pl-c1">=</span><span class="pl-s1">weights</span>.<span class="pl-c1">device</span>)
+            <span class="pl-s1">diff</span><span class="pl-c1">=</span>((<span class="pl-s1">minus</span>[<span class="pl-s1">rows</span>,<span class="pl-s1">target_local</span>]<span class="pl-c1">-</span><span class="pl-s1">plus</span>[<span class="pl-s1">rows</span>,<span class="pl-s1">target_local</span>]) <span class="pl-c1">*</span> <span class="pl-c1">-</span><span class="pl-s1">weights</span>).<span class="pl-c1">sum</span>()
+            <span class="pl-s1">diffs</span>.<span class="pl-c1">append</span>(<span class="pl-s1">diff</span>)
+        <span class="pl-s1">ds</span><span class="pl-c1">=</span><span class="pl-s1">torch</span>.<span class="pl-c1">stack</span>(<span class="pl-s1">diffs</span>)
+        <span class="pl-s1">ys</span>.<span class="pl-c1">append</span>(<span class="pl-s1">ds</span>.<span class="pl-c1">mean</span>()); <span class="pl-s1">vs</span>.<span class="pl-c1">append</span>(<span class="pl-s1">ds</span>.<span class="pl-c1">var</span>(<span class="pl-s1">unbiased</span><span class="pl-c1">=</span><span class="pl-c1">True</span>)<span class="pl-c1">/</span><span class="pl-s1">backgrounds</span>)
+        <span class="pl-s1">differences</span>.<span class="pl-c1">append</span>(<span class="pl-s1">ds</span>)
+    <span class="pl-k">return</span> <span class="pl-s1">torch</span>.<span class="pl-c1">stack</span>(<span class="pl-s1">ys</span>), <span class="pl-s1">torch</span>.<span class="pl-c1">stack</span>(<span class="pl-s1">vs</span>), <span class="pl-s1">torch</span>.<span class="pl-c1">stack</span>(<span class="pl-s1">differences</span>)
+
+<span class="pl-k">class</span> <span class="pl-v">UtilityNet</span>(<span class="pl-s1">nn</span>.<span class="pl-c1">Module</span>):
+    <span class="pl-k">def</span> <span class="pl-en">__init__</span>(<span class="pl-s1">self</span>, <span class="pl-s1">dim</span>, <span class="pl-s1">center</span>, <span class="pl-s1">spread</span>):
+        <span class="pl-en">super</span>().<span class="pl-c1">__init__</span>()
+        <span class="pl-s1">self</span>.<span class="pl-c1">register_buffer</span>(<span class="pl-s">'center'</span>,<span class="pl-s1">center</span>)
+        <span class="pl-s1">self</span>.<span class="pl-c1">register_buffer</span>(<span class="pl-s">'spread'</span>,<span class="pl-s1">spread</span>)
+        <span class="pl-s1">self</span>.<span class="pl-c1">net</span><span class="pl-c1">=</span><span class="pl-s1">nn</span>.<span class="pl-c1">Sequential</span>(<span class="pl-s1">nn</span>.<span class="pl-c1">Linear</span>(<span class="pl-s1">dim</span>,<span class="pl-c1">256</span>),<span class="pl-s1">nn</span>.<span class="pl-c1">GELU</span>(),<span class="pl-s1">nn</span>.<span class="pl-c1">Linear</span>(<span class="pl-c1">256</span>,<span class="pl-c1">128</span>),<span class="pl-s1">nn</span>.<span class="pl-c1">GELU</span>(),<span class="pl-s1">nn</span>.<span class="pl-c1">Linear</span>(<span class="pl-c1">128</span>,<span class="pl-c1">2</span>))
+
+    <span class="pl-k">def</span> <span class="pl-en">forward</span>(<span class="pl-s1">self</span>,<span class="pl-s1">x</span>):
+        <span class="pl-s1">v</span><span class="pl-c1">=</span><span class="pl-s1">self</span>.<span class="pl-c1">net</span>((<span class="pl-s1">x</span><span class="pl-c1">-</span><span class="pl-s1">self</span>.<span class="pl-c1">center</span>)<span class="pl-c1">/</span><span class="pl-s1">self</span>.<span class="pl-c1">spread</span>)
+        <span class="pl-k">return</span> <span class="pl-s1">v</span>[:,<span class="pl-c1">0</span>], <span class="pl-c1">F</span>.<span class="pl-c1">softplus</span>(<span class="pl-s1">v</span>[:,<span class="pl-c1">1</span>])<span class="pl-c1">+</span><span class="pl-c1">1e-4</span>
+
+<span class="pl-k">def</span> <span class="pl-en">utility_nll</span>(<span class="pl-s1">mean</span>, <span class="pl-s1">variance</span>, <span class="pl-s1">target</span>, <span class="pl-s1">noise</span>, <span class="pl-s1">inclusion</span>, <span class="pl-s1">edges</span>):
+    <span class="pl-s1">v</span><span class="pl-c1">=</span><span class="pl-s1">variance</span><span class="pl-c1">+</span><span class="pl-s1">noise</span>.<span class="pl-c1">detach</span>()
+    <span class="pl-s1">loss</span><span class="pl-c1">=</span><span class="pl-c1">.5</span><span class="pl-c1">*</span>(<span class="pl-s1">v</span>.<span class="pl-c1">log</span>()<span class="pl-c1">+</span>(<span class="pl-s1">mean</span><span class="pl-c1">-</span><span class="pl-s1">target</span>.<span class="pl-c1">detach</span>()).<span class="pl-c1">square</span>()<span class="pl-c1">/</span><span class="pl-s1">v</span>)
+    <span class="pl-c"># Records sample uniformly within the fixed-size stratified subsets B_t.</span>
+    <span class="pl-c"># Multiplying by |B_t|/|E| implements the full-edge HT objective.</span>
+    <span class="pl-k">return</span> (<span class="pl-s1">loss</span><span class="pl-c1">/</span><span class="pl-s1">inclusion</span>).<span class="pl-c1">mean</span>()<span class="pl-c1">*</span><span class="pl-s1">edges</span>[<span class="pl-s">'sampled'</span>]<span class="pl-c1">/</span><span class="pl-s1">edges</span>[<span class="pl-s">'total'</span>]
+
+<span class="pl-en">@<span class="pl-s1">torch</span>.<span class="pl-c1">no_grad</span>()</span>
+<span class="pl-k">def</span> <span class="pl-en">ensemble_moments</span>(<span class="pl-s1">models</span>, <span class="pl-s1">x</span>, <span class="pl-s1">scales</span>, <span class="pl-s1">types</span>):
+    <span class="pl-s1">pred</span><span class="pl-c1">=</span>[<span class="pl-en">net</span>(<span class="pl-s1">x</span>) <span class="pl-k">for</span> <span class="pl-s1">net</span> <span class="pl-c1">in</span> <span class="pl-s1">models</span>]
+    <span class="pl-s1">ms</span><span class="pl-c1">=</span><span class="pl-s1">torch</span>.<span class="pl-c1">stack</span>([<span class="pl-s1">p</span>[<span class="pl-c1">0</span>]<span class="pl-c1">*</span><span class="pl-s1">scales</span>[<span class="pl-s1">types</span>] <span class="pl-k">for</span> <span class="pl-s1">p</span> <span class="pl-c1">in</span> <span class="pl-s1">pred</span>])
+    <span class="pl-s1">vs</span><span class="pl-c1">=</span><span class="pl-s1">torch</span>.<span class="pl-c1">stack</span>([<span class="pl-s1">p</span>[<span class="pl-c1">1</span>]<span class="pl-c1">*</span><span class="pl-s1">scales</span>[<span class="pl-s1">types</span>].<span class="pl-c1">square</span>() <span class="pl-k">for</span> <span class="pl-s1">p</span> <span class="pl-c1">in</span> <span class="pl-s1">pred</span>])
+    <span class="pl-k">return</span> <span class="pl-s1">ms</span>.<span class="pl-c1">mean</span>(<span class="pl-c1">0</span>),<span class="pl-s1">vs</span>.<span class="pl-c1">mean</span>(<span class="pl-c1">0</span>),<span class="pl-s1">ms</span>.<span class="pl-c1">var</span>(<span class="pl-c1">0</span>,<span class="pl-s1">unbiased</span><span class="pl-c1">=</span><span class="pl-c1">False</span>)
+
+<span class="pl-k">def</span> <span class="pl-en">aggregate_moments</span>(<span class="pl-s1">means</span>, <span class="pl-s1">variances</span>, <span class="pl-s1">ensemble_vars</span>):
+    <span class="pl-k">return</span> <span class="pl-s1">means</span>.<span class="pl-c1">mean</span>(<span class="pl-c1">0</span>),<span class="pl-s1">variances</span>.<span class="pl-c1">mean</span>(<span class="pl-c1">0</span>)<span class="pl-c1">+</span><span class="pl-s1">means</span>.<span class="pl-c1">var</span>(<span class="pl-c1">0</span>,<span class="pl-s1">unbiased</span><span class="pl-c1">=</span><span class="pl-c1">False</span>),<span class="pl-s1">ensemble_vars</span>.<span class="pl-c1">mean</span>(<span class="pl-c1">0</span>)</pre></div>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">4. 类型预算求解</h2><a id="user-content-4-类型预算求解" class="anchor" aria-label="Permalink: 4. 类型预算求解" href="#4-类型预算求解"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">源码：<code>trustcpf/graph.py</code></p>
+<div class="highlight highlight-source-python notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="def solve_budget(reward, types, tau, fraction=.5, prior=.5):
+    &quot;&quot;&quot;Unique convex optimum; multipliers are nonnegative, per-type upper budgets.&quot;&quot;&quot;
+    pi, multipliers = torch.zeros_like(reward), {}
+    tau = max(float(tau), 1e-8)
+    prior = torch.as_tensor(prior, device=reward.device, dtype=reward.dtype).clamp(1e-6,1-1e-6)
+    prior_logit = torch.logit(prior).expand_as(reward)
+    for ty in types.unique().tolist():
+        mask = types == ty
+        budget = fraction * int(mask.sum())
+        def value(gamma): return torch.sigmoid(prior_logit[mask] + (reward[mask]-gamma)/tau)
+        if fraction == 0:
+            multipliers[str(ty)] = 0.; continue
+        if value(0).sum() &lt;= budget:
+            gamma = 0.
+        else:
+            low, high = 0., max(1., float(reward[mask].abs().max()))
+            while value(high).sum() &gt; budget: high *= 2
+            for _ in range(60):
+                mid = (low+high)/2
+                if value(mid).sum() &gt; budget: low=mid
+                else: high=mid
+            gamma=high
+        pi[mask] = value(gamma)
+        multipliers[str(ty)] = gamma
+    return pi, multipliers"><pre><span class="pl-k">def</span> <span class="pl-en">solve_budget</span>(<span class="pl-s1">reward</span>, <span class="pl-s1">types</span>, <span class="pl-s1">tau</span>, <span class="pl-s1">fraction</span><span class="pl-c1">=</span><span class="pl-c1">.5</span>, <span class="pl-s1">prior</span><span class="pl-c1">=</span><span class="pl-c1">.5</span>):
+    <span class="pl-s">"""Unique convex optimum; multipliers are nonnegative, per-type upper budgets."""</span>
+    <span class="pl-s1">pi</span>, <span class="pl-s1">multipliers</span> <span class="pl-c1">=</span> <span class="pl-s1">torch</span>.<span class="pl-c1">zeros_like</span>(<span class="pl-s1">reward</span>), {}
+    <span class="pl-s1">tau</span> <span class="pl-c1">=</span> <span class="pl-en">max</span>(<span class="pl-en">float</span>(<span class="pl-s1">tau</span>), <span class="pl-c1">1e-8</span>)
+    <span class="pl-s1">prior</span> <span class="pl-c1">=</span> <span class="pl-s1">torch</span>.<span class="pl-c1">as_tensor</span>(<span class="pl-s1">prior</span>, <span class="pl-s1">device</span><span class="pl-c1">=</span><span class="pl-s1">reward</span>.<span class="pl-c1">device</span>, <span class="pl-s1">dtype</span><span class="pl-c1">=</span><span class="pl-s1">reward</span>.<span class="pl-c1">dtype</span>).<span class="pl-c1">clamp</span>(<span class="pl-c1">1e-6</span>,<span class="pl-c1">1</span><span class="pl-c1">-</span><span class="pl-c1">1e-6</span>)
+    <span class="pl-s1">prior_logit</span> <span class="pl-c1">=</span> <span class="pl-s1">torch</span>.<span class="pl-c1">logit</span>(<span class="pl-s1">prior</span>).<span class="pl-c1">expand_as</span>(<span class="pl-s1">reward</span>)
+    <span class="pl-k">for</span> <span class="pl-s1">ty</span> <span class="pl-c1">in</span> <span class="pl-s1">types</span>.<span class="pl-c1">unique</span>().<span class="pl-c1">tolist</span>():
+        <span class="pl-s1">mask</span> <span class="pl-c1">=</span> <span class="pl-s1">types</span> <span class="pl-c1">==</span> <span class="pl-s1">ty</span>
+        <span class="pl-s1">budget</span> <span class="pl-c1">=</span> <span class="pl-s1">fraction</span> <span class="pl-c1">*</span> <span class="pl-en">int</span>(<span class="pl-s1">mask</span>.<span class="pl-c1">sum</span>())
+        <span class="pl-k">def</span> <span class="pl-en">value</span>(<span class="pl-s1">gamma</span>): <span class="pl-k">return</span> <span class="pl-s1">torch</span>.<span class="pl-c1">sigmoid</span>(<span class="pl-s1">prior_logit</span>[<span class="pl-s1">mask</span>] <span class="pl-c1">+</span> (<span class="pl-s1">reward</span>[<span class="pl-s1">mask</span>]<span class="pl-c1">-</span><span class="pl-s1">gamma</span>)<span class="pl-c1">/</span><span class="pl-s1">tau</span>)
+        <span class="pl-k">if</span> <span class="pl-s1">fraction</span> <span class="pl-c1">==</span> <span class="pl-c1">0</span>:
+            <span class="pl-s1">multipliers</span>[<span class="pl-en">str</span>(<span class="pl-s1">ty</span>)] <span class="pl-c1">=</span> <span class="pl-c1">0.</span>; <span class="pl-k">continue</span>
+        <span class="pl-k">if</span> <span class="pl-en">value</span>(<span class="pl-c1">0</span>).<span class="pl-c1">sum</span>() <span class="pl-c1">&lt;=</span> <span class="pl-s1">budget</span>:
+            <span class="pl-s1">gamma</span> <span class="pl-c1">=</span> <span class="pl-c1">0.</span>
+        <span class="pl-k">else</span>:
+            <span class="pl-s1">low</span>, <span class="pl-s1">high</span> <span class="pl-c1">=</span> <span class="pl-c1">0.</span>, <span class="pl-en">max</span>(<span class="pl-c1">1.</span>, <span class="pl-en">float</span>(<span class="pl-s1">reward</span>[<span class="pl-s1">mask</span>].<span class="pl-c1">abs</span>().<span class="pl-c1">max</span>()))
+            <span class="pl-k">while</span> <span class="pl-en">value</span>(<span class="pl-s1">high</span>).<span class="pl-c1">sum</span>() <span class="pl-c1">&gt;</span> <span class="pl-s1">budget</span>: <span class="pl-s1">high</span> <span class="pl-c1">*=</span> <span class="pl-c1">2</span>
+            <span class="pl-k">for</span> <span class="pl-s1">_</span> <span class="pl-c1">in</span> <span class="pl-en">range</span>(<span class="pl-c1">60</span>):
+                <span class="pl-s1">mid</span> <span class="pl-c1">=</span> (<span class="pl-s1">low</span><span class="pl-c1">+</span><span class="pl-s1">high</span>)<span class="pl-c1">/</span><span class="pl-c1">2</span>
+                <span class="pl-k">if</span> <span class="pl-en">value</span>(<span class="pl-s1">mid</span>).<span class="pl-c1">sum</span>() <span class="pl-c1">&gt;</span> <span class="pl-s1">budget</span>: <span class="pl-s1">low</span><span class="pl-c1">=</span><span class="pl-s1">mid</span>
+                <span class="pl-k">else</span>: <span class="pl-s1">high</span><span class="pl-c1">=</span><span class="pl-s1">mid</span>
+            <span class="pl-s1">gamma</span><span class="pl-c1">=</span><span class="pl-s1">high</span>
+        <span class="pl-s1">pi</span>[<span class="pl-s1">mask</span>] <span class="pl-c1">=</span> <span class="pl-en">value</span>(<span class="pl-s1">gamma</span>)
+        <span class="pl-s1">multipliers</span>[<span class="pl-en">str</span>(<span class="pl-s1">ty</span>)] <span class="pl-c1">=</span> <span class="pl-s1">gamma</span>
+    <span class="pl-k">return</span> <span class="pl-s1">pi</span>, <span class="pl-s1">multipliers</span></pre></div>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">5. 风险结构与噪声评价</h2><a id="user-content-5-风险结构与噪声评价" class="anchor" aria-label="Permalink: 5. 风险结构与噪声评价" href="#5-风险结构与噪声评价"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">源码：<code>trustcpf/stages.py</code></p>
+<div class="highlight highlight-source-python notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="def make_structure(cfg,bank,moments):
+    m,v,e=moments
+    lv=0. if cfg['variant']=='mean' else cfg['lambda_var']
+    le=0. if cfg['variant']=='mean' else cfg['lambda_ens']
+    reward=m-lv*v.sqrt()-le*e.sqrt()
+    pi,gamma=solve_budget(reward,bank['types'],cfg['tau_absolute'],cfg['budget'])
+    if 'availability' in bank: pi=pi*bank['availability']
+    return {'pi':pi,'mean':m,'task_variance':v,'ensemble_variance':e,'reward':reward,'multipliers':gamma}
+
+def noise(args):
+    cfg,manifest,text,clean,folds,work=setup(args)
+    run=work/'runs'/cfg['variant']; state=load_torch(run/'best.pt')
+    bank0=load_torch(run/'bank.pt'); cfg=state['cfg']; model=new_model(text,bank0,cfg,args.device)
+    model.load_state_dict(state['model']); cal=read_json(run/'metrics.json')['val']
+    structure0=load_torch(work/'structure.pt')
+    if (work/'tuning.json').exists(): cfg.update(read_json(work/'tuning.json')['selected'])
+    cfg.setdefault('tau_absolute',read_json(work/'structure.json')['parameters']['tau_absolute'])
+    noise_file=run/('noise_delete.json' if args.deletion else 'noise_mismatch.json')
+    rows=read_json(noise_file) if noise_file.exists() else []
+    completed={(r['seed'],r['type'],r['rate']) for r in rows}
+    for seed in args.noise_seeds:
+        for ty in range(3):
+            for rate in args.rates:
+                if (seed,ty,rate) in completed:continue
+                bank=permute_bank(bank0,seed,rate,ty,args.deletion)
+                with torch.no_grad(): model.graph.source.copy_(bank['source'].to(args.device))
+                if rate==0:
+                    pi=state['pi'].clone()
+                elif cfg['variant'] in ('robust','mean'):
+                    moments=deployment_moments(args,cfg,manifest,bank,work,work/'utility_all')
+                    pi=make_structure(cfg,bank,moments)['pi']
+                else: pi=state['pi'].clone()
+                if 'availability' in bank: pi=pi*bank['availability']
+                metrics=read_json(run/'metrics.json')['test'] if rate==0 else evaluate_model(model,args.cache,cfg,manifest,pi,'test',cal)
+                changed=(bank['source']-bank0['source']).norm(dim=-1)&gt;1e-6
+                actual=float((1-bank['availability'][bank['types']==ty]).mean()) if 'availability' in bank else float(changed[bank['types']==ty].float().mean())
+                rows.append({'seed':seed,'type':ty,'rate':rate,'actual_rate':actual,'kind':'deletion' if args.deletion else 'source_mismatch','test':metrics})
+                rows[-1]['expected_edges']={str(t):float(pi[bank['types']==t].sum()) for t in range(3)}
+                write_json(noise_file,rows)
+                print('NOISE',cfg['variant'],seed,ty,rate,metrics['ow']['AUC_native'],flush=True)"><pre><span class="pl-k">def</span> <span class="pl-en">make_structure</span>(<span class="pl-s1">cfg</span>,<span class="pl-s1">bank</span>,<span class="pl-s1">moments</span>):
+    <span class="pl-s1">m</span>,<span class="pl-s1">v</span>,<span class="pl-s1">e</span><span class="pl-c1">=</span><span class="pl-s1">moments</span>
+    <span class="pl-s1">lv</span><span class="pl-c1">=</span><span class="pl-c1">0.</span> <span class="pl-k">if</span> <span class="pl-s1">cfg</span>[<span class="pl-s">'variant'</span>]<span class="pl-c1">==</span><span class="pl-s">'mean'</span> <span class="pl-k">else</span> <span class="pl-s1">cfg</span>[<span class="pl-s">'lambda_var'</span>]
+    <span class="pl-s1">le</span><span class="pl-c1">=</span><span class="pl-c1">0.</span> <span class="pl-k">if</span> <span class="pl-s1">cfg</span>[<span class="pl-s">'variant'</span>]<span class="pl-c1">==</span><span class="pl-s">'mean'</span> <span class="pl-k">else</span> <span class="pl-s1">cfg</span>[<span class="pl-s">'lambda_ens'</span>]
+    <span class="pl-s1">reward</span><span class="pl-c1">=</span><span class="pl-s1">m</span><span class="pl-c1">-</span><span class="pl-s1">lv</span><span class="pl-c1">*</span><span class="pl-s1">v</span>.<span class="pl-c1">sqrt</span>()<span class="pl-c1">-</span><span class="pl-s1">le</span><span class="pl-c1">*</span><span class="pl-s1">e</span>.<span class="pl-c1">sqrt</span>()
+    <span class="pl-s1">pi</span>,<span class="pl-s1">gamma</span><span class="pl-c1">=</span><span class="pl-en">solve_budget</span>(<span class="pl-s1">reward</span>,<span class="pl-s1">bank</span>[<span class="pl-s">'types'</span>],<span class="pl-s1">cfg</span>[<span class="pl-s">'tau_absolute'</span>],<span class="pl-s1">cfg</span>[<span class="pl-s">'budget'</span>])
+    <span class="pl-k">if</span> <span class="pl-s">'availability'</span> <span class="pl-c1">in</span> <span class="pl-s1">bank</span>: <span class="pl-s1">pi</span><span class="pl-c1">=</span><span class="pl-s1">pi</span><span class="pl-c1">*</span><span class="pl-s1">bank</span>[<span class="pl-s">'availability'</span>]
+    <span class="pl-k">return</span> {<span class="pl-s">'pi'</span>:<span class="pl-s1">pi</span>,<span class="pl-s">'mean'</span>:<span class="pl-s1">m</span>,<span class="pl-s">'task_variance'</span>:<span class="pl-s1">v</span>,<span class="pl-s">'ensemble_variance'</span>:<span class="pl-s1">e</span>,<span class="pl-s">'reward'</span>:<span class="pl-s1">reward</span>,<span class="pl-s">'multipliers'</span>:<span class="pl-s1">gamma</span>}
+
+<span class="pl-k">def</span> <span class="pl-en">noise</span>(<span class="pl-s1">args</span>):
+    <span class="pl-s1">cfg</span>,<span class="pl-s1">manifest</span>,<span class="pl-s1">text</span>,<span class="pl-s1">clean</span>,<span class="pl-s1">folds</span>,<span class="pl-s1">work</span><span class="pl-c1">=</span><span class="pl-en">setup</span>(<span class="pl-s1">args</span>)
+    <span class="pl-s1">run</span><span class="pl-c1">=</span><span class="pl-s1">work</span><span class="pl-c1">/</span><span class="pl-s">'runs'</span><span class="pl-c1">/</span><span class="pl-s1">cfg</span>[<span class="pl-s">'variant'</span>]; <span class="pl-s1">state</span><span class="pl-c1">=</span><span class="pl-en">load_torch</span>(<span class="pl-s1">run</span><span class="pl-c1">/</span><span class="pl-s">'best.pt'</span>)
+    <span class="pl-s1">bank0</span><span class="pl-c1">=</span><span class="pl-en">load_torch</span>(<span class="pl-s1">run</span><span class="pl-c1">/</span><span class="pl-s">'bank.pt'</span>); <span class="pl-s1">cfg</span><span class="pl-c1">=</span><span class="pl-s1">state</span>[<span class="pl-s">'cfg'</span>]; <span class="pl-s1">model</span><span class="pl-c1">=</span><span class="pl-en">new_model</span>(<span class="pl-s1">text</span>,<span class="pl-s1">bank0</span>,<span class="pl-s1">cfg</span>,<span class="pl-s1">args</span>.<span class="pl-c1">device</span>)
+    <span class="pl-s1">model</span>.<span class="pl-c1">load_state_dict</span>(<span class="pl-s1">state</span>[<span class="pl-s">'model'</span>]); <span class="pl-s1">cal</span><span class="pl-c1">=</span><span class="pl-en">read_json</span>(<span class="pl-s1">run</span><span class="pl-c1">/</span><span class="pl-s">'metrics.json'</span>)[<span class="pl-s">'val'</span>]
+    <span class="pl-s1">structure0</span><span class="pl-c1">=</span><span class="pl-en">load_torch</span>(<span class="pl-s1">work</span><span class="pl-c1">/</span><span class="pl-s">'structure.pt'</span>)
+    <span class="pl-k">if</span> (<span class="pl-s1">work</span><span class="pl-c1">/</span><span class="pl-s">'tuning.json'</span>).<span class="pl-c1">exists</span>(): <span class="pl-s1">cfg</span>.<span class="pl-c1">update</span>(<span class="pl-en">read_json</span>(<span class="pl-s1">work</span><span class="pl-c1">/</span><span class="pl-s">'tuning.json'</span>)[<span class="pl-s">'selected'</span>])
+    <span class="pl-s1">cfg</span>.<span class="pl-c1">setdefault</span>(<span class="pl-s">'tau_absolute'</span>,<span class="pl-en">read_json</span>(<span class="pl-s1">work</span><span class="pl-c1">/</span><span class="pl-s">'structure.json'</span>)[<span class="pl-s">'parameters'</span>][<span class="pl-s">'tau_absolute'</span>])
+    <span class="pl-s1">noise_file</span><span class="pl-c1">=</span><span class="pl-s1">run</span><span class="pl-c1">/</span>(<span class="pl-s">'noise_delete.json'</span> <span class="pl-k">if</span> <span class="pl-s1">args</span>.<span class="pl-c1">deletion</span> <span class="pl-k">else</span> <span class="pl-s">'noise_mismatch.json'</span>)
+    <span class="pl-s1">rows</span><span class="pl-c1">=</span><span class="pl-en">read_json</span>(<span class="pl-s1">noise_file</span>) <span class="pl-k">if</span> <span class="pl-s1">noise_file</span>.<span class="pl-c1">exists</span>() <span class="pl-k">else</span> []
+    <span class="pl-s1">completed</span><span class="pl-c1">=</span>{(<span class="pl-s1">r</span>[<span class="pl-s">'seed'</span>],<span class="pl-s1">r</span>[<span class="pl-s">'type'</span>],<span class="pl-s1">r</span>[<span class="pl-s">'rate'</span>]) <span class="pl-k">for</span> <span class="pl-s1">r</span> <span class="pl-c1">in</span> <span class="pl-s1">rows</span>}
+    <span class="pl-k">for</span> <span class="pl-s1">seed</span> <span class="pl-c1">in</span> <span class="pl-s1">args</span>.<span class="pl-c1">noise_seeds</span>:
+        <span class="pl-k">for</span> <span class="pl-s1">ty</span> <span class="pl-c1">in</span> <span class="pl-en">range</span>(<span class="pl-c1">3</span>):
+            <span class="pl-k">for</span> <span class="pl-s1">rate</span> <span class="pl-c1">in</span> <span class="pl-s1">args</span>.<span class="pl-c1">rates</span>:
+                <span class="pl-k">if</span> (<span class="pl-s1">seed</span>,<span class="pl-s1">ty</span>,<span class="pl-s1">rate</span>) <span class="pl-c1">in</span> <span class="pl-s1">completed</span>:<span class="pl-k">continue</span>
+                <span class="pl-s1">bank</span><span class="pl-c1">=</span><span class="pl-en">permute_bank</span>(<span class="pl-s1">bank0</span>,<span class="pl-s1">seed</span>,<span class="pl-s1">rate</span>,<span class="pl-s1">ty</span>,<span class="pl-s1">args</span>.<span class="pl-c1">deletion</span>)
+                <span class="pl-k">with</span> <span class="pl-s1">torch</span>.<span class="pl-c1">no_grad</span>(): <span class="pl-s1">model</span>.<span class="pl-c1">graph</span>.<span class="pl-c1">source</span>.<span class="pl-c1">copy_</span>(<span class="pl-s1">bank</span>[<span class="pl-s">'source'</span>].<span class="pl-c1">to</span>(<span class="pl-s1">args</span>.<span class="pl-c1">device</span>))
+                <span class="pl-k">if</span> <span class="pl-s1">rate</span><span class="pl-c1">==</span><span class="pl-c1">0</span>:
+                    <span class="pl-s1">pi</span><span class="pl-c1">=</span><span class="pl-s1">state</span>[<span class="pl-s">'pi'</span>].<span class="pl-c1">clone</span>()
+                <span class="pl-k">elif</span> <span class="pl-s1">cfg</span>[<span class="pl-s">'variant'</span>] <span class="pl-c1">in</span> (<span class="pl-s">'robust'</span>,<span class="pl-s">'mean'</span>):
+                    <span class="pl-s1">moments</span><span class="pl-c1">=</span><span class="pl-en">deployment_moments</span>(<span class="pl-s1">args</span>,<span class="pl-s1">cfg</span>,<span class="pl-s1">manifest</span>,<span class="pl-s1">bank</span>,<span class="pl-s1">work</span>,<span class="pl-s1">work</span><span class="pl-c1">/</span><span class="pl-s">'utility_all'</span>)
+                    <span class="pl-s1">pi</span><span class="pl-c1">=</span><span class="pl-en">make_structure</span>(<span class="pl-s1">cfg</span>,<span class="pl-s1">bank</span>,<span class="pl-s1">moments</span>)[<span class="pl-s">'pi'</span>]
+                <span class="pl-k">else</span>: <span class="pl-s1">pi</span><span class="pl-c1">=</span><span class="pl-s1">state</span>[<span class="pl-s">'pi'</span>].<span class="pl-c1">clone</span>()
+                <span class="pl-k">if</span> <span class="pl-s">'availability'</span> <span class="pl-c1">in</span> <span class="pl-s1">bank</span>: <span class="pl-s1">pi</span><span class="pl-c1">=</span><span class="pl-s1">pi</span><span class="pl-c1">*</span><span class="pl-s1">bank</span>[<span class="pl-s">'availability'</span>]
+                <span class="pl-s1">metrics</span><span class="pl-c1">=</span><span class="pl-en">read_json</span>(<span class="pl-s1">run</span><span class="pl-c1">/</span><span class="pl-s">'metrics.json'</span>)[<span class="pl-s">'test'</span>] <span class="pl-k">if</span> <span class="pl-s1">rate</span><span class="pl-c1">==</span><span class="pl-c1">0</span> <span class="pl-k">else</span> <span class="pl-en">evaluate_model</span>(<span class="pl-s1">model</span>,<span class="pl-s1">args</span>.<span class="pl-c1">cache</span>,<span class="pl-s1">cfg</span>,<span class="pl-s1">manifest</span>,<span class="pl-s1">pi</span>,<span class="pl-s">'test'</span>,<span class="pl-s1">cal</span>)
+                <span class="pl-s1">changed</span><span class="pl-c1">=</span>(<span class="pl-s1">bank</span>[<span class="pl-s">'source'</span>]<span class="pl-c1">-</span><span class="pl-s1">bank0</span>[<span class="pl-s">'source'</span>]).<span class="pl-c1">norm</span>(<span class="pl-s1">dim</span><span class="pl-c1">=</span><span class="pl-c1">-</span><span class="pl-c1">1</span>)<span class="pl-c1">&gt;</span><span class="pl-c1">1e-6</span>
+                <span class="pl-s1">actual</span><span class="pl-c1">=</span><span class="pl-en">float</span>((<span class="pl-c1">1</span><span class="pl-c1">-</span><span class="pl-s1">bank</span>[<span class="pl-s">'availability'</span>][<span class="pl-s1">bank</span>[<span class="pl-s">'types'</span>]<span class="pl-c1">==</span><span class="pl-s1">ty</span>]).<span class="pl-c1">mean</span>()) <span class="pl-k">if</span> <span class="pl-s">'availability'</span> <span class="pl-c1">in</span> <span class="pl-s1">bank</span> <span class="pl-k">else</span> <span class="pl-en">float</span>(<span class="pl-s1">changed</span>[<span class="pl-s1">bank</span>[<span class="pl-s">'types'</span>]<span class="pl-c1">==</span><span class="pl-s1">ty</span>].<span class="pl-c1">float</span>().<span class="pl-c1">mean</span>())
+                <span class="pl-s1">rows</span>.<span class="pl-c1">append</span>({<span class="pl-s">'seed'</span>:<span class="pl-s1">seed</span>,<span class="pl-s">'type'</span>:<span class="pl-s1">ty</span>,<span class="pl-s">'rate'</span>:<span class="pl-s1">rate</span>,<span class="pl-s">'actual_rate'</span>:<span class="pl-s1">actual</span>,<span class="pl-s">'kind'</span>:<span class="pl-s">'deletion'</span> <span class="pl-k">if</span> <span class="pl-s1">args</span>.<span class="pl-c1">deletion</span> <span class="pl-k">else</span> <span class="pl-s">'source_mismatch'</span>,<span class="pl-s">'test'</span>:<span class="pl-s1">metrics</span>})
+                <span class="pl-s1">rows</span>[<span class="pl-c1">-</span><span class="pl-c1">1</span>][<span class="pl-s">'expected_edges'</span>]<span class="pl-c1">=</span>{<span class="pl-en">str</span>(<span class="pl-s1">t</span>):<span class="pl-en">float</span>(<span class="pl-s1">pi</span>[<span class="pl-s1">bank</span>[<span class="pl-s">'types'</span>]<span class="pl-c1">==</span><span class="pl-s1">t</span>].<span class="pl-c1">sum</span>()) <span class="pl-k">for</span> <span class="pl-s1">t</span> <span class="pl-c1">in</span> <span class="pl-en">range</span>(<span class="pl-c1">3</span>)}
+                <span class="pl-en">write_json</span>(<span class="pl-s1">noise_file</span>,<span class="pl-s1">rows</span>)
+                <span class="pl-en">print</span>(<span class="pl-s">'NOISE'</span>,<span class="pl-s1">cfg</span>[<span class="pl-s">'variant'</span>],<span class="pl-s1">seed</span>,<span class="pl-s1">ty</span>,<span class="pl-s1">rate</span>,<span class="pl-s1">metrics</span>[<span class="pl-s">'ow'</span>][<span class="pl-s">'AUC_native'</span>],<span class="pl-s1">flush</span><span class="pl-c1">=</span><span class="pl-c1">True</span>)</pre></div>
+</article>

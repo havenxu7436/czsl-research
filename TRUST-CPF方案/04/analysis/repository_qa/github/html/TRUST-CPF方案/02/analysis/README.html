@@ -1,0 +1,1268 @@
+<article class="markdown-body entry-content container-lg" itemprop="text"><p dir="auto">本报告记录强基底轮的分析与当时提出的下一轮方案；其中响应条件化实验现已完成，见<a href="/havenxu7436/czsl-research/blob/main/TRUST-CPF%E6%96%B9%E6%A1%88/03/README.md">03 阶段</a>。</p>
+<div class="markdown-heading" dir="auto"><h1 tabindex="-1" class="heading-element" dir="auto">TRUST-CPF 强基底完整结果分析与下一步实验方向</h1><a id="user-content-trust-cpf-强基底完整结果分析与下一步实验方向" class="anchor" aria-label="Permalink: TRUST-CPF 强基底完整结果分析与下一步实验方向" href="#trust-cpf-强基底完整结果分析与下一步实验方向"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">日期：2026-10-23。数据：UT-Zappos，CLIP ViT-L/14，Strong v1，seed 3351 / 3352 / 3353。</p>
+<p dir="auto"><strong>建议沿 TRUST 路线继续一轮，集中验证“模型响应条件化的关系效用”。这轮已经解决了弱基底问题，但原来的效用预测和风险惩罚仍然没有形成对 capacity、dense 的优势。下一轮保留现有强 CPF、关系消息和配对效用定义，只让效用网络额外看到当前模型开启／关闭关系后的实际响应。</strong></p>
+<p dir="auto">主实验采用 Drop、原 TRUST、条件化 TRUST 三组，各三个 seed。已有前两组六个结果可以复用，新增三次条件化 TRUST 适配训练。原五折教师和 Query 配对标签也全部复用。下一轮的研究主体继续是 TRUST 的“关系效用迁移 → 结构选择 → CZSL 识别”，Compare-first 视觉路线暂时放下。</p>
+<p dir="auto">本报告已完成全部归档核验、预测指标重算、效用测量分析和噪声汇总；后文的条件化方案是据此提出的下一轮实验设计。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">1. 数据已经完整，当前结果可以用于判断方法</h2><a id="user-content-1-数据已经完整当前结果可以用于判断方法" class="anchor" aria-label="Permalink: 1. 数据已经完整，当前结果可以用于判断方法" href="#1-数据已经完整当前结果可以用于判断方法"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>核对项目</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>归档文件</td>
+<td>trustcpf_strong_v1_results_20261023_162717.tar.gz，4,908,964,816 字节</td>
+</tr>
+<tr>
+<td>下载与解压</td>
+<td>SHA-256 与 sidecar 一致；985 个普通文件逐一核对，缺失 0、内容差异 0</td>
+</tr>
+<tr>
+<td>执行版本</td>
+<td>MANIFEST 中 56 个文件哈希一致</td>
+</tr>
+<tr>
+<td>完整队列</td>
+<td>114 / 114 阶段；30 / 30 模型或读出结果；12 / 12 效用审计；1800 / 1800 噪声行</td>
+</tr>
+<tr>
+<td>原始预测</td>
+<td>60 份 VAL / TEST NPZ 重算 2280 项指标，最大绝对差 7.11×10⁻¹⁵</td>
+</tr>
+<tr>
+<td>样本与候选轴</td>
+<td>60 份预测的样本记录、标签、候选与同 seed 的 r0 一致</td>
+</tr>
+<tr>
+<td>强基底</td>
+<td>24 份主模型 checkpoint 的全部 backbone 张量与对应历史 G0 完全一致</td>
+</tr>
+<tr>
+<td>五折教师</td>
+<td>真实 / shuffled 共 30 个教师；各自 G0 训练 10 epoch、关系教师训练 10 epoch；Query 与训练组合交集为 0，冻结后 G0 张量没有变化</td>
+</tr>
+<tr>
+<td>审计与噪声</td>
+<td>12 份效用总指标从保存预测复算一致；噪声无重复键，全部零噪声行与干净 TEST 一致</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">TEST 共 2914 张图像，其中 seen 1023、unseen 1891；VAL 共 3214 张，其中 seen 877、unseen 2337。CW 候选为训练组合与当前 split 组合的并集，TEST / VAL 分别为 101 / 98；OW 为全部 16×12=192 个组合。</p>
+<p dir="auto">下文 AUC 使用原工程百分数显示尺度，差值单位为 AUC 点；“±”为三个训练 seed 的样本标准差。HM 使用 VAL 选出的 bias，NLL / ECE 使用 VAL 确定的 bias 与温度。CW、OW 分别从归档的候选概率混合重算，保留了原实现先按候选集归一化、再平均图概率的顺序。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">2. 主结果：基底恢复，TRUST 有增益，选图优势仍然不足</h2><a id="user-content-2-主结果基底恢复trust-有增益选图优势仍然不足" class="anchor" aria-label="Permalink: 2. 主结果：基底恢复，TRUST 有增益，选图优势仍然不足" href="#2-主结果基底恢复trust-有增益选图优势仍然不足"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>TEST CW AUC</th>
+<th>TEST OW AUC</th>
+<th>所选适配 epoch：3351 / 3352 / 3353</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CPF / r0</td>
+<td>34.512 ± 0.601</td>
+<td>25.184 ± 1.254</td>
+<td>0 / 0 / 0</td>
+</tr>
+<tr>
+<td>capacity</td>
+<td>35.805 ± 0.905</td>
+<td>26.400 ± 1.847</td>
+<td>3 / 2 / 3</td>
+</tr>
+<tr>
+<td>dense</td>
+<td>35.646 ± 0.926</td>
+<td>26.288 ± 1.818</td>
+<td>0 / 0 / 0</td>
+</tr>
+<tr>
+<td>drop</td>
+<td>34.988 ± 0.864</td>
+<td>25.908 ± 1.117</td>
+<td>0 / 0 / 1</td>
+</tr>
+<tr>
+<td>free</td>
+<td>34.996 ± 0.852</td>
+<td>25.921 ± 1.104</td>
+<td>0 / 0 / 1</td>
+</tr>
+<tr>
+<td>mean</td>
+<td>35.231 ± 0.600</td>
+<td>26.070 ± 1.039</td>
+<td>2 / 0 / 0</td>
+</tr>
+<tr>
+<td>TRUST / robust</td>
+<td>35.201 ± 0.571</td>
+<td>26.149 ± 1.109</td>
+<td>2 / 0 / 3</td>
+</tr>
+<tr>
+<td>shuffled</td>
+<td>35.033 ± 0.524</td>
+<td>25.545 ± 1.310</td>
+<td>3 / 0 / 1</td>
+</tr>
+<tr>
+<td>robust：平均图读出</td>
+<td>35.379 ± 0.626</td>
+<td>26.211 ± 1.387</td>
+<td>2 / 0 / 3</td>
+</tr>
+<tr>
+<td>robust：平均 logit 读出</td>
+<td>35.206 ± 0.564</td>
+<td>26.161 ± 1.110</td>
+<td>2 / 0 / 3</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">r0 的 34.5117 / 25.1836 与历史 G0 完全一致。此前“弱基底掩盖 TRUST 效果”的疑问已在本轮得到直接检验：恢复强 CPF 后，robust 达到 35.2015 / 26.1491，确实提高了识别能力；capacity 和 dense 的均值仍然更高。</p>
+<p dir="auto">配对差值如下，每个单元格为 CW / OW，均为 <strong>robust − 对照</strong>：</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>对照</th>
+<th>3351</th>
+<th>3352</th>
+<th>3353</th>
+<th>平均差值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>r0</td>
+<td>+0.7218 / +1.2004</td>
+<td>+0.6552 / +1.5531</td>
+<td>+0.6921 / +0.1432</td>
+<td>+0.6897 / +0.9656</td>
+</tr>
+<tr>
+<td>capacity</td>
+<td>-1.1898 / -1.0634</td>
+<td>-0.6750 / +0.4011</td>
+<td>+0.0532 / -0.0917</td>
+<td>-0.6039 / -0.2513</td>
+</tr>
+<tr>
+<td>dense</td>
+<td>-1.1397 / -0.8772</td>
+<td>-0.4513 / -0.4945</td>
+<td>+0.2588 / +0.9540</td>
+<td>-0.4441 / -0.1393</td>
+</tr>
+<tr>
+<td>drop</td>
+<td>-0.1048 / +0.2211</td>
+<td>+0.0154 / -0.0286</td>
+<td>+0.7294 / +0.5312</td>
+<td>+0.2133 / +0.2412</td>
+</tr>
+<tr>
+<td>free</td>
+<td>-0.1048 / +0.2211</td>
+<td>+0.0154 / -0.0286</td>
+<td>+0.7058 / +0.4911</td>
+<td>+0.2055 / +0.2279</td>
+</tr>
+<tr>
+<td>mean</td>
+<td>-0.1984 / +0.1515</td>
+<td>-0.0257 / -0.0129</td>
+<td>+0.1367 / +0.0978</td>
+<td>-0.0291 / +0.0788</td>
+</tr>
+<tr>
+<td>shuffled</td>
+<td>-0.2725 / +0.5409</td>
+<td>+0.3847 / +1.0875</td>
+<td>+0.3927 / +0.1845</td>
+<td>+0.1683 / +0.6043</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">这些比较分别回答不同问题：</p>
+<ul dir="auto">
+<li><strong>相对 CPF：</strong> robust 在三个 seed 的 CW、OW 上均提高，平均为 +0.6897 / +0.9656。</li>
+<li><strong>相对相同类型期望边数的 drop：</strong> 平均为 +0.2133 / +0.2412；CW、OW 均为两正一负。存在小幅选择收益，但尚未超过 dense。</li>
+<li><strong>相对 capacity：</strong> CW 两个 seed 较低、一个略高，平均 −0.6039；OW 平均 −0.2513。复杂效用流程还没有超过简单的额外可训练分支。</li>
+<li><strong>相对 mean：</strong> CW −0.0291、OW +0.0788，风险项的净增益很小。</li>
+<li><strong>相对 shuffled：</strong> CW +0.1683、OW +0.6043，OW 三个 seed 均为正。强基底上出现了与真实附件相关的正向证据，值得继续研究知识效用迁移。</li>
+</ul>
+<p dir="auto">shuffled 重跑了教师、效用拟合、选图与适配，以上差值对应整个知识流程对附件替换的反应。它与上一轮条件残差 v2 的 Shuffle 实验具有不同训练定义，两个结果应分别解释。</p>
+<p dir="auto">capacity 与 TRUST 都有 221,184 个新增可训练参数，但函数形式不同：capacity 直接增加三元头 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$T(z)$</math-renderer>，TRUST 使用锚点抵消后的关系增量 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$T(z)-T(e)$</math-renderer>。capacity 的结果说明增加可训练表达能力本身有效；dense 与 drop 更直接反映关系选择的价值。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">固定工作点与概率质量</h3><a id="user-content-固定工作点与概率质量" class="anchor" aria-label="Permalink: 固定工作点与概率质量" href="#固定工作点与概率质量"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>CW HM</th>
+<th>OW HM</th>
+<th>CW NLL</th>
+<th>OW NLL</th>
+<th>CW ECE</th>
+<th>OW ECE</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CPF / r0</td>
+<td>49.759</td>
+<td>39.862</td>
+<td>1.529</td>
+<td>2.000</td>
+<td>4.972</td>
+<td>5.050</td>
+</tr>
+<tr>
+<td>capacity</td>
+<td>51.120</td>
+<td>41.205</td>
+<td>1.507</td>
+<td>1.970</td>
+<td>4.970</td>
+<td>4.625</td>
+</tr>
+<tr>
+<td>dense</td>
+<td>50.864</td>
+<td>41.839</td>
+<td>1.509</td>
+<td>1.969</td>
+<td>4.440</td>
+<td>3.916</td>
+</tr>
+<tr>
+<td>drop</td>
+<td>50.139</td>
+<td>40.777</td>
+<td>1.517</td>
+<td>1.991</td>
+<td>4.511</td>
+<td>4.889</td>
+</tr>
+<tr>
+<td>mean</td>
+<td>50.263</td>
+<td>40.780</td>
+<td>1.515</td>
+<td>1.985</td>
+<td>4.511</td>
+<td>4.808</td>
+</tr>
+<tr>
+<td>TRUST / robust</td>
+<td>49.750</td>
+<td>41.133</td>
+<td>1.511</td>
+<td>1.986</td>
+<td>4.481</td>
+<td>4.849</td>
+</tr>
+<tr>
+<td>shuffled</td>
+<td>50.319</td>
+<td>40.301</td>
+<td>1.512</td>
+<td>1.991</td>
+<td>5.115</td>
+<td>5.054</td>
+</tr>
+<tr>
+<td>robust：平均图读出</td>
+<td>50.560</td>
+<td>41.884</td>
+<td>1.508</td>
+<td>1.971</td>
+<td>4.329</td>
+<td>3.621</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">robust 的 CW HM 为 49.7504，与 r0 的 49.7591 几乎相同；OW HM 从 39.8617 提高到 41.1334。NLL 在两个 world 都改善。当前收益因此更适合概括为“排序曲线与 OW 工作点改善”，CW 固定工作点仍需提升。</p>
+<p dir="auto">平均图读出复用 robust 同一 checkpoint，CW / OW AUC 为 35.3792 / 26.2110，比 16 图概率平均提高 0.1778 / 0.0619；平均 logit 读出与原概率平均接近。随机图平均尚未产生额外识别优势。这为后续简化推理提供了依据；下一轮先沿用当前概率平均，使新增差异集中在效用输入上。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">3. 效用审计：真正的瓶颈在迁移，而非分类基底</h2><a id="user-content-3-效用审计真正的瓶颈在迁移而非分类基底" class="anchor" aria-label="Permalink: 3. 效用审计：真正的瓶颈在迁移，而非分类基底" href="#3-效用审计真正的瓶颈在迁移而非分类基底"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">三个 seed 的关系排序与数值预测</h3><a id="user-content-三个-seed-的关系排序与数值预测" class="anchor" aria-label="Permalink: 三个 seed 的关系排序与数值预测" href="#三个-seed-的关系排序与数值预测"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">每个 Q5 审计有 3072 条观测，OI / OE / AE 各 1024 条。这里的 type_constant 是从 Q1–Q3 估计的三类效用均值，属于效用回归对照；drop 才是分类阶段按类型常数概率进行 Bernoulli 采边的对照，capacity 则是无关系附件的可训练分支。</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>seed</th>
+<th>总 Spearman</th>
+<th>OI</th>
+<th>OE</th>
+<th>AE</th>
+<th>方向平衡准确率</th>
+<th>效用 RMSE</th>
+<th>类型常数 RMSE</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3351</td>
+<td>-0.1805</td>
+<td>-0.2272</td>
+<td>-0.1254</td>
+<td>0.1805</td>
+<td>43.34%</td>
+<td>0.006720</td>
+<td>0.006475</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>0.1698</td>
+<td>-0.0553</td>
+<td>0.3588</td>
+<td>-0.0942</td>
+<td>54.17%</td>
+<td>0.006844</td>
+<td>0.006685</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>0.2071</td>
+<td>-0.2153</td>
+<td>0.3187</td>
+<td>0.0364</td>
+<td>57.55%</td>
+<td>0.004414</td>
+<td>0.004379</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">3351 的总体排序为负；3352、3353 有正相关，其中 OE 较好，OI 在三个 seed 上均为负。类型常数的 RMSE 在三个 seed 上都优于完整网络。边查表的总 Spearman 分别为 −0.1603、0.0617、−0.0072，也没有形成可迁移的边排序。</p>
+<p dir="auto">三个 seed 的 90% 预测区间覆盖率分别为 76.76%、80.14%、76.14%，类型常数对照为 86.88%、89.06%、87.96%。当前方差预测偏窄，直接把它用于下置信奖励，难以获得稳定的风险控制效果。</p>
+<p dir="auto">约 77.12%–82.52% 的审计观测满足效用绝对值大于 1.96 倍背景图采样标准误。多数观测能够分辨开启与关闭的差异；这项标准误只描述背景图采样，不覆盖 Query 组合变化和教师变化。当前证据支持先改进跨情境预测，再增加背景重复次数。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">全部 12 份审计与未测边实验</h3><a id="user-content-全部-12-份审计与未测边实验" class="anchor" aria-label="Permalink: 全部 12 份审计与未测边实验" href="#全部-12-份审计与未测边实验"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>实验</th>
+<th>seed</th>
+<th>Spearman</th>
+<th>方向平衡准确率</th>
+<th>RMSE</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>seed</td>
+<td>3351</td>
+<td>-0.1805</td>
+<td>43.34%</td>
+<td>0.006720</td>
+</tr>
+<tr>
+<td>seed</td>
+<td>3352</td>
+<td>0.1698</td>
+<td>54.17%</td>
+<td>0.006844</td>
+</tr>
+<tr>
+<td>seed</td>
+<td>3353</td>
+<td>0.2071</td>
+<td>57.55%</td>
+<td>0.004414</td>
+</tr>
+<tr>
+<td>semantic</td>
+<td>3351</td>
+<td>-0.1425</td>
+<td>45.48%</td>
+<td>0.006659</td>
+</tr>
+<tr>
+<td>semantic</td>
+<td>3352</td>
+<td>-0.0034</td>
+<td>43.29%</td>
+<td>0.006888</td>
+</tr>
+<tr>
+<td>semantic</td>
+<td>3353</td>
+<td>0.1276</td>
+<td>54.90%</td>
+<td>0.004448</td>
+</tr>
+<tr>
+<td>unmeasured</td>
+<td>3351</td>
+<td>-0.2341</td>
+<td>42.07%</td>
+<td>0.006805</td>
+</tr>
+<tr>
+<td>unmeasured</td>
+<td>3352</td>
+<td>0.1250</td>
+<td>52.28%</td>
+<td>0.006983</td>
+</tr>
+<tr>
+<td>unmeasured</td>
+<td>3353</td>
+<td>0.1202</td>
+<td>51.58%</td>
+<td>0.004470</td>
+</tr>
+<tr>
+<td>shuffled</td>
+<td>3351</td>
+<td>-0.0789</td>
+<td>43.85%</td>
+<td>0.006242</td>
+</tr>
+<tr>
+<td>shuffled</td>
+<td>3352</td>
+<td>-0.0058</td>
+<td>47.62%</td>
+<td>0.006558</td>
+</tr>
+<tr>
+<td>shuffled</td>
+<td>3353</td>
+<td>-0.1099</td>
+<td>45.49%</td>
+<td>0.007737</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">表中的 seed 表示完整输入。去掉视觉摘要后，3352、3353 的排序下降，3351 反而略升；现有视觉摘要包含一些有效信息，但没有解决跨折迁移。semantic 和 unmeasured 本轮只执行效用重拟合与审计，归档中没有它们的最终 CZSL 识别模型。</p>
+<p dir="auto">unmeasured 实际固定留出 OI 2 条、OE 7 条、AE 9 条，共 18 / 96 条边。仅在这些未参与拟合和开发选模的边上重新比较：</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>seed</th>
+<th>Q5 未测边观测数</th>
+<th>Spearman</th>
+<th>方向平衡准确率</th>
+<th>网络 RMSE</th>
+<th>同子集类型常数 RMSE</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3351</td>
+<td>591</td>
+<td>-0.4706</td>
+<td>28.68%</td>
+<td>0.005357</td>
+<td>0.005023</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>592</td>
+<td>0.0019</td>
+<td>47.79%</td>
+<td>0.006015</td>
+<td>0.005641</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>580</td>
+<td>0.2391</td>
+<td>51.65%</td>
+<td>0.004541</td>
+<td>0.004391</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">未测边上的排序与方向仍不稳定，三个 seed 的 RMSE 也均高于同子集的类型常数。现有输入还没有支撑稳定的“从测过的关系推广到未测关系”能力。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">从原始配对测量看，效用随折变化很大</h3><a id="user-content-从原始配对测量看效用随折变化很大" class="anchor" aria-label="Permalink: 从原始配对测量看，效用随折变化很大" href="#从原始配对测量看效用随折变化很大"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">对每一折、每条边，先对该折所有观测求平均；再比较五折之间的边均值排序。下面的“折间平均相关”是五折十组两两 Spearman 的平均；“拟合→审计”将前三折的边均值等权平均后，与第五折比较。</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>seed</th>
+<th>折间平均相关</th>
+<th>拟合→审计相关</th>
+<th>拟合→审计符号一致率</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3351</td>
+<td>-0.0321</td>
+<td>-0.2213</td>
+<td>42.71%</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>0.0014</td>
+<td>0.0807</td>
+<td>47.92%</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>-0.0480</td>
+<td>0.0240</td>
+<td>42.71%</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">这里每折同时改变了教师参数和留出组合，所以观察到的是两者共同形成的效用变化。其直接含义是：<strong>边的效用并不是仅由语义附件决定的固定属性。</strong></p>
+<p dir="auto">原代码的目标实际为：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$$u_e(\theta,D_Q)=\mathbb E_{G_{-e}}\!\left[
+R_{D_Q}(\theta,G_{-e})-R_{D_Q}(\theta,G_{+e})\right].$$</math-renderer>
+<p dir="auto">其中 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$\theta$</math-renderer> 包括 CPF 和关系头参数，<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$D_Q$</math-renderer> 是待泛化的组合分布。但效用网络只接收语义特征和 Inner 视觉摘要 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$\phi_e(S)$</math-renderer>，没有当前教师的预测、关系扰动响应或损失变化。因此它要把随模型与组合分布变化的标签映射到缺少模型状态的输入上。</p>
+<p dir="auto">从平方误差角度，令 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$Y$</math-renderer> 为配对效用标签，<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$\Phi$</math-renderer> 为现有输入，则：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$$\mathbb E[(Y-f(\Phi))^2]
+=\mathbb E[\mathop{\mathrm{Var}}\nolimits(Y\mid\Phi)]
++\mathbb E[(\mathbb E[Y\mid\Phi]-f(\Phi))^2].$$</math-renderer>
+<p dir="auto">增加训练样本主要帮助逼近条件均值；若模型状态引起的变化仍留在条件方差里，单纯扩大效用网络或增加同类测量很难形成稳定的边排序。下一轮应检验“加入当前模型的可观测响应，能否降低这部分未解释变化”。该判断是由跨折测量和输入定义共同支持的研究假设。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">4. 噪声实验：当前风险项没有体现出实质优势</h2><a id="user-content-4-噪声实验当前风险项没有体现出实质优势" class="anchor" aria-label="Permalink: 4. 噪声实验：当前风险项没有体现出实质优势" href="#4-噪声实验当前风险项没有体现出实质优势"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">完整矩阵为四组方法 × 三训练 seed × 五扰动 seed × 三关系类型 × 五强度 × 两种扰动，共 1800 行，每行包含 CW / OW。每次只扰动一种关系类型；强度 0.5 表示该类型一半关系，而非全部 96 条关系的一半。</p>
+<p dir="auto">沿用原报告的名义强度 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$r\in\{0,0.1,0.2,0.3,0.5\}$</math-renderer>，梯形积分计算：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$$\mathop{\mathrm{RAUC}}\nolimits=\frac{1}{0.5}\int_0^{0.5}\mathop{\mathrm{AUC}}\nolimits(r)\,dr,\qquad
+\Delta\mathop{\mathrm{RAUC}}\nolimits=\mathop{\mathrm{RAUC}}\nolimits-\mathop{\mathrm{AUC}}\nolimits(0).$$</math-renderer>
+<p dir="auto">先对每个训练 seed 的扰动重复和六种场景求平均，再对三个训练 seed 汇总；五个扰动 seed 不作为五次独立训练。离散边数导致实际扰动率与名义值略有差异，原始 actual_rate 已保留。</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>CW RAUC</th>
+<th>OW RAUC</th>
+<th>CW ΔRAUC</th>
+<th>OW ΔRAUC</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>dense</td>
+<td>35.617 ± 0.916</td>
+<td>26.292 ± 1.822</td>
+<td>-0.0282</td>
+<td>0.0031</td>
+</tr>
+<tr>
+<td>drop</td>
+<td>34.964 ± 0.859</td>
+<td>25.871 ± 1.110</td>
+<td>-0.0244</td>
+<td>-0.0370</td>
+</tr>
+<tr>
+<td>mean</td>
+<td>35.231 ± 0.607</td>
+<td>26.071 ± 1.080</td>
+<td>0.0004</td>
+<td>0.0012</td>
+</tr>
+<tr>
+<td>robust</td>
+<td>35.188 ± 0.581</td>
+<td>26.116 ± 1.107</td>
+<td>-0.0136</td>
+<td>-0.0328</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">robust 的绝对 RAUC 低于 dense；相对干净性能的变化也没有优于 mean。OW 上 robust 比 mean 的干净 AUC 高 0.0788，噪声 RAUC 只高 0.0448，这一差距主要来自干净模型起点，不能解释为更强的抗噪增益。</p>
+<p dir="auto">全部关系类型和扰动方式的 RAUC 均值如下：</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>扰动</th>
+<th>类型</th>
+<th>协议</th>
+<th>dense</th>
+<th>drop</th>
+<th>mean</th>
+<th>robust</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>附件错配</td>
+<td>OI</td>
+<td>CW</td>
+<td>35.6377</td>
+<td>34.9834</td>
+<td>35.2467</td>
+<td>35.2047</td>
+</tr>
+<tr>
+<td>附件错配</td>
+<td>OI</td>
+<td>OW</td>
+<td>26.2939</td>
+<td>25.8990</td>
+<td>26.0951</td>
+<td>26.1480</td>
+</tr>
+<tr>
+<td>附件错配</td>
+<td>OE</td>
+<td>CW</td>
+<td>35.6289</td>
+<td>34.9853</td>
+<td>35.2249</td>
+<td>35.1980</td>
+</tr>
+<tr>
+<td>附件错配</td>
+<td>OE</td>
+<td>OW</td>
+<td>26.3444</td>
+<td>25.9035</td>
+<td>26.0754</td>
+<td>26.1341</td>
+</tr>
+<tr>
+<td>附件错配</td>
+<td>AE</td>
+<td>CW</td>
+<td>35.6101</td>
+<td>34.9719</td>
+<td>35.2414</td>
+<td>35.2058</td>
+</tr>
+<tr>
+<td>附件错配</td>
+<td>AE</td>
+<td>OW</td>
+<td>26.2662</td>
+<td>25.9041</td>
+<td>26.0872</td>
+<td>26.1612</td>
+</tr>
+<tr>
+<td>删边</td>
+<td>OI</td>
+<td>CW</td>
+<td>35.6056</td>
+<td>34.9848</td>
+<td>35.2128</td>
+<td>35.1974</td>
+</tr>
+<tr>
+<td>删边</td>
+<td>OI</td>
+<td>OW</td>
+<td>26.2626</td>
+<td>25.8966</td>
+<td>26.0803</td>
+<td>26.1496</td>
+</tr>
+<tr>
+<td>删边</td>
+<td>OE</td>
+<td>CW</td>
+<td>35.6168</td>
+<td>34.8856</td>
+<td>35.2072</td>
+<td>35.1270</td>
+</tr>
+<tr>
+<td>删边</td>
+<td>OE</td>
+<td>OW</td>
+<td>26.2985</td>
+<td>25.7109</td>
+<td>25.9823</td>
+<td>25.9399</td>
+</tr>
+<tr>
+<td>删边</td>
+<td>AE</td>
+<td>CW</td>
+<td>35.6049</td>
+<td>34.9715</td>
+<td>35.2530</td>
+<td>35.1941</td>
+</tr>
+<tr>
+<td>删边</td>
+<td>AE</td>
+<td>OW</td>
+<td>26.2834</td>
+<td>25.9113</td>
+<td>26.1087</td>
+<td>26.1653</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">最有辨识度的场景是 OE 删边。删去该类型 50% 关系时，OW AUC 相对干净模型的平均变化为 dense −0.0087、drop −0.4136、mean −0.1869、robust −0.4243。robust 在这里比 mean 下降更多。</p>
+<p dir="auto">多数其他场景的变化仅为百分之几 AUC 点，整体曲线很平。当前冻结 CPF 加小幅关系残差的系统对这些扰动本来就不敏感；这批结果支持保留噪声实验作为机制证据，下一轮研究重心放在可迁移选边。原有 1800 行矩阵已足以做出这一判断。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">5. 选图、适配和识别错误说明了什么</h2><a id="user-content-5-选图适配和识别错误说明了什么" class="anchor" aria-label="Permalink: 5. 选图、适配和识别错误说明了什么" href="#5-选图适配和识别错误说明了什么"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">风险项同时改变了边排序与关系数量</h3><a id="user-content-风险项同时改变了边排序与关系数量" class="anchor" aria-label="Permalink: 风险项同时改变了边排序与关系数量" href="#风险项同时改变了边排序与关系数量"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">三个 seed 均从 Q4 选到 budget=0.25、tau_scale=0.25、lambda_var=1.0；lambda_ens 分别为 0.5、0、0.5。实际期望边数为：</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>seed</th>
+<th>robust OI / OE / AE</th>
+<th>robust 总量</th>
+<th>mean OI / OE / AE</th>
+<th>drop 与 robust</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3351</td>
+<td>0.381 / 6.668 / 12.000</td>
+<td>19.049</td>
+<td>3 / 9 / 12</td>
+<td>逐类型期望数量相同</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>0.891 / 9.000 / 12.000</td>
+<td>21.891</td>
+<td>3 / 9 / 12</td>
+<td>逐类型期望数量相同</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>0.896 / 6.434 / 12.000</td>
+<td>19.330</td>
+<td>3 / 9 / 12</td>
+<td>逐类型期望数量相同</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">预算在原实现中是上界。风险项把 OI 的保留率降到约 3.18%–7.47%，mean 的 OI 保留率则为 25%；OE 也有数量差异。因此 mean−robust 同时包含风险排序和删边强度的变化。相同预算约束并不自动意味着相同实际图密度。下一轮把逐类型期望数量固定为本轮 robust 的实际值，集中评价选边质量。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">epoch 0 的含义与 free 的结果</h3><a id="user-content-epoch-0-的含义与-free-的结果" class="anchor" aria-label="Permalink: epoch 0 的含义与 free 的结果" href="#epoch-0-的含义与-free-的结果"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">dense 三个 seed 都选择 epoch 0，即已经完成 10 epoch 参考头训练、尚未开始三轮适配的 checkpoint。三轮适配均实际执行，epoch 0 权重已逐元素核对为 reference/last.pt；这是 VAL 选模结果。drop 和 free 在前两个 seed 也都选到 epoch 0，所以二者最终结果完全一致。3353 的边概率只发生了很小变化。</p>
+<p dir="auto">这些结果说明当前适配没有稳定提高泛化，简单延长适配暂时缺少依据。free 的结果也主要反映“当前短程适配没有选出更好的结构”，不足以推导所有自由学习图的方法都无效。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">未见组合的属性识别仍以已见搭配竞争为主</h3><a id="user-content-未见组合的属性识别仍以已见搭配竞争为主" class="anchor" aria-label="Permalink: 未见组合的属性识别仍以已见搭配竞争为主" href="#未见组合的属性识别仍以已见搭配竞争为主"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">以下从保存的完整联合概率出发，给定真实物体，检查未见 TEST 图像。第三列进一步只保留该物体在 TEST CW 中的未见属性候选，并排除只有一个候选的样本，共 1544 张。</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>完整 16 属性准确率</th>
+<th>多个未见候选内准确率</th>
+<th>属性错误中落入已见搭配的比例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CPF / r0</td>
+<td>24.7312</td>
+<td>81.2824</td>
+<td>88.83%</td>
+</tr>
+<tr>
+<td>capacity</td>
+<td>24.8898</td>
+<td>81.1313</td>
+<td>88.99%</td>
+</tr>
+<tr>
+<td>dense</td>
+<td>25.7007</td>
+<td>81.2176</td>
+<td>89.61%</td>
+</tr>
+<tr>
+<td>drop</td>
+<td>25.5068</td>
+<td>81.2824</td>
+<td>89.30%</td>
+</tr>
+<tr>
+<td>mean</td>
+<td>25.5244</td>
+<td>81.4119</td>
+<td>89.54%</td>
+</tr>
+<tr>
+<td>TRUST / robust</td>
+<td>25.4363</td>
+<td>81.4335</td>
+<td>89.36%</td>
+</tr>
+<tr>
+<td>shuffled</td>
+<td>25.2424</td>
+<td>81.2608</td>
+<td>88.99%</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">robust 的完整属性准确率从 24.7312% 提高到 25.4363%；在多个未见候选内部，仅从 81.2824% 到 81.4335%。主要竞争仍发生在真实未见组合与该物体的已见搭配之间。候选受限指标是分析工具，正式模型仍对完整候选集预测。</p>
+<p dir="auto">这与上一轮 v2 的观察相接：强基底上关系残差可以改变搭配偏好，但稳定的组合判别收益仍有限。下一轮效用响应特征应直接描述关系如何改变当前分类器的组合概率，从而对准 TRUST 的决策对象。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">本轮成本</h3><a id="user-content-本轮成本" class="anchor" aria-label="Permalink: 本轮成本" href="#本轮成本"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>seed / GPU</th>
+<th>队列累计阶段时间</th>
+<th>主流程</th>
+<th>shuffled 流程</th>
+<th>噪声</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3351 / 1</td>
+<td>113.8 分钟</td>
+<td>49.8 分钟</td>
+<td>41.3 分钟</td>
+<td>15.8 分钟</td>
+</tr>
+<tr>
+<td>3352 / 2</td>
+<td>111.7 分钟</td>
+<td>49.3 分钟</td>
+<td>40.3 分钟</td>
+<td>15.8 分钟</td>
+</tr>
+<tr>
+<td>3353 / 3</td>
+<td>114.2 分钟</td>
+<td>49.1 分钟</td>
+<td>42.3 分钟</td>
+<td>15.7 分钟</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">累计为约 5.66 个单卡队列小时，三卡并行最长队列约 114.2 分钟，均为已记录阶段时间之和。真实知识每个 seed 的原测量包含 43,008 条观测、417,792 次关系头前向，现有数据量足以支撑一次有针对性的模型改写。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">6. 下一轮：模型响应条件化 TRUST</h2><a id="user-content-6-下一轮模型响应条件化-trust" class="anchor" aria-label="Permalink: 6. 下一轮：模型响应条件化 TRUST" href="#6-下一轮模型响应条件化-trust"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">研究问题与唯一主改动</h3><a id="user-content-研究问题与唯一主改动" class="anchor" aria-label="Permalink: 研究问题与唯一主改动" href="#研究问题与唯一主改动"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">研究问题明确为：<strong>在固定强 CPF、关系分支和图密度下，使用当前模型的实际关系响应，能否提高跨折效用预测，并转化为优于原 TRUST 与随机同预算选图的 CZSL 表现？</strong></p>
+<p dir="auto">完整 CPF 参数、TypedGraph、三元交互和配对 Query 效用定义继续沿用 Strong v1。主要改动发生在效用输入：将原来的语义与视觉摘要，扩展为“语义与视觉摘要＋当前模型在 Inner 支持集上的关系响应”。输出仍是效用均值和方差，后续仍通过效用奖励求关系概率。</p>
+<p dir="auto">现有特征告诉模型“这条关系连接什么、相关图像大致长什么样”；新增特征告诉它“对于当前分类器，开启这条关系会如何改变预测”。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">输入特征与公式</h3><a id="user-content-输入特征与公式" class="anchor" aria-label="Permalink: 输入特征与公式" href="#输入特征与公式"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">对于第 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$j$</math-renderer> 折，使用已有的冻结教师 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$\theta_j$</math-renderer>。从 Inner 的每个组合固定抽取最多两张图像，形成支持集 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$S_j$</math-renderer>；组合之间等权，组合内图像等权。所有 96 条边都使用同一支持集和固定背景随机数。该支持集只提供输入特征，原来的 Query 配对标签继续作为监督目标。</p>
+<p dir="auto">对边 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$e$</math-renderer>、支持图像 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$x$</math-renderer> 和背景 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$k$</math-renderer>，分别计算边关闭与开启后的联合 log score：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$$J^-_{e,k}(x),\qquad J^+_{e,k}(x),\qquad
+d_{e,k}(x)=J^+_{e,k}(x)-J^-_{e,k}(x).$$</math-renderer>
+<p dir="auto">候选集 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$\mathcal C$</math-renderer> 与原效用测量一致，使用全部 TRAIN 组合。对 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$\mathcal C$</math-renderer> 归一化得到 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$p^-_{e,k}$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$p^+_{e,k}$</math-renderer>。单图支持效用的精确表达为：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$$\begin{aligned}
+\delta_{e,k}(x,y)
+&amp;=\log p^+_{e,k}(y\mid x)-\log p^-_{e,k}(y\mid x)\\[4pt]
+&amp;=d_{e,k,y}(x)
+-\log\sum_{c\in\mathcal C}p^-_{e,k}(c\mid x)\exp d_{e,k,c}(x).
+\end{aligned}$$</math-renderer>
+<p dir="auto">第二行由两次 log-softmax 相减直接得到；它精确度量开启该边在支持样本上的 NLL 改善，保留原始效用正负号。实际实现使用 logsumexp。</p>
+<p dir="auto">此外，去掉所有候选共同平移，定义：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$$\widetilde d_{e,k,c}(x)
+=d_{e,k,c}(x)-\frac1{|\mathcal C|}\sum_{c'\in\mathcal C}d_{e,k,c'}(x).$$</math-renderer>
+<p dir="auto">令 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$S_{j,e}$</math-renderer> 为支持集中真实标签包含该边目标原词的子集：OI / OE 对应目标物体，AE 对应目标属性。对 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$B\in\{S_j,S_{j,e}\}$</math-renderer>，构造四维响应摘要：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$$h_e^B=\left[
+\mathbb E_{B,k}\delta,\;
+\sqrt{\mathop{\mathrm{Var}}\nolimits_{B,k}(\delta)},\;
+\sqrt{\mathbb E_{B,k}\frac{\|\widetilde d\|_2^2}{|\mathcal C|}},\;
+\mathbb E_{B,k}\bigl(H(p^+)-H(p^-)\bigr)
+\right].$$</math-renderer>
+<p dir="auto">这里 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$H(p)=-\sum_c p_c\log p_c$</math-renderer>。每个子集内部重新按组合等权归一化，背景图等权。四项分别描述实际支持收益、收益差异、候选排序扰动强度和预测熵变化。五折 Inner 已覆盖全部原词，因此目标子集可以从该支持集构造。</p>
+<p dir="auto">最终效用输入为：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$$\Phi_e^{\rm new}
+=\left[\phi_e(S),\,h_e^{S_j},\,h_e^{S_{j,e}}\right],\qquad
+(\mu_e,\sigma_e^2)=f_\psi(\Phi_e^{\rm new}).$$</math-renderer>
+<p dir="auto">只增加 8 个标量，原三成员 256→128→2 网络及异方差训练目标继续使用。新增响应量通常较小，单独使用 Q1–Q3 的逐维均值和标准差归一化，标准差下限取 10⁻⁶；原特征保留现有标准化方式。Q4 选择效用训练 epoch，Q5 评价迁移；最终按选定 epoch 合并五折标签重拟合，并按原流程从最终拟合集重新计算标准化统计。</p>
+<p dir="auto">主模型部署时，将 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$\theta_j$</math-renderer> 换为本 seed 已有的 reference/last.pt，从完整 TRAIN 按同样规则构造支持集，生成部署响应特征。新增特征在每个固定教师上按边计算一次，与该教师的全部 episode 记录连接；Query 图像和标签仍只参与原有监督目标。</p>
+<p dir="auto">这些特征把当前模型的实际响应纳入预测，但 Inner 收益与 Query 收益之间的映射仍需由数据学习。Q5 排序和最终 CZSL 增益将共同检验这个映射。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">固定图密度，保留可比较的原 TRUST</h3><a id="user-content-固定图密度保留可比较的原-trust" class="anchor" aria-label="Permalink: 固定图密度，保留可比较的原 TRUST" href="#固定图密度保留可比较的原-trust"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">对每个 seed、每个类型，令 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$B_t$</math-renderer> 等于本轮 robust 已保存的实际期望边数。原配置中的温度与风险系数继续使用。结构优化改写成明确的等式预算：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$$\begin{aligned}
+\max_{0\lt \pi_e\lt 1}\quad
+&amp;\sum_e r_e\pi_e
+-\tau\sum_e D_{\rm KL}\!\left(\mathop{\mathrm{Bern}}\nolimits(\pi_e)\,\|\,\mathop{\mathrm{Bern}}\nolimits(1/2)\right),\\[4pt]
+\text{s.t.}\quad
+&amp;\sum_{e:t(e)=t}\pi_e=B_t,\\[4pt]
+r_e&amp;=\mu_e-\lambda_{\rm var}\sqrt{v_e}-\lambda_{\rm ens}\sqrt{u_e}.
+\end{aligned}$$</math-renderer>
+<p dir="auto"><math-renderer class="js-inline-math" style="display: inline-block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$v_e$</math-renderer> 继续表示模型预测的任务方差加支持摘要方差，<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$u_e$</math-renderer> 为三成员均值的集成方差。原预算来自 Q4 调参和 TRAIN 部署预测。</p>
+<p dir="auto">对拉格朗日函数求导，利用 Bernoulli KL 对 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$\pi$</math-renderer> 的导数为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$\mathop{\mathrm{logit}}\nolimits(\pi)$</math-renderer>，得到：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$$r_e-\tau\mathop{\mathrm{logit}}\nolimits(\pi_e)-\gamma_{t(e)}=0,\qquad
+\pi_e=\mathop{\mathrm{sigmoid}}\nolimits\!\left(\frac{r_e-\gamma_{t(e)}}{\tau}\right).$$</math-renderer>
+<p dir="auto">此处 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$\gamma_t\in\mathbb R$</math-renderer>，按等式预算二分求解；原来的不等式求解只允许非负乘子，需要调整这一个边界条件。因为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$0\lt B_t\lt |E_t|$</math-renderer> 且 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$\tau\gt 0$</math-renderer>，类型内概率和随 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$\gamma_t$</math-renderer> 连续严格下降，解唯一。代回原 robust 的奖励与温度，等式预算应恢复原概率；drop 取 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="9a21fa2f787e60a4e8f526e959bda14e">$\pi_e=B_t/|E_t|$</math-renderer>。</p>
+<p dir="auto">这样，新增模型只能通过“选哪些边”获得优势，逐类型期望边数保持可比。一次部署预测后固定概率，沿用三轮适配和 16 图概率平均；本轮研究集中于适配起点的效用迁移。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">一个主实验，三个方法、三个 seed</h3><a id="user-content-一个主实验三个方法三个-seed" class="anchor" aria-label="Permalink: 一个主实验，三个方法、三个 seed" href="#一个主实验三个方法三个-seed"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>组别</th>
+<th>结构来源</th>
+<th>计算安排</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Drop</td>
+<td>按类型常数 Bernoulli 概率，期望边数为 B_t</td>
+<td>复用本轮三个 drop 结果</td>
+</tr>
+<tr>
+<td>Original TRUST</td>
+<td>原语义＋Inner 视觉摘要效用</td>
+<td>复用本轮三个 robust 结果；校验等式求解恢复原 pi</td>
+</tr>
+<tr>
+<td>Conditioned TRUST</td>
+<td>在相同输入上增加 8 维当前模型响应</td>
+<td>新增三个 seed 的效用拟合、结构生成和三轮适配</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">每个 seed 继续从对应 reference/last.pt 初始化，使用相同数据顺序、优化器配置、适配 epoch 和图随机数规则；epoch 0–3 均纳入 VAL CW native AUC 选模。物理 GPU 1、2、3 分别负责 seed 3351、3352、3353。原 capacity、dense 保留为同一强 CPF 系统的性能参考。</p>
+<p dir="auto">所需补充计算只有支持响应：每个固定教师使用 4 个 Bernoulli(0.5) 背景，五折教师加一个主参考模型，合计 6×96×4×2=4608 次关系头前向调用；一个支持集跨多个 batch 时按 batch 数增加。原 Query 端的 417,792 次前向与所有五折训练都可以复用。下一轮只重拟条件化效用并做三次适配，预计明显短于本轮约两小时的完整队列；实际用时在新增响应阶段记录。</p>
+<p dir="auto">主要代码改动落在三个位置：utility.py 增加当前模型的支持响应特征；stages.py 补充按教师缓存并连接特征的流程；graph.py 为固定期望边数提供等式预算求解。分类器结构和配对标签文件继续复用。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">核心指标与结果解释</h3><a id="user-content-核心指标与结果解释" class="anchor" aria-label="Permalink: 核心指标与结果解释" href="#核心指标与结果解释"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>层面</th>
+<th>本轮必须比较的核心指标</th>
+<th>回答的问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>效用迁移</td>
+<td>Q5 总体及类型内 Spearman、方向平衡准确率、RMSE 与类型常数对照；90% 区间覆盖率</td>
+<td>新增模型响应是否真正提高关系效用的可预测性</td>
+</tr>
+<tr>
+<td>最终识别</td>
+<td>三 seed TEST CW / OW AUC、相对原 TRUST 与 Drop 的逐 seed 差值</td>
+<td>更准确的效用是否转化为同预算识别收益</td>
+</tr>
+<tr>
+<td>固定工作点</td>
+<td>VAL bias 下的 TEST HM；完整 16 属性的未见准确率与多候选内部准确率</td>
+<td>提升发生在可用工作点和组合判别的哪一部分</td>
+</tr>
+<tr>
+<td>实现与成本</td>
+<td>类型期望边数、所选 epoch、响应缓存与适配耗时</td>
+<td>是否实现了同图密度比较，以及收益所需的实际计算量</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">这轮最有价值的结果，是效用排序改善与同预算识别改善同时出现。若排序改善但识别仍低于 dense，下一项研究问题就是当前局部 NLL 效用与最终 AUC / 适配过程的关系；若加入模型响应仍不能改善 Q5 排序，则应回到效用目标及跨组合迁移定义。这样，下一轮会明确推进 TRUST 的核心问题。</p>
+<p dir="auto">原有噪声和消融已回答当前版本的机制问题。下一轮先完成上述九行主结果与配套 Q5 审计，再根据条件化方法的表现决定后续扩展范围。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">7. 与前两轮讨论的衔接</h2><a id="user-content-7-与前两轮讨论的衔接" class="anchor" aria-label="Permalink: 7. 与前两轮讨论的衔接" href="#7-与前两轮讨论的衔接"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>实验轮次</th>
+<th>关键证据</th>
+<th>对当前方向的含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>弱基底 TRUST v1</td>
+<td>robust 9.9013 / 8.1716；capacity 13.9015 / 11.2403</td>
+<td>当时既存在基底问题，也没有效用选择优势</td>
+</tr>
+<tr>
+<td>条件残差 v2</td>
+<td>Base 34.4384 / 25.1400；Knowledge 35.0555 / 25.7402；Shuffle 35.3067 / 25.9153</td>
+<td>强基底恢复，但该残差设计没有显示稳定的真实附件优势</td>
+</tr>
+<tr>
+<td>本轮 Strong v1</td>
+<td>r0 34.5117 / 25.1836；robust 35.2015 / 26.1491；相对 drop 有小幅收益，相对 shuffled 的 OW 三 seed 均提高</td>
+<td>完整 TRUST 在强基底上具有部分正向信号，主要短板已落到效用迁移与选择质量</td>
+</tr>
+<tr>
+<td>建议下一轮</td>
+<td>相同强 CPF、参考头与图密度，加入模型响应条件化效用</td>
+<td>围绕 TRUST 核心机制推进，不再混入视觉框架变化</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">前一份 v2 报告曾建议转向 Compare-first。结合用户明确提出的强 CPF 验证目标，以及本轮新获得的完整数据，当前更合适的安排是先完成这一次条件化 TRUST 实验。它直接利用现有教师与配对测量，也能说明效用预测中的模型状态信息究竟有多大价值。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">附录：全部 30 组主模型与读出结果</h2><a id="user-content-附录全部-30-组主模型与读出结果" class="anchor" aria-label="Permalink: 附录：全部 30 组主模型与读出结果" href="#附录全部-30-组主模型与读出结果"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">epoch 0 表示完成参考头训练后的适配起点。两个 readout 行沿用 robust 的已选 checkpoint，只重新按各自读出方式在 VAL 上确定校准参数。</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>seed</th>
+<th>variant</th>
+<th>epoch</th>
+<th>VAL CW AUC</th>
+<th>TEST CW AUC</th>
+<th>TEST OW AUC</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3351</td>
+<td>r0</td>
+<td>0</td>
+<td>43.9071</td>
+<td>34.1754</td>
+<td>26.2127</td>
+</tr>
+<tr>
+<td>3351</td>
+<td>capacity</td>
+<td>3</td>
+<td>42.8788</td>
+<td>36.0871</td>
+<td>28.4765</td>
+</tr>
+<tr>
+<td>3351</td>
+<td>dense</td>
+<td>0</td>
+<td>43.0791</td>
+<td>36.0369</td>
+<td>28.2903</td>
+</tr>
+<tr>
+<td>3351</td>
+<td>drop</td>
+<td>0</td>
+<td>44.1026</td>
+<td>35.0020</td>
+<td>27.1919</td>
+</tr>
+<tr>
+<td>3351</td>
+<td>free</td>
+<td>0</td>
+<td>44.1026</td>
+<td>35.0020</td>
+<td>27.1919</td>
+</tr>
+<tr>
+<td>3351</td>
+<td>mean</td>
+<td>2</td>
+<td>43.8366</td>
+<td>35.0957</td>
+<td>27.2616</td>
+</tr>
+<tr>
+<td>3351</td>
+<td>robust</td>
+<td>2</td>
+<td>44.0146</td>
+<td>34.8973</td>
+<td>27.4131</td>
+</tr>
+<tr>
+<td>3351</td>
+<td>shuffled</td>
+<td>3</td>
+<td>43.1353</td>
+<td>35.1698</td>
+<td>26.8722</td>
+</tr>
+<tr>
+<td>3351</td>
+<td>readout_mean_graph</td>
+<td>2</td>
+<td>44.1543</td>
+<td>35.4028</td>
+<td>27.8098</td>
+</tr>
+<tr>
+<td>3351</td>
+<td>readout_mean_logit</td>
+<td>2</td>
+<td>43.8471</td>
+<td>34.8908</td>
+<td>27.4253</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>r0</td>
+<td>0</td>
+<td>41.6325</td>
+<td>35.2053</td>
+<td>23.7875</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>capacity</td>
+<td>2</td>
+<td>41.6370</td>
+<td>36.5355</td>
+<td>24.9395</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>dense</td>
+<td>0</td>
+<td>41.1323</td>
+<td>36.3118</td>
+<td>25.8351</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>drop</td>
+<td>0</td>
+<td>42.2891</td>
+<td>35.8451</td>
+<td>25.3692</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>free</td>
+<td>0</td>
+<td>42.2891</td>
+<td>35.8451</td>
+<td>25.3692</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>mean</td>
+<td>0</td>
+<td>41.7672</td>
+<td>35.8861</td>
+<td>25.3535</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>robust</td>
+<td>0</td>
+<td>42.3369</td>
+<td>35.8605</td>
+<td>25.3406</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>shuffled</td>
+<td>0</td>
+<td>41.1257</td>
+<td>35.4758</td>
+<td>24.2531</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>readout_mean_graph</td>
+<td>0</td>
+<td>42.0895</td>
+<td>35.9930</td>
+<td>25.4907</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>readout_mean_logit</td>
+<td>0</td>
+<td>42.3085</td>
+<td>35.8568</td>
+<td>25.3488</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>r0</td>
+<td>0</td>
+<td>44.4907</td>
+<td>34.1545</td>
+<td>25.5505</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>capacity</td>
+<td>3</td>
+<td>44.3925</td>
+<td>34.7934</td>
+<td>25.7854</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>dense</td>
+<td>0</td>
+<td>43.9716</td>
+<td>34.5878</td>
+<td>24.7397</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>drop</td>
+<td>1</td>
+<td>44.8005</td>
+<td>34.1172</td>
+<td>25.1625</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>free</td>
+<td>1</td>
+<td>44.8488</td>
+<td>34.1408</td>
+<td>25.2026</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>mean</td>
+<td>0</td>
+<td>44.4889</td>
+<td>34.7099</td>
+<td>25.5960</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>robust</td>
+<td>3</td>
+<td>44.6325</td>
+<td>34.8466</td>
+<td>25.6937</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>shuffled</td>
+<td>1</td>
+<td>44.8028</td>
+<td>34.4539</td>
+<td>25.5092</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>readout_mean_graph</td>
+<td>3</td>
+<td>43.9466</td>
+<td>34.7419</td>
+<td>25.3324</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>readout_mean_logit</td>
+<td>3</td>
+<td>44.5360</td>
+<td>34.8708</td>
+<td>25.7086</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">分析产物与来源</h2><a id="user-content-分析产物与来源" class="anchor" aria-label="Permalink: 分析产物与来源" href="#分析产物与来源"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">下列本地文件保存逐 seed、逐关系类型、逐噪声曲线的数值与核验结果，正文表格由这些结果自动生成。</p>
+<ul dir="auto">
+<li>
+<p dir="auto"><a href="/havenxu7436/czsl-research/blob/main/TRUST-CPF%E6%96%B9%E6%A1%88/02/analysis/confirmed/analysis.json">完整统计、效用折间比较及 720 条 CW/OW 噪声曲线</a></p>
+</li>
+<li>
+<p dir="auto"><a href="/havenxu7436/czsl-research/blob/main/TRUST-CPF%E6%96%B9%E6%A1%88/02/analysis/confirmed/archive_verification.json">归档逐文件核验</a></p>
+</li>
+<li>
+<p dir="auto"><a href="/havenxu7436/czsl-research/blob/main/TRUST-CPF%E6%96%B9%E6%A1%88/02/analysis/confirmed/additional_checks.json">样本顺序、适配选模和未测边同子集对照</a></p>
+</li>
+<li>
+<p dir="auto"><a href="/havenxu7436/czsl-research/blob/main/TRUST-CPF%E6%96%B9%E6%A1%88/02/references/original_scripts/analyze_strong_v1.py.txt">指标重算与数据分析脚本</a></p>
+</li>
+<li>
+<p dir="auto"><a href="/havenxu7436/czsl-research/blob/main/TRUST-CPF%E6%96%B9%E6%A1%88/02/results/raw_export/trustcpf_strong_v1/work">本轮原始工作目录</a></p>
+</li>
+<li>
+<p dir="auto"><a href="/havenxu7436/czsl-research/blob/main/TRUST-CPF%E6%96%B9%E6%A1%88/02/results/raw_export/trustcpf_strong_v1/trustcpf/model.py">本轮执行的关系模型</a></p>
+</li>
+<li>
+<p dir="auto"><a href="/havenxu7436/czsl-research/blob/main/TRUST-CPF%E6%96%B9%E6%A1%88/02/results/raw_export/trustcpf_strong_v1/trustcpf/utility.py">本轮执行的效用特征与损失</a></p>
+</li>
+<li>
+<p dir="auto"><a href="/havenxu7436/czsl-research/blob/main/TRUST-CPF%E6%96%B9%E6%A1%88/02/results/raw_export/trustcpf_strong_v1/trustcpf/stages.py">本轮执行的测量、选择和噪声流程</a></p>
+</li>
+</ul>
+</article>

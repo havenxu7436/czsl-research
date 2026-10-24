@@ -59,7 +59,7 @@ def restore_archive(number,destination):
             if h.hexdigest()!=part['sha256'] or size!=part['bytes']:raise ValueError('Archive part mismatch: '+part['path'])
             count+=size
     if count!=a['bytes'] or whole.hexdigest()!=a['sha256']:raise ValueError('Whole archive mismatch')
-    out.with_name(out.name+'.sha256').write_text(a['sha256']+'  '+out.name+'\n',encoding='ascii')
+    out.with_name(out.name+'.sha256').write_bytes((a['sha256']+'  '+out.name+'\n').encode('ascii'))
     return dict(stage=number,archive=str(out),bytes=count,sha256=whole.hexdigest(),verified=True)
 def check(number=None):
     results=[]
