@@ -1,0 +1,15 @@
+<article class="markdown-body entry-content container-lg" itemprop="text"><p dir="auto">本方案已执行完成。正式结果与复用情况见 <a href="/havenxu7436/czsl-research/blob/codex/trustcpf-r5-archive/TRUST-CPF%E6%96%B9%E6%A1%88/07/README.md">阶段首页</a> 和 <a href="/havenxu7436/czsl-research/blob/codex/trustcpf-r5-archive/TRUST-CPF%E6%96%B9%E6%A1%88/07/analysis/README.md">完整分析</a>；以下保留交付时的设计与代码说明。</p>
+<div class="markdown-heading" dir="auto"><h1 tabindex="-1" class="heading-element" dir="auto">TRUST-CPF R5 v1（10 epoch）</h1><a id="user-content-trust-cpf-r5-v110-epoch" class="anchor" aria-label="Permalink: TRUST-CPF R5 v1（10 epoch）" href="#trust-cpf-r5-v110-epoch"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">在上一轮强 CPF / Competition 10ep 上执行相对效用拟合。五组为 Uniform、Absolute-U-NLL、Relative-U-NLL 和两组匹配概率置换，三个seed，统一10epoch。已有教师、测量、响应和匹配控制结果自动复用。</p>
+<ul dir="auto">
+<li><code>SERVER_COMMANDS.md</code>：上传、配置、0/1/2卡训练、打包和本地下载。</li>
+<li><code>FORMULAS_AND_CODE.md</code>：公式、核心实现、实验协议和指标。</li>
+<li><code>trustcpf/r5.py</code>：教师内、类型内中心化岭回归。</li>
+<li><code>trustcpf/r5_training.py</code>：Q5审计、VAL强度选择、识别结果复用与新适配。</li>
+<li><code>trustcpf/r5_workflow.py</code>：27阶段断点队列及15组结果汇总。</li>
+</ul>
+<p dir="auto">服务器源目录：<code>/data/xhw/experiments/trustcpf_competition_v1_10ep</code>。
+特征缓存：<code>/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14</code>。
+新项目：<code>/data/xhw/experiments/trustcpf_r5_v1_10ep</code>。</p>
+<p dir="auto">本地35项测试中34项通过，1项CLIP重新提取测试因特征复用跳过。真实测量数据的三seed Absolute复现通过。新的UT识别结果由服务器运行生成。</p>
+</article>
