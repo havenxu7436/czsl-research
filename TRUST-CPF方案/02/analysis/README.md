@@ -346,7 +346,7 @@ h_e^B=\left[
 
 ```math
 \begin{aligned}
-\max_{0<\pi_e<1}\quad
+\max_{0\lt \pi_e\lt 1}\quad
 &\sum_e r_e\pi_e
 -\tau\sum_e D_{\rm KL}\!\left(\mathop{\mathrm{Bern}}\nolimits(\pi_e)\,\|\,\mathop{\mathrm{Bern}}\nolimits(1/2)\right),\\[4pt]
 \text{s.t.}\quad
@@ -367,7 +367,7 @@ r_e-\tau\mathop{\mathrm{logit}}\nolimits(\pi_e)-\gamma_{t(e)}=0,\qquad
 ```
 
 
-此处 $`\gamma_t\in\mathbb R`$，按等式预算二分求解；原来的不等式求解只允许非负乘子，需要调整这一个边界条件。因为 $`0<B_t<|E_t|`$ 且 $`\tau>0`$，类型内概率和随 $`\gamma_t`$ 连续严格下降，解唯一。代回原 robust 的奖励与温度，等式预算应恢复原概率；drop 取 $`\pi_e=B_t/|E_t|`$。
+此处 $`\gamma_t\in\mathbb R`$，按等式预算二分求解；原来的不等式求解只允许非负乘子，需要调整这一个边界条件。因为 $`0\lt B_t\lt |E_t|`$ 且 $`\tau\gt 0`$，类型内概率和随 $`\gamma_t`$ 连续严格下降，解唯一。代回原 robust 的奖励与温度，等式预算应恢复原概率；drop 取 $`\pi_e=B_t/|E_t|`$。
 
 这样，新增模型只能通过“选哪些边”获得优势，逐类型期望边数保持可比。一次部署预测后固定概率，沿用三轮适配和 16 图概率平均；本轮研究集中于适配起点的效用迁移。
 

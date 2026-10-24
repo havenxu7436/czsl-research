@@ -91,11 +91,11 @@ z_{je}=\mathop{\mathrm{onehot}}\nolimits(t(e))\otimes\left[1,(h_{je}-c)\oslash s
 ```
 
 
-令梯度为零得到线性方程。因 $`\alpha_r>0`$，对任何非零向量 $`v`$ 有
+令梯度为零得到线性方程。因 $`\alpha_r\gt 0`$，对任何非零向量 $`v`$ 有
 
 
 ```math
-v^{\mathsf T}(Z^{\mathsf T}Z+\alpha_r I)v=\|Zv\|_2^2+\alpha_r\|v\|_2^2>0.
+v^{\mathsf T}(Z^{\mathsf T}Z+\alpha_r I)v=\|Zv\|_2^2+\alpha_r\|v\|_2^2\gt 0.
 ```
 
 
@@ -112,7 +112,7 @@ v^{\mathsf T}(Z^{\mathsf T}Z+\alpha_r I)v=\|Zv\|_2^2+\alpha_r\|v\|_2^2>0.
 
 ## 4. 固定预算下的均值效用选图
 
-对类型 $`t`$，沿用旧 robust 最终概率和 $`B_t`$，并沿用温度 $`\tau>0`$。主奖励为 $`\hat\mu`$。定义
+对类型 $`t`$，沿用旧 robust 最终概率和 $`B_t`$，并沿用温度 $`\tau\gt 0`$。主奖励为 $`\hat\mu`$。定义
 
 
 ```math
@@ -127,7 +127,7 @@ v^{\mathsf T}(Z^{\mathsf T}Z+\alpha_r I)v=\|Zv\|_2^2+\alpha_r\|v\|_2^2>0.
 
 这是类型期望边数约束；每次采样的实际边数可以变化。类型内常数 Drop 概率为 $`B_t/|E_t|`$。
 
-对内点预算 $`0<B_t<|E_t|`$，引入无符号限制的等式乘子 $`\gamma_t`$。目标对 $`\pi_e`$ 的一阶条件为
+对内点预算 $`0\lt B_t\lt |E_t|`$，引入无符号限制的等式乘子 $`\gamma_t`$。目标对 $`\pi_e`$ 的一阶条件为
 
 
 ```math
@@ -136,7 +136,7 @@ v^{\mathsf T}(Z^{\mathsf T}Z+\alpha_r I)v=\|Zv\|_2^2+\alpha_r\|v\|_2^2>0.
 ```
 
 
-类型概率和关于 $`\gamma_t`$ 的导数为 $`-\tau^{-1}\sum_{e\in E_t}\pi_e(1-\pi_e)<0`$，且两端极限分别为 $`|E_t|`$ 和 0，因此每类型二分有唯一解。目标 Hessian 对角元为 $`-\tau/[\pi_e(1-\pi_e)]<0`$，该驻点为唯一最优解。预算为 0 或满预算时直接返回全零或全一。
+类型概率和关于 $`\gamma_t`$ 的导数为 $`-\tau^{-1}\sum_{e\in E_t}\pi_e(1-\pi_e)\lt 0`$，且两端极限分别为 $`|E_t|`$ 和 0，因此每类型二分有唯一解。目标 Hessian 对角元为 $`-\tau/[\pi_e(1-\pi_e)]\lt 0`$，该驻点为唯一最优解。预算为 0 或满预算时直接返回全零或全一。
 
 实际求解继承 `solve_budget_equal`，float64 二分 80 次；训练概率保存为 float32，另存精确概率及转换后的预算误差。
 
