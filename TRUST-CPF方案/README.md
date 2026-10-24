@@ -16,3 +16,5 @@ CLIP / CPF 上的可迁移关系效用监督、结构选择与 CZSL 研究。强
 [弱基底完整结果](v1/analysis/server-results-20261022/README.md) · [全仓库索引](../README.md)
 
 [本次全仓库校验](04/analysis/repository_qa/repository_verify.json) · [公式语法检查](04/analysis/repository_qa/math_checks.json) · [Compact 分析重算核对](04/analysis/repository_qa/analysis_reproduction.json)
+
+[GitHub 35 页排版检查](04/analysis/repository_qa/github/checks.json) · [浏览器核验](04/analysis/repository_qa/github/browser_checks.json) · [公式截图](04/analysis/repository_qa/github/formula-render.png) · [分析图截图](04/analysis/repository_qa/github/compact-render.png)
