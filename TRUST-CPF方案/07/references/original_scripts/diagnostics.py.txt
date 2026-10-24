@@ -1,0 +1,27 @@
+from shared import *
+from trustcpf import compact
+ans=dict(scan_exact=[],paired_q5=[],training=[],no_bias_absolute={})
+for seed in SEEDS:
+    w=WORK/f'seed{seed}';rows=read(w/'scan/results.json')
+    for method in TARGETS:
+        real=[r for r in rows if r['target']==method and r['permutation_seed'] is None]
+        base=next(r for r in real if r['strength']==0)
+        for r in real:ans['scan_exact'].append(dict(seed=seed,method=method,strength=r['strength'],native_gain=r['val']['cw']['AUC_native']-base['val']['cw']['AUC_native'],exact_gain=r['val']['cw']['AUC_exact']-base['val']['cw']['AUC_exact']))
+    rr=read(w/'decision/audit.json')['rows']
+    for v,b in (('relative','absolute'),('relative','permuted_relative'),('absolute','permuted_absolute')):
+        x=[next(r['mixture_AUC_exact'] for r in rr if r['policy']==v and r['bank']==bank)-next(r['mixture_AUC_exact'] for r in rr if r['policy']==b and r['bank']==bank) for bank in range(8201,8209)]
+        ans['paired_q5'].append(dict(seed=seed,comparison=v+'-'+b,**stats(x),mcse=float(np.std(x,ddof=1)/8**.5)))
+    # Ridge relative and probability centering are different operations. Compare centered
+    # linear predictions with/without the fitted absolute intercept, algebraically exact.
+    types=np.asarray(load_torch(w/'policies.pt')['types']);m=load_torch(w/'utility_all/absolute/model.pt')
+    x=load_torch(w/'responses/reference.pt')['features'].double().numpy();m0={**m,'beta':m['beta'].copy()};m0['beta'][[0,9,18]]=0
+    p=compact.predict(m,x,types);q=compact.predict(m0,x,types)
+    err=max(float(np.abs((p[types==t]-p[types==t].mean())-(q[types==t]-q[types==t].mean())).max()) for t in range(3))
+    assert err<1e-12;ans['no_bias_absolute'][str(seed)]=err
+    for v in VARIANTS:
+        ck=load_torch(w/f'runs/{v}/last.pt');ref=load_torch(w/'reference/last.pt')
+        train=read(w/f'runs/{v}/training.json')
+        cfg=ck['cfg'];ans['training'].append(dict(seed=seed,variant=v,last_epoch=ck['epoch'],graph_lr=cfg.get('graph_lr'),batch_size=cfg.get('batch_size'),train_images=len(train.get('train_ids',[])),keys=list(train.keys())))
+write('diagnostics.json',ans)
+print('PAIRED_Q5',ans['paired_q5'])
+print('RELATIVE_SCAN_EXACT',[r for r in ans['scan_exact'] if r['method']=='relative'])

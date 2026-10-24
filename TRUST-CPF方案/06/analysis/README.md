@@ -1,4 +1,4 @@
-本报告对应已完成的 Competition 10 epoch 队列；末尾 R5 相对拟合为下一批提案，尚无正式结果。
+本报告保留 Competition 完成时的解释与后续建议。R5 相对拟合现已完成，见 [07 阶段完整分析](../../07/analysis/README.md)。
 
 # TRUST-CPF Competition v1：10 epoch 完整结果分析
 

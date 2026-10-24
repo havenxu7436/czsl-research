@@ -1,11 +1,12 @@
-"""Recompute archived Align/Competition predictions and utility audits on CPU."""
+"""Recompute archived Align, Competition and R5 predictions and utility audits on CPU."""
 import argparse,math,os,shutil,subprocess,sys
 from pathlib import Path
 from register_trustcpf_followup import ROOT,SPECS,read,write,stage,safe_new,safe_child,restore_archive,materialize,sha
-ANALYSIS={'05':'analysis_TRUST_CPF_align_v1_20261024','06':'analysis_TRUST_CPF_competition_10ep_20261024'}
-RUNS={'05':['analyze.py'],'06':['verify_results.py','verify_mechanism.py','diagnose_transfer.py','summarize.py']}
+ANALYSIS={'05':'analysis_TRUST_CPF_align_v1_20261024','06':'analysis_TRUST_CPF_competition_10ep_20261024','07':'analysis_TRUST_CPF_r5_10ep_20261024'}
+RUNS={'05':['analyze.py'],'06':['verify_results.py','verify_mechanism.py','diagnose_transfer.py','summarize.py'],'07':['verify_results.py','verify_mechanism.py','summarize.py','diagnostics.py']}
 COMPARE={'05':['analysis.json','prediction_verification.json','audit_verification.json'],
-         '06':['analysis.json','prediction_verification.json','mechanism_verification.json','transfer_diagnostic.json']}
+         '06':['analysis.json','prediction_verification.json','mechanism_verification.json','transfer_diagnostic.json'],
+         '07':['analysis.json','prediction_verification.json','mechanism_verification.json','diagnostics.json']}
 def same(a,b,path='root'):
  if isinstance(a,dict):
   assert isinstance(b,dict) and set(a)==set(b),(path,'keys')
@@ -26,9 +27,16 @@ def main():
  pkg=SPECS[a.stage][1];write(dest/(pkg+'_download.json'),dict(name=arc['name'],bytes=arc['bytes'],sha256=arc['sha256']))
  directory=dest/ANALYSIS[a.stage];directory.mkdir()
  for p in (s/'references/original_scripts').glob('*.py.txt'):shutil.copy2(p,directory/p.name[:-4])
+ if a.stage in ('06','07'):
+  materialize(a.stage,dest/'release_restore');shutil.move(str(dest/'release_restore'/pkg),str(dest/pkg))
  if a.stage=='06':
-  materialize('06',dest/'release_restore');shutil.move(str(dest/'release_restore'/pkg),str(dest/pkg))
   previous=dest/ANALYSIS['05'];previous.mkdir();shutil.copy2(stage('05')/'analysis/confirmed/analysis.json',previous/'analysis.json')
+ if a.stage=='07':
+  previous=stage('06');previous_arc=read(previous/'results/archives/archive.json');previous_stem=previous_arc['name'][:-7]
+  for row in read(previous/'results/raw_export_members.json'):
+   source=previous/row['path'];out=safe_child(dest/previous_stem,row['runtime_path']);out.parent.mkdir(parents=True,exist_ok=True)
+   try:os.link(source,out)
+   except OSError:shutil.copy2(source,out)
  runs=[];checks=[]
  if not a.prepare_only:
   for name in RUNS[a.stage]:

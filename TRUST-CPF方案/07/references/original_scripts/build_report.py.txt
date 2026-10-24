@@ -1,0 +1,237 @@
+from shared import *
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+a=read(OUT/'analysis.json');r=read(OUT/'recognition_data.json');m=read(OUT/'mechanism_data.json');d=read(OUT/'diagnostics.json')
+figs=OUT/'figures';figs.mkdir(exist_ok=True)
+plt.rcParams.update({'font.family':'Microsoft YaHei','axes.unicode_minus':False,'font.size':10,'axes.spines.top':False,'axes.spines.right':False,'figure.dpi':150})
+colors={'uniform':'#667085','absolute':'#2563eb','relative':'#e87522','permuted_absolute':'#84a6df','permuted_relative':'#eac19d','measured':'#16836c','permuted_measured':'#93b7aa'}
+names={'uniform':'Uniform','absolute':'Absolute','relative':'Relative','permuted_absolute':'Permuted-Absolute','permuted_relative':'Permuted-Relative','measured':'Measured','permuted_measured':'Permuted-Measured'}
+fig,axes=plt.subplots(1,2,figsize=(12.6,4.7),layout='constrained')
+pols=['absolute','relative','permuted_absolute','permuted_relative','measured','permuted_measured']
+for i,p in enumerate(pols):
+    st=a['q5'][p]['mixture_AUC_gain'];axes[0].barh(i,st['mean'],color=colors[p],alpha=.8)
+    axes[0].scatter(st['values'],[i]*3,color='#25334a',s=20,zorder=3)
+axes[0].set(yticks=range(6),yticklabels=[names[p] for p in pols],xlabel='相对 Uniform 的 exact AUC 增益（点）',title='Q5 独立图像：固定 κ=1，16 图混合')
+axes[0].invert_yaxis();axes[0].axvline(0,color='#666',lw=.7);axes[0].grid(axis='x',alpha=.15)
+vs=['absolute','relative','permuted_absolute','permuted_relative'];yy=np.arange(4)
+for j,w in enumerate(('cw','ow')):
+    values=[a['primary'][v]['test_'+w+'_auc']['mean']-a['primary']['uniform']['test_'+w+'_auc']['mean'] for v in vs]
+    axes[1].barh(yy+(j-.5)*.28,values,.27,label=w.upper(),color=('#335cab','#68a3d7')[j])
+axes[1].set(yticks=yy,yticklabels=[names[v] for v in vs],xlabel='相对 Uniform 的 native AUC 增益（点）',title='最终 TEST：原流程选择 κ 和 epoch')
+axes[1].invert_yaxis();axes[1].axvline(0,color='#666',lw=.7);axes[1].legend();axes[1].grid(axis='x',alpha=.15)
+fig.savefig(figs/'evidence.png',bbox_inches='tight');plt.close(fig)
+
+fig,axes=plt.subplots(1,3,figsize=(13,3.8),layout='constrained',sharey=True)
+for ax,s in zip(axes,SEEDS):
+    for method in TARGETS:
+        rr=[x for x in a['scans'] if x['seed']==s and x['method']==method]
+        ax.plot([x['strength'] for x in rr],[x['gain'] for x in rr],'-o',color=colors[method],label=names[method])
+        base=rr[0]['val_cw'];ax.plot([x['strength'] for x in rr],[x['permuted_mean']-base for x in rr],'--',color=colors[method],alpha=.65,label=names[method]+' 置换均值')
+    ax.axhline(0,color='#777',lw=.7);ax.set(title=f'seed {s}',xlabel='概率强度 κ',xticks=[0,.5,1,2]);ax.grid(alpha=.15)
+axes[0].set_ylabel('冻结 reference VAL CW AUC − Uniform（点）');axes[1].legend(fontsize=8)
+fig.savefig(figs/'frozen_scan.png',bbox_inches='tight');plt.close(fig)
+
+fig,axes=plt.subplots(1,3,figsize=(13,3.8),layout='constrained')
+for ax,s in zip(axes,SEEDS):
+    for v in (('uniform','absolute','permuted_absolute') if s==3352 else ('uniform',)):
+        h=next(x for x in r['histories'] if x['seed']==s and x['variant']==v)
+        ax.plot([x['epoch'] for x in h['rows']],[x['val_cw'] for x in h['rows']],'-o',ms=3,color=colors[v],label=names[v])
+        ep=h['selected_epoch'];ax.scatter(ep,h['rows'][ep]['val_cw'],s=100,facecolors='none',edgecolors=colors[v])
+    ax.set(title=f'seed {s}',xlabel='epoch',xticks=[0,2,4,6,8,10]);ax.grid(alpha=.15)
+axes[0].set_ylabel('VAL CW native AUC');axes[1].legend(fontsize=8)
+fig.savefig(figs/'training.png',bbox_inches='tight');plt.close(fig)
+
+def f(x,n=3,sign=False):return format(x,('+' if sign else '')+f'.{n}f')
+def ms(x,n=3):return f(x['mean'],n)+' ± '+f(x['sd'],n)
+def table(headers,rows):return '\n'.join(['| '+' | '.join(headers)+' |','| '+' | '.join(['---']*len(headers))+' |']+['| '+' | '.join(map(str,row))+' |' for row in rows])+'\n'
+def link(label,path):return f'[{label}](<{Path(path).as_posix()}>)'
+def image(label,name):return f'![{label}](<{(figs/name).as_posix()}>)\n'
+parts=[]
+def add(x):parts.append(x.strip()+'\n')
+add('''# TRUST-CPF R5：10 epoch 完整结果分析
+
+分析日期：2026-10-24。数据：UT-Zappos，CLIP ViT-L/14 缓存，强 CPF＋现有 TRUST 关系分支。训练 seed：3351／3352／3353；本轮物理 GPU：0／1／2。
+
+**本轮没有支持“相对效用拟合优于绝对效用拟合”这一假设。Relative 在三个 seed 的正式选择中均取 κ=0，最终等于 Uniform；Q5 固定非零强度下的识别收益也低于 Absolute。TRUST 的局部效用信号仍然存在，但本轮没有把它转化为最终 CZSL 识别增益。**
+
+这里将两件事分别评价：R5 这个具体改进目前是负向结果；“关系价值可以测量并部分预测”仍有机制证据。当前版本尚不能以“可迁移效用监督稳定提高强 CPF”作为已经验证的论文主结论。
+
+## 1. 数据完整性与本轮实际执行内容
+
+本次分析使用真实服务器归档 `trustcpf_r5_v1_10ep_results_20261024_210943.tar.gz`，大小 1,258,749,962 字节。核验归档 SHA256、74 个发布文件、878 个阶段输出哈希，以及对前轮 371 项来源文件的引用；72 项导入输入与前轮逐字节一致。
+''')
+add(table(['项目','预期','实有／核验'],[
+['阶段','27','27，完整'],['正式方法×seed','5×3=15','15'],['复用教师','15','15'],['效用模型','2 方法×2 拟合范围×3 seed=12','12，独立矩阵求解重算'],['识别表','360 行','360，来自 180 份预测文件'],['冻结概率扫描','144 行','144'],['Q5 决策','7 策略×8 图 bank×3 seed=168','168，全部重算'],['训练曲线','15×(epoch 0–10)=165 行','165']]))
+add('''识别指标从归档逐图像预测重新计算，包括 native／exact AUC、HM、NLL、ECE 和 VAL 校准参数转移；最大差异为 7.11×10⁻¹⁵。Q5 从保存的单图充分统计量、混合概率及采图掩码重算，最大差异为 2.22×10⁻¹⁵。相对岭回归使用独立投影矩阵实现复算，参数最大差异 7.31×10⁻¹³。冻结 CPF 权重、概率预算、类型内置换、VAL 选模和最终 epoch=10 均通过核验。
+
+**15 个结果标签对应 5 条不同的适配轨迹，其中 4 条已有、1 条本轮新训练。** Uniform 三 seed 和 Absolute 三 seed 直接复用前轮匹配结果；其余八个 κ=0 结果复用对应 Uniform。本轮新训练的是 seed3352 的 Permuted-Absolute。Relative 的拟合、Q5 决策和概率扫描已实际执行；其正式非零概率适配没有被原选择流程选中。
+
+本轮新计算了 48 项 Relative／Permuted-Relative 的 Q5 图 bank 结果；另 120 项为已核对来源的复用。Measured 和 Absolute 的正向审计属于前轮证据在本批中的匹配参照，不能计作新的独立复现。
+
+## 2. 最终识别：Relative 等于 Uniform，Absolute 低于匹配置换
+
+以下使用预先指定的主图 bank=1701、VAL CW native AUC 选出的权重。AUC 为工程统一的 0–100 尺度，差值为 AUC 点；“±”为三个训练 seed 的样本标准差。
+''')
+add(table(['方法','TEST CW AUC','TEST OW AUC','ΔCW vs Uniform','ΔOW vs Uniform','选中 κ（3351／3352／3353）'],[
+[names[v],ms(a['primary'][v]['test_cw_auc']),ms(a['primary'][v]['test_ow_auc']),f(a['primary'][v]['test_cw_auc']['mean']-a['primary']['uniform']['test_cw_auc']['mean'],sign=True),f(a['primary'][v]['test_ow_auc']['mean']-a['primary']['uniform']['test_ow_auc']['mean'],sign=True),'0／2／0' if v in ('absolute','permuted_absolute') else '0／0／0'] for v in VARIANTS]))
+add(table(['seed','Uniform CW／OW','Absolute CW／OW','Relative CW／OW','Permuted-Absolute CW／OW'],[
+[s]+[f(a['primary'][v]['test_cw_auc']['values'][i])+'／'+f(a['primary'][v]['test_ow_auc']['values'][i]) for v in ('uniform','absolute','relative','permuted_absolute')] for i,s in enumerate(SEEDS)]))
+add('''Permuted-Relative 的三个 seed 均与 Uniform 完全相同。Relative 相对 Absolute 的均值提高 +0.205 CW、+0.216 OW，来自 seed3352 退回 Uniform 后避开了 Absolute 的下降，不能归因于相对效用排序带来了新增识别收益。
+
+seed3352 是唯一实际部署非均匀 Absolute 概率的 seed：Absolute 比 Uniform 低 0.616 CW／0.648 OW，比 Permuted-Absolute 低 0.238 CW／0.319 OW。其余两个 seed 均为平局。当前终端结果没有支持“把较高概率分给预测更有效的关系”优于保持相同概率集合后随机置换。
+
+### 2.1 exact AUC、HM 与校准指标
+
+下表为三 seed 均值。HM 使用 VAL 选定的偏置；NLL 和 ECE 使用 VAL 选定的温度与偏置，TEST 不重新选参。ECE 单位为百分点。
+''')
+add(table(['方法','CW exact AUC','OW exact AUC','CW HM','OW HM','CW NLL','OW NLL','CW ECE','OW ECE'],[[names[v]]+[f(a['primary'][v][k]['mean']) for k in ('test_cw_exact','test_ow_exact','test_cw_hm','test_ow_hm','test_cw_nll','test_ow_nll','test_cw_ece','test_ow_ece')] for v in ('uniform','absolute','permuted_absolute')]))
+add('''Relative 及其置换在这些指标上也与 Uniform 一致。Absolute 的 raw NLL 均值略低于 Uniform，但 exact AUC、HM 没有随之改善；使用 VAL 校准后的 NLL 也没有优势。仅降低某一概率损失不能代替识别收益。
+
+### 2.2 换图 bank 后是否改变结论
+
+同一权重分别用 1701／2701／3701 的 16 图混合评估；下表先在每个 seed 内平均三个 bank，再汇总 seed。三个 bank 是采图重复，训练重复仍是三个 seed。
+''')
+add(table(['方法','三 bank 平均 CW AUC','三 bank 平均 OW AUC'],[[names[v],ms(a['banks'][v]['cw']['seed_bank_average']),ms(a['banks'][v]['ow']['seed_bank_average'])] for v in VARIANTS]))
+add('''三个 bank 下 Relative 都精确等于 Uniform；Absolute 的 CW、OW 均值都低于 Uniform 及 Permuted-Absolute。结论没有依赖主 bank 的一次抽图。
+''')
+add(image('Q5 与最终识别的证据对照','evidence.png'))
+add('''左图每个点为一个训练 seed 对八个 Q5 图 bank 的均值；右图为主 bank 的三 seed 均值差。两图来自不同模型、不同评价集合，不能把左图增益直接当作最终 TEST 增益。
+
+## 3. 为什么 Relative 全部选到 κ=0
+
+强度选择发生在 reference 冻结状态、适配之前。下表列出各非零强度相对同 seed Uniform 的 VAL CW native AUC 差值。
+''')
+add(table(['seed','方法','κ=0.5','κ=1','κ=2','正式 κ'],[[s,names[method]]+[f(next(x['gain'] for x in a['scans'] if x['seed']==s and x['method']==method and x['strength']==k),sign=True) for k in (.5,1,2)]+[2 if s==3352 and method=='absolute' else 0] for s in SEEDS for method in TARGETS]))
+add('''Relative 九个非零配置的 native AUC 全部低于 Uniform，因此按既定规则选到 κ=0。Absolute 只在 seed3352、κ=2 时取得 +0.087 的冻结 VAL 优势，完整适配后该优势消失。
+
+这里还有一个比“选到零”更有信息量的结果：**两方法的 18 个非零配置，真实概率分配的冻结 VAL CW AUC 都低于相同强度下五个类型内置换的平均值。** Relative 的对应差距介于 −0.115 和 −0.814 点。这说明在当前 reference 的冻结评价中，预测关系顺序没有表现出优势。
+
+seed3352 的 Relative κ=1 与 Uniform 只差 −0.007 native AUC，属于很接近的配置。exact AUC 下 κ=0.5 比 Uniform 高 0.00039 点，κ=1 则低 0.216 点；这不构成可重复的正向优势，也不改变原 native 选参结果。3351／3353 的下降更明确。
+''')
+add(image('冻结 reference 的强度扫描','frozen_scan.png'))
+add('''实线为真实分配，虚线为五个类型内概率置换的均值。所有方法每类型期望保留一半关系，OI／OE／AE 分别为 6／18／24 条，总期望 48 条。
+
+当前流程检验的是“冻结 VAL 选 κ，再对选中策略适配”。因此，本轮可以明确判断该完整流程没有产生 R5 增益；尚未观察到 κ=0.5／1／2 的 Relative 分别完成 10 epoch 后的结果。把 κ=0 的复用曲线当作三次非零 Relative 训练，会误读这批实验。
+
+## 4. Q5 独立图像审计：效用有内容，R5 没有提高利用效率
+
+Q1–3 拟合预测器，Q4 选择正则，Q5 作为机制评价；Q5 测量图像与评价图像互不重叠，每边效用来自测量集合，实际策略收益来自另 256 张伪已见＋256 张伪未见图像。每个策略固定 κ=1、八个共同随机数图 bank、每 bank 16 张图。Measured 使用测得的 Q5 效用分配概率，不是最终 TEST 可用的 oracle，也不是所有策略的理论上界。
+
+以下为相对同 bank Uniform 的增益，三个 seed 等权；AUC 用 exact 事件积分，U-NLL 增益定义为 Uniform 风险减去策略风险，正值表示改善。
+''')
+add(table(['策略','16 图混合 ΔAUC','16 图混合 ΔU-NLL','单图平均 ΔAUC','ΔAUC 高于 Uniform 的 seed'],[[names[p],ms(a['q5'][p]['mixture_AUC_gain']),ms(a['q5'][p]['mixture_unll_gain'],4),ms(a['q5'][p]['single_AUC_gain']),str(sum(x>0 for x in a['q5'][p]['mixture_AUC_gain']['values']))+'/3'] for p in ('absolute','relative','permuted_absolute','permuted_relative','measured','permuted_measured')]))
+add(table(['seed','Absolute−Uniform','Relative−Uniform','Relative−Absolute','Relative−Permuted-Relative','Measured−Uniform'],[
+[s,f(a['q5']['absolute']['mixture_AUC_gain']['values'][i],sign=True),f(a['q5']['relative']['mixture_AUC_gain']['values'][i],sign=True),f(a['q5_paired']['relative-absolute']['mixture_AUC_gain']['values'][i],sign=True),f(a['q5_paired']['relative-permuted_relative']['mixture_AUC_gain']['values'][i],sign=True),f(a['q5']['measured']['mixture_AUC_gain']['values'][i],sign=True)] for i,s in enumerate(SEEDS)]))
+add('''可以得到三个明确判断。
+
+1. **测得效用能够指导局部决策。** Measured 相对 Uniform 平均提高 2.773 AUC，相对自身置换提高 2.866，两个比较均三个 seed 同向。这是同一教师上、测量图像到独立评价图像的关系价值证据。
+2. **预测保留了部分信息，但不稳定覆盖所有 seed。** Absolute 相对自身置换为 +0.858 AUC，Relative 为 +0.651；两者均只有两个 seed 为正。3353 的 Relative 反而低于自身置换 0.915 点。
+3. **相对目标没有改善实际决策。** Relative−Absolute 的混合 AUC 均值为 −0.279，三个 seed 都下降；U-NLL 收益平均减少 0.0150。seed3353 是主要退步来源。
+
+按共同图 bank 计算，Relative−Absolute 的差值及其配对 MCSE 分别为 −0.060±0.064、−0.093±0.045、−0.683±0.163。MCSE 只描述固定教师与固定评价图像下的抽图误差；不将八个图 bank 当作八次模型训练。这些数据更适合说明“未观察到相对目标改善，第三个 seed 退步明显”，不需要扩大为所有相对监督方法都无效。
+
+单图到 16 图混合没有吞掉效用收益：Absolute 的增益从 +0.860 变为 +1.282，Relative 从 +0.757 变为 +1.003，Measured 从 +2.624 变为 +2.773。因此本轮没有给出优先切换 R3 混合目标的直接理由。
+
+## 5. R5 拟合到底改变了什么
+
+### 5.1 实现与目标核对
+''')
+add(r'''对教师 $j$、关系类型 $t$，令 $Z_{jt}$ 为标准化后的原设计矩阵，$q_{jt}=y_{jt}/a_t$，$a_t$ 为与 Absolute 共享的类型标签尺度。R5 实际优化：
+
+$$
+P_t=I-\frac{1}{n_t}\mathbf 1\mathbf 1^\top,\qquad
+L_{\mathrm{rel}}(\beta)=\sum_{j,t}\left\|P_t(Z_{jt}\beta-q_{jt})\right\|_2^2+\alpha\|\beta\|_2^2.
+$$
+
+它等价于对每个教师／类型拟合所有边对的相对残差，因为任意残差向量 $e$ 满足：
+
+$$
+\|P_t e\|_2^2=\frac{1}{n_t}\sum_{i<k}(e_i-e_k)^2.
+$$
+
+复算同时中心化设计矩阵和目标，三个截距系数为零；27 维接口保留，实际有效系数 24 个。输入尺度、标签尺度、损失求和权重和正则候选与 Absolute 共用。这是解析岭回归求解，效用拟合本身不存在“epoch 太少未收敛”的问题。
+''')
+add(table(['seed','Absolute α','Relative α','Absolute 最优 Q4 误差','Relative 最优 Q4 误差'],[[s]+[next(x['alpha'] for x in m['predictors'] if x['seed']==s and x['method']==method and x['type']==-1) for method in TARGETS]+[f(min(x['q4_error'] for x in m['trials'] if x['seed']==s and x['method']==method),6) for method in TARGETS] for s in SEEDS]))
+add('''三个 seed 选中了相同 α：1／0.1／10。Relative 的最优 Q4 中心化、类型标准化 MSE 均略高于 Absolute。该损失数值受训练标签尺度影响，不是 AUC，也不是概率。
+
+### 5.2 留出 Q5 上的排序与误差
+''')
+add(table(['指标（先逐 seed 计算，再平均）','Absolute','Relative'],[
+['96 边原始 Spearman',f(a['predictors']['absolute']['-1']['spearman']['mean'],4),f(a['predictors']['relative']['-1']['spearman']['mean'],4)],
+['去类型均值后的合并 Spearman',f(a['predictors']['absolute']['-1']['centered_rho']['mean'],4),f(a['predictors']['relative']['-1']['centered_rho']['mean'],4)],
+['去类型均值后的合并 R²',f(a['predictors']['absolute']['-1']['centered_r2']['mean'],4),f(a['predictors']['relative']['-1']['centered_r2']['mean'],4)],
+*[[typ+' 类型内 Spearman',f(a['predictors']['absolute'][str(t)]['spearman']['mean'],4),f(a['predictors']['relative'][str(t)]['spearman']['mean'],4)] for t,typ in enumerate(('OI','OE','AE'))]]))
+add(table(['seed','Absolute 原始 ρ','Relative 原始 ρ','Absolute 中心化 R²','Relative 中心化 R²'],[[s]+[f(next(x[k] for x in m['predictors'] if x['seed']==s and x['method']==method and x['type']==-1),4) for k in ('spearman','centered_r2') for method in TARGETS] for s in SEEDS]))
+add('''Relative 在 seed3351 的原始 ρ 从 0.252 提高到 0.340，但 seed3353 从 0.199 降到 0.098。对固定类型预算更相关的中心化合并 ρ 平均也从 0.252 降到 0.230。中心化 R² 仅从 0.0246 变为 0.0258，变化很小，且没有对应更好的实际策略。
+
+OI 的平均排序接近零；OE 有较明确的正相关；AE 排序较弱，并存在幅度校准问题。例如 seed3351 的 AE 中心化 R² 为 −6.00／−6.58，意味着平方误差高于类型常数参照。由于部署按每类型重新标准化预测，幅度误差不直接等于策略误差，仍应以 Q5 决策收益共同判断。
+
+### 5.3 为什么改拟合目标，分配仍然很像
+''')
+add(table(['输入与拟合状态','Absolute／Relative 类型内排序相关','κ=1 类型内概率平均绝对差'],[[{'q5':'Q1–3 拟合 → Q5','reference_three_fold':'Q1–3 拟合 → reference','reference':'Q1–5 拟合 → reference'}[state],f(a['comparisons'][state]['rank_rho']['mean'],4),f(a['comparisons'][state]['probability_mae']['mean'],4)] for state in ('q5','reference_three_fold','reference')]))
+add('''这里先对每 seed 的三类型等权平均，再平均三个 seed。R5 与 Absolute 在 Q5 上的排序相关约 0.975，在最终 reference 上约 0.981，实际概率只改变了约 1.5–2.1 个百分点。
+
+部署原本就会去掉类型均值，并用类型标准差归一化。因而绝对回归中的类型截距本来就不直接影响最终概率；R5 的潜在收益必须来自重新拟合后的斜率更好，而非“删掉偏移”本身。本次结果显示，斜率变化没有改善关系选择。该解释与固定预算公式一致，也与复算中去掉 Absolute 截距后中心化预测不变相符。
+
+## 6. 教师到 reference：问题集中在哪里
+
+下表使用同一方法，分别固定拟合模型改变输入、固定 reference 输入改变拟合折数，以及同时发生这两个变化。数值为各 seed、各关系类型的等权平均 Spearman。
+''')
+add(table(['变化','Absolute','Relative'],[[label,f(a['transfer']['absolute'][key]['mean'],4),f(a['transfer']['relative'][key]['mean'],4)] for key,label in [('input_change_rho','固定 Q1–3 拟合：Q5 响应 → reference 响应'),('refit_change_rho','固定 reference 响应：Q1–3 拟合 → Q1–5 拟合'),('combined_rho','Q1–3/Q5 → Q1–5/reference')]]))
+add('''固定预测器仅替换模型响应，排序相似度就降到 0.143／0.093；加上五折重拟合后约为 0.034／0.040。R5 没有恢复这段迁移中的排序稳定性。
+
+不同模型的真实效用本来就可能不同，因此“排序变了”不能单独证明新排序错了。更有约束力的证据是三项合起来看：Q5 实际分配有收益；reference 的真实顺序低于同强度置换均值；最终非均匀 Absolute 低于 Uniform 和匹配置换。这把当前研究重点指向效用从教师情境到最终模型的有效迁移，而不是继续删除共同偏移。
+
+这里也没有观察到 reference 的八维特征普遍比 Q5 更极端：按 Q1–3 标准化后，绝对 z 值大于 3 的比例，Q5 三 seed 为 3.39%／6.90%／2.99%，reference 为 4.95%／3.52%／1.17%。问题不能简单归结为全部 reference 特征越出训练范围；同一关系的响应与效用映射如何随模型变化更值得研究。
+
+## 7. 10 epoch 曲线与计算成本
+
+下表只列五条不同的适配轨迹。Relative 及其置换复用对应 Uniform，3351／3353 的 Absolute 及其置换也相同。
+''')
+unique=[x for x in a['curves'] if x['variant']=='uniform' or (x['seed']==3352 and x['variant'] in ('absolute','permuted_absolute'))]
+add(table(['seed／方法','最佳 epoch','epoch0 VAL','最佳 VAL','epoch10 VAL','首／末训练 loss'],[[str(x['seed'])+'／'+names[x['variant']],x['selected_epoch'],f(x['epoch0_val']),f(x['best_val']),f(x['last_val']),f(x['loss_first'],4)+'／'+f(x['loss_last'],4)] for x in unique]))
+add(image('全部不同适配轨迹的验证曲线','training.png'))
+add('''圆圈标记 VAL 选中的 epoch。五条轨迹的最优权重在 epoch 2／4／6，epoch10 的 VAL 均低于各自最优点；训练 loss 仍下降，但泛化表现并未持续改善。当前曲线不支持把这一轮的缺乏增益归结为“三轮训练太短”，也没有支持直接延长到更多 epoch。
+
+Uniform 从 epoch0 到 VAL 最优权重的 TEST 平均改善为 +0.337 CW／+0.336 OW。Absolute seed3352 同一适配过程反而变化 −0.162 CW／−0.433 OW。适配收益与关系策略有关，冻结状态的微小优势不会自动保留。
+''')
+add(table(['seed','本轮记录阶段总耗时','新适配轨迹数','峰值 CUDA 张量分配'],[[s,f(a['costs'][str(s)]['seconds']/60,2)+' 分钟',1 if s==3352 else 0,f(a['costs'][str(s)]['peak_gpu_MB'],1)+' MiB'] for s in SEEDS]))
+add('''三卡并行最长阶段队列约 5.04 分钟，另有进程启动、报告、打包和传输耗时。拟合各约 0.4 秒，Q5 新决策各约 8 秒，冻结扫描各约 105–109 秒，新适配约 180 秒。本轮没有重新提取 CLIP 特征或重新训练教师，短耗时与复用设计一致。CUDA 张量分配不等于整个 GPU 进程占用。
+
+## 8. 对 TRUST 论文目标的判断与下一步
+
+**对于“相对目标 R5 是有效方法改进”：本轮为负向证据。** 相对回归既没有改善 Q4 误差，也没有改善 Q5 实际收益；终端结果退回 Uniform。建议把 R5 保留为完整消融，不继续把相对中心化作为主创新点。
+
+**对于“效用监督值得保留”：保留。** 独立图像上的 Measured 与预测策略仍支持“关系有不同价值，其中一部分可学习”；尤其 Measured 相对置换的收益说明正确对应关系有作用。这一结论限定在本次教师与风险任务中。
+
+**对于“当前 TRUST 已能稳定提高最终强 CPF 识别”：尚未建立。** 当前最好的匹配结果是 Uniform；Relative 与它完全相同，Absolute 的唯一非均匀部署 seed 低于置换。现有结果不足以把终端效用迁移写成论文的已证实贡献。最终创新仍应落在可迁移的关系价值与分配，而非把 Uniform 的收益算给效用预测。
+
+若继续投入，建议下一批集中补上一个尚未直接观察的决策环节：**固定非零效用策略，从共同 reference 起点完整适配，再按 VAL 选 epoch。** 当前流程先用冻结模型选 κ，R5 在真正训练前已全部回到 Uniform；这一选择顺序使“效用指导后的适配”没有得到直接检验。
+
+采用三组、三个 seed 即可：
+''')
+add(table(['组别','固定策略','本批作用'],[
+['Uniform','每边概率 0.5','复用本轮 10 epoch 基线'],['Absolute-U-NLL，κ=1','原五折绝对预测，类型预算 6／18／24','让已有最强 Q5 预测信号进入完整适配'],['Permuted-Absolute，κ=1','同一概率集合，固定类型内置换 7101','检验正确关系对应是否有贡献']]))
+add('''三组保持相同 reference 初始化、随机种子、优化器、10 epoch 学习率计划和 VAL CW 选 epoch；κ=1 沿用 Q5 的既定非零审计强度，不再经过冻结 VAL 的零强度筛选。已有教师、标签、预测器和 Uniform 全部复用，只新增六次适配。继续保存 epoch0、曲线、主 bank 与另外两个 bank 的 CW／OW 结果。
+
+这批实验回答“冻结状态选 κ 是否过早抑制了可经适配发挥作用的效用策略”。它不等同于已经修复教师—reference 迁移。判断仍看最终 Absolute 相对 Uniform 和匹配置换的配对收益；三者相同或 Absolute 继续较差时，现有八维响应＋线性效用迁移不宜继续作为论文主方法，需要重构跨模型效用表示或重选主贡献。
+
+这比继续追加 R5 正则网格、风险惩罚或噪声实验更直接。本轮单图／混合收益方向一致，R3 不是首要问题；Uniform 已达到 35.934／26.532，历史 Capacity 为 35.805／26.400，且二者训练协议不同，当前结果也没有给出“先扩容量就能解决效用迁移”的依据。R6 可保留为后续结构研究，不把它当成本轮 R5 失败的自动补救。
+
+## 9. 文件与复算入口
+
+归档 SHA256：
+
+```text
+76f099e6369bd0761d0a4202f41d4000656966eb53ceb7dfe773e2dc633ae92a
+```
+''')
+links=[('本轮原始完成状态',WORK/'status.json'),('360 行完整识别结果',WORK/'summary.csv'),('168 行 Q5 决策结果',WORK/'decision_risks.csv'),('144 行冻结扫描',WORK/'scan.csv'),('165 行训练曲线',WORK/'training_curves.csv'),('本次聚合分析数据',OUT/'analysis.json'),('归档与输出核验',OUT/'integrity.json'),('逐图像指标复算',OUT/'prediction_verification.json'),('效用模型与决策复算',OUT/'mechanism_verification.json'),('边界配置与配对 MCSE',OUT/'diagnostics.json'),('识别复算脚本',OUT/'verify_results.py'),('机制复算脚本',OUT/'verify_mechanism.py'),('前轮 Competition 完整分析',BASE/'output/TRUST-CPF_Competition_10epoch_完整结果分析_20261024.md'),('R5 原方案与公式',BASE/'output/TRUST-CPF_R5_v1_10ep_方案公式与核心实现.md')]
+add('\n'.join('- '+link(label,path) for label,path in links))
+add('原实验归档、训练代码与结果文件保持原状。新增分析、复算记录和图形独立保存在 `analysis_TRUST_CPF_r5_10ep_20261024`。本次核验使用归档预测与充分统计量重算，没有重新运行图像特征提取或服务器训练。')
+text='\n'.join(parts)
+dest=BASE/'output/TRUST-CPF_R5_10epoch_完整结果分析_20261024.md';dest.write_text(text,encoding='utf8')
+(OUT/'report.md').write_text(text,encoding='utf8')
+print(dest);print('REPORT_CHARS',len(text))

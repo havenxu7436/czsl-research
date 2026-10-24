@@ -1,0 +1,34 @@
+from shared import *
+import re
+import markdown
+import html
+s=(OUT/'report.md').read_text(encoding='utf8')
+assert not any(ord(c)<32 and c!='\n' for c in s)
+assert '\ufffd' not in s
+assert s== (BASE/'output/TRUST-CPF_R5_10epoch_完整结果分析_20261024.md').read_text(encoding='utf8')
+blocks=re.findall(r'\$\$(.*?)\$\$',s,re.S);assert len(blocks)==2
+for b in blocks:
+    depth=0
+    for c in b:
+        if c=='{':depth+=1
+        elif c=='}':depth-=1
+        assert depth>=0
+    assert depth==0
+links=re.findall(r'\]\(<?(C:/[^\n>]*?)>?\)',s)
+assert all(Path(p).exists() for p in links)
+tables=0;size=None
+for line in s.splitlines()+['']:
+    if line.startswith('| '):
+        current=line.count('|')-1
+        if size is None:size=current;tables+=1
+        else:assert size==current,(size,current,line)
+    else:size=None
+validation=dict(passed=True,tables=tables,formula_blocks=len(blocks),existing_links=len(links),characters=len(s),no_control_characters=True)
+write('report_validation.json',validation)
+preview=re.sub(r'\$\$(.*?)\$\$',lambda match:'\n\n<div class="math-block" data-display="true">'+html.escape(match[1])+'</div>\n\n',s,flags=re.S)
+preview=re.sub(r'(?<!\$)\$([^\n$]+)\$(?!\$)',lambda match:'<span class="math-inline">'+html.escape(match[1])+'</span>',preview)
+body=markdown.markdown(preview,extensions=['tables','fenced_code'])
+body=re.sub(r'(src|href)="(C:/[^\"]+)"',r'\1="file:///\2"',body)
+style='''body{font:16px/1.75 "Microsoft YaHei",sans-serif;max-width:1200px;margin:36px auto;padding:24px;color:#1e293b}h1{font-size:29px}h2{font-size:23px;margin-top:40px}h3{font-size:19px}table{border-collapse:collapse;width:100%;font-size:14px;margin:18px 0}th,td{border:1px solid #d6dce5;padding:8px 10px;text-align:left}th{background:#eff4fa}img{max-width:100%}.math-block{padding:18px 0;overflow-x:auto}math{font-family:"Cambria Math",serif;font-size:20px}a{color:#245ca3}code{background:#f3f4f6}pre{white-space:pre-wrap}'''
+(OUT/'report_preview.html').write_text('<!doctype html><meta charset="utf-8"><style>'+style+'</style>'+body,encoding='utf8')
+print(validation)

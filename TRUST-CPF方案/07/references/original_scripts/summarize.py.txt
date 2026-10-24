@@ -1,0 +1,50 @@
+from shared import *
+r=read(OUT/'recognition_data.json');m=read(OUT/'mechanism_data.json')
+def get(seed,v,world='cw',phase='test',bank=1701,snapshot='best'):
+    return next(x for x in r['rows'] if (x['seed'],x['variant'],x['world'],x['phase'],x['bank'],x['snapshot'])==(seed,v,world,phase,bank,snapshot))
+ans=dict(primary={},banks={},paired={},curves=[],q5={},q5_paired={},predictors={},transfer={},comparisons={},scans=[],costs={})
+for v in VARIANTS:
+    ans['primary'][v]={f'{phase}_{world}_{metric}':stats([get(s,v,world,phase)[metric] for s in SEEDS]) for phase in ('val','test') for world in ('cw','ow') for metric in ('auc','exact','hm','nll','raw_nll','seen','unseen','ece','seen_gate','unseen_gate','compatibility','gt_attr_unseen')}
+    ans['banks'][v]={world:dict(bank_means=[np.mean([get(s,v,world,bank=b)['auc'] for s in SEEDS]) for b in (1701,2701,3701)],seed_bank_average=stats([np.mean([get(s,v,world,bank=b)['auc'] for b in (1701,2701,3701)]) for s in SEEDS])) for world in ('cw','ow')}
+for v,b in (('absolute','uniform'),('relative','uniform'),('permuted_absolute','uniform'),('relative','absolute'),('absolute','permuted_absolute'),('relative','permuted_relative')):
+    ans['paired'][v+'-'+b]={w:stats([get(s,v,w)['auc']-get(s,b,w)['auc'] for s in SEEDS]) for w in ('cw','ow')}
+for h in r['histories']:
+    row=dict(seed=h['seed'],variant=h['variant'],selected_epoch=h['selected_epoch'],reused=h['reused'],
+        epoch0_val=h['rows'][0]['val_cw'],best_val=h['rows'][h['selected_epoch']]['val_cw'],last_val=h['rows'][-1]['val_cw'],
+        loss_first=h['rows'][1]['loss'],loss_last=h['rows'][-1]['loss'],
+        test_adapt_cw=get(h['seed'],h['variant'])['auc']-get(h['seed'],h['variant'],snapshot='epoch0')['auc'],
+        test_adapt_ow=get(h['seed'],h['variant'],'ow')['auc']-get(h['seed'],h['variant'],'ow',snapshot='epoch0')['auc'])
+    ans['curves'].append(row)
+policies=('uniform','absolute','relative','permuted_absolute','permuted_relative','measured','permuted_measured')
+keys=['mixture_AUC_exact','mixture_AUC_gain','mixture_unll','mixture_unll_gain','single_AUC_exact','single_AUC_gain','single_unll_gain','mixture_balanced_gain','mixture_competition_gain']
+for p in policies:
+    ans['q5'][p]={k:stats([m['decision_summaries'][str(s)][p][k]['mean'] for s in SEEDS]) for k in keys}
+for p,b in (('relative','absolute'),('absolute','permuted_absolute'),('relative','permuted_relative'),('measured','permuted_measured')):
+    ans['q5_paired'][p+'-'+b]={k:stats([m['decision_summaries'][str(s)][p][k]['mean']-m['decision_summaries'][str(s)][b][k]['mean'] for s in SEEDS]) for k in keys}
+for method in TARGETS:
+    ans['predictors'][method]={str(t):{k:stats([x[k] for x in m['predictors'] if x['method']==method and x['type']==t]) for k in ('spearman','pearson','rmse','centered_r2','centered_rho')} for t in (-1,0,1,2)}
+    ans['transfer'][method]={k:stats([np.mean([x[k] for x in m['transfer'] if x['seed']==s and x['method']==method]) for s in SEEDS]) for k in ('input_change_rho','refit_change_rho','combined_rho')}
+for state in ('q5','reference_three_fold','reference'):
+    ans['comparisons'][state]={k:stats([np.mean([x[k] for x in m['comparisons'] if x['seed']==s and x['state']==state]) for s in SEEDS]) for k in ('rank_rho','probability_mae')}
+for s in SEEDS:
+    for method in TARGETS:
+        rr=[x for x in r['scans'] if x['seed']==s and x['target']==method];real=[x for x in rr if x['permutation_seed'] is None]
+        base=next(x['val_cw'] for x in real if x['strength']==0)
+        for x in real:
+            pp=[z['val_cw'] for z in rr if z['permutation_seed'] is not None and z['strength']==x['strength']]
+            ans['scans'].append(dict(seed=s,method=method,strength=x['strength'],val_cw=x['val_cw'],gain=x['val_cw']-base,permuted_mean=np.mean(pp),real_minus_permuted=x['val_cw']-np.mean(pp)))
+    ss=[x for x in r['stages'] if x['seed']==s]
+    ans['costs'][str(s)]=dict(seconds=sum(x['seconds'] for x in ss),peak_gpu_MB=max(x['peak_gpu_MB'] for x in ss),by_stage={x['stage']:x['seconds'] for x in ss})
+write('analysis.json',ans)
+print('PRIMARY')
+for v in VARIANTS:print(v,*[(w,ans['primary'][v]['test_'+w+'_auc']) for w in ('cw','ow')])
+print('Q5')
+for p in policies:print(p,{k:ans['q5'][p][k] for k in ('mixture_AUC_gain','mixture_unll_gain','single_AUC_gain')})
+print('Q5_PAIRED',ans['q5_paired'])
+print('PREDICTORS')
+for method in TARGETS:
+    print(method,{t:{k:v['mean'] for k,v in d.items()} for t,d in ans['predictors'][method].items()})
+print('TRANSFER',ans['transfer'])
+print('SIMILARITY',ans['comparisons'])
+print('SCAN',ans['scans'])
+print('CURVES',ans['curves'])

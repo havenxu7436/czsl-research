@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "network": "mock SSH/SCP; no server connection",
+  "retry_checked": true,
+  "verified_archive_reused": true,
+  "utf8_extraction": true,
+  "upload_script_exercised": true,
+  "calls": [
+    "scp -o ConnectTimeout=15 -o ServerAliveInterval=30 -o ServerAliveCountMax=6 xhw@211.87.232.122:/data/xhw/experiments/trustcpf_r5_v1_10ep/download.json C:\\Users\\llenovo\\Documents\\ChatGPT\\USG\\trustcpf_r5_v1_10ep\\validation\\transport_fixture\\local_download\\trustcpf_r5_v1_10ep_download.json",
+    "scp -o ConnectTimeout=15 -o ServerAliveInterval=30 -o ServerAliveCountMax=6 xhw@211.87.232.122:/data/xhw/experiments/trustcpf_r5_v1_10ep_results_20261024_205412.tar.gz C:\\Users\\llenovo\\Documents\\ChatGPT\\USG\\trustcpf_r5_v1_10ep\\validation\\transport_fixture\\local_download\\trustcpf_r5_v1_10ep_results_20261024_205412.tar.gz.part",
+    "scp -o ConnectTimeout=15 -o ServerAliveInterval=30 -o ServerAliveCountMax=6 xhw@211.87.232.122:/data/xhw/experiments/trustcpf_r5_v1_10ep_results_20261024_205412.tar.gz C:\\Users\\llenovo\\Documents\\ChatGPT\\USG\\trustcpf_r5_v1_10ep\\validation\\transport_fixture\\local_download\\trustcpf_r5_v1_10ep_results_20261024_205412.tar.gz.part",
+    "scp -o ConnectTimeout=15 -o ServerAliveInterval=30 -o ServerAliveCountMax=6 xhw@211.87.232.122:/data/xhw/experiments/trustcpf_r5_v1_10ep/download.json C:\\Users\\llenovo\\Documents\\ChatGPT\\USG\\trustcpf_r5_v1_10ep\\validation\\transport_fixture\\local_download\\trustcpf_r5_v1_10ep_download.json",
+    "ssh -o ConnectTimeout=15 -o ServerAliveInterval=30 -o ServerAliveCountMax=6 xhw@211.87.232.122 mkdir -p /data/xhw/experiments",
+    "scp -o ConnectTimeout=15 -o ServerAliveInterval=30 -o ServerAliveCountMax=6 C:\\Users\\llenovo\\Documents\\ChatGPT\\USG\\output\\trustcpf_r5_v1_10ep.zip C:\\Users\\llenovo\\Documents\\ChatGPT\\USG\\output\\trustcpf_r5_v1_10ep.zip.sha256 xhw@211.87.232.122:/data/xhw/experiments/",
+    "ssh -o ConnectTimeout=15 -o ServerAliveInterval=30 -o ServerAliveCountMax=6 xhw@211.87.232.122 cd /data/xhw/experiments && sha256sum -c trustcpf_r5_v1_10ep.zip.sha256 && unzip -oq trustcpf_r5_v1_10ep.zip -d ."
+  ]
+}

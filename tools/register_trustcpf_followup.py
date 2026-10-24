@@ -1,10 +1,11 @@
-"""Verify, restore and register completed TRUST-CPF stages 05 (Align) and 06 (Competition)."""
+"""Verify, restore and register completed TRUST-CPF stages 05–07."""
 import argparse,ast,csv,hashlib,json,re,shutil,subprocess,zipfile
 from pathlib import Path
 from urllib.parse import unquote
 ROOT=Path(__file__).resolve().parents[1]
 SPECS={'05':('37','trustcpf_align_v1','Align 半密度对齐',18,9),
-       '06':('38','trustcpf_competition_v1_10ep','Competition 三目标与 10 epoch',42,15)}
+       '06':('38','trustcpf_competition_v1_10ep','Competition 三目标与 10 epoch',42,15),
+       '07':('39','trustcpf_r5_v1_10ep','R5 相对效用拟合 / 10 epoch',27,15)}
 _CACHE={}
 def read(p):return json.loads(Path(p).read_text(encoding='utf-8-sig'))
 def write(p,x):
@@ -58,7 +59,7 @@ def check(number=None):
   s=stage(n);sid,pkg,title,nstages,nmetrics=SPECS[n];mapping=read(s/'package_members.json')['members']
   for f in read(s/'file_manifest.json'):
    p=s/f['path'];assert p.is_file() and p.stat().st_size==f['bytes'] and sha(p)==f['sha256'],str(p)
-  raw=read(s/'results/raw_export_members.json');assert len(raw)=={'05':648,'06':1197}[n]
+  raw=read(s/'results/raw_export_members.json');assert len(raw)=={'05':648,'06':1197,'07':1005}[n]
   for f in raw:assert sha(s/f['path'])==f['sha256'],f['path']
   a=read(s/'results/archives/archive.json');whole=hashlib.sha256();size=0
   for part in a['parts']:
@@ -89,10 +90,10 @@ def check(number=None):
     if not link or re.match(r'^[a-z]+://',link):continue
     assert not re.match(r'^[A-Za-z]:',link) and (p.parent/link).exists(),(str(p),link)
   for p in (s/'code').rglob('*.py'):ast.parse(p.read_text(encoding='utf-8-sig'))
-  output.append(dict(stage=n,passed=True,server_members=len(raw),release_members=len(mapping),metrics=nmetrics,reused_uniform=sum(x['result_kind']=='reused_uniform' for x in inv),status=status))
+  output.append(dict(stage=n,passed=True,server_members=len(raw),release_members=len(mapping),metrics=nmetrics,reused_uniform=sum(x['result_kind']=='reused_uniform' for x in inv),reused_previous=sum(x['result_kind']=='reused_previous' for x in inv),actual_adaptations=sum(x['result_kind']=='new_adaptation' for x in inv),status=status))
  return dict(passed=True,stages=output,scientific_bytes_preserved=True,training_started=False)
 def finalize():
- stages=[x for x in read(ROOT/'provenance/stages.json') if x['id'] not in ['37','38']]
+ stages=[x for x in read(ROOT/'provenance/stages.json') if x['id'] not in [v[0] for v in SPECS.values()]]
  layout=read(ROOT/'provenance/layout.json');layout['files']=[x for x in layout['files'] if x.get('kind')!='trustcpf_followup_server_member']
  idx=ROOT/'provenance/metrics_index.csv'
  with idx.open(encoding='utf-8-sig',newline='') as f:
@@ -100,7 +101,7 @@ def finalize():
  receipts=[]
  for n,(sid,pkg,title,nstages,nmetrics) in SPECS.items():
   s=stage(n);status=read(s/f'results/raw_export/{pkg}/work/status.json');inv=read(s/'configs/experiment_inventory.json')
-  inputs=dict(line='TRUST-CPF方案',stage=n,archive_stage=sid,title=title,primary_package=pkg,seeds=[3351,3352,3353],completed_results=nmetrics,reused_controls=sum(x['result_kind']=='reused_uniform' for x in inv),formal_training_results_included=True,package_member_map='package_members.json',experiment_inventory='configs/experiment_inventory.json',status=status)
+  inputs=dict(line='TRUST-CPF方案',stage=n,archive_stage=sid,title=title,primary_package=pkg,seeds=[3351,3352,3353],completed_results=nmetrics,reused_controls=sum(x['result_kind']!='new_adaptation' for x in inv),actual_adaptations=sum(x['result_kind']=='new_adaptation' for x in inv),formal_training_results_included=True,package_member_map='package_members.json',experiment_inventory='configs/experiment_inventory.json',status=status)
   for k,part in [('code_files','code'),('configs','configs'),('data_files','results'),('knowledge',f'configs/{pkg}/assets')]:inputs[k]=[p.relative_to(s).as_posix() for p in files(s/part)]
   inputs['documents']=[p.relative_to(s).as_posix() for p in s.rglob('*.md')];write(s/'inputs.json',inputs)
   commands=[]
@@ -120,8 +121,8 @@ def finalize():
   write(s/'file_manifest.json',[dict(path=p.relative_to(s).as_posix(),sha256=sha(p),bytes=p.stat().st_size) for p in files(s) if p.name!='file_manifest.json'])
  write(ROOT/'provenance/stages.json',stages);write(ROOT/'provenance/layout.json',layout)
  with idx.open('w',encoding='utf8',newline='') as f:w=csv.DictWriter(f,fieldnames=fields);w.writeheader();w.writerows(metrics)
- summary=read(ROOT/'provenance/structure_summary.json');summary['line_numbering']['TRUST-CPF方案']='01 / v1、02–06';summary['documentation_updated']='2026-10-24';write(ROOT/'provenance/structure_summary.json',summary)
- receipt='provenance/updates/20261024_trustcpf_align_competition.json';write(ROOT/receipt,dict(date='2026-10-24',stages=receipts,completed_result_records=24,reused_uniform_records=13,new_adaptations=11,training_started=False,planned_only='R5 relative utility fitting; superseded 3-epoch Competition release has no formal server result.'))
+ summary=read(ROOT/'provenance/structure_summary.json');summary['line_numbering']['TRUST-CPF方案']='01 / v1、02–07';summary['documentation_updated']='2026-10-24';write(ROOT/'provenance/structure_summary.json',summary)
+ receipt='provenance/updates/20261024_trustcpf_r5.json';write(ROOT/receipt,dict(date='2026-10-24',stages=[receipts[-1]],completed_result_records=15,reused_previous_records=6,reused_uniform_records=8,new_adaptations=1,new_q5_bank_records=48,reused_q5_bank_records=120,training_started=False,planned_only='Fixed nonzero utility policies followed by full adaptation, proposed in the R5 analysis; no next-round results claimed.'))
  for p in (ROOT/'provenance/documents').glob('trustcpf_0*.json'):
   doc=read(p);doc['published_sha256']=sha(ROOT/doc['document']);write(p,doc)
  current={x['path']:x for x in read(ROOT/'provenance/current_manifest.json')}

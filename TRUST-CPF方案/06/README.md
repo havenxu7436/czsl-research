@@ -31,3 +31,5 @@ python -m unittest discover -s tests -v
 ```
 
 [文件清单](file_manifest.json) · [发布包成员映射](package_members.json) · [服务器原始成员映射](results/raw_export_members.json) · [输入与完成状态](inputs.json) · [执行命令清单](runbook.json) · [来源与许可](来源与许可.md)
+
+后续 R5 相对效用拟合已完成，见 [07 阶段](../07/README.md)。

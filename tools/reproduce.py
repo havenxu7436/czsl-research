@@ -142,9 +142,9 @@ def archive_stage(line,number):
     return matches[0]
 
 def materialize(stage,destination,line=None,number=None):
-    if stage in ['37','38']:
+    if stage in ['37','38','39']:
         from register_trustcpf_followup import materialize as restore_followup
-        print(json.dumps(restore_followup({'37':'05','38':'06'}[stage],destination),ensure_ascii=False))
+        print(json.dumps(restore_followup({'37':'05','38':'06','39':'07'}[stage],destination),ensure_ascii=False))
         return
     if stage in ['34','35','36']:
         from register_trustcpf_strong_series import materialize as restore_strong
@@ -269,9 +269,9 @@ def materialize(stage,destination,line=None,number=None):
       'note':'External inputs and frozen absolute paths still require setup; see environment/README.md'},ensure_ascii=False))
 
 def doctor(stage,project,line=None,number=None):
-    if stage in ['37','38']:
+    if stage in ['37','38','39']:
         from register_trustcpf_followup import doctor as doctor_followup
-        result=doctor_followup({'37':'05','38':'06'}[stage],project)
+        result=doctor_followup({'37':'05','38':'06','39':'07'}[stage],project)
         print(json.dumps(result,ensure_ascii=False))
         if not result['ready_for_package_preflight']:raise SystemExit(2)
         return

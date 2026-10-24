@@ -1,0 +1,18 @@
+from shared import *
+def batch_diag(a, sm, temperature=1.):
+    a=torch.as_tensor(a,dtype=torch.float64)
+    if a.ndim==2:a=a[None]
+    sm=torch.as_tensor(sm,dtype=torch.bool)
+    s,u=a[:,sm,:],a[:,~sm,:]
+    gs,gu=torch.sigmoid(s[:,:,1]/temperature),torch.sigmoid(u[:,:,1]/temperature)
+    smooth=[];hard=[]
+    for i in range(0,len(a),8):
+        d=s[i:i+8,:,None,2]-u[i:i+8,None,:,2]
+        smooth.append((gs[i:i+8,:,None]*gu[i:i+8,None,:]*torch.sigmoid(d/temperature)).mean((1,2)))
+        hard.append((s[i:i+8,:,None,3]*u[i:i+8,None,:,3]*((d>0).double()+.5*(d==0).double())).mean((1,2))*100)
+    smooth=torch.cat(smooth);hard=torch.cat(hard)
+    ns,nu=-s[:,:,0].mean(1),-u[:,:,0].mean(1)
+    margin=torch.where(torch.isfinite(a[:,:,1]),a[:,:,1].abs(),0).sum(1)/torch.isfinite(a[:,:,1]).sum(1)
+    return {k:v.numpy() for k,v in dict(unll=nu,balanced=(ns+nu)/2,competition=1-smooth,smooth_area=smooth,AUC_exact=hard,
+        seen_nll=ns,seen_gate=gs.mean(1),unseen_gate=gu.mean(1),within_margin_abs_mean=margin,crossing_sd=a[:,:,2].std(1,unbiased=False)).items()}
+

@@ -1,0 +1,38 @@
+import csv, hashlib, json, sys
+from pathlib import Path
+import numpy as np
+import torch
+OUT=Path(__file__).resolve().parent
+BASE=OUT.parent
+ROOT=BASE/'trustcpf_r5_v1_10ep_results_20261024_210943/trustcpf_r5_v1_10ep'
+WORK=ROOT/'work'
+sys.path.insert(0,str(ROOT))
+from trustcpf.common import load_torch
+SEEDS=(3351,3352,3353)
+VARIANTS=('uniform','absolute','relative','permuted_absolute','permuted_relative')
+TARGETS=('absolute','relative')
+OLD=BASE/'trustcpf_competition_v1_10ep_results_20261024_190255/trustcpf_competition_v1_10ep/work'
+BANKS=('1701','2701','3701')
+torch.set_num_threads(3)
+def read(p): return json.loads(Path(p).read_text(encoding='utf-8-sig'))
+def sha(p):
+    h=hashlib.sha256()
+    with Path(p).open('rb') as f:
+        for b in iter(lambda:f.read(4*1024*1024),b''): h.update(b)
+    return h.hexdigest()
+def write(name,value):
+    def convert(v):
+        if isinstance(v,np.ndarray):return v.tolist()
+        if isinstance(v,np.generic):return v.item()
+        if isinstance(v,Path):return str(v)
+        raise TypeError(type(v))
+    (OUT/name).write_text(json.dumps(value,default=convert,ensure_ascii=False,indent=2,allow_nan=False)+'\n',encoding='utf8')
+def close(a,b,tol=1e-9):
+    a=np.asarray(a);b=np.asarray(b)
+    err=float(np.max(np.abs(a-b)))
+    if err>tol or not np.isfinite(err):raise AssertionError((err,tol))
+    return err
+def stats(x):
+    x=np.asarray(x,dtype=float)
+    return dict(mean=float(x.mean()),sd=float(x.std(ddof=1)) if len(x)>1 else 0.,values=x.tolist())
+def csvread(p):return list(csv.DictReader(Path(p).open(encoding='utf-8-sig')))

@@ -1,0 +1,55 @@
+{
+  "stage": "07",
+  "layout": "C:\\Users\\llenovo\\Documents\\ChatGPT\\USG\\tmp\\trust-r5-07-recompute",
+  "scripts": [
+    {
+      "script": "verify_results.py",
+      "source_sha256": "43c14e79555b9c0bf930a1653ed5e53515a4b694228a6c60510eec570528372f",
+      "log": "verify_results.py.log"
+    },
+    {
+      "script": "verify_mechanism.py",
+      "source_sha256": "ab8f130a49fa57242c0f9d6ca1be72acc28727597c62a645ff3a9357620c282d",
+      "log": "verify_mechanism.py.log"
+    },
+    {
+      "script": "summarize.py",
+      "source_sha256": "317f54853180649332bcbb20a4e7695a54f4a6bfbfda45b8ed8e4a2b5983bfde",
+      "log": "summarize.py.log"
+    },
+    {
+      "script": "diagnostics.py",
+      "source_sha256": "236eb17fee9b78894e672e99b52e93036a4b292d1fefcda76021b7af7af3ffcc",
+      "log": "diagnostics.py.log"
+    }
+  ],
+  "comparisons": [
+    {
+      "file": "analysis.json",
+      "numerically_equal": true,
+      "absolute_tolerance": 1e-09,
+      "relative_tolerance": 1e-09
+    },
+    {
+      "file": "prediction_verification.json",
+      "numerically_equal": true,
+      "absolute_tolerance": 1e-09,
+      "relative_tolerance": 1e-09
+    },
+    {
+      "file": "mechanism_verification.json",
+      "numerically_equal": true,
+      "absolute_tolerance": 1e-09,
+      "relative_tolerance": 1e-09
+    },
+    {
+      "file": "diagnostics.json",
+      "numerically_equal": true,
+      "absolute_tolerance": 1e-09,
+      "relative_tolerance": 1e-09
+    }
+  ],
+  "passed": true,
+  "prepared": true,
+  "training_started": false
+}

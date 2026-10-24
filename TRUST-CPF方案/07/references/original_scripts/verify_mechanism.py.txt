@@ -1,0 +1,141 @@
+from shared import *
+from mechanism_helpers import batch_diag
+from trustcpf import compact, align, competition
+from trustcpf.metrics import native_curve, exact_curve
+
+def ridge(xs,ys,types,alpha,relative=False):
+    x=np.concatenate(xs).astype(float);y=np.concatenate(ys).astype(float);t=np.tile(types,len(xs))
+    center=x.mean(0);spread=np.maximum(x.std(0),1e-6)
+    scales=np.array([max(y[t==k].std(),1e-12) for k in range(3)])
+    z=np.column_stack((np.ones(len(x)),(x-center)/spread))
+    z=np.concatenate([z*(t==k)[:,None] for k in range(3)],1);q=y/scales[t]
+    if relative:
+        # Independent block projection, and equivalence to all-pairs differences.
+        for j in range(len(xs)):
+            for k in range(3):
+                ids=np.flatnonzero(t[j*96:(j+1)*96]==k)+j*96
+                p=np.eye(len(ids))-np.ones((len(ids),len(ids)))/len(ids)
+                z[ids]=p@z[ids];q[ids]=p@q[ids]
+        # Exact zero of projected intercepts, avoid roundoff at the 1e-16 level.
+        z[:,[0,9,18]]=0
+    beta=np.linalg.solve(z.T@z+alpha*np.eye(27),z.T@q)
+    return dict(beta=beta,center=center,spread=spread,scales=scales)
+
+check=dict(passed=False,source_hashes=0,imported_inputs=0,teachers=0,ridge_models=0,
+    decision_banks=0,decision_policies=0,max_decision_error=0.,max_ridge_error=0.,source_reused_policies=0,new_policies=0)
+out=dict(predictors=[],decisions=[],decision_summaries={},trials=[],transfer=[],comparisons=[],feature_shift=[],splits=[])
+mapping={'uniform':'uniform','absolute':'predicted_unll','permuted_absolute':'predicted_unll_permuted',
+         'measured':'measured_unll','permuted_measured':'measured_unll_permuted'}
+for seed in SEEDS:
+    w=WORK/f'seed{seed}';old=OLD/f'seed{seed}';cfg=read(w/'recipe.json')
+    reuse=read(w/'reuse.json')
+    for name,h in reuse['source_files'].items():
+        assert sha(old/name)==h,(seed,name);check['source_hashes']+=1
+        if name.startswith(('reference/','responses/','measurements/','splits/','teachers/','inputs/')) or name=='folds.json':
+            assert sha(w/name)==h,(seed,name);check['imported_inputs']+=1
+    types=np.asarray(load_torch(w/'policies.pt')['types']);xs=[];ys=[]
+    for fold in range(1,6):
+        split=read(w/f'splits/fold{fold}.json');train=set(split['train_ids']);s=set(split['seen_pool']);u=set(split['unseen_pool'])
+        assert not(train&s or train&u or s&u) and len(train|s|u)==22998
+        assert set(split['measure']['seen'])<=s and set(split['measure']['unseen'])<=u
+        if fold==5:assert not(set(sum(split['measure'].values(),[]))&set(sum(split['evaluate'].values(),[])))
+        teacher=load_torch(w/f'teachers/{fold}/last.pt');assert teacher['epoch']==10
+        assert teacher['train_ids']==split['train_ids'] and teacher['train_pairs']==split['inner_pairs']
+        resp=load_torch(w/f'responses/fold{fold}.pt');assert set(resp['support_indices'])<=train
+        assert resp['checkpoint_sha256']==sha(w/f'teachers/{fold}/last.pt')
+        xs.append(resp['features'].double().numpy());b=load_torch(w/f'measurements/fold{fold}.pt')
+        assert b['split']==split and b['teacher_sha256']==resp['checkpoint_sha256']
+        close(b['blocks'].mean(0),b['target']);close(b['blocks'].var(0,ddof=1)/len(b['blocks']),b['se2'])
+        ys.append(b['target'][:,list(b['targets']).index('unll')]);check['teachers']+=1
+        out['splits'].append(dict(seed=seed,fold=fold,train_images=len(train),measure_images=sum(map(len,split['measure'].values())),evaluate_images=sum(map(len,split['evaluate'].values()))))
+    sel=read(w/'utility/selection.json');preds=load_torch(w/'utility/predictions.pt');audit=read(w/'utility/audit.json')
+    xr=load_torch(w/'responses/reference.pt')['features'].double().numpy()
+    oldpred=load_torch(old/'utility/predictions.pt')['unll']
+    for key in oldpred:close(oldpred[key],preds['absolute'][key],1e-12)
+    for method in TARGETS:
+        trials=[]
+        for alpha in cfg['ridge_alphas']:
+            m=ridge(xs[:3],ys[:3],types,alpha,method=='relative');p=compact.predict(m,xs[3],types)
+            e=[float(np.var((p[types==t]-ys[3][types==t])/m['scales'][t])) for t in range(3)]
+            trials.append(dict(alpha=alpha,q4_error=float(np.mean(e))))
+            out['trials'].append(dict(seed=seed,method=method,alpha=alpha,q4_error=float(np.mean(e)),by_type=e))
+        for a,b in zip(trials,sel[method]['trials']):close(a['q4_error'],b['q4_error'],1e-9)
+        alpha=min(trials,key=lambda a:(a['q4_error'],-a['alpha']))['alpha'];assert alpha==sel[method]['selected_alpha']
+        for n,dest in ((3,'utility'),(5,'utility_all')):
+            m=ridge(xs[:n],ys[:n],types,alpha,method=='relative');saved=load_torch(w/dest/method/'model.pt')
+            for key in m:check['max_ridge_error']=max(check['max_ridge_error'],close(m[key],saved[key],1e-9))
+            if method=='relative':close(saved['beta'][[0,9,18]],np.zeros(3),0)
+            assert saved['fit_fold_ids']==list(range(1,n+1));check['ridge_models']+=1
+            for key,x in ([('q5',xs[4]),('reference_three_fold',xr)] if n==3 else [('reference',xr)]):close(compact.predict(m,x,types),preds[method][key],1e-10)
+        p=preds[method]['q5'];y=ys[4]
+        for t in (-1,0,1,2):
+            k=np.ones(96,dtype=bool) if t==-1 else types==t
+            point=compact.point_metrics(p[k],y[k]);stored=audit[method]['all'] if t==-1 else audit[method]['by_type'][str(t)]
+            for key in point:
+                if point[key] is not None:close(point[key],stored[key])
+            pc=np.concatenate([p[types==tt]-p[types==tt].mean() for tt in range(3)]) if t==-1 else p[k]-p[k].mean()
+            yc=np.concatenate([y[types==tt]-y[types==tt].mean() for tt in range(3)]) if t==-1 else y[k]-y[k].mean()
+            cr2=float(1-np.mean((pc-yc)**2)/np.mean(yc**2))
+            if t==-1:close(cr2,audit[method]['centered']['r2'])
+            out['predictors'].append(dict(seed=seed,method=method,type=t,alpha=alpha,**point,centered_r2=cr2,centered_rho=compact.point_metrics(pc,yc)['spearman']))
+        for t in range(3):
+            k=types==t;tr=dict(input_change_rho=compact.point_metrics(p[k],preds[method]['reference_three_fold'][k])['spearman'],
+                refit_change_rho=compact.point_metrics(preds[method]['reference_three_fold'][k],preds[method]['reference'][k])['spearman'],
+                combined_rho=compact.point_metrics(p[k],preds[method]['reference'][k])['spearman'])
+            for key,v in tr.items():close(v,audit[method]['transfer'][str(t)][key])
+            out['transfer'].append(dict(seed=seed,method=method,type=t,**tr))
+    for state in ('q5','reference_three_fold','reference'):
+        pa,_=align.policy(preds['absolute'][state],types,1);pr,_=align.policy(preds['relative'][state],types,1)
+        for t in range(3):
+            k=types==t
+            out['comparisons'].append(dict(seed=seed,state=state,type=t,rank_rho=compact.point_metrics(preds['absolute'][state][k],preds['relative'][state][k])['spearman'],probability_mae=float((pa[k]-pr[k]).abs().mean())))
+    m=load_torch(w/'utility/absolute/model.pt');z5=(xs[4]-m['center'])/m['spread'];zr=(xr-m['center'])/m['spread']
+    out['feature_shift'].append(dict(seed=seed,q5_abs_z_mean=float(np.abs(z5).mean()),reference_abs_z_mean=float(np.abs(zr).mean()),q5_gt3=float((np.abs(z5)>3).mean()),reference_gt3=float((np.abs(zr)>3).mean())))
+    perm=align.permutation(types,cfg['permutation_seeds'][0]);policies={'uniform':torch.full((96,),.5,dtype=torch.double)}
+    for method in TARGETS:
+        p,_=align.policy(preds[method]['q5'],types,1);policies[method]=p;policies['permuted_'+method]=p[perm]
+    p,_=align.policy(ys[4],types,1);policies['measured']=p;policies['permuted_measured']=p[perm]
+    rows=[];audit=read(w/'decision/audit.json')
+    for file in sorted((w/'decision/blocks').glob('evaluate*.pt')):
+        b=load_torch(file);sm=b['seen'][b['truth']];gen=torch.Generator().manual_seed(b['graph_seed']);uniforms=torch.rand(16,96,generator=gen).double()
+        assert b['source_block_sha256']==sha(old/'decision/blocks'/file.name)
+        source=load_torch(old/'decision/blocks'/file.name);baseline=b['results']['uniform']
+        for name,value in b['results'].items():
+            close(policies[name],b['policies'][name]);assert torch.equal((uniforms<policies[name][None]).float(),value['masks'])
+            if name in mapping:
+                for key in ('single_statistics','mixture_logprobs','masks'):assert torch.equal(value[key],source['results'][mapping[name]][key])
+                check['source_reused_policies']+=1
+            else:check['new_policies']+=1
+            single=batch_diag(value['single_statistics'],sm)
+            mix=batch_diag(competition.sufficient(value['mixture_logprobs'],b['truth'],b['seen']),sm)
+            mix['AUC_native']=np.array([native_curve(value['mixture_logprobs'].numpy(),b['truth'].numpy(),b['seen'].numpy())['AUC']])
+            close(exact_curve(value['mixture_logprobs'].numpy(),b['truth'].numpy(),b['seen'].numpy())['AUC'],mix['AUC_exact'][0])
+            for calc,key in ((single,'single'),(mix,'mixture')):
+                for metric,v in calc.items():check['max_decision_error']=max(check['max_decision_error'],close(v.mean(),value[key][metric],1e-9))
+            row=dict(policy=name,bank=b['graph_seed'])
+            for readout in ('single','mixture'):
+                for metric,v in value[readout].items():row[readout+'_'+metric]=v
+                for target in ('unll','balanced','competition'):row[readout+'_'+target+'_gain']=baseline[readout][target]-value[readout][target]
+                row[readout+'_AUC_gain']=value[readout]['AUC_exact']-baseline[readout]['AUC_exact']
+            rows.append(row);out['decisions'].append(dict(seed=seed,**row));check['decision_policies']+=1
+        check['decision_banks']+=1
+    for a,b in zip(rows,audit['rows']):
+        for k in a:
+            if isinstance(a[k],str):assert a[k]==b[k]
+            else:close(a[k],b[k])
+    for name in policies:
+        rr=[r for r in rows if r['policy']==name]
+        for key in rr[0]:
+            if key in ('policy','bank'):continue
+            v=np.array([r[key] for r in rr]);s=audit['summary'][name][key]
+            close([v.mean(),v.std(ddof=1),v.std(ddof=1)/len(v)**.5],[s['mean'],s['sd'],s['mcse']])
+    out['decision_summaries'][str(seed)]=audit['summary']
+    print('MECHANISM_SEED_OK',seed,flush=True)
+csvrows=csvread(WORK/'decision_risks.csv');assert len(csvrows)==len(out['decisions'])==168
+for c,r in zip(csvrows,out['decisions']):
+    assert int(c['seed'])==r['seed'] and c['policy']==r['policy'] and int(c['bank'])==r['bank']
+    for k,v in r.items():
+        if k not in ('seed','policy','bank'):close(v,float(c[k]))
+check['passed']=True
+write('mechanism_verification.json',check);write('mechanism_data.json',out)
+print('MECHANISM_COMPLETE',check,flush=True)

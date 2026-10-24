@@ -57,7 +57,7 @@ def audit(path,ref,out):
         display_formulas=len(actual_display),inline_formulas=len(actual_inline),exact_math_payloads_verified=True)
 
 def main():
-    ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('--ref',default='main');ap.add_argument('--stages',nargs='+',default=['02','03','04','05','06']);ap.add_argument('--out',type=Path,default=ROOT/'tmp/trustcpf_web_qa')
+    ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('--ref',default='main');ap.add_argument('--stages',nargs='+',default=['02','03','04','05','06','07']);ap.add_argument('--out',type=Path,default=ROOT/'tmp/trustcpf_web_qa')
     args=ap.parse_args();args.out.mkdir(parents=True,exist_ok=True)
     docs=[p for n in args.stages for p in (ROOT/'TRUST-CPF方案'/n).rglob('*.md')]
     docs += [ROOT/'README.md',ROOT/'TRUST-CPF方案/README.md']

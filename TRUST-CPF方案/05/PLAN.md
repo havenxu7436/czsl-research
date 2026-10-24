@@ -1,4 +1,4 @@
-本文件保留六路线后续计划的原始研究安排。第一批 Align 已完成，见 [本阶段分析](analysis/README.md)；Competition 已完成，见 [06 阶段](../06/README.md)。R5 等后续路线仍为提案。
+本文件保留六路线后续计划的原始研究安排。第一批 Align 已完成，见 [本阶段分析](analysis/README.md)；Competition 已完成，见 [06 阶段](../06/README.md)；R5 相对效用拟合已完成，见 [07 阶段](../07/README.md)。其余后续路线仍为提案。
 
 # TRUST-CPF 后续实验方案：从可迁移效用到组合识别收益
 
