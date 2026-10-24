@@ -1,0 +1,358 @@
+# TRUST-CPF 模型响应条件化：公式与核心实现
+
+日期：2026-10-23。代码自动摘取自交付源码；实践命令见 SERVER_COMMANDS.md。
+
+## 公式
+
+ 保留效用监督，新增模型条件
+
+原 Query 标签保持：
+
+
+```math
+y_e=\frac1K\sum_{k=1}^K
+\left[R_Q(\theta,G_{-e}^{(k)})-R_Q(\theta,G_{+e}^{(k)})\right].
+```
+
+
+Query 是 TRAIN 内部按组合留出的图像。Q1–Q3 拟合，Q4 选效用网络 epoch，Q5 审计；最后按选定 epoch 合并五折标签拟合部署网络。保存的 y、noise、edge、inclusion 原样复用。候选集为全部 TRAIN 组合。
+
+对每个教师，从 Inner 每个组合固定抽最多两张图像，组合间等权、组合内图像等权；主 reference 使用完整 TRAIN。支持集种子为 20261023+j，五折 j=1…5，reference 为 j=6。每个教师使用四个共同 Bernoulli(0.5) 背景。
+
+定义开启和关闭后的候选联合 log score 差：
+
+
+```math
+d_{e,k,c}(x)=J^+_{e,k,c}(x)-J^-_{e,k,c}(x).
+```
+
+
+对候选集归一化后，支持效用为：
+
+
+```math
+\begin{aligned}
+\delta_{e,k}(x,y)
+&=\log p^+_{e,k}(y\mid x)-\log p^-_{e,k}(y\mid x)\\[4pt]
+&=d_{e,k,y}(x)-\log\sum_c p^-_{e,k}(c\mid x)\exp d_{e,k,c}(x).
+\end{aligned}
+```
+
+
+公式由两次 log-softmax 相减得到。代码以 float32 计算模型分数，再以 float64 累计支持统计；开启和关闭共享支持样本及其他边。
+
+去除候选共同平移：
+
+
+```math
+\widetilde d_{e,k,c}=d_{e,k,c}-\frac1{|\mathcal C|}\sum_{c'}d_{e,k,c'}.
+```
+
+
+分别在全部支持集 S 和目标原词相关子集 S_e 上计算四个统计。OI/OE 按真实物体筛选，AE 按真实属性筛选；子集内重新归一化组合权重：
+
+
+```math
+h_e^B=\left[
+\mathbb E_{B,k}\delta,\;
+\sqrt{\mathop{\mathrm{Var}}\nolimits_{B,k}(\delta)},\;
+\sqrt{\mathbb E_{B,k}\frac{\|\widetilde d\|_2^2}{|\mathcal C|}},\;
+\mathbb E_{B,k}\{H(p^+)-H(p^-)\}
+\right],\quad B\in\{S,S_e\}.
+```
+
+
+其中 $`H(p)=-\sum_c p_c\log p_c`$。新增特征只来自 Inner 当前模型响应；Query 标签继续承担监督作用。
+
+
+```math
+\Phi_e^{\rm new}=[\phi_e(S),h_e^S,h_e^{S_e}],
+\qquad(\mu_e,\sigma_e^2)=f_\psi(\Phi_e^{\rm new}).
+```
+
+
+正式输入由 6157 维增至 6165 维，三成员网络保持 256→128→2。新增 8 维按拟合集均值/标准差归一化，下限 10⁻⁶；原输入标准差下限保持 0.01。审计前统计仅来自 Q1–Q3；最终五折拟合重新计算其统计。
+
+## 3. 拟合目标与固定图密度
+
+类型尺度、配对测量噪声及分层采边权重沿用原代码。标签 y、噪声方差 ν、采边包含概率 q 对应：
+
+
+```math
+\mathcal L_u=\frac{|B|}{|E|}\frac1{|B|}\sum_{e\in B}
+\frac1{q_e}\frac12\left[
+\log(\sigma_e^2+\nu_e)+\frac{(\mu_e-y_e)^2}{\sigma_e^2+\nu_e}
+\right].
+```
+
+
+标准化时，均值除以类型尺度、方差除以尺度平方；预测后恢复原单位。每成员最多 50 epoch，Q4 NLL 选择首次最优 epoch。响应特征按教师和边计算一次，连接到该教师全部 episode。
+
+部署仍使用 16 次原视觉摘要。响应来自固定主 reference，只计算一次。任务方差加摘要变化组成 v，成员均值方差组成 u：
+
+
+```math
+r_e=\mu_e-\lambda_{\rm var}\sqrt{v_e}-\lambda_{\rm ens}\sqrt{u_e}.
+```
+
+
+风险系数和温度继承各 seed 原 Q4 的选择。逐类型期望边数 B_t 取原 robust 实际概率和：
+
+| seed | OI | OE | AE |
+| --- | --- | --- | --- |
+| 3351 | 0.381057 | 6.668088 | 12.000001 |
+| 3352 | 0.890846 | 9.000001 | 12.000000 |
+| 3353 | 0.896474 | 6.433821 | 12.000001 |
+
+求解使用保存概率的 float64 求和，表格仅作展示。
+
+
+```math
+\begin{aligned}
+\max_\pi\quad&
+\sum_e r_e\pi_e-\tau\sum_e
+D_{\rm KL}(\mathop{\mathrm{Bern}}\nolimits(\pi_e)\,\|\,\mathop{\mathrm{Bern}}\nolimits(1/2)),\\[4pt]
+\text{s.t.}\quad&\sum_{e:t(e)=t}\pi_e=B_t.
+\end{aligned}
+```
+
+
+驻点为：
+
+
+```math
+r_e-\tau\mathop{\mathrm{logit}}\nolimits(\pi_e)-\gamma_{t(e)}=0,\qquad
+\pi_e=\mathop{\mathrm{sigmoid}}\nolimits\left(\frac{r_e-\gamma_{t(e)}}{\tau}\right).
+```
+
+
+乘子允许为负；每类型做 80 次 float64 二分，再转回模型精度。程序用旧奖励回代，验证恢复旧 robust 概率，并核对 drop 的类型概率和。
+
+
+## 1. 支持集与八维响应
+
+源码：trustcpf/response.py
+
+~~~python
+def select_support(rows,allowed_pairs,labels,per_pair,seed):
+    """Equal mass per composition, equal mass per selected image."""
+    ai={a:i for i,a in enumerate(labels['attrs'])};oi={o:i for i,o in enumerate(labels['objs'])}
+    groups={(ai[a],oi[o]):[] for a,o in allowed_pairs}
+    for i,r in enumerate(rows):
+        key=(r['attr'],r['object'])
+        if key in groups:groups[key].append(i)
+    rng=np.random.RandomState(seed);ids=[];weights=[]
+    for key in sorted(groups):
+        pool=groups[key]
+        if not pool:raise ValueError('Inner composition has no cached image: '+str(key))
+        take=rng.choice(pool,min(per_pair,len(pool)),replace=False).tolist()
+        ids.extend(take);weights.extend([1/(len(groups)*len(take))]*len(take))
+    return ids,torch.tensor(weights,dtype=torch.float64)
+
+def response_statistics(minus,plus,truth,weights,target_mask):
+    """minus/plus: [backgrounds, support images, candidates], float64 statistics."""
+    minus=minus.double();plus=plus.double();truth=truth.long()
+    lm=minus.log_softmax(-1);lp=plus.log_softmax(-1)
+    delta=(lp-lm).gather(-1,truth[None,:,None].expand(len(lm),-1,1)).squeeze(-1)
+    d=plus-minus;centered=d-d.mean(-1,keepdim=True)
+    entropy_delta=-(lp.exp()*lp).sum(-1)+(lm.exp()*lm).sum(-1)
+    result=[]
+    for mask in (torch.ones_like(target_mask,dtype=torch.bool),target_mask):
+        w=weights.double()*mask
+        if float(w.sum())<=0:raise ValueError('Support does not cover graph target')
+        w=w/w.sum()/len(lm)
+        mean=(delta*w).sum()
+        variance=((delta-mean).square()*w).sum()
+        rms=(centered.square().mean(-1)*w).sum().sqrt()
+        ent=(entropy_delta*w).sum()
+        result.extend([mean,variance.clamp_min(0).sqrt(),rms,ent])
+    return torch.stack(result).float()
+
+@torch.no_grad()
+def measure_responses(model,batch,truth,weights,attrs,objs,candidates,bank,count,seed):
+    """Every edge/background shares all non-intervened masks; support may be batched."""
+    device=next(model.parameters()).device
+    gen=torch.Generator(device='cpu').manual_seed(seed)
+    backgrounds=(torch.rand(count,len(bank['types']),generator=gen)<.5).float().to(device)
+    bases=[model.base(*[v.to(device) for v in chunk]) for chunk in batch]
+    result=[]
+    for e in range(len(bank['types'])):
+        negative=[];positive=[]
+        for background in backgrounds:
+            mask=background.clone();mask[e]=0
+            negative.append(torch.cat([model.score(b,mask)[0].flatten(1)[:,candidates].cpu() for b in bases]))
+            mask[e]=1
+            positive.append(torch.cat([model.score(b,mask)[0].flatten(1)[:,candidates].cpu() for b in bases]))
+        target=int(bank['target'][e]);na=model.na
+        target_mask=(attrs==target) if target<na else (objs==target-na)
+        result.append(response_statistics(torch.stack(negative),torch.stack(positive),truth,weights,target_mask))
+    return torch.stack(result),2*count*len(bank['types'])*len(bases)
+~~~
+
+
+## 2. 配对监督与效用目标
+
+源码：trustcpf/utility.py
+
+~~~python
+@torch.no_grad()
+def paired_utility(model, base, target_local, candidates, edge_ids, weights, backgrounds, generator):
+    ecount = len(model.graph.types)
+    ys, vs, differences = [], [], []
+    for e in edge_ids.tolist():
+        diffs = []
+        for _ in range(backgrounds):
+            b = (torch.rand(ecount,device=weights.device,generator=generator)<.5).float()
+            b[e]=0
+            minus=candidate_logprob(model.score(base,b)[0],candidates)
+            b[e]=1
+            plus=candidate_logprob(model.score(base,b)[0],candidates)
+            rows=torch.arange(len(weights),device=weights.device)
+            diff=((minus[rows,target_local]-plus[rows,target_local]) * -weights).sum()
+            diffs.append(diff)
+        ds=torch.stack(diffs)
+        ys.append(ds.mean()); vs.append(ds.var(unbiased=True)/backgrounds)
+        differences.append(ds)
+    return torch.stack(ys), torch.stack(vs), torch.stack(differences)
+
+def utility_nll(mean, variance, target, noise, inclusion, edges):
+    v=variance+noise.detach()
+    loss=.5*(v.log()+(mean-target.detach()).square()/v)
+    # Records sample uniformly within the fixed-size stratified subsets B_t.
+    # Multiplying by |B_t|/|E| implements the full-edge HT objective.
+    return (loss/inclusion).mean()*edges['sampled']/edges['total']
+~~~
+
+
+## 3. 对应折标签与响应连接
+
+源码：trustcpf/stages.py
+
+~~~python
+def combine_measurements(work,folds,response=False):
+    from .response import measurement_file
+    chunks=[]
+    for j in folds:
+        p=load_torch(measurement_file(work,j))
+        if response:
+            r=load_torch(work/'responses'/('fold%d.pt'%j))
+            p['x']=torch.cat([p['x'].float(),r['features'][p['edge']].float()],-1)
+        chunks.append(p)
+    result={k:torch.cat([p[k] for p in chunks]) for k in ('x','y','noise','edge','inclusion')}
+    result.update(sampled=chunks[0]['sampled'],total=chunks[0]['total'])
+    return result
+~~~
+
+
+## 4. 等式预算求解
+
+源码：trustcpf/graph.py
+
+~~~python
+def solve_budget_equal(reward, types, tau, budgets):
+    """Strictly concave entropy objective with exact per-type expected counts."""
+    if tau <= 0 or not torch.isfinite(reward).all():
+        raise ValueError('Positive temperature and finite rewards required')
+    r=reward.double();pi=torch.zeros_like(r);multipliers={}
+    for ty in types.unique().tolist():
+        mask=types==ty;n=int(mask.sum());b=float(budgets[str(ty)])
+        if not 0<=b<=n:raise ValueError('Invalid expected edge count')
+        if b==0 or b==n:
+            pi[mask]=b/n;multipliers[str(ty)]=None;continue
+        low=float(r[mask].min())-100*tau
+        high=float(r[mask].max())+100*tau
+        for _ in range(80):
+            mid=(low+high)/2
+            if float(torch.sigmoid((r[mask]-mid)/tau).sum())>b:low=mid
+            else:high=mid
+        gamma=(low+high)/2
+        pi[mask]=torch.sigmoid((r[mask]-gamma)/tau)
+        multipliers[str(ty)]=gamma
+    return pi.to(reward.dtype),multipliers
+~~~
+
+
+## 5. 复用与完整流程
+
+源码：trustcpf/workflow.py
+
+~~~python
+def prepare_seed(args):
+    src=source_seed(args);work=Path(args.work)
+    state=load_torch(src/'reference/last.pt')
+    cfg=copy.deepcopy(state['cfg']);new=read_json(args.config)
+    cfg.update({k:new[k] for k in ('response_images_per_pair','response_backgrounds','response_seed')})
+    cfg.update(seed=args.seed,variant='conditioned',utility_input='model_response')
+    cfg.update(read_json(src/'tuning.json')['selected'])
+    old=load_torch(src/'structure.pt')
+    bank=load_torch(src/'runs/robust/bank.pt');types=bank['types']
+    pi=load_torch(src/'runs/robust/best.pt')['pi']
+    if not torch.allclose(pi,old['pi'],atol=1e-6,rtol=0):raise ValueError('Source robust pi differs from its structure')
+    budgets={str(t):float(pi[types==t].double().sum()) for t in types.unique().tolist()}
+    recovered,gamma=solve_budget_equal(old['reward'],types,cfg['tau_absolute'],budgets)
+    error=float((recovered-pi).abs().max())
+    if error>1e-6:raise ValueError('Original selection not recovered by equal-budget solve')
+    drop=load_torch(src/'runs/drop/best.pt')['pi']
+    budget_error=max(abs(float(drop[types==t].double().sum())-budgets[str(t)]) for t in types.unique().tolist())
+    if budget_error>1e-5:raise ValueError('Archived drop budget differs')
+    cfg['fixed_type_budgets']=budgets
+    work.mkdir(parents=True,exist_ok=True)
+    write_json(work/'recipe.json',cfg)
+    write_json(work/'reuse.json',dict(source_seed=str(src),reference_sha256=sha(src/'reference/last.pt'),
+        measurement_source=str(src/'measurements'),controls=dict(drop='drop',original='robust')))
+    write_json(work/'budget_recovery.json',dict(budgets=budgets,max_pi_error=error,
+        drop_max_budget_error=budget_error,multipliers=gamma))
+    (work/'reference').mkdir(exist_ok=True)
+    shutil.copy2(src/'reference/last.pt',work/'reference/last.pt')
+    shutil.copy2(src/'tuning.json',work/'tuning.json')
+    for oldname,newname in [('drop','drop'),('robust','original')]:
+        olddir=src/'runs'/oldname;dest=work/'runs'/newname;dest.mkdir(parents=True,exist_ok=True)
+        for name in CONTROL_FILES:
+            if (olddir/name).exists():shutil.copy2(olddir/name,dest/name)
+        m=read_json(olddir/'metrics.json')
+        m.update(variant=newname,reused=True,source_variant=oldname,source_metrics_sha256=sha(olddir/'metrics.json'))
+        write_json(dest/'metrics.json',m)
+    dest=work/'utility_original';dest.mkdir(exist_ok=True)
+    for name in ('audit.json','audit_predictions.pt','selection.json'):
+        shutil.copy2(src/'utility'/name,dest/name)
+    write_json(work/'reference_benchmarks.json',{v:read_json(src/'runs'/v/'metrics.json') for v in ('r0','capacity','dense') if (src/'runs'/v/'metrics.json').exists()})
+
+def run_seed(args):
+    from . import stages
+    from .response import build_responses
+    root=Path(args.work).resolve();folder=root/('seed%d'%args.seed);marks=root/'progress'/('seed%d'%args.seed)
+    with lock(marks):
+        identity=input_identity(args)
+        if (marks/'identity.json').exists() and read_json(marks/'identity.json')!=identity:
+            raise ValueError('Recipe/source changed: use a new --work directory')
+        write_json(marks/'identity.json',identity)
+        a=copy.copy(args);a.work=str(folder);a.variant='conditioned';a.quick=False;a.fold='all';a.fit_all=False
+        for stage in STAGES:
+            marker=marks/(stage+'.json')
+            if marker.exists():
+                for rel,h in read_json(marker).get('outputs',{}).items():
+                    if not (folder/rel).is_file() or sha(folder/rel)!=h:raise ValueError('Completed stage output changed: '+rel)
+                print('REUSE_STAGE',args.seed,stage,flush=True);continue
+            print('START_STAGE',args.seed,stage,flush=True);tic=time.perf_counter()
+            if stage=='import':prepare_seed(a)
+            else:
+                a.config=str(folder/'recipe.json')
+                a.fit_all=stage=='fit_all'
+                {'responses':build_responses,'fit':stages.fit_utility,'audit':stages.utility_audit,
+                 'fit_all':stages.fit_utility,'structure':stages.structure,'adapt':stages.adapt}[stage](a)
+            outputs={
+                'import':['recipe.json','reuse.json','budget_recovery.json','reference/last.pt','runs/drop/metrics.json','runs/original/metrics.json'],
+                'responses':['responses/'+x+'.pt' for x in ['fold1','fold2','fold3','fold4','fold5','reference']],
+                'fit':['utility/selection.json']+['utility/model%d.pt'%i for i in range(read_json(folder/'recipe.json')['utility_models'])],
+                'audit':['utility/audit.json','utility/audit_predictions.pt'],
+                'fit_all':['utility_all/selection.json']+['utility_all/model%d.pt'%i for i in range(read_json(folder/'recipe.json')['utility_models'])],
+                'structure':['structure.json','structure.pt'],
+                'adapt':['runs/conditioned/'+x for x in ('metrics.json','best.pt','last.pt','val_predictions.npz','test_predictions.npz')]
+            }[stage]
+            write_json(marker,dict(stage=stage,seed=args.seed,seconds=time.perf_counter()-tic,
+                outputs={p:sha(folder/p) for p in outputs},completed=True))
+            print('END_STAGE',args.seed,stage,flush=True)
+        write_json(marks/'DONE.json',dict(seed=args.seed,completed=len(STAGES),expected=len(STAGES)))
+    print('SEED_COMPLETE',args.seed,flush=True)
+~~~
+
