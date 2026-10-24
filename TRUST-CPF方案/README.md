@@ -19,4 +19,4 @@ CLIP / CPF 上的可迁移关系效用监督、关系概率分配与 CZSL 研究
 
 [全部实验路线](../README.md) · [05 复算](05/analysis/REPRODUCE.md) · [06 复算](06/analysis/REPRODUCE.md)
 
-[GitHub 网页排版检查](06/analysis/repository_qa/github/checks.json) · [公式与链接检查](06/analysis/repository_qa/markdown_math_checks.json) · [全仓库校验](06/analysis/repository_qa/repository_verify.json)
+[GitHub 网页排版检查](06/analysis/repository_qa/github/main_checks.json) · [公式与链接检查](06/analysis/repository_qa/markdown_math_checks.json) · [全仓库校验](06/analysis/repository_qa/repository_verify_final.json)
