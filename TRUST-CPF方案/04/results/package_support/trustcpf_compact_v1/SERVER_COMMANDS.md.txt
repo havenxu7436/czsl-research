@@ -1,0 +1,126 @@
+# TRUST-CPF Compact v1：完整服务器实践命令
+
+服务器：`xhw@211.87.232.122`。GPU：**0 / 1 / 2**。使用已有 `vgcpod_v1` 环境。新项目目录：`/data/xhw/experiments/trustcpf_compact_v1`。
+
+## 1. Windows PowerShell：上传并解压
+
+在本机 PowerShell 复制整段执行。脚本独立设置路径，校验本地 ZIP，上传后在服务器校验并解压。
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass -Force
+& "C:\Users\llenovo\Documents\ChatGPT\USG\output\upload_trustcpf_compact_v1.ps1"
+ssh xhw@211.87.232.122
+```
+
+出现 `UPLOAD_AND_EXTRACTION_COMPLETE` 表示上传解压成功。脚本位置及 ZIP 均在本机 `output` 目录，SHA256 文件采用 Linux 换行。
+
+## 2. 服务器 Bash：初始化与测试
+
+以下命令在登录服务器后执行：
+
+```bash
+conda activate vgcpod_v1
+cd /data/xhw/experiments/trustcpf_compact_v1
+
+python run.py setup \
+  --source /data/xhw/experiments/trustcpf_strong_v1 \
+  --response-source /data/xhw/experiments/trustcpf_modelcond_v1 \
+  --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14
+
+source scripts/env.sh
+"$CPF_PY" -c 'import sys, torch, numpy; print(sys.executable); print("PyTorch:", torch.__version__, "NumPy:", numpy.__version__, "CUDA:", torch.cuda.is_available())'
+"$CPF_PY" -m unittest discover -s tests -v
+```
+
+`setup` 会扫描已有缓存并校验来源；结束输出 `SETUP_COMPLETE`。测试末尾应为 `OK (skipped=1)`；跳过项是本轮复用特征、不再运行的 CLIP 提取接口。新算法只依赖当前环境已有的 NumPy/PyTorch。初始化自动写入实际 Python 路径，无需填写旧的 `/srv/.../python`。
+
+## 3. 三卡启动正式实验
+
+```bash
+cd /data/xhw/experiments/trustcpf_compact_v1
+mkdir -p logs
+nohup bash scripts/run_all.sh >> logs/queue.log 2>&1 < /dev/null &
+echo "QUEUE_PID=$!"
+tail -F logs/queue.log
+```
+
+分配为：GPU 0 → seed 3351；GPU 1 → seed 3352；GPU 2 → seed 3353。每个 seed 内依次完成 Compact、shuffled utility。Ctrl+C 只退出上述日志查看；后台队列继续运行。
+
+查看各 seed 的进度：
+
+```bash
+cd /data/xhw/experiments/trustcpf_compact_v1
+tail -n 25 logs/seed3351.log
+tail -n 25 logs/seed3352.log
+tail -n 25 logs/seed3353.log
+nvidia-smi
+bash scripts/status.sh
+```
+
+完成时输出：`21/21 stages`、`9/9 models`、`6/6 utility audits`、`18/18 response files`，并有 `complete: True`、`ALL_EXPERIMENTS_COMPLETE`。9 个识别结果包含 3 个复用 Drop 和 6 个新适配结果。
+
+中断后的续跑仍用同一条命令；已完成的阶段输出 `REUSE_STAGE`：
+
+```bash
+cd /data/xhw/experiments/trustcpf_compact_v1
+nohup bash scripts/run_all.sh >> logs/queue.log 2>&1 < /dev/null &
+echo "QUEUE_PID=$!"
+```
+
+同一队列正在运行时会输出 `Queue already running`。实验种子固定为三个；下次需要换卡时只修改 `scripts/run_all.sh` 中的三组 GPU 与 seed 对应。
+
+## 4. 服务器：汇总与打包
+
+全部完成后执行：
+
+```bash
+cd /data/xhw/experiments/trustcpf_compact_v1
+source scripts/env.sh
+"$CPF_PY" run.py report
+"$CPF_PY" scripts/check_complete.py
+cat "$CPF_WORK/paired_comparisons.json"
+bash scripts/pack_results.sh
+```
+
+打包过程输出 `PACK_PROGRESS`、`HASHING_ARCHIVE`，结束以 `PACK_COMPLETE` 和 **`DOWNLOAD_READY`** 为准。继续等到命令提示符返回。结果包与 SHA256 在 `/data/xhw/experiments/`，最新下载描述写入项目内 `download.json`；无需复制时间戳或手填归档文件名。
+
+## 5. Windows PowerShell：下载、校验、解压到本地
+
+在本机另开 PowerShell，执行：
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass -Force
+& "C:\Users\llenovo\Documents\ChatGPT\USG\output\download_trustcpf_compact_v1.ps1"
+```
+
+脚本先下载 `download.json`，再下载对应结果包到 `.part`，验证文件大小和 SHA256，最后用 Python 解压。连接中断会重新尝试该次文件传输；已通过哈希校验的完整归档直接复用。结束输出 `DOWNLOAD_SHA256_EXTRACTION_COMPLETE` 和结果目录。
+
+默认保存到：
+
+```text
+C:\Users\llenovo\Documents\ChatGPT\USG\
+  trustcpf_compact_v1_results_YYYYMMDD_HHMMSS.tar.gz
+  trustcpf_compact_v1_results_YYYYMMDD_HHMMSS\
+    trustcpf_compact_v1\work\
+```
+
+也可以指定保存目录：
+
+```powershell
+& "C:\Users\llenovo\Documents\ChatGPT\USG\output\download_trustcpf_compact_v1.ps1" `
+  -LocalRoot "C:\Users\llenovo\Desktop\USG\TRUST_Compact_results"
+```
+
+本机解压 Python 默认为 `C:\Users\llenovo\anaconda3\envs\ai-lab\python.exe`。如环境位置改变，通过脚本的 `-PythonPath` 参数指定。
+
+## 6. 本轮需要一起保留的结果
+
+- `work/summary.csv`、`aggregates.json`、`paired_comparisons.json`：三主方法识别与三 seed 配对差值。
+- `work/historical.csv`：原 TRUST、conditioned、r0、Capacity、Dense。
+- `work/utility_comparison.json`：真实/打乱监督的 Q5 指标及对类型常数的遗憾差值。
+- `work/seed*/inputs/edge_statistics.pt` 与 `q5_observations.pt`：五折边均值、标准误与补充观测审计。
+- `work/seed*/utility/selection.json`、两组模型与审计、`utility_all/`、`structures/`。
+- `work/seed*/runs/*/`：最优/末次权重、校准指标、完整预测、训练历史。
+- `work/progress/`、`costs.csv`、`conditional_diagnostics.json`、`status.json` 与 `logs/`。
+
+归档自带此次代码、27 参数模型、响应、聚合监督与识别权重。原教师和原始 episode 测量继续保存在 Strong v1；本轮来源哈希记录在 `work/progress/seed*/identity.json`。

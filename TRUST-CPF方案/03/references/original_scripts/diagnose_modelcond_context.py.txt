@@ -1,0 +1,75 @@
+exec(open(__file__.replace('diagnose_modelcond_context.py','analyze_modelcond_v1.py'),encoding='utf8').read().split('descriptor=')[0])
+
+results=[];ridge_results=[]
+for seed in SEEDS:
+    old=OLD/'work'/f'seed{seed}';new=W/f'seed{seed}'
+    types=pt(new/'runs/conditioned/bank.pt')['types'].numpy()
+    edge_targets=[];features=[]
+    for j in range(1,6):
+        data=pt(old/'measurements'/f'fold{j}.pt')
+        y=data['y'].numpy().astype(float);edge=data['edge'].numpy();episode=data['episode'].numpy()
+        pairs=sorted(set(p for q in data['queries'] for p in q['query_pair_ids']))
+        lookup={p:i for i,p in enumerate(pairs)}
+        X=np.zeros((len(data['queries']),len(pairs)))
+        for q in data['queries']:
+            for p in q['query_pair_ids']:X[q['episode'],lookup[p]]=1/len(q['query_pair_ids'])
+        edge_targets.append(np.array([y[edge==e].mean() for e in range(96)]))
+        features.append(pt(new/'responses'/f'fold{j}.pt')['features'].numpy().astype(float))
+        # Exploratory within-teacher five-way CV; no classifier training or TEST images.
+        groups=np.random.RandomState(20261023+j).permutation(len(X))%5
+        pred=np.zeros_like(y);base=np.zeros_like(y)
+        for e in range(96):
+            rows=np.where(edge==e)[0]
+            for fold in range(5):
+                test=rows[groups[episode[rows]]==fold];train=rows[groups[episode[rows]]!=fold]
+                a=X[episode[train]];b=y[train];center=a.mean(0);mu=b.mean()
+                # Equal-query composition fractions; ridge 1e-3 fixed for all.
+                coef=np.linalg.solve((a-center).T@(a-center)+.001*np.eye(len(pairs)),(a-center).T@(b-mu))
+                pred[test]=mu+(X[episode[test]]-center)@coef;base[test]=mu
+        for ty,name in [(None,'all')]+list(enumerate(TYPES)):
+            mask=np.ones(len(y),bool) if ty is None else types[edge]==ty
+            results.append(dict(seed=seed,fold=j,type=name,observations=int(mask.sum()),query_compositions=len(pairs),
+                constant_rmse=float(np.sqrt(np.mean((base[mask]-y[mask])**2))),
+                composition_rmse=float(np.sqrt(np.mean((pred[mask]-y[mask])**2))),
+                relative_mse_reduction=float(1-np.mean((pred[mask]-y[mask])**2)/np.mean((base[mask]-y[mask])**2)),
+                rho=corr(pred[mask],y[mask])))
+    # Independent diagnostic: small type-specific ridge from eight responses,
+    # train Q1-Q3, choose regularization on Q4, evaluate Q5 edge mean labels.
+    xf=np.concatenate(features[:3]);yf=np.concatenate(edge_targets[:3]);tf=np.tile(types,3)
+    center=xf.mean(0);spread=np.maximum(xf.std(0),1e-6);scale=np.array([yf[tf==t].std() for t in range(3)])
+    def design(x,ty):
+        z=(x-center)/spread
+        return np.concatenate([np.column_stack([np.ones(len(z)),z])*(ty==t)[:,None] for t in range(3)],1)
+    A=design(xf,tf);b=yf/scale[tf]
+    A4=design(features[3],types);A5=design(features[4],types)
+    rows=[]
+    for alpha in [.1,1.,10.,100.]:
+        beta=np.linalg.solve(A.T@A+alpha*np.eye(A.shape[1]),A.T@b)
+        dev=A4@beta*scale[types];test=A5@beta*scale[types]
+        loss=np.mean(((dev-edge_targets[3])/scale[types])**2)
+        rows.append((loss,alpha,test))
+    loss,alpha,test=min(rows,key=lambda x:x[0])
+    raw5=pt(old/'measurements/fold5.pt');e5=raw5['edge'].numpy();y5=raw5['y'].numpy()
+    original=pt(new/'utility_original/audit_predictions.pt')['mean'].numpy()
+    conditioned=pt(new/'utility/audit_predictions.pt')['mean'].numpy()
+    oldedge=np.array([original[e5==e].mean() for e in range(96)])
+    newedge=np.array([conditioned[e5==e].mean() for e in range(96)])
+    for ty,name in [(None,'all')]+list(enumerate(TYPES)):
+        mask=np.ones(96,bool) if ty is None else types==ty
+        target=edge_targets[4];baseline=np.array([yf[tf==t].mean() for t in types])
+        obs=np.ones(len(y5),bool) if ty is None else types[e5]==ty
+        ridge_results.append(dict(seed=seed,type=name,alpha=alpha,dev_loss=float(loss),rho=corr(test[mask],target[mask]),
+                                  rmse=float(np.sqrt(np.mean((test[mask]-target[mask])**2))),
+                                  constant_rmse=float(np.sqrt(np.mean((baseline[mask]-target[mask])**2))),
+                                  old_edge_rho=corr(oldedge[mask],target[mask]),new_edge_rho=corr(newedge[mask],target[mask]),
+                                  observation_rho=corr(test[e5][obs],y5[obs]),
+                                  observation_rmse=float(np.sqrt(np.mean((test[e5][obs]-y5[obs])**2))),
+                                  observation_direction=float(((test[e5][obs][y5[obs]>0]>0).mean()+(test[e5][obs][y5[obs]<0]<0).mean())/2)))
+    print('CONTEXT_DIAGNOSTIC_COMPLETE',seed,flush=True)
+out=dict(exploratory=True,within_teacher_query_cv=results,response_ridge=ridge_results,
+         protocol='Existing TRAIN-only measurements; query-composition CV holds out episodes within the same teacher. Ridge response diagnostic fits Q1-Q3, picks alpha by Q4, reports Q5. These are not new CZSL results.')
+save('context_diagnostics.json',out)
+for name in ['all']+TYPES:
+    values=[r['relative_mse_reduction'] for r in results if r['type']==name]
+    print('QUERY_COMPOSITION',name,'median',np.median(values),'range',min(values),max(values),'positive',sum(v>0 for v in values),'/',len(values),flush=True)
+print('RIDGE_RESPONSE',json.dumps(ridge_results),flush=True)

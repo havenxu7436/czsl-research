@@ -1,0 +1,20 @@
+exec(open(__file__.replace('diagnose_compact_policy.py','analyze_compact_v1.py'),encoding='utf-8-sig').read().split('descriptor=')[0])
+from trustcpf import compact
+rows=[]
+for seed in SEEDS:
+ d=W/f'seed{seed}';cfg=rd(d/'recipe.json');st=pt(d/'inputs/edge_statistics.pt');ty=st['types'];md=pt(d/'utility/compact/model.pt')
+ for phase,j in [('q4',4),('q5',5)]:
+  h=pt(d/'responses'/f'fold{j}.pt')['features'].double().numpy();mu=compact.predict(md,h,ty);y=st['folds'][j-1]['target']
+  z=np.zeros(96)
+  for t in range(3):
+   keep=ty==t;spread=mu[keep].std()
+   if spread>1e-12:z[keep]=(mu[keep]-mu[keep].mean())/spread
+  for kappa in [.5,1.,2.]:
+   c=dict(tau_absolute=1.,fixed_type_budgets={str(t):float((ty==t).sum()/2) for t in range(3)})
+   pi=compact.policy(kappa*z,ty,c)[0].numpy()
+   rows.append(dict(seed=seed,phase=phase,kappa=kappa,raw_gain_over_half=float(y@(pi-.5)),
+    per_type_gain={TYPES[t]:float(y[ty==t]@(pi[ty==t]-.5)) for t in range(3)},
+    pi_sd=[float(pi[ty==t].std()) for t in range(3)]))
+save('aligned_policy_diagnostic.json',dict(exploratory=True,recognition_not_measured=True,
+ description='Fixed half-density, type-standardized Compact predictions; existing Q4/Q5 edge-additive raw utility only, no model/parameter selected by Q5.',rows=rows))
+for row in rows:print(row)

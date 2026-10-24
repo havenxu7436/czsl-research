@@ -1,0 +1,52 @@
+exec(open(__file__.replace('diagnose_modelcond_selection.py','analyze_modelcond_v1.py'),encoding='utf8').read().split('descriptor=')[0])
+from trustcpf.graph import solve_budget_equal
+rows=[]
+for s in SEEDS:
+    old=OLD/'work'/f'seed{s}';new=W/f'seed{s}'
+    types=pt(new/'runs/conditioned/bank.pt')['types'];ty=types.numpy()
+    cfg=rd(new/'recipe.json');budget=cfg['fixed_type_budgets'];tau=cfg['tau_absolute']
+    xs=[];ys=[];raws=[]
+    for j in range(1,6):
+        raw=pt(old/'measurements'/f'fold{j}.pt');raws.append(raw)
+        y=raw['y'].numpy();e=raw['edge'].numpy()
+        xs.append(pt(new/'responses'/f'fold{j}.pt')['features'].numpy().astype(float))
+        ys.append(np.array([y[e==k].mean() for k in range(96)]))
+    x=np.concatenate(xs[:3]);y=np.concatenate(ys[:3]);ts=np.tile(ty,3)
+    center=x.mean(0);spread=np.maximum(x.std(0),1e-6);scales=np.array([y[ts==t].std() for t in range(3)])
+    def design(f,t):
+        z=(f-center)/spread
+        return np.concatenate([np.column_stack([np.ones(len(z)),z])*(t==k)[:,None] for k in range(3)],1)
+    A=design(x,ts)
+    def policy(mu):return solve_budget_equal(torch.tensor(mu,dtype=torch.float64),types,tau,budget)[0].numpy()
+    def value(pi,target):
+        pi=np.clip(pi,1e-15,1-1e-15)
+        return float(target@pi-tau*np.sum(pi*np.log(2*pi)+(1-pi)*np.log(2*(1-pi))))
+    def regret(pred,target):
+        p=policy(pred);oracle=policy(target)
+        return dict(regret=value(oracle,target)-value(p,target),utility=float(target@p),oracle_utility=float(target@oracle),
+                    pi=p.tolist(),rho=corr(pred,target))
+    candidates=[]
+    for alpha in [.1,1,10,100]:
+        beta=np.linalg.solve(A.T@A+alpha*np.eye(27),A.T@(y/scales[ts]))
+        p4=design(xs[3],ty)@beta*scales[ty];p5=design(xs[4],ty)@beta*scales[ty]
+        dev=regret(p4,ys[3]);audit=regret(p5,ys[4])
+        edge5=raws[4]['edge'].numpy();y5=raws[4]['y'].numpy()
+        audit.update(observation_rho=corr(p5[edge5],y5),observation_rmse=float(np.sqrt(np.mean((p5[edge5]-y5)**2))),
+                     edge_rmse=float(np.sqrt(np.mean((p5-ys[4])**2))),
+                     by_type={TYPES[t]:dict(rho=corr(p5[ty==t],ys[4][ty==t]),
+                         rmse=float(np.sqrt(np.mean((p5[ty==t]-ys[4][ty==t])**2)))) for t in range(3)})
+        candidates.append(dict(alpha=alpha,dev_mse=float(np.mean(((p4-ys[3])/scales[ty])**2)),dev=dev,audit=audit))
+    bymse=min(candidates,key=lambda r:r['dev_mse'])
+    bydecision=min(candidates,key=lambda r:r['dev']['regret'])
+    base=np.array([y[ts==t].mean() for t in ty])
+    comparisons=dict(type_constant=regret(base,ys[4]),ridge_q4_mse=bymse['audit'],ridge_q4_decision=bydecision['audit'])
+    e5=raws[4]['edge'].numpy()
+    for name,path in [('original_mean','utility_original'),('conditioned_mean','utility')]:
+        m=pt(new/path/'audit_predictions.pt')['mean'].numpy()
+        comparisons[name]=regret(np.array([m[e5==e].mean() for e in range(96)]),ys[4])
+    rows.append(dict(seed=s,selected_mse=bymse['alpha'],selected_decision=bydecision['alpha'],
+                     candidates=candidates,comparisons=comparisons))
+save('selection_diagnostics.json',dict(exploratory=True,objective='Q5 edge-mean paired utility surrogate with inherited per-type budget and temperature; not classifier AUC.',rows=rows))
+for r in rows:
+    print(r['seed'],'alpha MSE/decision',r['selected_mse'],r['selected_decision'],
+          {k:round(v['regret'],8) for k,v in r['comparisons'].items()},flush=True)

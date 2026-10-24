@@ -1,0 +1,2277 @@
+START_STAGE 3351 main/teachers
+FOLD_BACKBONE 1 1 57.95206832885742
+EPOCH 1 1 loss 57.95303153991699 val_auc None
+FOLD_BACKBONE 2 1 53.23178291320801
+EPOCH 2 1 loss 53.2534122467041 val_auc None
+FOLD_BACKBONE 3 1 54.50870895385742
+EPOCH 3 1 loss 54.52602195739746 val_auc None
+FOLD_BACKBONE 4 1 57.12958335876465
+EPOCH 4 1 loss 57.15542984008789 val_auc None
+FOLD_BACKBONE 5 1 55.164499282836914
+EPOCH 5 1 loss 55.19443702697754 val_auc None
+END_STAGE 3351 main/teachers
+START_STAGE 3351 main/measure
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trust_strong_full_sku5zwwx\work\seed3351\measurements\fold1.pt
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trust_strong_full_sku5zwwx\work\seed3351\measurements\fold2.pt
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trust_strong_full_sku5zwwx\work\seed3351\measurements\fold3.pt
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trust_strong_full_sku5zwwx\work\seed3351\measurements\fold4.pt
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trust_strong_full_sku5zwwx\work\seed3351\measurements\fold5.pt
+END_STAGE 3351 main/measure
+START_STAGE 3351 main/fit
+UTILITY 0 epoch 1 dev_nll -4.591292604797863
+UTILITY 1 epoch 1 dev_nll -4.583163533981394
+END_STAGE 3351 main/fit
+START_STAGE 3351 main/audit
+UTILITY_AUDIT Spearman -0.2097902097902098 direction 0.34285714285714286
+END_STAGE 3351 main/audit
+START_STAGE 3351 main/tune
+TUNED {'lambda_var': 1.0, 'lambda_ens': 0.5, 'budget': 0.5, 'tau_scale': 0.5, 'tau_absolute': 0.005716859828680754}
+END_STAGE 3351 main/tune
+START_STAGE 3351 main/fit_all
+UTILITY 0 epoch 1 dev_nll -4.681870700863852
+UTILITY 1 epoch 1 dev_nll -4.681126576657177
+END_STAGE 3351 main/fit_all
+START_STAGE 3351 main/reference
+EPOCH reference 1 loss 65.09810892740886 val_auc None
+END_STAGE 3351 main/reference
+START_STAGE 3351 main/structure
+END_STAGE 3351 main/structure
+START_STAGE 3351 main/adapt_r0
+EPOCH reference_r0 1 loss 65.03516896565755 val_auc None
+EPOCH r0 1 loss 63.938821156819664 val_auc 0.0
+ADAPT_COMPLETE r0 epoch 0 TEST_CW_AUC 0.0 TEST_OW_AUC 0.0
+END_STAGE 3351 main/adapt_r0
+START_STAGE 3351 main/adapt_capacity
+EPOCH reference_capacity 1 loss 64.94200770060222 val_auc None
+EPOCH capacity 1 loss 63.89007314046224 val_auc 0.0
+ADAPT_COMPLETE capacity epoch 0 TEST_CW_AUC 0.0 TEST_OW_AUC 0.0
+END_STAGE 3351 main/adapt_capacity
+START_STAGE 3351 main/adapt_dense
+EPOCH dense 1 loss 63.96775563557943 val_auc 0.0
+ADAPT_COMPLETE dense epoch 0 TEST_CW_AUC 0.0 TEST_OW_AUC 0.0
+END_STAGE 3351 main/adapt_dense
+START_STAGE 3351 main/adapt_drop
+EPOCH drop 1 loss 63.95101547241211 val_auc 0.0
+ADAPT_COMPLETE drop epoch 0 TEST_CW_AUC 0.0 TEST_OW_AUC 0.0
+END_STAGE 3351 main/adapt_drop
+START_STAGE 3351 main/adapt_free
+EPOCH free 1 loss 63.9510129292806 val_auc 0.0
+ADAPT_COMPLETE free epoch 0 TEST_CW_AUC 0.0 TEST_OW_AUC 0.0
+END_STAGE 3351 main/adapt_free
+START_STAGE 3351 main/adapt_mean
+EPOCH mean 1 loss 63.9573122660319 val_auc 0.0
+ADAPT_COMPLETE mean epoch 0 TEST_CW_AUC 0.0 TEST_OW_AUC 0.0
+END_STAGE 3351 main/adapt_mean
+START_STAGE 3351 main/adapt_robust
+EPOCH robust 1 loss 63.947060902913414 val_auc 0.0
+ADAPT_COMPLETE robust epoch 0 TEST_CW_AUC 0.0 TEST_OW_AUC 0.0
+END_STAGE 3351 main/adapt_robust
+START_STAGE 3351 shuffled/teachers
+FOLD_BACKBONE 1 1 57.95206832885742
+EPOCH 1 1 loss 57.86032295227051 val_auc None
+FOLD_BACKBONE 2 1 53.23178291320801
+EPOCH 2 1 loss 53.15815734863281 val_auc None
+FOLD_BACKBONE 3 1 54.50870895385742
+EPOCH 3 1 loss 54.443748474121094 val_auc None
+FOLD_BACKBONE 4 1 57.12958335876465
+EPOCH 4 1 loss 57.04585266113281 val_auc None
+FOLD_BACKBONE 5 1 55.164499282836914
+EPOCH 5 1 loss 55.1086368560791 val_auc None
+END_STAGE 3351 shuffled/teachers
+START_STAGE 3351 shuffled/measure
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trust_strong_full_sku5zwwx\work\shuffled3351\measurements\fold1.pt
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trust_strong_full_sku5zwwx\work\shuffled3351\measurements\fold2.pt
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trust_strong_full_sku5zwwx\work\shuffled3351\measurements\fold3.pt
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trust_strong_full_sku5zwwx\work\shuffled3351\measurements\fold4.pt
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trust_strong_full_sku5zwwx\work\shuffled3351\measurements\fold5.pt
+END_STAGE 3351 shuffled/measure
+START_STAGE 3351 shuffled/fit
+UTILITY 0 epoch 1 dev_nll -4.938745914950631
+UTILITY 1 epoch 1 dev_nll -4.949903522046777
+END_STAGE 3351 shuffled/fit
+START_STAGE 3351 shuffled/audit
+UTILITY_AUDIT Spearman 0.02802105873353385 direction 0.5571428571428572
+END_STAGE 3351 shuffled/audit
+START_STAGE 3351 shuffled/tune
+TUNED {'lambda_var': 0.0, 'lambda_ens': 0.0, 'budget': 0.5, 'tau_scale': 0.25, 'tau_absolute': 0.001943841460160911}
+END_STAGE 3351 shuffled/tune
+START_STAGE 3351 shuffled/fit_all
+UTILITY 0 epoch 1 dev_nll -4.6849348237
+UTILITY 1 epoch 1 dev_nll -4.708081433858877
+END_STAGE 3351 shuffled/fit_all
+START_STAGE 3351 shuffled/reference
+EPOCH reference 1 loss 64.93690745035808 val_auc None
+END_STAGE 3351 shuffled/reference
+START_STAGE 3351 shuffled/structure
+END_STAGE 3351 shuffled/structure
+START_STAGE 3351 shuffled/adapt_shuffled
+EPOCH shuffled 1 loss 63.865228017171226 val_auc 0.0
+ADAPT_COMPLETE shuffled epoch 0 TEST_CW_AUC 0.0 TEST_OW_AUC 0.0
+END_STAGE 3351 shuffled/adapt_shuffled
+START_STAGE 3351 semantic/fit
+UTILITY 0 epoch 1 dev_nll -4.5835052778049
+UTILITY 1 epoch 1 dev_nll -4.590689892032145
+END_STAGE 3351 semantic/fit
+START_STAGE 3351 semantic/audit
+UTILITY_AUDIT Spearman -0.4308237780280829 direction 0.41428571428571426
+END_STAGE 3351 semantic/audit
+START_STAGE 3351 unmeasured/fit
+UTILITY 0 epoch 1 dev_nll -4.575017677573337
+UTILITY 1 epoch 1 dev_nll -4.5727881751832244
+END_STAGE 3351 unmeasured/fit
+START_STAGE 3351 unmeasured/audit
+UTILITY_AUDIT Spearman -0.055944055944055944 direction 0.3
+END_STAGE 3351 unmeasured/audit
+START_STAGE 3351 noise/dense/mismatch
+NOISE dense 7101 0 0.0 0.0
+NOISE dense 7101 0 0.1 0.0
+NOISE dense 7101 0 0.2 0.0
+NOISE dense 7101 0 0.3 0.0
+NOISE dense 7101 0 0.5 0.0
+NOISE dense 7101 1 0.0 0.0
+NOISE dense 7101 1 0.1 0.0
+NOISE dense 7101 1 0.2 0.0
+NOISE dense 7101 1 0.3 0.0
+NOISE dense 7101 1 0.5 0.0
+NOISE dense 7101 2 0.0 0.0
+NOISE dense 7101 2 0.1 0.0
+NOISE dense 7101 2 0.2 0.0
+NOISE dense 7101 2 0.3 0.0
+NOISE dense 7101 2 0.5 0.0
+NOISE dense 7102 0 0.0 0.0
+NOISE dense 7102 0 0.1 0.0
+NOISE dense 7102 0 0.2 0.0
+NOISE dense 7102 0 0.3 0.0
+NOISE dense 7102 0 0.5 0.0
+NOISE dense 7102 1 0.0 0.0
+NOISE dense 7102 1 0.1 0.0
+NOISE dense 7102 1 0.2 0.0
+NOISE dense 7102 1 0.3 0.0
+NOISE dense 7102 1 0.5 0.0
+NOISE dense 7102 2 0.0 0.0
+NOISE dense 7102 2 0.1 0.0
+NOISE dense 7102 2 0.2 0.0
+NOISE dense 7102 2 0.3 0.0
+NOISE dense 7102 2 0.5 0.0
+NOISE dense 7103 0 0.0 0.0
+NOISE dense 7103 0 0.1 0.0
+NOISE dense 7103 0 0.2 0.0
+NOISE dense 7103 0 0.3 0.0
+NOISE dense 7103 0 0.5 0.0
+NOISE dense 7103 1 0.0 0.0
+NOISE dense 7103 1 0.1 0.0
+NOISE dense 7103 1 0.2 0.0
+NOISE dense 7103 1 0.3 0.0
+NOISE dense 7103 1 0.5 0.0
+NOISE dense 7103 2 0.0 0.0
+NOISE dense 7103 2 0.1 0.0
+NOISE dense 7103 2 0.2 0.0
+NOISE dense 7103 2 0.3 0.0
+NOISE dense 7103 2 0.5 0.0
+NOISE dense 7104 0 0.0 0.0
+NOISE dense 7104 0 0.1 0.0
+NOISE dense 7104 0 0.2 0.0
+NOISE dense 7104 0 0.3 0.0
+NOISE dense 7104 0 0.5 0.0
+NOISE dense 7104 1 0.0 0.0
+NOISE dense 7104 1 0.1 0.0
+NOISE dense 7104 1 0.2 0.0
+NOISE dense 7104 1 0.3 0.0
+NOISE dense 7104 1 0.5 0.0
+NOISE dense 7104 2 0.0 0.0
+NOISE dense 7104 2 0.1 0.0
+NOISE dense 7104 2 0.2 0.0
+NOISE dense 7104 2 0.3 0.0
+NOISE dense 7104 2 0.5 0.0
+NOISE dense 7105 0 0.0 0.0
+NOISE dense 7105 0 0.1 0.0
+NOISE dense 7105 0 0.2 0.0
+NOISE dense 7105 0 0.3 0.0
+NOISE dense 7105 0 0.5 0.0
+NOISE dense 7105 1 0.0 0.0
+NOISE dense 7105 1 0.1 0.0
+NOISE dense 7105 1 0.2 0.0
+NOISE dense 7105 1 0.3 0.0
+NOISE dense 7105 1 0.5 0.0
+NOISE dense 7105 2 0.0 0.0
+NOISE dense 7105 2 0.1 0.0
+NOISE dense 7105 2 0.2 0.0
+NOISE dense 7105 2 0.3 0.0
+NOISE dense 7105 2 0.5 0.0
+END_STAGE 3351 noise/dense/mismatch
+START_STAGE 3351 noise/dense/delete
+NOISE dense 7101 0 0.0 0.0
+NOISE dense 7101 0 0.1 0.0
+NOISE dense 7101 0 0.2 0.0
+NOISE dense 7101 0 0.3 0.0
+NOISE dense 7101 0 0.5 0.0
+NOISE dense 7101 1 0.0 0.0
+NOISE dense 7101 1 0.1 0.0
+NOISE dense 7101 1 0.2 0.0
+NOISE dense 7101 1 0.3 0.0
+NOISE dense 7101 1 0.5 0.0
+NOISE dense 7101 2 0.0 0.0
+NOISE dense 7101 2 0.1 0.0
+NOISE dense 7101 2 0.2 0.0
+NOISE dense 7101 2 0.3 0.0
+NOISE dense 7101 2 0.5 0.0
+NOISE dense 7102 0 0.0 0.0
+NOISE dense 7102 0 0.1 0.0
+NOISE dense 7102 0 0.2 0.0
+NOISE dense 7102 0 0.3 0.0
+NOISE dense 7102 0 0.5 0.0
+NOISE dense 7102 1 0.0 0.0
+NOISE dense 7102 1 0.1 0.0
+NOISE dense 7102 1 0.2 0.0
+NOISE dense 7102 1 0.3 0.0
+NOISE dense 7102 1 0.5 0.0
+NOISE dense 7102 2 0.0 0.0
+NOISE dense 7102 2 0.1 0.0
+NOISE dense 7102 2 0.2 0.0
+NOISE dense 7102 2 0.3 0.0
+NOISE dense 7102 2 0.5 0.0
+NOISE dense 7103 0 0.0 0.0
+NOISE dense 7103 0 0.1 0.0
+NOISE dense 7103 0 0.2 0.0
+NOISE dense 7103 0 0.3 0.0
+NOISE dense 7103 0 0.5 0.0
+NOISE dense 7103 1 0.0 0.0
+NOISE dense 7103 1 0.1 0.0
+NOISE dense 7103 1 0.2 0.0
+NOISE dense 7103 1 0.3 0.0
+NOISE dense 7103 1 0.5 0.0
+NOISE dense 7103 2 0.0 0.0
+NOISE dense 7103 2 0.1 0.0
+NOISE dense 7103 2 0.2 0.0
+NOISE dense 7103 2 0.3 0.0
+NOISE dense 7103 2 0.5 0.0
+NOISE dense 7104 0 0.0 0.0
+NOISE dense 7104 0 0.1 0.0
+NOISE dense 7104 0 0.2 0.0
+NOISE dense 7104 0 0.3 0.0
+NOISE dense 7104 0 0.5 0.0
+NOISE dense 7104 1 0.0 0.0
+NOISE dense 7104 1 0.1 0.0
+NOISE dense 7104 1 0.2 0.0
+NOISE dense 7104 1 0.3 0.0
+NOISE dense 7104 1 0.5 0.0
+NOISE dense 7104 2 0.0 0.0
+NOISE dense 7104 2 0.1 0.0
+NOISE dense 7104 2 0.2 0.0
+NOISE dense 7104 2 0.3 0.0
+NOISE dense 7104 2 0.5 0.0
+NOISE dense 7105 0 0.0 0.0
+NOISE dense 7105 0 0.1 0.0
+NOISE dense 7105 0 0.2 0.0
+NOISE dense 7105 0 0.3 0.0
+NOISE dense 7105 0 0.5 0.0
+NOISE dense 7105 1 0.0 0.0
+NOISE dense 7105 1 0.1 0.0
+NOISE dense 7105 1 0.2 0.0
+NOISE dense 7105 1 0.3 0.0
+NOISE dense 7105 1 0.5 0.0
+NOISE dense 7105 2 0.0 0.0
+NOISE dense 7105 2 0.1 0.0
+NOISE dense 7105 2 0.2 0.0
+NOISE dense 7105 2 0.3 0.0
+NOISE dense 7105 2 0.5 0.0
+END_STAGE 3351 noise/dense/delete
+START_STAGE 3351 noise/drop/mismatch
+NOISE drop 7101 0 0.0 0.0
+NOISE drop 7101 0 0.1 0.0
+NOISE drop 7101 0 0.2 0.0
+NOISE drop 7101 0 0.3 0.0
+NOISE drop 7101 0 0.5 0.0
+NOISE drop 7101 1 0.0 0.0
+NOISE drop 7101 1 0.1 0.0
+NOISE drop 7101 1 0.2 0.0
+NOISE drop 7101 1 0.3 0.0
+NOISE drop 7101 1 0.5 0.0
+NOISE drop 7101 2 0.0 0.0
+NOISE drop 7101 2 0.1 0.0
+NOISE drop 7101 2 0.2 0.0
+NOISE drop 7101 2 0.3 0.0
+NOISE drop 7101 2 0.5 0.0
+NOISE drop 7102 0 0.0 0.0
+NOISE drop 7102 0 0.1 0.0
+NOISE drop 7102 0 0.2 0.0
+NOISE drop 7102 0 0.3 0.0
+NOISE drop 7102 0 0.5 0.0
+NOISE drop 7102 1 0.0 0.0
+NOISE drop 7102 1 0.1 0.0
+NOISE drop 7102 1 0.2 0.0
+NOISE drop 7102 1 0.3 0.0
+NOISE drop 7102 1 0.5 0.0
+NOISE drop 7102 2 0.0 0.0
+NOISE drop 7102 2 0.1 0.0
+NOISE drop 7102 2 0.2 0.0
+NOISE drop 7102 2 0.3 0.0
+NOISE drop 7102 2 0.5 0.0
+NOISE drop 7103 0 0.0 0.0
+NOISE drop 7103 0 0.1 0.0
+NOISE drop 7103 0 0.2 0.0
+NOISE drop 7103 0 0.3 0.0
+NOISE drop 7103 0 0.5 0.0
+NOISE drop 7103 1 0.0 0.0
+NOISE drop 7103 1 0.1 0.0
+NOISE drop 7103 1 0.2 0.0
+NOISE drop 7103 1 0.3 0.0
+NOISE drop 7103 1 0.5 0.0
+NOISE drop 7103 2 0.0 0.0
+NOISE drop 7103 2 0.1 0.0
+NOISE drop 7103 2 0.2 0.0
+NOISE drop 7103 2 0.3 0.0
+NOISE drop 7103 2 0.5 0.0
+NOISE drop 7104 0 0.0 0.0
+NOISE drop 7104 0 0.1 0.0
+NOISE drop 7104 0 0.2 0.0
+NOISE drop 7104 0 0.3 0.0
+NOISE drop 7104 0 0.5 0.0
+NOISE drop 7104 1 0.0 0.0
+NOISE drop 7104 1 0.1 0.0
+NOISE drop 7104 1 0.2 0.0
+NOISE drop 7104 1 0.3 0.0
+NOISE drop 7104 1 0.5 0.0
+NOISE drop 7104 2 0.0 0.0
+NOISE drop 7104 2 0.1 0.0
+NOISE drop 7104 2 0.2 0.0
+NOISE drop 7104 2 0.3 0.0
+NOISE drop 7104 2 0.5 0.0
+NOISE drop 7105 0 0.0 0.0
+NOISE drop 7105 0 0.1 0.0
+NOISE drop 7105 0 0.2 0.0
+NOISE drop 7105 0 0.3 0.0
+NOISE drop 7105 0 0.5 0.0
+NOISE drop 7105 1 0.0 0.0
+NOISE drop 7105 1 0.1 0.0
+NOISE drop 7105 1 0.2 0.0
+NOISE drop 7105 1 0.3 0.0
+NOISE drop 7105 1 0.5 0.0
+NOISE drop 7105 2 0.0 0.0
+NOISE drop 7105 2 0.1 0.0
+NOISE drop 7105 2 0.2 0.0
+NOISE drop 7105 2 0.3 0.0
+NOISE drop 7105 2 0.5 0.0
+END_STAGE 3351 noise/drop/mismatch
+START_STAGE 3351 noise/drop/delete
+NOISE drop 7101 0 0.0 0.0
+NOISE drop 7101 0 0.1 0.0
+NOISE drop 7101 0 0.2 0.0
+NOISE drop 7101 0 0.3 0.0
+NOISE drop 7101 0 0.5 0.0
+NOISE drop 7101 1 0.0 0.0
+NOISE drop 7101 1 0.1 0.0
+NOISE drop 7101 1 0.2 0.0
+NOISE drop 7101 1 0.3 0.0
+NOISE drop 7101 1 0.5 0.0
+NOISE drop 7101 2 0.0 0.0
+NOISE drop 7101 2 0.1 0.0
+NOISE drop 7101 2 0.2 0.0
+NOISE drop 7101 2 0.3 0.0
+NOISE drop 7101 2 0.5 0.0
+NOISE drop 7102 0 0.0 0.0
+NOISE drop 7102 0 0.1 0.0
+NOISE drop 7102 0 0.2 0.0
+NOISE drop 7102 0 0.3 0.0
+NOISE drop 7102 0 0.5 0.0
+NOISE drop 7102 1 0.0 0.0
+NOISE drop 7102 1 0.1 0.0
+NOISE drop 7102 1 0.2 0.0
+NOISE drop 7102 1 0.3 0.0
+NOISE drop 7102 1 0.5 0.0
+NOISE drop 7102 2 0.0 0.0
+NOISE drop 7102 2 0.1 0.0
+NOISE drop 7102 2 0.2 0.0
+NOISE drop 7102 2 0.3 0.0
+NOISE drop 7102 2 0.5 0.0
+NOISE drop 7103 0 0.0 0.0
+NOISE drop 7103 0 0.1 0.0
+NOISE drop 7103 0 0.2 0.0
+NOISE drop 7103 0 0.3 0.0
+NOISE drop 7103 0 0.5 0.0
+NOISE drop 7103 1 0.0 0.0
+NOISE drop 7103 1 0.1 0.0
+NOISE drop 7103 1 0.2 0.0
+NOISE drop 7103 1 0.3 0.0
+NOISE drop 7103 1 0.5 0.0
+NOISE drop 7103 2 0.0 0.0
+NOISE drop 7103 2 0.1 0.0
+NOISE drop 7103 2 0.2 0.0
+NOISE drop 7103 2 0.3 0.0
+NOISE drop 7103 2 0.5 0.0
+NOISE drop 7104 0 0.0 0.0
+NOISE drop 7104 0 0.1 0.0
+NOISE drop 7104 0 0.2 0.0
+NOISE drop 7104 0 0.3 0.0
+NOISE drop 7104 0 0.5 0.0
+NOISE drop 7104 1 0.0 0.0
+NOISE drop 7104 1 0.1 0.0
+NOISE drop 7104 1 0.2 0.0
+NOISE drop 7104 1 0.3 0.0
+NOISE drop 7104 1 0.5 0.0
+NOISE drop 7104 2 0.0 0.0
+NOISE drop 7104 2 0.1 0.0
+NOISE drop 7104 2 0.2 0.0
+NOISE drop 7104 2 0.3 0.0
+NOISE drop 7104 2 0.5 0.0
+NOISE drop 7105 0 0.0 0.0
+NOISE drop 7105 0 0.1 0.0
+NOISE drop 7105 0 0.2 0.0
+NOISE drop 7105 0 0.3 0.0
+NOISE drop 7105 0 0.5 0.0
+NOISE drop 7105 1 0.0 0.0
+NOISE drop 7105 1 0.1 0.0
+NOISE drop 7105 1 0.2 0.0
+NOISE drop 7105 1 0.3 0.0
+NOISE drop 7105 1 0.5 0.0
+NOISE drop 7105 2 0.0 0.0
+NOISE drop 7105 2 0.1 0.0
+NOISE drop 7105 2 0.2 0.0
+NOISE drop 7105 2 0.3 0.0
+NOISE drop 7105 2 0.5 0.0
+END_STAGE 3351 noise/drop/delete
+START_STAGE 3351 noise/mean/mismatch
+NOISE mean 7101 0 0.0 0.0
+NOISE mean 7101 0 0.1 0.0
+NOISE mean 7101 0 0.2 0.0
+NOISE mean 7101 0 0.3 0.0
+NOISE mean 7101 0 0.5 0.0
+NOISE mean 7101 1 0.0 0.0
+NOISE mean 7101 1 0.1 0.0
+NOISE mean 7101 1 0.2 0.0
+NOISE mean 7101 1 0.3 0.0
+NOISE mean 7101 1 0.5 0.0
+NOISE mean 7101 2 0.0 0.0
+NOISE mean 7101 2 0.1 0.0
+NOISE mean 7101 2 0.2 0.0
+NOISE mean 7101 2 0.3 0.0
+NOISE mean 7101 2 0.5 0.0
+NOISE mean 7102 0 0.0 0.0
+NOISE mean 7102 0 0.1 0.0
+NOISE mean 7102 0 0.2 0.0
+NOISE mean 7102 0 0.3 0.0
+NOISE mean 7102 0 0.5 0.0
+NOISE mean 7102 1 0.0 0.0
+NOISE mean 7102 1 0.1 0.0
+NOISE mean 7102 1 0.2 0.0
+NOISE mean 7102 1 0.3 0.0
+NOISE mean 7102 1 0.5 0.0
+NOISE mean 7102 2 0.0 0.0
+NOISE mean 7102 2 0.1 0.0
+NOISE mean 7102 2 0.2 0.0
+NOISE mean 7102 2 0.3 0.0
+NOISE mean 7102 2 0.5 0.0
+NOISE mean 7103 0 0.0 0.0
+NOISE mean 7103 0 0.1 0.0
+NOISE mean 7103 0 0.2 0.0
+NOISE mean 7103 0 0.3 0.0
+NOISE mean 7103 0 0.5 0.0
+NOISE mean 7103 1 0.0 0.0
+NOISE mean 7103 1 0.1 0.0
+NOISE mean 7103 1 0.2 0.0
+NOISE mean 7103 1 0.3 0.0
+NOISE mean 7103 1 0.5 0.0
+NOISE mean 7103 2 0.0 0.0
+NOISE mean 7103 2 0.1 0.0
+NOISE mean 7103 2 0.2 0.0
+NOISE mean 7103 2 0.3 0.0
+NOISE mean 7103 2 0.5 0.0
+NOISE mean 7104 0 0.0 0.0
+NOISE mean 7104 0 0.1 0.0
+NOISE mean 7104 0 0.2 0.0
+NOISE mean 7104 0 0.3 0.0
+NOISE mean 7104 0 0.5 0.0
+NOISE mean 7104 1 0.0 0.0
+NOISE mean 7104 1 0.1 0.0
+NOISE mean 7104 1 0.2 0.0
+NOISE mean 7104 1 0.3 0.0
+NOISE mean 7104 1 0.5 0.0
+NOISE mean 7104 2 0.0 0.0
+NOISE mean 7104 2 0.1 0.0
+NOISE mean 7104 2 0.2 0.0
+NOISE mean 7104 2 0.3 0.0
+NOISE mean 7104 2 0.5 0.0
+NOISE mean 7105 0 0.0 0.0
+NOISE mean 7105 0 0.1 0.0
+NOISE mean 7105 0 0.2 0.0
+NOISE mean 7105 0 0.3 0.0
+NOISE mean 7105 0 0.5 0.0
+NOISE mean 7105 1 0.0 0.0
+NOISE mean 7105 1 0.1 0.0
+NOISE mean 7105 1 0.2 0.0
+NOISE mean 7105 1 0.3 0.0
+NOISE mean 7105 1 0.5 0.0
+NOISE mean 7105 2 0.0 0.0
+NOISE mean 7105 2 0.1 0.0
+NOISE mean 7105 2 0.2 0.0
+NOISE mean 7105 2 0.3 0.0
+NOISE mean 7105 2 0.5 0.0
+END_STAGE 3351 noise/mean/mismatch
+START_STAGE 3351 noise/mean/delete
+NOISE mean 7101 0 0.0 0.0
+NOISE mean 7101 0 0.1 0.0
+NOISE mean 7101 0 0.2 0.0
+NOISE mean 7101 0 0.3 0.0
+NOISE mean 7101 0 0.5 0.0
+NOISE mean 7101 1 0.0 0.0
+NOISE mean 7101 1 0.1 0.0
+NOISE mean 7101 1 0.2 0.0
+NOISE mean 7101 1 0.3 0.0
+NOISE mean 7101 1 0.5 0.0
+NOISE mean 7101 2 0.0 0.0
+NOISE mean 7101 2 0.1 0.0
+NOISE mean 7101 2 0.2 0.0
+NOISE mean 7101 2 0.3 0.0
+NOISE mean 7101 2 0.5 0.0
+NOISE mean 7102 0 0.0 0.0
+NOISE mean 7102 0 0.1 0.0
+NOISE mean 7102 0 0.2 0.0
+NOISE mean 7102 0 0.3 0.0
+NOISE mean 7102 0 0.5 0.0
+NOISE mean 7102 1 0.0 0.0
+NOISE mean 7102 1 0.1 0.0
+NOISE mean 7102 1 0.2 0.0
+NOISE mean 7102 1 0.3 0.0
+NOISE mean 7102 1 0.5 0.0
+NOISE mean 7102 2 0.0 0.0
+NOISE mean 7102 2 0.1 0.0
+NOISE mean 7102 2 0.2 0.0
+NOISE mean 7102 2 0.3 0.0
+NOISE mean 7102 2 0.5 0.0
+NOISE mean 7103 0 0.0 0.0
+NOISE mean 7103 0 0.1 0.0
+NOISE mean 7103 0 0.2 0.0
+NOISE mean 7103 0 0.3 0.0
+NOISE mean 7103 0 0.5 0.0
+NOISE mean 7103 1 0.0 0.0
+NOISE mean 7103 1 0.1 0.0
+NOISE mean 7103 1 0.2 0.0
+NOISE mean 7103 1 0.3 0.0
+NOISE mean 7103 1 0.5 0.0
+NOISE mean 7103 2 0.0 0.0
+NOISE mean 7103 2 0.1 0.0
+NOISE mean 7103 2 0.2 0.0
+NOISE mean 7103 2 0.3 0.0
+NOISE mean 7103 2 0.5 0.0
+NOISE mean 7104 0 0.0 0.0
+NOISE mean 7104 0 0.1 0.0
+NOISE mean 7104 0 0.2 0.0
+NOISE mean 7104 0 0.3 0.0
+NOISE mean 7104 0 0.5 0.0
+NOISE mean 7104 1 0.0 0.0
+NOISE mean 7104 1 0.1 0.0
+NOISE mean 7104 1 0.2 0.0
+NOISE mean 7104 1 0.3 0.0
+NOISE mean 7104 1 0.5 0.0
+NOISE mean 7104 2 0.0 0.0
+NOISE mean 7104 2 0.1 0.0
+NOISE mean 7104 2 0.2 0.0
+NOISE mean 7104 2 0.3 0.0
+NOISE mean 7104 2 0.5 0.0
+NOISE mean 7105 0 0.0 0.0
+NOISE mean 7105 0 0.1 0.0
+NOISE mean 7105 0 0.2 0.0
+NOISE mean 7105 0 0.3 0.0
+NOISE mean 7105 0 0.5 0.0
+NOISE mean 7105 1 0.0 0.0
+NOISE mean 7105 1 0.1 0.0
+NOISE mean 7105 1 0.2 0.0
+NOISE mean 7105 1 0.3 0.0
+NOISE mean 7105 1 0.5 0.0
+NOISE mean 7105 2 0.0 0.0
+NOISE mean 7105 2 0.1 0.0
+NOISE mean 7105 2 0.2 0.0
+NOISE mean 7105 2 0.3 0.0
+NOISE mean 7105 2 0.5 0.0
+END_STAGE 3351 noise/mean/delete
+START_STAGE 3351 noise/robust/mismatch
+NOISE robust 7101 0 0.0 0.0
+NOISE robust 7101 0 0.1 0.0
+NOISE robust 7101 0 0.2 0.0
+NOISE robust 7101 0 0.3 0.0
+NOISE robust 7101 0 0.5 0.0
+NOISE robust 7101 1 0.0 0.0
+NOISE robust 7101 1 0.1 0.0
+NOISE robust 7101 1 0.2 0.0
+NOISE robust 7101 1 0.3 0.0
+NOISE robust 7101 1 0.5 0.0
+NOISE robust 7101 2 0.0 0.0
+NOISE robust 7101 2 0.1 0.0
+NOISE robust 7101 2 0.2 0.0
+NOISE robust 7101 2 0.3 0.0
+NOISE robust 7101 2 0.5 0.0
+NOISE robust 7102 0 0.0 0.0
+NOISE robust 7102 0 0.1 0.0
+NOISE robust 7102 0 0.2 0.0
+NOISE robust 7102 0 0.3 0.0
+NOISE robust 7102 0 0.5 0.0
+NOISE robust 7102 1 0.0 0.0
+NOISE robust 7102 1 0.1 0.0
+NOISE robust 7102 1 0.2 0.0
+NOISE robust 7102 1 0.3 0.0
+NOISE robust 7102 1 0.5 0.0
+NOISE robust 7102 2 0.0 0.0
+NOISE robust 7102 2 0.1 0.0
+NOISE robust 7102 2 0.2 0.0
+NOISE robust 7102 2 0.3 0.0
+NOISE robust 7102 2 0.5 0.0
+NOISE robust 7103 0 0.0 0.0
+NOISE robust 7103 0 0.1 0.0
+NOISE robust 7103 0 0.2 0.0
+NOISE robust 7103 0 0.3 0.0
+NOISE robust 7103 0 0.5 0.0
+NOISE robust 7103 1 0.0 0.0
+NOISE robust 7103 1 0.1 0.0
+NOISE robust 7103 1 0.2 0.0
+NOISE robust 7103 1 0.3 0.0
+NOISE robust 7103 1 0.5 0.0
+NOISE robust 7103 2 0.0 0.0
+NOISE robust 7103 2 0.1 0.0
+NOISE robust 7103 2 0.2 0.0
+NOISE robust 7103 2 0.3 0.0
+NOISE robust 7103 2 0.5 0.0
+NOISE robust 7104 0 0.0 0.0
+NOISE robust 7104 0 0.1 0.0
+NOISE robust 7104 0 0.2 0.0
+NOISE robust 7104 0 0.3 0.0
+NOISE robust 7104 0 0.5 0.0
+NOISE robust 7104 1 0.0 0.0
+NOISE robust 7104 1 0.1 0.0
+NOISE robust 7104 1 0.2 0.0
+NOISE robust 7104 1 0.3 0.0
+NOISE robust 7104 1 0.5 0.0
+NOISE robust 7104 2 0.0 0.0
+NOISE robust 7104 2 0.1 0.0
+NOISE robust 7104 2 0.2 0.0
+NOISE robust 7104 2 0.3 0.0
+NOISE robust 7104 2 0.5 0.0
+NOISE robust 7105 0 0.0 0.0
+NOISE robust 7105 0 0.1 0.0
+NOISE robust 7105 0 0.2 0.0
+NOISE robust 7105 0 0.3 0.0
+NOISE robust 7105 0 0.5 0.0
+NOISE robust 7105 1 0.0 0.0
+NOISE robust 7105 1 0.1 0.0
+NOISE robust 7105 1 0.2 0.0
+NOISE robust 7105 1 0.3 0.0
+NOISE robust 7105 1 0.5 0.0
+NOISE robust 7105 2 0.0 0.0
+NOISE robust 7105 2 0.1 0.0
+NOISE robust 7105 2 0.2 0.0
+NOISE robust 7105 2 0.3 0.0
+NOISE robust 7105 2 0.5 0.0
+END_STAGE 3351 noise/robust/mismatch
+START_STAGE 3351 noise/robust/delete
+NOISE robust 7101 0 0.0 0.0
+NOISE robust 7101 0 0.1 0.0
+NOISE robust 7101 0 0.2 0.0
+NOISE robust 7101 0 0.3 0.0
+NOISE robust 7101 0 0.5 0.0
+NOISE robust 7101 1 0.0 0.0
+NOISE robust 7101 1 0.1 0.0
+NOISE robust 7101 1 0.2 0.0
+NOISE robust 7101 1 0.3 0.0
+NOISE robust 7101 1 0.5 0.0
+NOISE robust 7101 2 0.0 0.0
+NOISE robust 7101 2 0.1 0.0
+NOISE robust 7101 2 0.2 0.0
+NOISE robust 7101 2 0.3 0.0
+NOISE robust 7101 2 0.5 0.0
+NOISE robust 7102 0 0.0 0.0
+NOISE robust 7102 0 0.1 0.0
+NOISE robust 7102 0 0.2 0.0
+NOISE robust 7102 0 0.3 0.0
+NOISE robust 7102 0 0.5 0.0
+NOISE robust 7102 1 0.0 0.0
+NOISE robust 7102 1 0.1 0.0
+NOISE robust 7102 1 0.2 0.0
+NOISE robust 7102 1 0.3 0.0
+NOISE robust 7102 1 0.5 0.0
+NOISE robust 7102 2 0.0 0.0
+NOISE robust 7102 2 0.1 0.0
+NOISE robust 7102 2 0.2 0.0
+NOISE robust 7102 2 0.3 0.0
+NOISE robust 7102 2 0.5 0.0
+NOISE robust 7103 0 0.0 0.0
+NOISE robust 7103 0 0.1 0.0
+NOISE robust 7103 0 0.2 0.0
+NOISE robust 7103 0 0.3 0.0
+NOISE robust 7103 0 0.5 0.0
+NOISE robust 7103 1 0.0 0.0
+NOISE robust 7103 1 0.1 0.0
+NOISE robust 7103 1 0.2 0.0
+NOISE robust 7103 1 0.3 0.0
+NOISE robust 7103 1 0.5 0.0
+NOISE robust 7103 2 0.0 0.0
+NOISE robust 7103 2 0.1 0.0
+NOISE robust 7103 2 0.2 0.0
+NOISE robust 7103 2 0.3 0.0
+NOISE robust 7103 2 0.5 0.0
+NOISE robust 7104 0 0.0 0.0
+NOISE robust 7104 0 0.1 0.0
+NOISE robust 7104 0 0.2 0.0
+NOISE robust 7104 0 0.3 0.0
+NOISE robust 7104 0 0.5 0.0
+NOISE robust 7104 1 0.0 0.0
+NOISE robust 7104 1 0.1 0.0
+NOISE robust 7104 1 0.2 0.0
+NOISE robust 7104 1 0.3 0.0
+NOISE robust 7104 1 0.5 0.0
+NOISE robust 7104 2 0.0 0.0
+NOISE robust 7104 2 0.1 0.0
+NOISE robust 7104 2 0.2 0.0
+NOISE robust 7104 2 0.3 0.0
+NOISE robust 7104 2 0.5 0.0
+NOISE robust 7105 0 0.0 0.0
+NOISE robust 7105 0 0.1 0.0
+NOISE robust 7105 0 0.2 0.0
+NOISE robust 7105 0 0.3 0.0
+NOISE robust 7105 0 0.5 0.0
+NOISE robust 7105 1 0.0 0.0
+NOISE robust 7105 1 0.1 0.0
+NOISE robust 7105 1 0.2 0.0
+NOISE robust 7105 1 0.3 0.0
+NOISE robust 7105 1 0.5 0.0
+NOISE robust 7105 2 0.0 0.0
+NOISE robust 7105 2 0.1 0.0
+NOISE robust 7105 2 0.2 0.0
+NOISE robust 7105 2 0.3 0.0
+NOISE robust 7105 2 0.5 0.0
+END_STAGE 3351 noise/robust/delete
+START_STAGE 3351 readout/mean_graph
+END_STAGE 3351 readout/mean_graph
+START_STAGE 3351 readout/mean_logit
+END_STAGE 3351 readout/mean_logit
+SEED_COMPLETE 3351 stages 38
+START_STAGE 3352 main/teachers
+FOLD_BACKBONE 1 1 56.741153717041016
+EPOCH 1 1 loss 56.79146194458008 val_auc None
+FOLD_BACKBONE 2 1 53.10080146789551
+EPOCH 2 1 loss 53.12998390197754 val_auc None
+FOLD_BACKBONE 3 1 53.951778411865234
+EPOCH 3 1 loss 53.97618103027344 val_auc None
+FOLD_BACKBONE 4 1 56.55163764953613
+EPOCH 4 1 loss 56.56335639953613 val_auc None
+FOLD_BACKBONE 5 1 54.523427963256836
+EPOCH 5 1 loss 54.566131591796875 val_auc None
+END_STAGE 3352 main/teachers
+START_STAGE 3352 main/measure
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trust_strong_full_sku5zwwx\work\seed3352\measurements\fold1.pt
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trust_strong_full_sku5zwwx\work\seed3352\measurements\fold2.pt
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trust_strong_full_sku5zwwx\work\seed3352\measurements\fold3.pt
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trust_strong_full_sku5zwwx\work\seed3352\measurements\fold4.pt
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trust_strong_full_sku5zwwx\work\seed3352\measurements\fold5.pt
+END_STAGE 3352 main/measure
+START_STAGE 3352 main/fit
+UTILITY 0 epoch 1 dev_nll -4.539158406523311
+UTILITY 1 epoch 1 dev_nll -4.544525752640145
+END_STAGE 3352 main/fit
+START_STAGE 3352 main/audit
+UTILITY_AUDIT Spearman 0.06293706293706294 direction 0.45
+END_STAGE 3352 main/audit
+START_STAGE 3352 main/tune
+TUNED {'lambda_var': 1.0, 'lambda_ens': 0.0, 'budget': 0.25, 'tau_scale': 0.5, 'tau_absolute': 0.0052055129781365395}
+END_STAGE 3352 main/tune
+START_STAGE 3352 main/fit_all
+UTILITY 0 epoch 1 dev_nll -4.626800762191704
+UTILITY 1 epoch 1 dev_nll -4.6305717956772705
+END_STAGE 3352 main/fit_all
+START_STAGE 3352 main/reference
+EPOCH reference 1 loss 50.43555514017741 val_auc None
+END_STAGE 3352 main/reference
+START_STAGE 3352 main/structure
+END_STAGE 3352 main/structure
+START_STAGE 3352 main/adapt_r0
+EPOCH reference_r0 1 loss 50.36672846476237 val_auc None
+EPOCH r0 1 loss 63.588114420572914 val_auc 0.0
+ADAPT_COMPLETE r0 epoch 0 TEST_CW_AUC 0.0 TEST_OW_AUC 0.0
+END_STAGE 3352 main/adapt_r0
+START_STAGE 3352 main/adapt_capacity
+EPOCH reference_capacity 1 loss 50.43886375427246 val_auc None
+EPOCH capacity 1 loss 63.72904841105143 val_auc 0.0
+ADAPT_COMPLETE capacity epoch 0 TEST_CW_AUC 0.0 TEST_OW_AUC 0.0
+END_STAGE 3352 main/adapt_capacity
+START_STAGE 3352 main/adapt_dense
+EPOCH dense 1 loss 63.64194361368815 val_auc 0.0
+ADAPT_COMPLETE dense epoch 0 TEST_CW_AUC 0.0 TEST_OW_AUC 0.0
+END_STAGE 3352 main/adapt_dense
+START_STAGE 3352 main/adapt_drop
+EPOCH drop 1 loss 63.60928853352865 val_auc 0.0
+ADAPT_COMPLETE drop epoch 0 TEST_CW_AUC 0.0 TEST_OW_AUC 0.0
+END_STAGE 3352 main/adapt_drop
+START_STAGE 3352 main/adapt_free
+EPOCH free 1 loss 63.609291076660156 val_auc 0.0
+ADAPT_COMPLETE free epoch 0 TEST_CW_AUC 0.0 TEST_OW_AUC 0.0
+END_STAGE 3352 main/adapt_free
+START_STAGE 3352 main/adapt_mean
+EPOCH mean 1 loss 63.61487579345703 val_auc 0.0
+ADAPT_COMPLETE mean epoch 0 TEST_CW_AUC 0.0 TEST_OW_AUC 0.0
+END_STAGE 3352 main/adapt_mean
+START_STAGE 3352 main/adapt_robust
+EPOCH robust 1 loss 63.60071309407552 val_auc 0.0
+ADAPT_COMPLETE robust epoch 0 TEST_CW_AUC 0.0 TEST_OW_AUC 0.0
+END_STAGE 3352 main/adapt_robust
+START_STAGE 3352 shuffled/teachers
+FOLD_BACKBONE 1 1 56.741153717041016
+EPOCH 1 1 loss 56.72584915161133 val_auc None
+FOLD_BACKBONE 2 1 53.10080146789551
+EPOCH 2 1 loss 53.09580421447754 val_auc None
+FOLD_BACKBONE 3 1 53.951778411865234
+EPOCH 3 1 loss 53.92789268493652 val_auc None
+FOLD_BACKBONE 4 1 56.55163764953613
+EPOCH 4 1 loss 56.54424285888672 val_auc None
+FOLD_BACKBONE 5 1 54.523427963256836
+EPOCH 5 1 loss 54.49514961242676 val_auc None
+END_STAGE 3352 shuffled/teachers
+START_STAGE 3352 shuffled/measure
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trust_strong_full_sku5zwwx\work\shuffled3352\measurements\fold1.pt
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trust_strong_full_sku5zwwx\work\shuffled3352\measurements\fold2.pt
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trust_strong_full_sku5zwwx\work\shuffled3352\measurements\fold3.pt
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trust_strong_full_sku5zwwx\work\shuffled3352\measurements\fold4.pt
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trust_strong_full_sku5zwwx\work\shuffled3352\measurements\fold5.pt
+END_STAGE 3352 shuffled/measure
+START_STAGE 3352 shuffled/fit
+UTILITY 0 epoch 1 dev_nll -4.751050775467034
+UTILITY 1 epoch 1 dev_nll -4.708129515921857
+END_STAGE 3352 shuffled/fit
+START_STAGE 3352 shuffled/audit
+UTILITY_AUDIT Spearman 0.20665530815981215 direction 0.75
+END_STAGE 3352 shuffled/audit
+START_STAGE 3352 shuffled/tune
+TUNED {'lambda_var': 0.0, 'lambda_ens': 0.0, 'budget': 0.5, 'tau_scale': 0.5, 'tau_absolute': 0.005904835183173418}
+END_STAGE 3352 shuffled/tune
+START_STAGE 3352 shuffled/fit_all
+UTILITY 0 epoch 1 dev_nll -4.785503061532086
+UTILITY 1 epoch 1 dev_nll -4.739047541247964
+END_STAGE 3352 shuffled/fit_all
+START_STAGE 3352 shuffled/reference
+EPOCH reference 1 loss 50.311310450236 val_auc None
+END_STAGE 3352 shuffled/reference
+START_STAGE 3352 shuffled/structure
+END_STAGE 3352 shuffled/structure
+START_STAGE 3352 shuffled/adapt_shuffled
+EPOCH shuffled 1 loss 63.53059768676758 val_auc 0.0
+ADAPT_COMPLETE shuffled epoch 0 TEST_CW_AUC 0.0 TEST_OW_AUC 0.0
+END_STAGE 3352 shuffled/adapt_shuffled
+START_STAGE 3352 semantic/fit
+UTILITY 0 epoch 1 dev_nll -4.546941761572797
+UTILITY 1 epoch 1 dev_nll -4.513172780197351
+END_STAGE 3352 semantic/fit
+START_STAGE 3352 semantic/audit
+UTILITY_AUDIT Spearman -0.2842122758581141 direction 0.25
+END_STAGE 3352 semantic/audit
+START_STAGE 3352 unmeasured/fit
+UTILITY 0 epoch 1 dev_nll -4.514774536535588
+UTILITY 1 epoch 1 dev_nll -4.527558295970427
+END_STAGE 3352 unmeasured/fit
+START_STAGE 3352 unmeasured/audit
+UTILITY_AUDIT Spearman 0.1958041958041958 direction 0.45
+END_STAGE 3352 unmeasured/audit
+START_STAGE 3352 noise/dense/mismatch
+NOISE dense 7101 0 0.0 0.0
+NOISE dense 7101 0 0.1 0.0
+NOISE dense 7101 0 0.2 0.0
+NOISE dense 7101 0 0.3 0.0
+NOISE dense 7101 0 0.5 0.0
+NOISE dense 7101 1 0.0 0.0
+NOISE dense 7101 1 0.1 0.0
+NOISE dense 7101 1 0.2 0.0
+NOISE dense 7101 1 0.3 0.0
+NOISE dense 7101 1 0.5 0.0
+NOISE dense 7101 2 0.0 0.0
+NOISE dense 7101 2 0.1 0.0
+NOISE dense 7101 2 0.2 0.0
+NOISE dense 7101 2 0.3 0.0
+NOISE dense 7101 2 0.5 0.0
+NOISE dense 7102 0 0.0 0.0
+NOISE dense 7102 0 0.1 0.0
+NOISE dense 7102 0 0.2 0.0
+NOISE dense 7102 0 0.3 0.0
+NOISE dense 7102 0 0.5 0.0
+NOISE dense 7102 1 0.0 0.0
+NOISE dense 7102 1 0.1 0.0
+NOISE dense 7102 1 0.2 0.0
+NOISE dense 7102 1 0.3 0.0
+NOISE dense 7102 1 0.5 0.0
+NOISE dense 7102 2 0.0 0.0
+NOISE dense 7102 2 0.1 0.0
+NOISE dense 7102 2 0.2 0.0
+NOISE dense 7102 2 0.3 0.0
+NOISE dense 7102 2 0.5 0.0
+NOISE dense 7103 0 0.0 0.0
+NOISE dense 7103 0 0.1 0.0
+NOISE dense 7103 0 0.2 0.0
+NOISE dense 7103 0 0.3 0.0
+NOISE dense 7103 0 0.5 0.0
+NOISE dense 7103 1 0.0 0.0
+NOISE dense 7103 1 0.1 0.0
+NOISE dense 7103 1 0.2 0.0
+NOISE dense 7103 1 0.3 0.0
+NOISE dense 7103 1 0.5 0.0
+NOISE dense 7103 2 0.0 0.0
+NOISE dense 7103 2 0.1 0.0
+NOISE dense 7103 2 0.2 0.0
+NOISE dense 7103 2 0.3 0.0
+NOISE dense 7103 2 0.5 0.0
+NOISE dense 7104 0 0.0 0.0
+NOISE dense 7104 0 0.1 0.0
+NOISE dense 7104 0 0.2 0.0
+NOISE dense 7104 0 0.3 0.0
+NOISE dense 7104 0 0.5 0.0
+NOISE dense 7104 1 0.0 0.0
+NOISE dense 7104 1 0.1 0.0
+NOISE dense 7104 1 0.2 0.0
+NOISE dense 7104 1 0.3 0.0
+NOISE dense 7104 1 0.5 0.0
+NOISE dense 7104 2 0.0 0.0
+NOISE dense 7104 2 0.1 0.0
+NOISE dense 7104 2 0.2 0.0
+NOISE dense 7104 2 0.3 0.0
+NOISE dense 7104 2 0.5 0.0
+NOISE dense 7105 0 0.0 0.0
+NOISE dense 7105 0 0.1 0.0
+NOISE dense 7105 0 0.2 0.0
+NOISE dense 7105 0 0.3 0.0
+NOISE dense 7105 0 0.5 0.0
+NOISE dense 7105 1 0.0 0.0
+NOISE dense 7105 1 0.1 0.0
+NOISE dense 7105 1 0.2 0.0
+NOISE dense 7105 1 0.3 0.0
+NOISE dense 7105 1 0.5 0.0
+NOISE dense 7105 2 0.0 0.0
+NOISE dense 7105 2 0.1 0.0
+NOISE dense 7105 2 0.2 0.0
+NOISE dense 7105 2 0.3 0.0
+NOISE dense 7105 2 0.5 0.0
+END_STAGE 3352 noise/dense/mismatch
+START_STAGE 3352 noise/dense/delete
+NOISE dense 7101 0 0.0 0.0
+NOISE dense 7101 0 0.1 0.0
+NOISE dense 7101 0 0.2 0.0
+NOISE dense 7101 0 0.3 0.0
+NOISE dense 7101 0 0.5 0.0
+NOISE dense 7101 1 0.0 0.0
+NOISE dense 7101 1 0.1 0.0
+NOISE dense 7101 1 0.2 0.0
+NOISE dense 7101 1 0.3 0.0
+NOISE dense 7101 1 0.5 0.0
+NOISE dense 7101 2 0.0 0.0
+NOISE dense 7101 2 0.1 0.0
+NOISE dense 7101 2 0.2 0.0
+NOISE dense 7101 2 0.3 0.0
+NOISE dense 7101 2 0.5 0.0
+NOISE dense 7102 0 0.0 0.0
+NOISE dense 7102 0 0.1 0.0
+NOISE dense 7102 0 0.2 0.0
+NOISE dense 7102 0 0.3 0.0
+NOISE dense 7102 0 0.5 0.0
+NOISE dense 7102 1 0.0 0.0
+NOISE dense 7102 1 0.1 0.0
+NOISE dense 7102 1 0.2 0.0
+NOISE dense 7102 1 0.3 0.0
+NOISE dense 7102 1 0.5 0.0
+NOISE dense 7102 2 0.0 0.0
+NOISE dense 7102 2 0.1 0.0
+NOISE dense 7102 2 0.2 0.0
+NOISE dense 7102 2 0.3 0.0
+NOISE dense 7102 2 0.5 0.0
+NOISE dense 7103 0 0.0 0.0
+NOISE dense 7103 0 0.1 0.0
+NOISE dense 7103 0 0.2 0.0
+NOISE dense 7103 0 0.3 0.0
+NOISE dense 7103 0 0.5 0.0
+NOISE dense 7103 1 0.0 0.0
+NOISE dense 7103 1 0.1 0.0
+NOISE dense 7103 1 0.2 0.0
+NOISE dense 7103 1 0.3 0.0
+NOISE dense 7103 1 0.5 0.0
+NOISE dense 7103 2 0.0 0.0
+NOISE dense 7103 2 0.1 0.0
+NOISE dense 7103 2 0.2 0.0
+NOISE dense 7103 2 0.3 0.0
+NOISE dense 7103 2 0.5 0.0
+NOISE dense 7104 0 0.0 0.0
+NOISE dense 7104 0 0.1 0.0
+NOISE dense 7104 0 0.2 0.0
+NOISE dense 7104 0 0.3 0.0
+NOISE dense 7104 0 0.5 0.0
+NOISE dense 7104 1 0.0 0.0
+NOISE dense 7104 1 0.1 0.0
+NOISE dense 7104 1 0.2 0.0
+NOISE dense 7104 1 0.3 0.0
+NOISE dense 7104 1 0.5 0.0
+NOISE dense 7104 2 0.0 0.0
+NOISE dense 7104 2 0.1 0.0
+NOISE dense 7104 2 0.2 0.0
+NOISE dense 7104 2 0.3 0.0
+NOISE dense 7104 2 0.5 0.0
+NOISE dense 7105 0 0.0 0.0
+NOISE dense 7105 0 0.1 0.0
+NOISE dense 7105 0 0.2 0.0
+NOISE dense 7105 0 0.3 0.0
+NOISE dense 7105 0 0.5 0.0
+NOISE dense 7105 1 0.0 0.0
+NOISE dense 7105 1 0.1 0.0
+NOISE dense 7105 1 0.2 0.0
+NOISE dense 7105 1 0.3 0.0
+NOISE dense 7105 1 0.5 0.0
+NOISE dense 7105 2 0.0 0.0
+NOISE dense 7105 2 0.1 0.0
+NOISE dense 7105 2 0.2 0.0
+NOISE dense 7105 2 0.3 0.0
+NOISE dense 7105 2 0.5 0.0
+END_STAGE 3352 noise/dense/delete
+START_STAGE 3352 noise/drop/mismatch
+NOISE drop 7101 0 0.0 0.0
+NOISE drop 7101 0 0.1 0.0
+NOISE drop 7101 0 0.2 0.0
+NOISE drop 7101 0 0.3 0.0
+NOISE drop 7101 0 0.5 0.0
+NOISE drop 7101 1 0.0 0.0
+NOISE drop 7101 1 0.1 0.0
+NOISE drop 7101 1 0.2 0.0
+NOISE drop 7101 1 0.3 0.0
+NOISE drop 7101 1 0.5 0.0
+NOISE drop 7101 2 0.0 0.0
+NOISE drop 7101 2 0.1 0.0
+NOISE drop 7101 2 0.2 0.0
+NOISE drop 7101 2 0.3 0.0
+NOISE drop 7101 2 0.5 0.0
+NOISE drop 7102 0 0.0 0.0
+NOISE drop 7102 0 0.1 0.0
+NOISE drop 7102 0 0.2 0.0
+NOISE drop 7102 0 0.3 0.0
+NOISE drop 7102 0 0.5 0.0
+NOISE drop 7102 1 0.0 0.0
+NOISE drop 7102 1 0.1 0.0
+NOISE drop 7102 1 0.2 0.0
+NOISE drop 7102 1 0.3 0.0
+NOISE drop 7102 1 0.5 0.0
+NOISE drop 7102 2 0.0 0.0
+NOISE drop 7102 2 0.1 0.0
+NOISE drop 7102 2 0.2 0.0
+NOISE drop 7102 2 0.3 0.0
+NOISE drop 7102 2 0.5 0.0
+NOISE drop 7103 0 0.0 0.0
+NOISE drop 7103 0 0.1 0.0
+NOISE drop 7103 0 0.2 0.0
+NOISE drop 7103 0 0.3 0.0
+NOISE drop 7103 0 0.5 0.0
+NOISE drop 7103 1 0.0 0.0
+NOISE drop 7103 1 0.1 0.0
+NOISE drop 7103 1 0.2 0.0
+NOISE drop 7103 1 0.3 0.0
+NOISE drop 7103 1 0.5 0.0
+NOISE drop 7103 2 0.0 0.0
+NOISE drop 7103 2 0.1 0.0
+NOISE drop 7103 2 0.2 0.0
+NOISE drop 7103 2 0.3 0.0
+NOISE drop 7103 2 0.5 0.0
+NOISE drop 7104 0 0.0 0.0
+NOISE drop 7104 0 0.1 0.0
+NOISE drop 7104 0 0.2 0.0
+NOISE drop 7104 0 0.3 0.0
+NOISE drop 7104 0 0.5 0.0
+NOISE drop 7104 1 0.0 0.0
+NOISE drop 7104 1 0.1 0.0
+NOISE drop 7104 1 0.2 0.0
+NOISE drop 7104 1 0.3 0.0
+NOISE drop 7104 1 0.5 0.0
+NOISE drop 7104 2 0.0 0.0
+NOISE drop 7104 2 0.1 0.0
+NOISE drop 7104 2 0.2 0.0
+NOISE drop 7104 2 0.3 0.0
+NOISE drop 7104 2 0.5 0.0
+NOISE drop 7105 0 0.0 0.0
+NOISE drop 7105 0 0.1 0.0
+NOISE drop 7105 0 0.2 0.0
+NOISE drop 7105 0 0.3 0.0
+NOISE drop 7105 0 0.5 0.0
+NOISE drop 7105 1 0.0 0.0
+NOISE drop 7105 1 0.1 0.0
+NOISE drop 7105 1 0.2 0.0
+NOISE drop 7105 1 0.3 0.0
+NOISE drop 7105 1 0.5 0.0
+NOISE drop 7105 2 0.0 0.0
+NOISE drop 7105 2 0.1 0.0
+NOISE drop 7105 2 0.2 0.0
+NOISE drop 7105 2 0.3 0.0
+NOISE drop 7105 2 0.5 0.0
+END_STAGE 3352 noise/drop/mismatch
+START_STAGE 3352 noise/drop/delete
+NOISE drop 7101 0 0.0 0.0
+NOISE drop 7101 0 0.1 0.0
+NOISE drop 7101 0 0.2 0.0
+NOISE drop 7101 0 0.3 0.0
+NOISE drop 7101 0 0.5 0.0
+NOISE drop 7101 1 0.0 0.0
+NOISE drop 7101 1 0.1 0.0
+NOISE drop 7101 1 0.2 0.0
+NOISE drop 7101 1 0.3 0.0
+NOISE drop 7101 1 0.5 0.0
+NOISE drop 7101 2 0.0 0.0
+NOISE drop 7101 2 0.1 0.0
+NOISE drop 7101 2 0.2 0.0
+NOISE drop 7101 2 0.3 0.0
+NOISE drop 7101 2 0.5 0.0
+NOISE drop 7102 0 0.0 0.0
+NOISE drop 7102 0 0.1 0.0
+NOISE drop 7102 0 0.2 0.0
+NOISE drop 7102 0 0.3 0.0
+NOISE drop 7102 0 0.5 0.0
+NOISE drop 7102 1 0.0 0.0
+NOISE drop 7102 1 0.1 0.0
+NOISE drop 7102 1 0.2 0.0
+NOISE drop 7102 1 0.3 0.0
+NOISE drop 7102 1 0.5 0.0
+NOISE drop 7102 2 0.0 0.0
+NOISE drop 7102 2 0.1 0.0
+NOISE drop 7102 2 0.2 0.0
+NOISE drop 7102 2 0.3 0.0
+NOISE drop 7102 2 0.5 0.0
+NOISE drop 7103 0 0.0 0.0
+NOISE drop 7103 0 0.1 0.0
+NOISE drop 7103 0 0.2 0.0
+NOISE drop 7103 0 0.3 0.0
+NOISE drop 7103 0 0.5 0.0
+NOISE drop 7103 1 0.0 0.0
+NOISE drop 7103 1 0.1 0.0
+NOISE drop 7103 1 0.2 0.0
+NOISE drop 7103 1 0.3 0.0
+NOISE drop 7103 1 0.5 0.0
+NOISE drop 7103 2 0.0 0.0
+NOISE drop 7103 2 0.1 0.0
+NOISE drop 7103 2 0.2 0.0
+NOISE drop 7103 2 0.3 0.0
+NOISE drop 7103 2 0.5 0.0
+NOISE drop 7104 0 0.0 0.0
+NOISE drop 7104 0 0.1 0.0
+NOISE drop 7104 0 0.2 0.0
+NOISE drop 7104 0 0.3 0.0
+NOISE drop 7104 0 0.5 0.0
+NOISE drop 7104 1 0.0 0.0
+NOISE drop 7104 1 0.1 0.0
+NOISE drop 7104 1 0.2 0.0
+NOISE drop 7104 1 0.3 0.0
+NOISE drop 7104 1 0.5 0.0
+NOISE drop 7104 2 0.0 0.0
+NOISE drop 7104 2 0.1 0.0
+NOISE drop 7104 2 0.2 0.0
+NOISE drop 7104 2 0.3 0.0
+NOISE drop 7104 2 0.5 0.0
+NOISE drop 7105 0 0.0 0.0
+NOISE drop 7105 0 0.1 0.0
+NOISE drop 7105 0 0.2 0.0
+NOISE drop 7105 0 0.3 0.0
+NOISE drop 7105 0 0.5 0.0
+NOISE drop 7105 1 0.0 0.0
+NOISE drop 7105 1 0.1 0.0
+NOISE drop 7105 1 0.2 0.0
+NOISE drop 7105 1 0.3 0.0
+NOISE drop 7105 1 0.5 0.0
+NOISE drop 7105 2 0.0 0.0
+NOISE drop 7105 2 0.1 0.0
+NOISE drop 7105 2 0.2 0.0
+NOISE drop 7105 2 0.3 0.0
+NOISE drop 7105 2 0.5 0.0
+END_STAGE 3352 noise/drop/delete
+START_STAGE 3352 noise/mean/mismatch
+NOISE mean 7101 0 0.0 0.0
+NOISE mean 7101 0 0.1 0.0
+NOISE mean 7101 0 0.2 0.0
+NOISE mean 7101 0 0.3 0.0
+NOISE mean 7101 0 0.5 0.0
+NOISE mean 7101 1 0.0 0.0
+NOISE mean 7101 1 0.1 0.0
+NOISE mean 7101 1 0.2 0.0
+NOISE mean 7101 1 0.3 0.0
+NOISE mean 7101 1 0.5 0.0
+NOISE mean 7101 2 0.0 0.0
+NOISE mean 7101 2 0.1 0.0
+NOISE mean 7101 2 0.2 0.0
+NOISE mean 7101 2 0.3 0.0
+NOISE mean 7101 2 0.5 0.0
+NOISE mean 7102 0 0.0 0.0
+NOISE mean 7102 0 0.1 0.0
+NOISE mean 7102 0 0.2 0.0
+NOISE mean 7102 0 0.3 0.0
+NOISE mean 7102 0 0.5 0.0
+NOISE mean 7102 1 0.0 0.0
+NOISE mean 7102 1 0.1 0.0
+NOISE mean 7102 1 0.2 0.0
+NOISE mean 7102 1 0.3 0.0
+NOISE mean 7102 1 0.5 0.0
+NOISE mean 7102 2 0.0 0.0
+NOISE mean 7102 2 0.1 0.0
+NOISE mean 7102 2 0.2 0.0
+NOISE mean 7102 2 0.3 0.0
+NOISE mean 7102 2 0.5 0.0
+NOISE mean 7103 0 0.0 0.0
+NOISE mean 7103 0 0.1 0.0
+NOISE mean 7103 0 0.2 0.0
+NOISE mean 7103 0 0.3 0.0
+NOISE mean 7103 0 0.5 0.0
+NOISE mean 7103 1 0.0 0.0
+NOISE mean 7103 1 0.1 0.0
+NOISE mean 7103 1 0.2 0.0
+NOISE mean 7103 1 0.3 0.0
+NOISE mean 7103 1 0.5 0.0
+NOISE mean 7103 2 0.0 0.0
+NOISE mean 7103 2 0.1 0.0
+NOISE mean 7103 2 0.2 0.0
+NOISE mean 7103 2 0.3 0.0
+NOISE mean 7103 2 0.5 0.0
+NOISE mean 7104 0 0.0 0.0
+NOISE mean 7104 0 0.1 0.0
+NOISE mean 7104 0 0.2 0.0
+NOISE mean 7104 0 0.3 0.0
+NOISE mean 7104 0 0.5 0.0
+NOISE mean 7104 1 0.0 0.0
+NOISE mean 7104 1 0.1 0.0
+NOISE mean 7104 1 0.2 0.0
+NOISE mean 7104 1 0.3 0.0
+NOISE mean 7104 1 0.5 0.0
+NOISE mean 7104 2 0.0 0.0
+NOISE mean 7104 2 0.1 0.0
+NOISE mean 7104 2 0.2 0.0
+NOISE mean 7104 2 0.3 0.0
+NOISE mean 7104 2 0.5 0.0
+NOISE mean 7105 0 0.0 0.0
+NOISE mean 7105 0 0.1 0.0
+NOISE mean 7105 0 0.2 0.0
+NOISE mean 7105 0 0.3 0.0
+NOISE mean 7105 0 0.5 0.0
+NOISE mean 7105 1 0.0 0.0
+NOISE mean 7105 1 0.1 0.0
+NOISE mean 7105 1 0.2 0.0
+NOISE mean 7105 1 0.3 0.0
+NOISE mean 7105 1 0.5 0.0
+NOISE mean 7105 2 0.0 0.0
+NOISE mean 7105 2 0.1 0.0
+NOISE mean 7105 2 0.2 0.0
+NOISE mean 7105 2 0.3 0.0
+NOISE mean 7105 2 0.5 0.0
+END_STAGE 3352 noise/mean/mismatch
+START_STAGE 3352 noise/mean/delete
+NOISE mean 7101 0 0.0 0.0
+NOISE mean 7101 0 0.1 0.0
+NOISE mean 7101 0 0.2 0.0
+NOISE mean 7101 0 0.3 0.0
+NOISE mean 7101 0 0.5 0.0
+NOISE mean 7101 1 0.0 0.0
+NOISE mean 7101 1 0.1 0.0
+NOISE mean 7101 1 0.2 0.0
+NOISE mean 7101 1 0.3 0.0
+NOISE mean 7101 1 0.5 0.0
+NOISE mean 7101 2 0.0 0.0
+NOISE mean 7101 2 0.1 0.0
+NOISE mean 7101 2 0.2 0.0
+NOISE mean 7101 2 0.3 0.0
+NOISE mean 7101 2 0.5 0.0
+NOISE mean 7102 0 0.0 0.0
+NOISE mean 7102 0 0.1 0.0
+NOISE mean 7102 0 0.2 0.0
+NOISE mean 7102 0 0.3 0.0
+NOISE mean 7102 0 0.5 0.0
+NOISE mean 7102 1 0.0 0.0
+NOISE mean 7102 1 0.1 0.0
+NOISE mean 7102 1 0.2 0.0
+NOISE mean 7102 1 0.3 0.0
+NOISE mean 7102 1 0.5 0.0
+NOISE mean 7102 2 0.0 0.0
+NOISE mean 7102 2 0.1 0.0
+NOISE mean 7102 2 0.2 0.0
+NOISE mean 7102 2 0.3 0.0
+NOISE mean 7102 2 0.5 0.0
+NOISE mean 7103 0 0.0 0.0
+NOISE mean 7103 0 0.1 0.0
+NOISE mean 7103 0 0.2 0.0
+NOISE mean 7103 0 0.3 0.0
+NOISE mean 7103 0 0.5 0.0
+NOISE mean 7103 1 0.0 0.0
+NOISE mean 7103 1 0.1 0.0
+NOISE mean 7103 1 0.2 0.0
+NOISE mean 7103 1 0.3 0.0
+NOISE mean 7103 1 0.5 0.0
+NOISE mean 7103 2 0.0 0.0
+NOISE mean 7103 2 0.1 0.0
+NOISE mean 7103 2 0.2 0.0
+NOISE mean 7103 2 0.3 0.0
+NOISE mean 7103 2 0.5 0.0
+NOISE mean 7104 0 0.0 0.0
+NOISE mean 7104 0 0.1 0.0
+NOISE mean 7104 0 0.2 0.0
+NOISE mean 7104 0 0.3 0.0
+NOISE mean 7104 0 0.5 0.0
+NOISE mean 7104 1 0.0 0.0
+NOISE mean 7104 1 0.1 0.0
+NOISE mean 7104 1 0.2 0.0
+NOISE mean 7104 1 0.3 0.0
+NOISE mean 7104 1 0.5 0.0
+NOISE mean 7104 2 0.0 0.0
+NOISE mean 7104 2 0.1 0.0
+NOISE mean 7104 2 0.2 0.0
+NOISE mean 7104 2 0.3 0.0
+NOISE mean 7104 2 0.5 0.0
+NOISE mean 7105 0 0.0 0.0
+NOISE mean 7105 0 0.1 0.0
+NOISE mean 7105 0 0.2 0.0
+NOISE mean 7105 0 0.3 0.0
+NOISE mean 7105 0 0.5 0.0
+NOISE mean 7105 1 0.0 0.0
+NOISE mean 7105 1 0.1 0.0
+NOISE mean 7105 1 0.2 0.0
+NOISE mean 7105 1 0.3 0.0
+NOISE mean 7105 1 0.5 0.0
+NOISE mean 7105 2 0.0 0.0
+NOISE mean 7105 2 0.1 0.0
+NOISE mean 7105 2 0.2 0.0
+NOISE mean 7105 2 0.3 0.0
+NOISE mean 7105 2 0.5 0.0
+END_STAGE 3352 noise/mean/delete
+START_STAGE 3352 noise/robust/mismatch
+NOISE robust 7101 0 0.0 0.0
+NOISE robust 7101 0 0.1 0.0
+NOISE robust 7101 0 0.2 0.0
+NOISE robust 7101 0 0.3 0.0
+NOISE robust 7101 0 0.5 0.0
+NOISE robust 7101 1 0.0 0.0
+NOISE robust 7101 1 0.1 0.0
+NOISE robust 7101 1 0.2 0.0
+NOISE robust 7101 1 0.3 0.0
+NOISE robust 7101 1 0.5 0.0
+NOISE robust 7101 2 0.0 0.0
+NOISE robust 7101 2 0.1 0.0
+NOISE robust 7101 2 0.2 0.0
+NOISE robust 7101 2 0.3 0.0
+NOISE robust 7101 2 0.5 0.0
+NOISE robust 7102 0 0.0 0.0
+NOISE robust 7102 0 0.1 0.0
+NOISE robust 7102 0 0.2 0.0
+NOISE robust 7102 0 0.3 0.0
+NOISE robust 7102 0 0.5 0.0
+NOISE robust 7102 1 0.0 0.0
+NOISE robust 7102 1 0.1 0.0
+NOISE robust 7102 1 0.2 0.0
+NOISE robust 7102 1 0.3 0.0
+NOISE robust 7102 1 0.5 0.0
+NOISE robust 7102 2 0.0 0.0
+NOISE robust 7102 2 0.1 0.0
+NOISE robust 7102 2 0.2 0.0
+NOISE robust 7102 2 0.3 0.0
+NOISE robust 7102 2 0.5 0.0
+NOISE robust 7103 0 0.0 0.0
+NOISE robust 7103 0 0.1 0.0
+NOISE robust 7103 0 0.2 0.0
+NOISE robust 7103 0 0.3 0.0
+NOISE robust 7103 0 0.5 0.0
+NOISE robust 7103 1 0.0 0.0
+NOISE robust 7103 1 0.1 0.0
+NOISE robust 7103 1 0.2 0.0
+NOISE robust 7103 1 0.3 0.0
+NOISE robust 7103 1 0.5 0.0
+NOISE robust 7103 2 0.0 0.0
+NOISE robust 7103 2 0.1 0.0
+NOISE robust 7103 2 0.2 0.0
+NOISE robust 7103 2 0.3 0.0
+NOISE robust 7103 2 0.5 0.0
+NOISE robust 7104 0 0.0 0.0
+NOISE robust 7104 0 0.1 0.0
+NOISE robust 7104 0 0.2 0.0
+NOISE robust 7104 0 0.3 0.0
+NOISE robust 7104 0 0.5 0.0
+NOISE robust 7104 1 0.0 0.0
+NOISE robust 7104 1 0.1 0.0
+NOISE robust 7104 1 0.2 0.0
+NOISE robust 7104 1 0.3 0.0
+NOISE robust 7104 1 0.5 0.0
+NOISE robust 7104 2 0.0 0.0
+NOISE robust 7104 2 0.1 0.0
+NOISE robust 7104 2 0.2 0.0
+NOISE robust 7104 2 0.3 0.0
+NOISE robust 7104 2 0.5 0.0
+NOISE robust 7105 0 0.0 0.0
+NOISE robust 7105 0 0.1 0.0
+NOISE robust 7105 0 0.2 0.0
+NOISE robust 7105 0 0.3 0.0
+NOISE robust 7105 0 0.5 0.0
+NOISE robust 7105 1 0.0 0.0
+NOISE robust 7105 1 0.1 0.0
+NOISE robust 7105 1 0.2 0.0
+NOISE robust 7105 1 0.3 0.0
+NOISE robust 7105 1 0.5 0.0
+NOISE robust 7105 2 0.0 0.0
+NOISE robust 7105 2 0.1 0.0
+NOISE robust 7105 2 0.2 0.0
+NOISE robust 7105 2 0.3 0.0
+NOISE robust 7105 2 0.5 0.0
+END_STAGE 3352 noise/robust/mismatch
+START_STAGE 3352 noise/robust/delete
+NOISE robust 7101 0 0.0 0.0
+NOISE robust 7101 0 0.1 0.0
+NOISE robust 7101 0 0.2 0.0
+NOISE robust 7101 0 0.3 0.0
+NOISE robust 7101 0 0.5 0.0
+NOISE robust 7101 1 0.0 0.0
+NOISE robust 7101 1 0.1 0.0
+NOISE robust 7101 1 0.2 0.0
+NOISE robust 7101 1 0.3 0.0
+NOISE robust 7101 1 0.5 0.0
+NOISE robust 7101 2 0.0 0.0
+NOISE robust 7101 2 0.1 0.0
+NOISE robust 7101 2 0.2 0.0
+NOISE robust 7101 2 0.3 0.0
+NOISE robust 7101 2 0.5 0.0
+NOISE robust 7102 0 0.0 0.0
+NOISE robust 7102 0 0.1 0.0
+NOISE robust 7102 0 0.2 0.0
+NOISE robust 7102 0 0.3 0.0
+NOISE robust 7102 0 0.5 0.0
+NOISE robust 7102 1 0.0 0.0
+NOISE robust 7102 1 0.1 0.0
+NOISE robust 7102 1 0.2 0.0
+NOISE robust 7102 1 0.3 0.0
+NOISE robust 7102 1 0.5 0.0
+NOISE robust 7102 2 0.0 0.0
+NOISE robust 7102 2 0.1 0.0
+NOISE robust 7102 2 0.2 0.0
+NOISE robust 7102 2 0.3 0.0
+NOISE robust 7102 2 0.5 0.0
+NOISE robust 7103 0 0.0 0.0
+NOISE robust 7103 0 0.1 0.0
+NOISE robust 7103 0 0.2 0.0
+NOISE robust 7103 0 0.3 0.0
+NOISE robust 7103 0 0.5 0.0
+NOISE robust 7103 1 0.0 0.0
+NOISE robust 7103 1 0.1 0.0
+NOISE robust 7103 1 0.2 0.0
+NOISE robust 7103 1 0.3 0.0
+NOISE robust 7103 1 0.5 0.0
+NOISE robust 7103 2 0.0 0.0
+NOISE robust 7103 2 0.1 0.0
+NOISE robust 7103 2 0.2 0.0
+NOISE robust 7103 2 0.3 0.0
+NOISE robust 7103 2 0.5 0.0
+NOISE robust 7104 0 0.0 0.0
+NOISE robust 7104 0 0.1 0.0
+NOISE robust 7104 0 0.2 0.0
+NOISE robust 7104 0 0.3 0.0
+NOISE robust 7104 0 0.5 0.0
+NOISE robust 7104 1 0.0 0.0
+NOISE robust 7104 1 0.1 0.0
+NOISE robust 7104 1 0.2 0.0
+NOISE robust 7104 1 0.3 0.0
+NOISE robust 7104 1 0.5 0.0
+NOISE robust 7104 2 0.0 0.0
+NOISE robust 7104 2 0.1 0.0
+NOISE robust 7104 2 0.2 0.0
+NOISE robust 7104 2 0.3 0.0
+NOISE robust 7104 2 0.5 0.0
+NOISE robust 7105 0 0.0 0.0
+NOISE robust 7105 0 0.1 0.0
+NOISE robust 7105 0 0.2 0.0
+NOISE robust 7105 0 0.3 0.0
+NOISE robust 7105 0 0.5 0.0
+NOISE robust 7105 1 0.0 0.0
+NOISE robust 7105 1 0.1 0.0
+NOISE robust 7105 1 0.2 0.0
+NOISE robust 7105 1 0.3 0.0
+NOISE robust 7105 1 0.5 0.0
+NOISE robust 7105 2 0.0 0.0
+NOISE robust 7105 2 0.1 0.0
+NOISE robust 7105 2 0.2 0.0
+NOISE robust 7105 2 0.3 0.0
+NOISE robust 7105 2 0.5 0.0
+END_STAGE 3352 noise/robust/delete
+START_STAGE 3352 readout/mean_graph
+END_STAGE 3352 readout/mean_graph
+START_STAGE 3352 readout/mean_logit
+END_STAGE 3352 readout/mean_logit
+SEED_COMPLETE 3352 stages 38
+START_STAGE 3353 main/teachers
+FOLD_BACKBONE 1 1 57.34650421142578
+EPOCH 1 1 loss 57.3195686340332 val_auc None
+FOLD_BACKBONE 2 1 55.086713790893555
+EPOCH 2 1 loss 55.071449279785156 val_auc None
+FOLD_BACKBONE 3 1 55.51761054992676
+EPOCH 3 1 loss 55.5391731262207 val_auc None
+FOLD_BACKBONE 4 1 58.213706970214844
+EPOCH 4 1 loss 58.20982360839844 val_auc None
+FOLD_BACKBONE 5 1 55.97140312194824
+EPOCH 5 1 loss 56.037635803222656 val_auc None
+END_STAGE 3353 main/teachers
+START_STAGE 3353 main/measure
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trust_strong_full_sku5zwwx\work\seed3353\measurements\fold1.pt
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trust_strong_full_sku5zwwx\work\seed3353\measurements\fold2.pt
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trust_strong_full_sku5zwwx\work\seed3353\measurements\fold3.pt
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trust_strong_full_sku5zwwx\work\seed3353\measurements\fold4.pt
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trust_strong_full_sku5zwwx\work\seed3353\measurements\fold5.pt
+END_STAGE 3353 main/measure
+START_STAGE 3353 main/fit
+UTILITY 0 epoch 1 dev_nll -3.847000448775557
+UTILITY 1 epoch 1 dev_nll -3.8011520911817507
+END_STAGE 3353 main/fit
+START_STAGE 3353 main/audit
+UTILITY_AUDIT Spearman -0.22377622377622378 direction 0.6428571428571428
+END_STAGE 3353 main/audit
+START_STAGE 3353 main/tune
+TUNED {'lambda_var': 1.0, 'lambda_ens': 0.0, 'budget': 0.25, 'tau_scale': 0.5, 'tau_absolute': 0.006747429724782705}
+END_STAGE 3353 main/tune
+START_STAGE 3353 main/fit_all
+UTILITY 0 epoch 1 dev_nll -4.0167075606655045
+UTILITY 1 epoch 1 dev_nll -3.9671107606636125
+END_STAGE 3353 main/fit_all
+START_STAGE 3353 main/reference
+EPOCH reference 1 loss 49.951860427856445 val_auc None
+END_STAGE 3353 main/reference
+START_STAGE 3353 main/structure
+END_STAGE 3353 main/structure
+START_STAGE 3353 main/adapt_r0
+EPOCH reference_r0 1 loss 49.92424964904785 val_auc None
+EPOCH r0 1 loss 53.401055653889976 val_auc 0.0
+ADAPT_COMPLETE r0 epoch 0 TEST_CW_AUC 0.0 TEST_OW_AUC 0.0
+END_STAGE 3353 main/adapt_r0
+START_STAGE 3353 main/adapt_capacity
+EPOCH reference_capacity 1 loss 49.60205332438151 val_auc None
+EPOCH capacity 1 loss 53.043816884358726 val_auc 0.0
+ADAPT_COMPLETE capacity epoch 0 TEST_CW_AUC 0.0 TEST_OW_AUC 0.0
+END_STAGE 3353 main/adapt_capacity
+START_STAGE 3353 main/adapt_dense
+EPOCH dense 1 loss 53.343116760253906 val_auc 0.0
+ADAPT_COMPLETE dense epoch 0 TEST_CW_AUC 0.0 TEST_OW_AUC 0.0
+END_STAGE 3353 main/adapt_dense
+START_STAGE 3353 main/adapt_drop
+EPOCH drop 1 loss 53.382667541503906 val_auc 0.0
+ADAPT_COMPLETE drop epoch 0 TEST_CW_AUC 0.0 TEST_OW_AUC 0.0
+END_STAGE 3353 main/adapt_drop
+START_STAGE 3353 main/adapt_free
+EPOCH free 1 loss 53.382667541503906 val_auc 0.0
+ADAPT_COMPLETE free epoch 0 TEST_CW_AUC 0.0 TEST_OW_AUC 0.0
+END_STAGE 3353 main/adapt_free
+START_STAGE 3353 main/adapt_mean
+EPOCH mean 1 loss 53.349753061930336 val_auc 0.0
+ADAPT_COMPLETE mean epoch 0 TEST_CW_AUC 0.0 TEST_OW_AUC 0.0
+END_STAGE 3353 main/adapt_mean
+START_STAGE 3353 main/adapt_robust
+EPOCH robust 1 loss 53.382667541503906 val_auc 0.0
+ADAPT_COMPLETE robust epoch 0 TEST_CW_AUC 0.0 TEST_OW_AUC 0.0
+END_STAGE 3353 main/adapt_robust
+START_STAGE 3353 shuffled/teachers
+FOLD_BACKBONE 1 1 57.34650421142578
+EPOCH 1 1 loss 57.34051513671875 val_auc None
+FOLD_BACKBONE 2 1 55.086713790893555
+EPOCH 2 1 loss 55.0311222076416 val_auc None
+FOLD_BACKBONE 3 1 55.51761054992676
+EPOCH 3 1 loss 55.49970245361328 val_auc None
+FOLD_BACKBONE 4 1 58.213706970214844
+EPOCH 4 1 loss 58.18832206726074 val_auc None
+FOLD_BACKBONE 5 1 55.97140312194824
+EPOCH 5 1 loss 55.9354190826416 val_auc None
+END_STAGE 3353 shuffled/teachers
+START_STAGE 3353 shuffled/measure
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trust_strong_full_sku5zwwx\work\shuffled3353\measurements\fold1.pt
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trust_strong_full_sku5zwwx\work\shuffled3353\measurements\fold2.pt
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trust_strong_full_sku5zwwx\work\shuffled3353\measurements\fold3.pt
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trust_strong_full_sku5zwwx\work\shuffled3353\measurements\fold4.pt
+MEASUREMENT_COMPLETE C:\Users\llenovo\AppData\Local\Temp\trust_strong_full_sku5zwwx\work\shuffled3353\measurements\fold5.pt
+END_STAGE 3353 shuffled/measure
+START_STAGE 3353 shuffled/fit
+UTILITY 0 epoch 1 dev_nll -4.4267706563935425
+UTILITY 1 epoch 1 dev_nll -4.532617974992301
+END_STAGE 3353 shuffled/fit
+START_STAGE 3353 shuffled/audit
+UTILITY_AUDIT Spearman -0.07692307692307693 direction 0.5833333333333334
+END_STAGE 3353 shuffled/audit
+START_STAGE 3353 shuffled/tune
+TUNED {'lambda_var': 0.0, 'lambda_ens': 0.0, 'budget': 0.5, 'tau_scale': 0.5, 'tau_absolute': 0.004710066132247448}
+END_STAGE 3353 shuffled/tune
+START_STAGE 3353 shuffled/fit_all
+UTILITY 0 epoch 1 dev_nll -4.421886698535009
+UTILITY 1 epoch 1 dev_nll -4.502198139175943
+END_STAGE 3353 shuffled/fit_all
+START_STAGE 3353 shuffled/reference
+EPOCH reference 1 loss 49.902639389038086 val_auc None
+END_STAGE 3353 shuffled/reference
+START_STAGE 3353 shuffled/structure
+END_STAGE 3353 shuffled/structure
+START_STAGE 3353 shuffled/adapt_shuffled
+EPOCH shuffled 1 loss 53.39742533365885 val_auc 0.0
+ADAPT_COMPLETE shuffled epoch 0 TEST_CW_AUC 0.0 TEST_OW_AUC 0.0
+END_STAGE 3353 shuffled/adapt_shuffled
+START_STAGE 3353 semantic/fit
+UTILITY 0 epoch 1 dev_nll -3.8564650262243063
+UTILITY 1 epoch 1 dev_nll -3.8244942626606164
+END_STAGE 3353 semantic/fit
+START_STAGE 3353 semantic/audit
+UTILITY_AUDIT Spearman -0.6035124870073534 direction 0.5
+END_STAGE 3353 semantic/audit
+START_STAGE 3353 unmeasured/fit
+UTILITY 0 epoch 1 dev_nll -3.973676104655503
+UTILITY 1 epoch 1 dev_nll -3.959833625534249
+END_STAGE 3353 unmeasured/fit
+START_STAGE 3353 unmeasured/audit
+UTILITY_AUDIT Spearman 0.09090909090909091 direction 0.5714285714285714
+END_STAGE 3353 unmeasured/audit
+START_STAGE 3353 noise/dense/mismatch
+NOISE dense 7101 0 0.0 0.0
+NOISE dense 7101 0 0.1 0.0
+NOISE dense 7101 0 0.2 0.0
+NOISE dense 7101 0 0.3 0.0
+NOISE dense 7101 0 0.5 0.0
+NOISE dense 7101 1 0.0 0.0
+NOISE dense 7101 1 0.1 0.0
+NOISE dense 7101 1 0.2 0.0
+NOISE dense 7101 1 0.3 0.0
+NOISE dense 7101 1 0.5 0.0
+NOISE dense 7101 2 0.0 0.0
+NOISE dense 7101 2 0.1 0.0
+NOISE dense 7101 2 0.2 0.0
+NOISE dense 7101 2 0.3 0.0
+NOISE dense 7101 2 0.5 0.0
+NOISE dense 7102 0 0.0 0.0
+NOISE dense 7102 0 0.1 0.0
+NOISE dense 7102 0 0.2 0.0
+NOISE dense 7102 0 0.3 0.0
+NOISE dense 7102 0 0.5 0.0
+NOISE dense 7102 1 0.0 0.0
+NOISE dense 7102 1 0.1 0.0
+NOISE dense 7102 1 0.2 0.0
+NOISE dense 7102 1 0.3 0.0
+NOISE dense 7102 1 0.5 0.0
+NOISE dense 7102 2 0.0 0.0
+NOISE dense 7102 2 0.1 0.0
+NOISE dense 7102 2 0.2 0.0
+NOISE dense 7102 2 0.3 0.0
+NOISE dense 7102 2 0.5 0.0
+NOISE dense 7103 0 0.0 0.0
+NOISE dense 7103 0 0.1 0.0
+NOISE dense 7103 0 0.2 0.0
+NOISE dense 7103 0 0.3 0.0
+NOISE dense 7103 0 0.5 0.0
+NOISE dense 7103 1 0.0 0.0
+NOISE dense 7103 1 0.1 0.0
+NOISE dense 7103 1 0.2 0.0
+NOISE dense 7103 1 0.3 0.0
+NOISE dense 7103 1 0.5 0.0
+NOISE dense 7103 2 0.0 0.0
+NOISE dense 7103 2 0.1 0.0
+NOISE dense 7103 2 0.2 0.0
+NOISE dense 7103 2 0.3 0.0
+NOISE dense 7103 2 0.5 0.0
+NOISE dense 7104 0 0.0 0.0
+NOISE dense 7104 0 0.1 0.0
+NOISE dense 7104 0 0.2 0.0
+NOISE dense 7104 0 0.3 0.0
+NOISE dense 7104 0 0.5 0.0
+NOISE dense 7104 1 0.0 0.0
+NOISE dense 7104 1 0.1 0.0
+NOISE dense 7104 1 0.2 0.0
+NOISE dense 7104 1 0.3 0.0
+NOISE dense 7104 1 0.5 0.0
+NOISE dense 7104 2 0.0 0.0
+NOISE dense 7104 2 0.1 0.0
+NOISE dense 7104 2 0.2 0.0
+NOISE dense 7104 2 0.3 0.0
+NOISE dense 7104 2 0.5 0.0
+NOISE dense 7105 0 0.0 0.0
+NOISE dense 7105 0 0.1 0.0
+NOISE dense 7105 0 0.2 0.0
+NOISE dense 7105 0 0.3 0.0
+NOISE dense 7105 0 0.5 0.0
+NOISE dense 7105 1 0.0 0.0
+NOISE dense 7105 1 0.1 0.0
+NOISE dense 7105 1 0.2 0.0
+NOISE dense 7105 1 0.3 0.0
+NOISE dense 7105 1 0.5 0.0
+NOISE dense 7105 2 0.0 0.0
+NOISE dense 7105 2 0.1 0.0
+NOISE dense 7105 2 0.2 0.0
+NOISE dense 7105 2 0.3 0.0
+NOISE dense 7105 2 0.5 0.0
+END_STAGE 3353 noise/dense/mismatch
+START_STAGE 3353 noise/dense/delete
+NOISE dense 7101 0 0.0 0.0
+NOISE dense 7101 0 0.1 0.0
+NOISE dense 7101 0 0.2 0.0
+NOISE dense 7101 0 0.3 0.0
+NOISE dense 7101 0 0.5 0.0
+NOISE dense 7101 1 0.0 0.0
+NOISE dense 7101 1 0.1 0.0
+NOISE dense 7101 1 0.2 0.0
+NOISE dense 7101 1 0.3 0.0
+NOISE dense 7101 1 0.5 0.0
+NOISE dense 7101 2 0.0 0.0
+NOISE dense 7101 2 0.1 0.0
+NOISE dense 7101 2 0.2 0.0
+NOISE dense 7101 2 0.3 0.0
+NOISE dense 7101 2 0.5 0.0
+NOISE dense 7102 0 0.0 0.0
+NOISE dense 7102 0 0.1 0.0
+NOISE dense 7102 0 0.2 0.0
+NOISE dense 7102 0 0.3 0.0
+NOISE dense 7102 0 0.5 0.0
+NOISE dense 7102 1 0.0 0.0
+NOISE dense 7102 1 0.1 0.0
+NOISE dense 7102 1 0.2 0.0
+NOISE dense 7102 1 0.3 0.0
+NOISE dense 7102 1 0.5 0.0
+NOISE dense 7102 2 0.0 0.0
+NOISE dense 7102 2 0.1 0.0
+NOISE dense 7102 2 0.2 0.0
+NOISE dense 7102 2 0.3 0.0
+NOISE dense 7102 2 0.5 0.0
+NOISE dense 7103 0 0.0 0.0
+NOISE dense 7103 0 0.1 0.0
+NOISE dense 7103 0 0.2 0.0
+NOISE dense 7103 0 0.3 0.0
+NOISE dense 7103 0 0.5 0.0
+NOISE dense 7103 1 0.0 0.0
+NOISE dense 7103 1 0.1 0.0
+NOISE dense 7103 1 0.2 0.0
+NOISE dense 7103 1 0.3 0.0
+NOISE dense 7103 1 0.5 0.0
+NOISE dense 7103 2 0.0 0.0
+NOISE dense 7103 2 0.1 0.0
+NOISE dense 7103 2 0.2 0.0
+NOISE dense 7103 2 0.3 0.0
+NOISE dense 7103 2 0.5 0.0
+NOISE dense 7104 0 0.0 0.0
+NOISE dense 7104 0 0.1 0.0
+NOISE dense 7104 0 0.2 0.0
+NOISE dense 7104 0 0.3 0.0
+NOISE dense 7104 0 0.5 0.0
+NOISE dense 7104 1 0.0 0.0
+NOISE dense 7104 1 0.1 0.0
+NOISE dense 7104 1 0.2 0.0
+NOISE dense 7104 1 0.3 0.0
+NOISE dense 7104 1 0.5 0.0
+NOISE dense 7104 2 0.0 0.0
+NOISE dense 7104 2 0.1 0.0
+NOISE dense 7104 2 0.2 0.0
+NOISE dense 7104 2 0.3 0.0
+NOISE dense 7104 2 0.5 0.0
+NOISE dense 7105 0 0.0 0.0
+NOISE dense 7105 0 0.1 0.0
+NOISE dense 7105 0 0.2 0.0
+NOISE dense 7105 0 0.3 0.0
+NOISE dense 7105 0 0.5 0.0
+NOISE dense 7105 1 0.0 0.0
+NOISE dense 7105 1 0.1 0.0
+NOISE dense 7105 1 0.2 0.0
+NOISE dense 7105 1 0.3 0.0
+NOISE dense 7105 1 0.5 0.0
+NOISE dense 7105 2 0.0 0.0
+NOISE dense 7105 2 0.1 0.0
+NOISE dense 7105 2 0.2 0.0
+NOISE dense 7105 2 0.3 0.0
+NOISE dense 7105 2 0.5 0.0
+END_STAGE 3353 noise/dense/delete
+START_STAGE 3353 noise/drop/mismatch
+NOISE drop 7101 0 0.0 0.0
+NOISE drop 7101 0 0.1 0.0
+NOISE drop 7101 0 0.2 0.0
+NOISE drop 7101 0 0.3 0.0
+NOISE drop 7101 0 0.5 0.0
+NOISE drop 7101 1 0.0 0.0
+NOISE drop 7101 1 0.1 0.0
+NOISE drop 7101 1 0.2 0.0
+NOISE drop 7101 1 0.3 0.0
+NOISE drop 7101 1 0.5 0.0
+NOISE drop 7101 2 0.0 0.0
+NOISE drop 7101 2 0.1 0.0
+NOISE drop 7101 2 0.2 0.0
+NOISE drop 7101 2 0.3 0.0
+NOISE drop 7101 2 0.5 0.0
+NOISE drop 7102 0 0.0 0.0
+NOISE drop 7102 0 0.1 0.0
+NOISE drop 7102 0 0.2 0.0
+NOISE drop 7102 0 0.3 0.0
+NOISE drop 7102 0 0.5 0.0
+NOISE drop 7102 1 0.0 0.0
+NOISE drop 7102 1 0.1 0.0
+NOISE drop 7102 1 0.2 0.0
+NOISE drop 7102 1 0.3 0.0
+NOISE drop 7102 1 0.5 0.0
+NOISE drop 7102 2 0.0 0.0
+NOISE drop 7102 2 0.1 0.0
+NOISE drop 7102 2 0.2 0.0
+NOISE drop 7102 2 0.3 0.0
+NOISE drop 7102 2 0.5 0.0
+NOISE drop 7103 0 0.0 0.0
+NOISE drop 7103 0 0.1 0.0
+NOISE drop 7103 0 0.2 0.0
+NOISE drop 7103 0 0.3 0.0
+NOISE drop 7103 0 0.5 0.0
+NOISE drop 7103 1 0.0 0.0
+NOISE drop 7103 1 0.1 0.0
+NOISE drop 7103 1 0.2 0.0
+NOISE drop 7103 1 0.3 0.0
+NOISE drop 7103 1 0.5 0.0
+NOISE drop 7103 2 0.0 0.0
+NOISE drop 7103 2 0.1 0.0
+NOISE drop 7103 2 0.2 0.0
+NOISE drop 7103 2 0.3 0.0
+NOISE drop 7103 2 0.5 0.0
+NOISE drop 7104 0 0.0 0.0
+NOISE drop 7104 0 0.1 0.0
+NOISE drop 7104 0 0.2 0.0
+NOISE drop 7104 0 0.3 0.0
+NOISE drop 7104 0 0.5 0.0
+NOISE drop 7104 1 0.0 0.0
+NOISE drop 7104 1 0.1 0.0
+NOISE drop 7104 1 0.2 0.0
+NOISE drop 7104 1 0.3 0.0
+NOISE drop 7104 1 0.5 0.0
+NOISE drop 7104 2 0.0 0.0
+NOISE drop 7104 2 0.1 0.0
+NOISE drop 7104 2 0.2 0.0
+NOISE drop 7104 2 0.3 0.0
+NOISE drop 7104 2 0.5 0.0
+NOISE drop 7105 0 0.0 0.0
+NOISE drop 7105 0 0.1 0.0
+NOISE drop 7105 0 0.2 0.0
+NOISE drop 7105 0 0.3 0.0
+NOISE drop 7105 0 0.5 0.0
+NOISE drop 7105 1 0.0 0.0
+NOISE drop 7105 1 0.1 0.0
+NOISE drop 7105 1 0.2 0.0
+NOISE drop 7105 1 0.3 0.0
+NOISE drop 7105 1 0.5 0.0
+NOISE drop 7105 2 0.0 0.0
+NOISE drop 7105 2 0.1 0.0
+NOISE drop 7105 2 0.2 0.0
+NOISE drop 7105 2 0.3 0.0
+NOISE drop 7105 2 0.5 0.0
+END_STAGE 3353 noise/drop/mismatch
+START_STAGE 3353 noise/drop/delete
+NOISE drop 7101 0 0.0 0.0
+NOISE drop 7101 0 0.1 0.0
+NOISE drop 7101 0 0.2 0.0
+NOISE drop 7101 0 0.3 0.0
+NOISE drop 7101 0 0.5 0.0
+NOISE drop 7101 1 0.0 0.0
+NOISE drop 7101 1 0.1 0.0
+NOISE drop 7101 1 0.2 0.0
+NOISE drop 7101 1 0.3 0.0
+NOISE drop 7101 1 0.5 0.0
+NOISE drop 7101 2 0.0 0.0
+NOISE drop 7101 2 0.1 0.0
+NOISE drop 7101 2 0.2 0.0
+NOISE drop 7101 2 0.3 0.0
+NOISE drop 7101 2 0.5 0.0
+NOISE drop 7102 0 0.0 0.0
+NOISE drop 7102 0 0.1 0.0
+NOISE drop 7102 0 0.2 0.0
+NOISE drop 7102 0 0.3 0.0
+NOISE drop 7102 0 0.5 0.0
+NOISE drop 7102 1 0.0 0.0
+NOISE drop 7102 1 0.1 0.0
+NOISE drop 7102 1 0.2 0.0
+NOISE drop 7102 1 0.3 0.0
+NOISE drop 7102 1 0.5 0.0
+NOISE drop 7102 2 0.0 0.0
+NOISE drop 7102 2 0.1 0.0
+NOISE drop 7102 2 0.2 0.0
+NOISE drop 7102 2 0.3 0.0
+NOISE drop 7102 2 0.5 0.0
+NOISE drop 7103 0 0.0 0.0
+NOISE drop 7103 0 0.1 0.0
+NOISE drop 7103 0 0.2 0.0
+NOISE drop 7103 0 0.3 0.0
+NOISE drop 7103 0 0.5 0.0
+NOISE drop 7103 1 0.0 0.0
+NOISE drop 7103 1 0.1 0.0
+NOISE drop 7103 1 0.2 0.0
+NOISE drop 7103 1 0.3 0.0
+NOISE drop 7103 1 0.5 0.0
+NOISE drop 7103 2 0.0 0.0
+NOISE drop 7103 2 0.1 0.0
+NOISE drop 7103 2 0.2 0.0
+NOISE drop 7103 2 0.3 0.0
+NOISE drop 7103 2 0.5 0.0
+NOISE drop 7104 0 0.0 0.0
+NOISE drop 7104 0 0.1 0.0
+NOISE drop 7104 0 0.2 0.0
+NOISE drop 7104 0 0.3 0.0
+NOISE drop 7104 0 0.5 0.0
+NOISE drop 7104 1 0.0 0.0
+NOISE drop 7104 1 0.1 0.0
+NOISE drop 7104 1 0.2 0.0
+NOISE drop 7104 1 0.3 0.0
+NOISE drop 7104 1 0.5 0.0
+NOISE drop 7104 2 0.0 0.0
+NOISE drop 7104 2 0.1 0.0
+NOISE drop 7104 2 0.2 0.0
+NOISE drop 7104 2 0.3 0.0
+NOISE drop 7104 2 0.5 0.0
+NOISE drop 7105 0 0.0 0.0
+NOISE drop 7105 0 0.1 0.0
+NOISE drop 7105 0 0.2 0.0
+NOISE drop 7105 0 0.3 0.0
+NOISE drop 7105 0 0.5 0.0
+NOISE drop 7105 1 0.0 0.0
+NOISE drop 7105 1 0.1 0.0
+NOISE drop 7105 1 0.2 0.0
+NOISE drop 7105 1 0.3 0.0
+NOISE drop 7105 1 0.5 0.0
+NOISE drop 7105 2 0.0 0.0
+NOISE drop 7105 2 0.1 0.0
+NOISE drop 7105 2 0.2 0.0
+NOISE drop 7105 2 0.3 0.0
+NOISE drop 7105 2 0.5 0.0
+END_STAGE 3353 noise/drop/delete
+START_STAGE 3353 noise/mean/mismatch
+NOISE mean 7101 0 0.0 0.0
+NOISE mean 7101 0 0.1 0.0
+NOISE mean 7101 0 0.2 0.0
+NOISE mean 7101 0 0.3 0.0
+NOISE mean 7101 0 0.5 0.0
+NOISE mean 7101 1 0.0 0.0
+NOISE mean 7101 1 0.1 0.0
+NOISE mean 7101 1 0.2 0.0
+NOISE mean 7101 1 0.3 0.0
+NOISE mean 7101 1 0.5 0.0
+NOISE mean 7101 2 0.0 0.0
+NOISE mean 7101 2 0.1 0.0
+NOISE mean 7101 2 0.2 0.0
+NOISE mean 7101 2 0.3 0.0
+NOISE mean 7101 2 0.5 0.0
+NOISE mean 7102 0 0.0 0.0
+NOISE mean 7102 0 0.1 0.0
+NOISE mean 7102 0 0.2 0.0
+NOISE mean 7102 0 0.3 0.0
+NOISE mean 7102 0 0.5 0.0
+NOISE mean 7102 1 0.0 0.0
+NOISE mean 7102 1 0.1 0.0
+NOISE mean 7102 1 0.2 0.0
+NOISE mean 7102 1 0.3 0.0
+NOISE mean 7102 1 0.5 0.0
+NOISE mean 7102 2 0.0 0.0
+NOISE mean 7102 2 0.1 0.0
+NOISE mean 7102 2 0.2 0.0
+NOISE mean 7102 2 0.3 0.0
+NOISE mean 7102 2 0.5 0.0
+NOISE mean 7103 0 0.0 0.0
+NOISE mean 7103 0 0.1 0.0
+NOISE mean 7103 0 0.2 0.0
+NOISE mean 7103 0 0.3 0.0
+NOISE mean 7103 0 0.5 0.0
+NOISE mean 7103 1 0.0 0.0
+NOISE mean 7103 1 0.1 0.0
+NOISE mean 7103 1 0.2 0.0
+NOISE mean 7103 1 0.3 0.0
+NOISE mean 7103 1 0.5 0.0
+NOISE mean 7103 2 0.0 0.0
+NOISE mean 7103 2 0.1 0.0
+NOISE mean 7103 2 0.2 0.0
+NOISE mean 7103 2 0.3 0.0
+NOISE mean 7103 2 0.5 0.0
+NOISE mean 7104 0 0.0 0.0
+NOISE mean 7104 0 0.1 0.0
+NOISE mean 7104 0 0.2 0.0
+NOISE mean 7104 0 0.3 0.0
+NOISE mean 7104 0 0.5 0.0
+NOISE mean 7104 1 0.0 0.0
+NOISE mean 7104 1 0.1 0.0
+NOISE mean 7104 1 0.2 0.0
+NOISE mean 7104 1 0.3 0.0
+NOISE mean 7104 1 0.5 0.0
+NOISE mean 7104 2 0.0 0.0
+NOISE mean 7104 2 0.1 0.0
+NOISE mean 7104 2 0.2 0.0
+NOISE mean 7104 2 0.3 0.0
+NOISE mean 7104 2 0.5 0.0
+NOISE mean 7105 0 0.0 0.0
+NOISE mean 7105 0 0.1 0.0
+NOISE mean 7105 0 0.2 0.0
+NOISE mean 7105 0 0.3 0.0
+NOISE mean 7105 0 0.5 0.0
+NOISE mean 7105 1 0.0 0.0
+NOISE mean 7105 1 0.1 0.0
+NOISE mean 7105 1 0.2 0.0
+NOISE mean 7105 1 0.3 0.0
+NOISE mean 7105 1 0.5 0.0
+NOISE mean 7105 2 0.0 0.0
+NOISE mean 7105 2 0.1 0.0
+NOISE mean 7105 2 0.2 0.0
+NOISE mean 7105 2 0.3 0.0
+NOISE mean 7105 2 0.5 0.0
+END_STAGE 3353 noise/mean/mismatch
+START_STAGE 3353 noise/mean/delete
+NOISE mean 7101 0 0.0 0.0
+NOISE mean 7101 0 0.1 0.0
+NOISE mean 7101 0 0.2 0.0
+NOISE mean 7101 0 0.3 0.0
+NOISE mean 7101 0 0.5 0.0
+NOISE mean 7101 1 0.0 0.0
+NOISE mean 7101 1 0.1 0.0
+NOISE mean 7101 1 0.2 0.0
+NOISE mean 7101 1 0.3 0.0
+NOISE mean 7101 1 0.5 0.0
+NOISE mean 7101 2 0.0 0.0
+NOISE mean 7101 2 0.1 0.0
+NOISE mean 7101 2 0.2 0.0
+NOISE mean 7101 2 0.3 0.0
+NOISE mean 7101 2 0.5 0.0
+NOISE mean 7102 0 0.0 0.0
+NOISE mean 7102 0 0.1 0.0
+NOISE mean 7102 0 0.2 0.0
+NOISE mean 7102 0 0.3 0.0
+NOISE mean 7102 0 0.5 0.0
+NOISE mean 7102 1 0.0 0.0
+NOISE mean 7102 1 0.1 0.0
+NOISE mean 7102 1 0.2 0.0
+NOISE mean 7102 1 0.3 0.0
+NOISE mean 7102 1 0.5 0.0
+NOISE mean 7102 2 0.0 0.0
+NOISE mean 7102 2 0.1 0.0
+NOISE mean 7102 2 0.2 0.0
+NOISE mean 7102 2 0.3 0.0
+NOISE mean 7102 2 0.5 0.0
+NOISE mean 7103 0 0.0 0.0
+NOISE mean 7103 0 0.1 0.0
+NOISE mean 7103 0 0.2 0.0
+NOISE mean 7103 0 0.3 0.0
+NOISE mean 7103 0 0.5 0.0
+NOISE mean 7103 1 0.0 0.0
+NOISE mean 7103 1 0.1 0.0
+NOISE mean 7103 1 0.2 0.0
+NOISE mean 7103 1 0.3 0.0
+NOISE mean 7103 1 0.5 0.0
+NOISE mean 7103 2 0.0 0.0
+NOISE mean 7103 2 0.1 0.0
+NOISE mean 7103 2 0.2 0.0
+NOISE mean 7103 2 0.3 0.0
+NOISE mean 7103 2 0.5 0.0
+NOISE mean 7104 0 0.0 0.0
+NOISE mean 7104 0 0.1 0.0
+NOISE mean 7104 0 0.2 0.0
+NOISE mean 7104 0 0.3 0.0
+NOISE mean 7104 0 0.5 0.0
+NOISE mean 7104 1 0.0 0.0
+NOISE mean 7104 1 0.1 0.0
+NOISE mean 7104 1 0.2 0.0
+NOISE mean 7104 1 0.3 0.0
+NOISE mean 7104 1 0.5 0.0
+NOISE mean 7104 2 0.0 0.0
+NOISE mean 7104 2 0.1 0.0
+NOISE mean 7104 2 0.2 0.0
+NOISE mean 7104 2 0.3 0.0
+NOISE mean 7104 2 0.5 0.0
+NOISE mean 7105 0 0.0 0.0
+NOISE mean 7105 0 0.1 0.0
+NOISE mean 7105 0 0.2 0.0
+NOISE mean 7105 0 0.3 0.0
+NOISE mean 7105 0 0.5 0.0
+NOISE mean 7105 1 0.0 0.0
+NOISE mean 7105 1 0.1 0.0
+NOISE mean 7105 1 0.2 0.0
+NOISE mean 7105 1 0.3 0.0
+NOISE mean 7105 1 0.5 0.0
+NOISE mean 7105 2 0.0 0.0
+NOISE mean 7105 2 0.1 0.0
+NOISE mean 7105 2 0.2 0.0
+NOISE mean 7105 2 0.3 0.0
+NOISE mean 7105 2 0.5 0.0
+END_STAGE 3353 noise/mean/delete
+START_STAGE 3353 noise/robust/mismatch
+NOISE robust 7101 0 0.0 0.0
+NOISE robust 7101 0 0.1 0.0
+NOISE robust 7101 0 0.2 0.0
+NOISE robust 7101 0 0.3 0.0
+NOISE robust 7101 0 0.5 0.0
+NOISE robust 7101 1 0.0 0.0
+NOISE robust 7101 1 0.1 0.0
+NOISE robust 7101 1 0.2 0.0
+NOISE robust 7101 1 0.3 0.0
+NOISE robust 7101 1 0.5 0.0
+NOISE robust 7101 2 0.0 0.0
+NOISE robust 7101 2 0.1 0.0
+NOISE robust 7101 2 0.2 0.0
+NOISE robust 7101 2 0.3 0.0
+NOISE robust 7101 2 0.5 0.0
+NOISE robust 7102 0 0.0 0.0
+NOISE robust 7102 0 0.1 0.0
+NOISE robust 7102 0 0.2 0.0
+NOISE robust 7102 0 0.3 0.0
+NOISE robust 7102 0 0.5 0.0
+NOISE robust 7102 1 0.0 0.0
+NOISE robust 7102 1 0.1 0.0
+NOISE robust 7102 1 0.2 0.0
+NOISE robust 7102 1 0.3 0.0
+NOISE robust 7102 1 0.5 0.0
+NOISE robust 7102 2 0.0 0.0
+NOISE robust 7102 2 0.1 0.0
+NOISE robust 7102 2 0.2 0.0
+NOISE robust 7102 2 0.3 0.0
+NOISE robust 7102 2 0.5 0.0
+NOISE robust 7103 0 0.0 0.0
+NOISE robust 7103 0 0.1 0.0
+NOISE robust 7103 0 0.2 0.0
+NOISE robust 7103 0 0.3 0.0
+NOISE robust 7103 0 0.5 0.0
+NOISE robust 7103 1 0.0 0.0
+NOISE robust 7103 1 0.1 0.0
+NOISE robust 7103 1 0.2 0.0
+NOISE robust 7103 1 0.3 0.0
+NOISE robust 7103 1 0.5 0.0
+NOISE robust 7103 2 0.0 0.0
+NOISE robust 7103 2 0.1 0.0
+NOISE robust 7103 2 0.2 0.0
+NOISE robust 7103 2 0.3 0.0
+NOISE robust 7103 2 0.5 0.0
+NOISE robust 7104 0 0.0 0.0
+NOISE robust 7104 0 0.1 0.0
+NOISE robust 7104 0 0.2 0.0
+NOISE robust 7104 0 0.3 0.0
+NOISE robust 7104 0 0.5 0.0
+NOISE robust 7104 1 0.0 0.0
+NOISE robust 7104 1 0.1 0.0
+NOISE robust 7104 1 0.2 0.0
+NOISE robust 7104 1 0.3 0.0
+NOISE robust 7104 1 0.5 0.0
+NOISE robust 7104 2 0.0 0.0
+NOISE robust 7104 2 0.1 0.0
+NOISE robust 7104 2 0.2 0.0
+NOISE robust 7104 2 0.3 0.0
+NOISE robust 7104 2 0.5 0.0
+NOISE robust 7105 0 0.0 0.0
+NOISE robust 7105 0 0.1 0.0
+NOISE robust 7105 0 0.2 0.0
+NOISE robust 7105 0 0.3 0.0
+NOISE robust 7105 0 0.5 0.0
+NOISE robust 7105 1 0.0 0.0
+NOISE robust 7105 1 0.1 0.0
+NOISE robust 7105 1 0.2 0.0
+NOISE robust 7105 1 0.3 0.0
+NOISE robust 7105 1 0.5 0.0
+NOISE robust 7105 2 0.0 0.0
+NOISE robust 7105 2 0.1 0.0
+NOISE robust 7105 2 0.2 0.0
+NOISE robust 7105 2 0.3 0.0
+NOISE robust 7105 2 0.5 0.0
+END_STAGE 3353 noise/robust/mismatch
+START_STAGE 3353 noise/robust/delete
+NOISE robust 7101 0 0.0 0.0
+NOISE robust 7101 0 0.1 0.0
+NOISE robust 7101 0 0.2 0.0
+NOISE robust 7101 0 0.3 0.0
+NOISE robust 7101 0 0.5 0.0
+NOISE robust 7101 1 0.0 0.0
+NOISE robust 7101 1 0.1 0.0
+NOISE robust 7101 1 0.2 0.0
+NOISE robust 7101 1 0.3 0.0
+NOISE robust 7101 1 0.5 0.0
+NOISE robust 7101 2 0.0 0.0
+NOISE robust 7101 2 0.1 0.0
+NOISE robust 7101 2 0.2 0.0
+NOISE robust 7101 2 0.3 0.0
+NOISE robust 7101 2 0.5 0.0
+NOISE robust 7102 0 0.0 0.0
+NOISE robust 7102 0 0.1 0.0
+NOISE robust 7102 0 0.2 0.0
+NOISE robust 7102 0 0.3 0.0
+NOISE robust 7102 0 0.5 0.0
+NOISE robust 7102 1 0.0 0.0
+NOISE robust 7102 1 0.1 0.0
+NOISE robust 7102 1 0.2 0.0
+NOISE robust 7102 1 0.3 0.0
+NOISE robust 7102 1 0.5 0.0
+NOISE robust 7102 2 0.0 0.0
+NOISE robust 7102 2 0.1 0.0
+NOISE robust 7102 2 0.2 0.0
+NOISE robust 7102 2 0.3 0.0
+NOISE robust 7102 2 0.5 0.0
+NOISE robust 7103 0 0.0 0.0
+NOISE robust 7103 0 0.1 0.0
+NOISE robust 7103 0 0.2 0.0
+NOISE robust 7103 0 0.3 0.0
+NOISE robust 7103 0 0.5 0.0
+NOISE robust 7103 1 0.0 0.0
+NOISE robust 7103 1 0.1 0.0
+NOISE robust 7103 1 0.2 0.0
+NOISE robust 7103 1 0.3 0.0
+NOISE robust 7103 1 0.5 0.0
+NOISE robust 7103 2 0.0 0.0
+NOISE robust 7103 2 0.1 0.0
+NOISE robust 7103 2 0.2 0.0
+NOISE robust 7103 2 0.3 0.0
+NOISE robust 7103 2 0.5 0.0
+NOISE robust 7104 0 0.0 0.0
+NOISE robust 7104 0 0.1 0.0
+NOISE robust 7104 0 0.2 0.0
+NOISE robust 7104 0 0.3 0.0
+NOISE robust 7104 0 0.5 0.0
+NOISE robust 7104 1 0.0 0.0
+NOISE robust 7104 1 0.1 0.0
+NOISE robust 7104 1 0.2 0.0
+NOISE robust 7104 1 0.3 0.0
+NOISE robust 7104 1 0.5 0.0
+NOISE robust 7104 2 0.0 0.0
+NOISE robust 7104 2 0.1 0.0
+NOISE robust 7104 2 0.2 0.0
+NOISE robust 7104 2 0.3 0.0
+NOISE robust 7104 2 0.5 0.0
+NOISE robust 7105 0 0.0 0.0
+NOISE robust 7105 0 0.1 0.0
+NOISE robust 7105 0 0.2 0.0
+NOISE robust 7105 0 0.3 0.0
+NOISE robust 7105 0 0.5 0.0
+NOISE robust 7105 1 0.0 0.0
+NOISE robust 7105 1 0.1 0.0
+NOISE robust 7105 1 0.2 0.0
+NOISE robust 7105 1 0.3 0.0
+NOISE robust 7105 1 0.5 0.0
+NOISE robust 7105 2 0.0 0.0
+NOISE robust 7105 2 0.1 0.0
+NOISE robust 7105 2 0.2 0.0
+NOISE robust 7105 2 0.3 0.0
+NOISE robust 7105 2 0.5 0.0
+END_STAGE 3353 noise/robust/delete
+START_STAGE 3353 readout/mean_graph
+END_STAGE 3353 readout/mean_graph
+START_STAGE 3353 readout/mean_logit
+END_STAGE 3353 readout/mean_logit
+SEED_COMPLETE 3353 stages 38
+REPORT C:\Users\llenovo\AppData\Local\Temp\trust_strong_full_sku5zwwx\work\summary.csv
+STATUS 114 / 114 metrics 30 /30 noise 1800 /1800 complete True
+REUSE_STAGE main/teachers
+REUSE_STAGE main/measure
+REUSE_STAGE main/fit
+REUSE_STAGE main/audit
+REUSE_STAGE main/tune
+REUSE_STAGE main/fit_all
+REUSE_STAGE main/reference
+REUSE_STAGE main/structure
+REUSE_STAGE main/adapt_r0
+REUSE_STAGE main/adapt_capacity
+REUSE_STAGE main/adapt_dense
+REUSE_STAGE main/adapt_drop
+REUSE_STAGE main/adapt_free
+REUSE_STAGE main/adapt_mean
+REUSE_STAGE main/adapt_robust
+REUSE_STAGE shuffled/teachers
+REUSE_STAGE shuffled/measure
+REUSE_STAGE shuffled/fit
+REUSE_STAGE shuffled/audit
+REUSE_STAGE shuffled/tune
+REUSE_STAGE shuffled/fit_all
+REUSE_STAGE shuffled/reference
+REUSE_STAGE shuffled/structure
+REUSE_STAGE shuffled/adapt_shuffled
+REUSE_STAGE semantic/fit
+REUSE_STAGE semantic/audit
+REUSE_STAGE unmeasured/fit
+REUSE_STAGE unmeasured/audit
+REUSE_STAGE noise/dense/mismatch
+REUSE_STAGE noise/dense/delete
+REUSE_STAGE noise/drop/mismatch
+REUSE_STAGE noise/drop/delete
+REUSE_STAGE noise/mean/mismatch
+REUSE_STAGE noise/mean/delete
+REUSE_STAGE noise/robust/mismatch
+REUSE_STAGE noise/robust/delete
+REUSE_STAGE readout/mean_graph
+REUSE_STAGE readout/mean_logit
+SEED_COMPLETE 3351 stages 38
+FULL_SYNTHETIC_QUEUE_PASSED {'completed_stages': 114, 'expected_stages': 114, 'metrics': 30, 'expected_metrics': 30, 'utility_audits': 12, 'expected_utility_audits': 12, 'noise_rows': 1800, 'expected_noise_rows': 1800, 'missing': [], 'complete': True}

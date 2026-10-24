@@ -1,0 +1,30 @@
+exec(open(__file__.replace('strong_extra_checks.py','analyze_strong_v1.py'),encoding='utf-8').read().split("out={'status'")[0])
+a=rd(OUT/'analysis.json'); result={'sample_order':[],'heldout_controls':{},'selection':[],'residuals':{}}
+for seed in [3351,3352,3353]:
+    folder=WORK/f'seed{seed}';bank=pt(folder/'runs/robust/bank.pt');types=bank['types'].numpy()
+    held=rd(WORK/f'unmeasured{seed}/utility/selection.json')['heldout_edges']
+    fit=[pt(folder/'measurements'/f'fold{j}.pt') for j in [1,2,3]]
+    yf=torch.cat([f['y'] for f in fit]).numpy();ef=torch.cat([f['edge'] for f in fit]).numpy();nf=torch.cat([f['noise'] for f in fit]).numpy()
+    keep=~np.isin(ef,held);yf,ef,nf=yf[keep],ef[keep],nf[keep]
+    tm=np.array([yf[types[ef]==t].mean() for t in range(3)])
+    tv=np.array([max(1e-8,yf[types[ef]==t].var()-nf[types[ef]==t].mean()) for t in range(3)])
+    pred=pt(WORK/f'unmeasured{seed}/utility/audit_predictions.pt');edge=pred['edge'].numpy();mask=np.isin(edge,held)
+    result['heldout_controls'][str(seed)]=regression_metrics(tm[types[edge]][mask],tv[types[edge]][mask],pred['target'][mask],pred['noise'][mask])
+    for v in ['capacity','dense','drop','free','mean','robust']:
+        p=folder/'runs'/v;hist=rd(p/'history.json');st=pt(p/'best.pt');ref=pt(folder/('reference_capacity' if v=='capacity' else 'reference')/'last.pt')
+        result['selection'].append({'seed':seed,'variant':v,'epochs_completed':len(hist),'best_epoch':st['epoch'],'best_val':st['val']['cw']['AUC_native'],'max_saved_training_val':max(x['val']['cw']['AUC_native'] for x in hist),'selected_is_best':st['val']['cw']['AUC_native']>=max(x['val']['cw']['AUC_native'] for x in hist),'epoch0_weights_match':all(torch.equal(st['model'][k],x) for k,x in ref['model'].items()) if st['epoch']==0 else None})
+        base=np.load(folder/'runs/r0/test_predictions.npz');predictions=np.load(p/'test_predictions.npz')
+        diff=predictions['joint']-base['joint']
+        result['residuals'][f'{seed}_{v}']={'mean_abs_joint_logprob_change':float(np.abs(diff).mean()),'rms_joint_logprob_change':float(np.sqrt((diff**2).mean())),'best_pi':st['pi'].tolist(),'last_pi':pt(p/'last.pt')['pi'].tolist()}
+    for phase in ['val','test']:
+        base=np.load(folder/f'runs/r0/{phase}_predictions.npz');base_records=rd(folder/f'runs/r0/{phase}_records.json')
+        for p in WORK.rglob(f'{phase}_predictions.npz'):
+            m=rd(p.parent/'metrics.json')
+            if m['seed']!=seed:continue
+            q=np.load(p)
+            ok=all(np.array_equal(q[k],base[k]) for k in ['attrs','objs','cw_candidate_ids','ow_candidate_ids','cw_truth','ow_truth','cw_seen','ow_seen'])
+            result['sample_order'].append({'seed':seed,'variant':m['variant'],'phase':phase,'matches':ok and rd(p.parent/f'{phase}_records.json')==base_records})
+(OUT/'additional_checks.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+print('HELDOUT',result['heldout_controls'])
+print('SAMPLE_ALIGNMENT',all(x['matches'] for x in result['sample_order']),len(result['sample_order']))
+print('SELECTION',result['selection'])

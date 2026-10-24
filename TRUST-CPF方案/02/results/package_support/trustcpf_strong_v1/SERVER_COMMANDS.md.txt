@@ -1,0 +1,149 @@
+# TRUST 强 CPF 基底：上传、完整训练、保存到本地
+
+服务器：`xhw@211.87.232.122`。GPU：**1、2、3**。项目：`trustcpf_strong_v1`。这套命令会运行完整 TRUST 队列，包含三个 seed 的主实验、打乱知识、效用消融、两种读出诊断和全部噪声评价。
+
+## 1. 本机 Windows PowerShell：上传并登录
+
+```powershell
+$cpfServer = "xhw@211.87.232.122"
+$cpfZip = "C:\Users\llenovo\Documents\ChatGPT\USG\output\trustcpf_strong_v1.zip"
+
+ssh $cpfServer 'mkdir -p "$HOME/experiments"'
+if ($LASTEXITCODE -ne 0) { throw "服务器目录创建失败" }
+scp "$cpfZip" "${cpfServer}:~/experiments/trustcpf_strong_v1.zip"
+if ($LASTEXITCODE -ne 0) { throw "上传未完成，请重新执行 scp" }
+scp "${cpfZip}.sha256" "${cpfServer}:~/experiments/trustcpf_strong_v1.zip.sha256"
+if ($LASTEXITCODE -ne 0) { throw "校验文件上传未完成" }
+
+ssh $cpfServer
+```
+
+按提示输入服务器密码。后面第 2—5 节在服务器终端执行。
+
+## 2. 服务器：解压和配置已有环境
+
+```bash
+conda activate vgcpod_v1
+cd "$HOME/experiments"
+sha256sum -c trustcpf_strong_v1.zip.sha256
+python -m zipfile -e trustcpf_strong_v1.zip "$HOME/experiments"
+cd "$HOME/experiments/trustcpf_strong_v1"
+
+python run.py setup --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14
+source scripts/env.sh
+"$CPF_PY" -c 'import torch; print("torch:", torch.__version__, "CUDA:", torch.cuda.is_available()); print("GPUs:", torch.cuda.device_count())'
+"$CPF_PY" -m unittest discover -s tests -v
+```
+
+`setup` 验证 G0 的 `g.npy`、TRUST 局部上下文 `fo.npy`、文本和样本映射，并保存当前 Python、缓存和 work 的绝对路径。代码包包含三个 G0 权重及 96 条关系的 CLIP 向量，无需重新执行 features/graph。
+
+如果缓存曾移动，将 `--cache` 后的路径替换为它现在的位置。服务器现有 Python3.8/PyTorch1.13 环境可使用本包，无需更换环境或安装另一套 PyTorch。
+
+单元测试使用合成特征和随包的 G0 权重；其中打印的合成 AUC 不代表 UT 正式结果。
+
+## 3. 服务器：一次启动 GPU 1、2、3 的完整队列
+
+```bash
+cd "$HOME/experiments/trustcpf_strong_v1"
+mkdir -p logs
+nohup bash scripts/run_all.sh >> logs/queue.log 2>&1 &
+echo $! > logs/queue.pid
+tail -f logs/queue.log
+```
+
+分配固定为 GPU1→3351、GPU2→3352、GPU3→3353；每张卡自动完成该 seed 的全部实验。进程内的 `cuda:0` 是其 `CUDA_VISIBLE_DEVICES` 指定的物理卡。
+
+查看详细进度，在另一个服务器终端执行：
+
+```bash
+cd "$HOME/experiments/trustcpf_strong_v1"
+tail -f logs/seed3351.log logs/seed3352.log logs/seed3353.log
+```
+
+查看 GPU 和进程：
+
+```bash
+nvidia-smi
+pgrep -af 'run.py run-seed'
+```
+
+`Ctrl+C` 结束 `tail` 查看，后台队列继续。每完成一个阶段会打印 `END_STAGE`。主实验之后继续自动跑 shuffled、效用消融、噪声和读出，出现某个 `ADAPT_COMPLETE` 还不是整轮结束。
+
+## 4. 服务器：完整性检查、恢复、结果表
+
+```bash
+cd "$HOME/experiments/trustcpf_strong_v1"
+source scripts/env.sh
+"$CPF_PY" run.py status --work "$CPF_WORK"
+tail -n 15 logs/queue.log
+```
+
+完整结束对应：
+
+```text
+STATUS 114 / 114 metrics 30 /30 noise 1800 /1800 complete True
+QUEUE_COMPLETE
+```
+
+另外 `work/status.json` 中应有 `utility_audits: 12`。30 份结果包括 24 份主/打乱模型结果和 6 份固定权重读出诊断。
+
+队列异常中断后，重新执行第 3 节同一启动命令。已完成阶段跳过；分类训练从最近完整 epoch 恢复，五折测量按折复用，噪声从尚未完成的条件继续。同一队列运行时再次启动会被锁阻止，日志使用追加写入。
+
+汇总和查看：
+
+```bash
+cd "$HOME/experiments/trustcpf_strong_v1"
+source scripts/env.sh
+"$CPF_PY" run.py report --work "$CPF_WORK"
+cat "$CPF_WORK/aggregates.json"
+cat "$CPF_WORK/paired_comparisons.json"
+cat "$CPF_WORK/seed3351/utility/audit.json"
+cat "$CPF_WORK/seed3351/tuning.json"
+```
+
+## 5. 服务器：打包全部结果
+
+```bash
+cd "$HOME/experiments/trustcpf_strong_v1"
+bash scripts/pack_results.sh
+cat latest_archive.txt
+```
+
+完整性检查通过后打包。包含代码、配置、G0 初始权重、全部教师/效用/适配权重、配对测量、日志、审计、噪声结果与主模型预测；不重复打包 CLIP 图像缓存。文件名带北京时间时间戳，包内路径全部采用 ASCII。
+
+## 6. 本机 Windows PowerShell：下载、校验、解压
+
+新开本机 PowerShell，执行整个代码块：
+
+```powershell
+$cpfServer = "xhw@211.87.232.122"
+$cpfLocal = "C:\Users\llenovo\Documents\ChatGPT\USG"
+$cpfPython = "C:\Users\llenovo\anaconda3\envs\ai-lab\python.exe"
+$cpfProject = Join-Path $cpfLocal "trustcpf_strong_v1"
+
+$cpfRemoteReply = ssh $cpfServer 'cat "$HOME/experiments/trustcpf_strong_v1/latest_archive.txt"'
+if ($LASTEXITCODE -ne 0 -or $null -eq $cpfRemoteReply) { throw "请先在服务器执行结果打包" }
+$cpfRemoteArchive = ($cpfRemoteReply -join "`n").Trim()
+$cpfArchiveName = ($cpfRemoteArchive -split '/')[-1]
+$cpfLocalArchive = Join-Path $cpfLocal $cpfArchiveName
+
+scp -o ServerAliveInterval=30 -o ServerAliveCountMax=6 "${cpfServer}:$cpfRemoteArchive" "$cpfLocalArchive"
+if ($LASTEXITCODE -ne 0) { throw "下载中断，请重新执行本节" }
+scp -o ServerAliveInterval=30 "${cpfServer}:${cpfRemoteArchive}.sha256" "${cpfLocalArchive}.sha256"
+if ($LASTEXITCODE -ne 0) { throw "校验文件下载未完成" }
+
+$cpfExpectedHash = ((Get-Content -LiteralPath "${cpfLocalArchive}.sha256" -Raw) -split '\s+')[0]
+$cpfActualHash = (Get-FileHash -LiteralPath $cpfLocalArchive -Algorithm SHA256).Hash
+if ($cpfActualHash -ine $cpfExpectedHash) { throw "SHA256不一致，请重新下载" }
+
+$cpfExtract = Join-Path $cpfLocal ($cpfArchiveName -replace '\.tar\.gz$', '')
+& $cpfPython "$cpfProject\scripts\extract_results.py" "$cpfLocalArchive" "$cpfExtract"
+if ($LASTEXITCODE -ne 0) { throw "解压失败" }
+
+Write-Host "完整结果：$cpfExtract\trustcpf_strong_v1\work"
+Get-Content -LiteralPath "$cpfExtract\trustcpf_strong_v1\work\status.json"
+```
+
+解压使用 Python 的 UTF-8 tar 支持，避开此前 Windows tar 的中文路径问题；下载后首先验证 SHA256。重新执行 scp 会重传该文件，不会续传残缺文件。
+
+本次交付时服务器免密认证未通过，尚未启动正式 UT 队列；以上命令在你输入密码后即可完成上传和启动。代码已经在本机跑通完整合成队列，验证状态随包保存。

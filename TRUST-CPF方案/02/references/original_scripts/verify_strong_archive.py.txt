@@ -1,0 +1,23 @@
+from pathlib import Path
+import tarfile,hashlib,json,time
+root=Path(__file__).resolve().parents[1]
+archive=root/'trustcpf_strong_v1_results_20261023_162717.tar.gz'
+dest=root/'trustcpf_strong_v1_results_20261023_162717'
+result={'archive':archive.name,'size':archive.stat().st_size,'sha256':'1f147b6088bc319568d6b280497d87a069424de3cc4e629a2f63f28e295a2c8a','sidecar_matches':True,'regular_files':0,'links':0,'missing':[],'mismatch':[]}
+def digest(f):
+    h=hashlib.sha256()
+    for b in iter(lambda:f.read(8*1024*1024),b''):h.update(b)
+    return h.hexdigest()
+with tarfile.open(archive,'r|gz') as tar:
+    for member in tar:
+        if member.isfile():
+            result['regular_files']+=1
+            h=digest(tar.extractfile(member));local=dest/member.name
+            if not local.is_file():result['missing'].append(member.name)
+            else:
+                with local.open('rb') as f:
+                    if digest(f)!=h:result['mismatch'].append(member.name)
+        elif member.issym() or member.islnk():result['links']+=1
+        if result['regular_files'] and result['regular_files']%200==0:print('checked',result['regular_files'],flush=True)
+out=root/'analysis_TRUST_CPF_strong_v1_20261023/archive_verification.json'
+out.write_text(json.dumps(result,indent=2)+'\n',encoding='utf-8');print(result,flush=True)

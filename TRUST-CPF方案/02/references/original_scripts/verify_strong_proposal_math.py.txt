@@ -1,0 +1,37 @@
+from pathlib import Path
+import torch,json
+torch.set_num_threads(1)
+root=Path(__file__).resolve().parents[1]
+work=root/'trustcpf_strong_v1_results_20261023_162717/trustcpf_strong_v1/work'
+result={}
+g=torch.Generator().manual_seed(3351)
+jm=torch.randn(64,83,dtype=torch.float64,generator=g)
+jp=jm+.2*torch.randn(64,83,dtype=torch.float64,generator=g)
+y=torch.randint(83,(64,),generator=g);row=torch.arange(64);delta=jp-jm
+exact=jp.log_softmax(-1)[row,y]-jm.log_softmax(-1)[row,y]
+formula=delta[row,y]-(jm.log_softmax(-1)+delta).logsumexp(-1)
+result['support_effect_max_abs_error']=float((exact-formula).abs().max())
+result['equality_recovery']={}
+for seed in [3351,3352,3353]:
+    st=torch.load(work/f'seed{seed}/structure.pt',weights_only=False,map_location='cpu')
+    cfg=json.loads((work/f'seed{seed}/structure.json').read_text())['parameters']
+    bank=torch.load(work/f'seed{seed}/runs/robust/bank.pt',weights_only=False,map_location='cpu')
+    r=st['reward'].double();pi=st['pi'].double();types=bank['types'];tau=cfg['tau_absolute']
+    recovered=pi.clone()
+    for ty in range(3):
+        mask=types==ty;target=pi[mask].sum()
+        lo=float(r[mask].min()-100*tau);hi=float(r[mask].max()+100*tau)
+        for _ in range(100):
+            gamma=(lo+hi)/2
+            if torch.sigmoid((r[mask]-gamma)/tau).sum()>target:lo=gamma
+            else:hi=gamma
+        recovered[mask]=torch.sigmoid((r[mask]-(lo+hi)/2)/tau)
+    result['equality_recovery'][str(seed)]={'max_probability_error':float((pi-recovered).abs().max()),'max_budget_error':max(abs(float((pi[types==ty]-recovered[types==ty]).sum())) for ty in range(3))}
+assert result['support_effect_max_abs_error']<1e-12
+assert all(v['max_probability_error']<1e-6 for v in result['equality_recovery'].values())
+report=root/'output/TRUST-CPF_强基底完整结果分析与下一步实验方向_20261023.md'
+text=report.read_text(encoding='utf-8')
+result['control_characters']=[(i,ord(c)) for i,c in enumerate(text) if ord(c)<32 and c not in '\n\r\t']
+assert not result['control_characters']
+(root/'analysis_TRUST_CPF_strong_v1_20261023/proposal_math_validation.json').write_text(json.dumps(result,indent=2)+'\n',encoding='utf-8')
+print(result)

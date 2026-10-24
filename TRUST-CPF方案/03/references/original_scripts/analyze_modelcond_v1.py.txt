@@ -1,0 +1,178 @@
+import sys,json,hashlib,tarfile,itertools,collections
+from pathlib import Path
+import numpy as np
+import torch
+R=Path(__file__).resolve().parents[1]
+P=R/'trustcpf_modelcond_v1_results_20261023_205829/trustcpf_modelcond_v1'
+OLD=R/'trustcpf_strong_v1_results_20261023_162717/trustcpf_strong_v1'
+W=P/'work';O=R/'analysis_TRUST_CPF_modelcond_v1_20261023';O.mkdir(exist_ok=True)
+sys.path.insert(0,str(P));torch.set_num_threads(2)
+from trustcpf.metrics import native_curve,exact_curve
+from trustcpf.engine import calibration_metrics
+from trustcpf.utility import regression_metrics,average_rank
+SEEDS=[3351,3352,3353];TYPES=['OI','OE','AE']
+def rd(p):return json.loads(Path(p).read_text(encoding='utf-8-sig'))
+def pt(p):return torch.load(p,map_location='cpu',weights_only=False,mmap=True)
+def sha(p):
+    h=hashlib.sha256()
+    with Path(p).open('rb') as f:
+        for b in iter(lambda:f.read(4*1024*1024),b''):h.update(b)
+    return h.hexdigest()
+def corr(x,y):
+    x,y=average_rank(x),average_rank(y)
+    return float(np.corrcoef(x,y)[0,1]) if x.std()>0 and y.std()>0 else 0.
+def stat(x):
+    a=np.asarray(x,dtype=float)
+    return dict(values=a.tolist(),mean=float(a.mean()),sd=float(a.std(ddof=1)) if len(a)>1 else None)
+def save(name,x):(O/name).write_text(json.dumps(x,ensure_ascii=False,indent=2,allow_nan=False)+'\n',encoding='utf8')
+
+descriptor=rd(R/'trustcpf_modelcond_v1_download.json')
+archive=R/descriptor['name'];archive_hash=sha(archive)
+archive_check=dict(bytes=archive.stat().st_size,sha256=archive_hash,
+                   descriptor_matches=archive_hash==descriptor['sha256'] and archive.stat().st_size==descriptor['bytes'])
+member_errors=[];members=0
+with tarfile.open(archive,encoding='utf8') as t:
+    for member in t:
+        if not member.isfile():continue
+        members+=1;target=P.parent/member.name;f=t.extractfile(member);h=hashlib.sha256()
+        for b in iter(lambda:f.read(4*1024*1024),b''):h.update(b)
+        if not target.is_file() or sha(target)!=h.hexdigest():member_errors.append(member.name)
+archive_check.update(files=members,mismatches=member_errors)
+manifest=rd(P/'MANIFEST.json')
+archive_check['release_files']=len(manifest)
+archive_check['release_mismatches']=[f for f,h in manifest.items() if sha(P/f)!=h]
+save('archive_verification.json',archive_check)
+print('ARCHIVE',json.dumps(archive_check),flush=True)
+out=dict(status=rd(W/'status.json'),archive=archive_check)
+
+records={};metric_errors=[];diffs=[];axes_errors=[];backbones=[];controls=[];diagnostics=[];histories={}
+for s in SEEDS:
+    for variant in ['drop','original','conditioned']:
+        d=W/f'seed{s}'/'runs'/variant;m=rd(d/'metrics.json');records[s,variant]=m
+        labels=rd(d/'prediction_axes.json');na=len(labels['attrs']);no=len(labels['objs'])
+        histories[f'{s}/{variant}']=rd(d/'history.json')
+        oldd=OLD/'work'/f'seed{s}'/'runs'/('robust' if variant=='original' else variant)
+        if variant!='conditioned':
+            controls.append(dict(seed=s,variant=variant,mismatches=[f for f in ['best.pt','last.pt','bank.pt','val_predictions.npz','test_predictions.npz'] if sha(d/f)!=sha(oldd/f)]))
+        model=pt(d/'best.pt');base=pt(P/'initial'/f'g0_seed{s}.pt')['model']
+        backbones.append(dict(seed=s,variant=variant,changed=[k for k,v in base.items() if not torch.equal(v,model['model']['backbone.'+k])]))
+        for phase in ['val','test']:
+            with np.load(d/(phase+'_predictions.npz')) as a,np.load(W/f'seed{s}'/'runs/drop'/(phase+'_predictions.npz')) as reference:
+                for key in ['attrs','objs','cw_truth','cw_seen','cw_candidate_ids','ow_truth','ow_seen','ow_candidate_ids']:
+                    if not np.array_equal(a[key],reference[key]):axes_errors.append([s,variant,phase,key])
+                if rd(d/(phase+'_records.json'))!=rd(W/f'seed{s}'/'runs/drop'/(phase+'_records.json')):axes_errors.append([s,variant,phase,'records'])
+                for world in ['cw','ow']:
+                    z,y,seen=[a[world+k] for k in ['_logprob','_truth','_seen']]
+                    n=native_curve(z,y,seen);e=exact_curve(z,y,seen)
+                    for key,val in [('AUC_native',n['AUC']),('AUC_exact',e['AUC']),('HM_oracle_native',n['best_hm']),('HM_oracle_exact',e['best_hm'])]:
+                        diff=abs(val-m[phase][world][key]);diffs.append(diff)
+                        if diff>1e-9:metric_errors.append([s,variant,phase,world,key,diff])
+                    for sub,bias,temp in [('unbiased',0,1),('at_val_bias',m['val'][world]['calibrated']['bias'],1),('calibrated',m['val'][world]['calibrated']['bias'],m['val'][world]['calibrated']['temperature'])]:
+                        c=calibration_metrics(z,y,seen,bias,temp)
+                        for key in ['HM','NLL','ECE','seen','unseen']:
+                            diff=abs(c[key]-m[phase][world][sub][key]);diffs.append(diff)
+                            if diff>1e-9:metric_errors.append([s,variant,phase,world,sub,key,diff])
+                if phase=='test':
+                    joint=a['joint'];row=np.arange(len(joint));attrs=a['attrs'];objs=a['objs']
+                    unseen=~a['cw_seen'][a['cw_truth']];trueobj=joint[row,objs];predattr=trueobj.argmax(-1)
+                    ids=a['cw_candidate_ids'];useenids=ids[~a['cw_seen']];valid=objs[:,None]==(useenids//na)[None,:]
+                    score=joint.reshape(len(joint),-1)[:,useenids].copy();score[~valid]=-np.inf
+                    predpair=useenids[score.argmax(-1)];multi=unseen&(valid.sum(-1)>1)
+                    wrong=unseen&(predattr!=attrs);seenids=set(ids[a['cw_seen']].tolist())
+                    diagnostics.append(dict(seed=s,variant=variant,unseen_images=int(unseen.sum()),multi_images=int(multi.sum()),
+                        full_attr_acc=float((predattr[unseen]==attrs[unseen]).mean()*100),
+                        multi_unseen_attr_acc=float((predpair[multi]==(objs*na+attrs)[multi]).mean()*100),
+                        attr_errors=int(wrong.sum()),wrong_seen_attachment=sum(int(v) in seenids for v in (objs*na+predattr)[wrong]),
+                        changed_attr_vs_drop=int((predattr[unseen]!=reference['joint'][row,objs].argmax(-1)[unseen]).sum())))
+    print('METRICS_VERIFIED',s,flush=True)
+out['prediction_verification']=dict(files=18,scalar_checks=len(diffs),max_error=max(diffs),errors=metric_errors,axes_errors=axes_errors)
+out.update(backbones=backbones,reused_controls=controls,histories=histories,conditional=diagnostics)
+oldanalysis=rd(R/'analysis_TRUST_CPF_strong_v1_20261023/analysis.json')
+summary={}
+for variant in ['drop','original','conditioned']:
+    summary[variant]={}
+    for world in ['cw','ow']:
+        summary[variant][world]={}
+        for name,keys in dict(auc=['AUC_native'],exact=['AUC_exact'],hm=['at_val_bias','HM'],nll=['calibrated','NLL'],ece=['calibrated','ECE'],gtattr=['gt_object_attr_acc_unseen']).items():
+            vals=[]
+            for s in SEEDS:
+                v=records[s,variant]['test'][world]
+                for k in keys:v=v[k]
+                vals.append(v)
+            summary[variant][world][name]=stat(vals)
+for v in ['r0','capacity','dense','mean','shuffled']:
+    summary[v]=oldanalysis['summary'][v]
+out['summary']=summary
+out['main_rows']=[dict(seed=s,variant=v,epoch=m['epoch'],val_cw=m['val']['cw']['AUC_native'],cw=m['test']['cw']['AUC_native'],ow=m['test']['ow']['AUC_native']) for (s,v),m in records.items()]
+out['paired']={v:{w:stat(np.array(summary['conditioned'][w]['auc']['values'])-np.array(summary[v][w]['auc']['values'])) for w in ['cw','ow']} for v in summary if v!='conditioned'}
+
+audits={};audit_errors=[];response_checks=[];fold_response=[];ood=[];structure=[];progress_errors=[];cost={}
+for s in SEEDS:
+    d=W/f'seed{s}';old=OLD/'work'/f'seed{s}';types=pt(d/'runs/conditioned/bank.pt')['types'].numpy()
+    for v,folder in [('original','utility_original'),('conditioned','utility')]:
+        a=rd(d/folder/'audit.json');p=pt(d/folder/'audit_predictions.pt');audits[f'{s}/{v}']=a
+        raw=pt(old/'measurements/fold5.pt')
+        if not torch.equal(raw['y'],p['target']):audit_errors.append([s,v,'labels'])
+        for name,mask in [('all',np.ones(len(p['target']),bool))]+[(t,types[raw['edge'].numpy()]==i) for i,t in enumerate(TYPES)]:
+            calc=regression_metrics(*[p[k][mask] for k in ['mean','variance','target','noise']])
+            for k,val in calc.items():
+                if val is not None and abs(val-a[name][k])>1e-10:audit_errors.append([s,v,name,k])
+    folds=rd(d/'folds.json');ftrain=[];resp=[];data=[]
+    for j in range(1,7):
+        name=f'fold{j}' if j<6 else 'reference';p=pt(d/'responses'/(name+'.pt'));f=p['features'].numpy();resp.append(f)
+        cp=old/'teachers'/str(j)/'last.pt' if j<6 else old/'reference/last.pt'
+        overlap=set(map(tuple,p['train_pairs']))&set(map(tuple,folds['query'][j-1])) if j<6 else set()
+        response_checks.append(dict(seed=s,name=name,shape=list(f.shape),finite=bool(np.isfinite(f).all()),
+            images=len(p['support_indices']),pairs=len(p['train_pairs']),overlap=len(overlap),teacher_sha_matches=p['checkpoint_sha256']==sha(cp),weight_sum=float(p['weights'].sum())))
+        if j<6:
+            raw=pt(old/'measurements'/f'fold{j}.pt');edge=raw['edge'].numpy();y=raw['y'].numpy()
+            em=np.array([y[edge==e].mean() for e in range(96)]);data.append((raw,em))
+            for ty,name in [(None,'all')]+list(enumerate(TYPES)):
+                mask=np.ones(96,bool) if ty is None else types==ty
+                fold_response.append(dict(seed=s,fold=j,type=name,edges=int(mask.sum()),
+                    y_mean=float(em[mask].mean()),support_mean=float(f[mask,0].mean()),
+                    response_positive_fraction=float((f[mask,0]>0).mean()),query_positive_fraction=float((em[mask]>0).mean()),
+                    response_y_rho=[corr(f[mask,k],em[mask]) for k in range(8)],
+                    response_y_sign_match=float((np.sign(f[mask,0])==np.sign(em[mask])).mean())))
+    for phase,folder,names in [('audit','utility',['fold4','fold5']),('deployment','utility_all',['reference'])]:
+        state=pt(d/folder/'model0.pt');center=state['model']['center'][-8:].numpy() if 'model' in state else None
+        if center is None:
+            print('UTILITY_CHECKPOINT_KEYS',list(state),flush=True);raise ValueError('Inspect checkpoint')
+        spread=state['model']['spread'][-8:].numpy()
+        for name in names:
+            f=resp[5 if name=='reference' else int(name[-1])-1]
+            z=(f-center)/spread
+            ood.append(dict(seed=s,phase=phase,source=name,mean_abs_z=float(np.abs(z).mean()),
+                max_abs_z=float(np.abs(z).max()),fraction_abs_z_gt3=float((np.abs(z)>3).mean()),
+                per_feature_mean_abs_z=np.abs(z).mean(0).tolist(),per_feature_max_abs_z=np.abs(z).max(0).tolist()))
+    prev=rd(old/'structure.json');new=rd(d/'structure.json');bud=rd(d/'recipe.json')['fixed_type_budgets']
+    for ty,name in enumerate(TYPES):
+        mask=types==ty;oldpi=np.array(prev['pi'])[mask];newpi=np.array(new['pi'])[mask]
+        row=dict(seed=s,type=name,budget=bud[str(ty)],old_sum=float(oldpi.sum()),new_sum=float(newpi.sum()),
+                 max_budget_error=abs(float(newpi.sum())-bud[str(ty)]),pi_rho=corr(oldpi,newpi),
+                 pi_mean_abs_change=float(np.abs(newpi-oldpi).mean()),pi_max_abs_change=float(np.abs(newpi-oldpi).max()))
+        for label,x in [('old',prev),('new',new)]:
+            mu=np.array(x['mean'])[mask];sd=np.sqrt(np.array(x['task_variance'])[mask])
+            ens=np.sqrt(np.array(x['ensemble_variance'])[mask]);pi=np.array(x['pi'])[mask]
+            params=x['parameters'];reward=mu-params['lambda_var']*sd-params['lambda_ens']*ens
+            row[label]=dict(mu_mean=float(mu.mean()),mu_abs_mean=float(np.abs(mu).mean()),risk_mean=float((params['lambda_var']*sd+params['lambda_ens']*ens).mean()),
+                           mu_pi_rho=corr(mu,pi),neg_sd_pi_rho=corr(-sd,pi),mean_positive=int((mu>0).sum()),reward_positive=int((reward>0).sum()),
+                           pi_sd=float(pi.std()),pi_max=float(pi.max()),pi_min=float(pi.min()))
+        structure.append(row)
+    marks=W/'progress'/f'seed{s}';stages=[]
+    for f in marks.glob('*.json'):
+        value=rd(f)
+        if 'seconds' not in value:continue
+        stages.append(dict(stage=value['stage'],seconds=value['seconds']))
+        for p,h in value['outputs'].items():
+            if sha(d/p)!=h:progress_errors.append([s,value['stage'],p])
+    cost[str(s)]=dict(total=sum(v['seconds'] for v in stages),stages=stages)
+    print('UTILITY_AND_RESPONSES',s,flush=True)
+out.update(audits=audits,audit_verification=audit_errors,response_verification=response_checks,raw_response_correlations=fold_response,
+           response_distribution=ood,structures=structure,progress_output_mismatches=progress_errors,cost=cost,
+           utility_epochs={str(s):rd(W/f'seed{s}'/'utility/selection.json') for s in SEEDS})
+save('analysis.json',out)
+print('SAVED',O/'analysis.json',flush=True)
+print('MAIN',json.dumps(out['main_rows']),flush=True)
+print('AUDIT',json.dumps({k:{t:{m:v[t][m] for m in ['spearman','direction_balanced_accuracy','rmse','coverage90']} for t in ['all','OI','OE','AE','type_constant']} for k,v in audits.items()}),flush=True)
+print('OOD',json.dumps(ood),flush=True)

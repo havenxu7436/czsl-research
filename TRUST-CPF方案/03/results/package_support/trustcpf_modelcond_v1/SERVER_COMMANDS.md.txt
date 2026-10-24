@@ -1,0 +1,160 @@
+# TRUST-CPF 模型响应条件化：上传、训练、保存到本地
+
+服务器：xhw@211.87.232.122。物理 GPU：1、2、3。下列命令分为本机 PowerShell 和服务器 Bash，整块复制到对应位置执行。
+
+新目录 trustcpf_modelcond_v1；旧强基底目录 trustcpf_strong_v1。复用旧教师和配对标签，新增三个 conditioned 训练结果。
+
+## 1. 本机 PowerShell：上传并解压
+
+~~~powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\llenovo\Documents\ChatGPT\USG\output\upload_trustcpf_modelcond_v1.ps1"
+~~~
+
+脚本校验本地 ZIP，上传 ZIP 和 SHA-256 文件，在服务器校验并解压到 /data/xhw/experiments/trustcpf_modelcond_v1。按提示输入服务器密码，独立 SSH/SCP 连接可能提示多次。
+
+随后登录：
+
+~~~powershell
+ssh xhw@211.87.232.122
+~~~
+
+对应的手动上传命令如下；已运行上传脚本时直接进入第 2 步：
+
+~~~powershell
+$cpfServer = "xhw@211.87.232.122"
+$cpfBundle = "C:\Users\llenovo\Documents\ChatGPT\USG\output"
+ssh $cpfServer 'mkdir -p /data/xhw/experiments'
+scp -o ServerAliveInterval=30 -o ServerAliveCountMax=6 "$cpfBundle\trustcpf_modelcond_v1.zip" "$cpfBundle\trustcpf_modelcond_v1.zip.sha256" "${cpfServer}:/data/xhw/experiments/"
+ssh $cpfServer 'cd /data/xhw/experiments && sha256sum -c trustcpf_modelcond_v1.zip.sha256 && unzip -oq trustcpf_modelcond_v1.zip -d .'
+~~~
+
+## 2. 服务器 Bash：一次性准备
+
+~~~bash
+conda activate vgcpod_v1
+cd /data/xhw/experiments/trustcpf_modelcond_v1
+python run.py setup \
+  --source /data/xhw/experiments/trustcpf_strong_v1 \
+  --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14
+source scripts/env.sh
+"$CPF_PY" -c 'import sys,torch; print(sys.executable); print("Torch:",torch.__version__,"CUDA:",torch.cuda.is_available(),"GPU count:",torch.cuda.device_count())'
+"$CPF_PY" -m unittest discover -s tests -p 'test_*.py' -v
+~~~
+
+setup 读取当前已激活环境的 Python，记录到 server_env.sh，并校验旧模型与特征缓存。直接复用 CLIP 特征，无需重新填写 DATA_ROOT、CLIP_CKPT，也无需安装新的 PyTorch。
+
+本机测试环境为 Python 3.11 / PyTorch 2.11；交付源码兼容 Python 3.8 语法，接口沿用现有 PyTorch 1.13。服务器上的测试会验证实际运行环境。
+
+## 3. 服务器 Bash：三卡启动
+
+~~~bash
+cd /data/xhw/experiments/trustcpf_modelcond_v1
+mkdir -p logs
+nohup bash scripts/run_all.sh > logs/queue.log 2>&1 &
+echo $! > logs/queue.pid
+tail -F logs/seed3351.log logs/seed3352.log logs/seed3353.log
+~~~
+
+分配已写进脚本：GPU 1→3351，GPU 2→3352，GPU 3→3353。Ctrl+C 退出 tail 查看，不会终止后台队列。
+
+查看各 seed：
+
+~~~bash
+cd /data/xhw/experiments/trustcpf_modelcond_v1
+tail -n 40 logs/seed3351.log
+tail -n 40 logs/seed3352.log
+tail -n 40 logs/seed3353.log
+nvidia-smi
+~~~
+
+日志阶段：import、responses、fit、audit、fit_all、structure、adapt。响应阶段逐教师输出 RESPONSE_COMPLETE，拟合输出 UTILITY_EPOCH，识别结束输出 ADAPT_COMPLETE conditioned。
+
+## 4. 服务器 Bash：完成检查与续跑
+
+~~~bash
+cd /data/xhw/experiments/trustcpf_modelcond_v1
+bash scripts/status.sh
+tail -n 20 logs/queue.log
+~~~
+
+完整状态：
+
+~~~text
+completed_stages: 21
+expected_stages: 21
+metrics: 9
+utility_audits: 6
+response_files: 18
+complete: True
+ALL_EXPERIMENTS_COMPLETE
+QUEUE_COMPLETE
+~~~
+
+任务中断后，用同一队列命令续跑：
+
+~~~bash
+cd /data/xhw/experiments/trustcpf_modelcond_v1
+nohup bash scripts/run_all.sh >> logs/queue.log 2>&1 &
+~~~
+
+已完成阶段复用；未完成效用成员可重新拟合，适配从 last.pt 续跑。队列锁阻止重复运行。重新登录后，run_all.sh、status.sh、pack_results.sh 都会自动载入 server_env.sh。
+
+## 5. 服务器 Bash：汇总并打包
+
+~~~bash
+cd /data/xhw/experiments/trustcpf_modelcond_v1
+bash scripts/pack_results.sh
+~~~
+
+程序先检查全部任务完成，随后输出 PACK_PROGRESS、HASHING_ARCHIVE、PACK_COMPLETE 和 DOWNLOAD_READY。看到 DOWNLOAD_READY 后进入本机下载步骤。
+
+归档为 trustcpf_modelcond_v1_results_日期_时间.tar.gz，保存于 /data/xhw/experiments/。项目中的 download.json 保存完整文件名、路径、大小与 SHA-256，下载脚本自动读取。
+
+在服务器查看主要结果：
+
+~~~bash
+cd /data/xhw/experiments/trustcpf_modelcond_v1
+source scripts/env.sh
+cat "$CPF_WORK/aggregates.json"
+cat "$CPF_WORK/paired_comparisons.json"
+cat "$CPF_WORK/utility_comparison.json"
+cat "$CPF_WORK/conditional_diagnostics.json"
+~~~
+
+## 6. 本机 PowerShell：下载、校验、解压
+
+~~~powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\llenovo\Documents\ChatGPT\USG\output\download_trustcpf_modelcond_v1.ps1"
+~~~
+
+命令自带服务器地址、本地目录和 Python 路径，不依赖旧 PowerShell 变量。脚本下载 download.json，取得完整归档路径，下载 .part 临时文件，核对大小及 SHA-256，再用 Python 解压。失败会重试，重复运行会复用已校验完整的本地压缩包。
+
+默认保存：
+
+~~~text
+C:\Users\llenovo\Documents\ChatGPT\USG\trustcpf_modelcond_v1_results_日期_时间.tar.gz
+C:\Users\llenovo\Documents\ChatGPT\USG\trustcpf_modelcond_v1_results_日期_时间\trustcpf_modelcond_v1\work
+~~~
+
+成功提示 DOWNLOAD_SHA256_EXTRACTION_COMPLETE，并打印实际结果目录。
+
+另存位置：
+
+~~~powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\llenovo\Documents\ChatGPT\USG\output\download_trustcpf_modelcond_v1.ps1" -LocalRoot "C:\Users\llenovo\Desktop\USG\modelcond_results"
+~~~
+
+同时保留此前 Strong v1 归档。本轮包包含全部新增结果及六组复用对照，原教师和配对输入的大文件由旧归档提供。
+
+## 7. 主要结果文件
+
+| 文件 | 内容 |
+| --- | --- |
+| work/status.json | 三 seed 完成状态 |
+| summary.csv、aggregates.json | 三种方法的 CW/OW 汇总 |
+| paired_comparisons.json | conditioned 相对 original/drop 的逐 seed 差值 |
+| utility_comparison.json | 六份原方法/新方法 Q5 审计 |
+| conditional_diagnostics.json | 完整属性与多未见候选属性判别 |
+| seed*/responses/*.pt、*.json | 八维响应、支持样本与教师来源 |
+| seed*/runs/conditioned | 最佳/最后权重、VAL/TEST 预测、逐 epoch 记录 |
+| progress/seed* | 阶段耗时、输入哈希和完成标记 |

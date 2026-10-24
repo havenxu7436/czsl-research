@@ -1,0 +1,25 @@
+from pathlib import Path
+import json,numpy as np,sys
+R=Path(__file__).resolve().parents[1];P=R/'trustcpf_compact_v1_results_20261023_222821/trustcpf_compact_v1'
+sys.path.insert(0,str(P))
+from trustcpf.common import load_torch,sha,read_json
+from trustcpf import compact
+checks=[]
+for seed in [3351,3352,3353]:
+ d=P/'work'/f'seed{seed}';types,stats,xs=compact.load_inputs(d);cfg=read_json(d/'recipe.json');ys=[s['target'] for s in stats]
+ trials=[]
+ for alpha in cfg['ridge_alphas']:
+  m=compact.fit_ridge(xs[:3],ys[:3],types,alpha);reg=compact.regret(compact.predict(m,xs[3],types),ys[3],types,cfg)['regret'];trials.append((reg,-alpha))
+ selected=-min(trials)[1];assert selected==read_json(d/'utility/selection.json')['selected_alpha']
+ for mode,used in [('utility',3),('utility_all',5)]:
+  true=load_torch(d/mode/'compact/model.pt');shuf=load_torch(d/mode/'shuffled_utility/model.pt')
+  normal={k:true[k] for k in ('center','spread','scales')}
+  for k in normal:assert np.array_equal(true[k],shuf[k])
+  shuffled=[compact.shuffled_stats(st,types,cfg['label_shuffle_seed']+seed,j+1) for j,st in enumerate(stats)]
+  for j,(_,perm) in enumerate(shuffled):assert perm.tolist()==shuf['permutations'][str(j+1)]
+  fitted=compact.fit_ridge(xs[:used],[v[0]['target'] for v in shuffled[:used]],types,selected,normal)
+  assert np.allclose(fitted['beta'],shuf['beta'],atol=1e-12,rtol=0)
+ checks.append(dict(seed=seed,selected_alpha=selected,q4_selection_reproduced=True,shuffle_maps_and_models_reproduced=True,
+  q5_not_used_for_alpha=True,type_scale_and_regularization_matched=True))
+(R/'analysis_TRUST_CPF_compact_v1_20261023/selection_verification.json').write_text(json.dumps(checks,indent=2))
+print(json.dumps(checks))

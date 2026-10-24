@@ -51,7 +51,8 @@ def verify():
     for p in docs:
         text=p.read_text(encoding='utf8')
         if text.count('```')%2: formatting.append(str(p.relative_to(ROOT))+': unclosed fence')
-        for raw in re.findall(r'\]\((<[^>]+>|[^)\n]+)\)',text):
+        prose=re.sub(r'(?:```[^\n]*\n[\s\S]*?```|~~~[^\n]*\n[\s\S]*?~~~)','',text)
+        for raw in re.findall(r'\]\((<[^>]+>|[^)\n]+)\)',prose):
             raw=unquote(raw.strip('<>')).split('#')[0]
             if not raw or re.match(r'^[a-z]+://',raw): continue
             if not (p.parent/raw).exists(): links.append({'file':str(p.relative_to(ROOT)),'target':raw})
@@ -120,7 +121,9 @@ def verify():
     if (ROOT/'VG-CPOD方案/13/inputs.json').is_file():
         from register_vgcpod_round_l import check as check_vgcpod_l
         round_l_check=check_vgcpod_l()
-    result={'passed':not(failures or links or formatting or syntax),'original_canonical_files':len(expected),
+    from register_trustcpf_strong_series import check as check_strong_series
+    strong_series_check=check_strong_series()
+    result={'trustcpf_strong_series':strong_series_check,'passed':not(failures or links or formatting or syntax),'original_canonical_files':len(expected),
       'changed_or_missing':failures,'broken_links':links,'formatting_errors':formatting,
       'python_syntax_errors':syntax,'vgcpod':route_check,'vgcpod_round_b':b_check,'vgcpod_round_c':c_check,'vgcpod_round_d':d_check,'vgcpod_round_e':e_check,'vgcpod_round_f':f_check,'vgcpod_round_g':g_check,'vgcpod_round_h':h_check,'vgcpod_round_i':i_check,'vgcpod_round_j':j_check,'vgcpod_round_k':k_check,'trustcpf':trust_check,'vgcpod_round_l':round_l_check,'training_started':False}
     print(json.dumps(result,ensure_ascii=False))
@@ -137,6 +140,10 @@ def archive_stage(line,number):
     return matches[0]
 
 def materialize(stage,destination,line=None,number=None):
+    if stage in ['34','35','36']:
+        from register_trustcpf_strong_series import materialize as restore_strong
+        print(json.dumps(restore_strong({'34':'02','35':'03','36':'04'}[stage],destination),ensure_ascii=False))
+        return
     if stage=='33':
         from register_vgcpod_round_l import materialize as materialize_vgcpod_l
         print(json.dumps(materialize_vgcpod_l(destination),ensure_ascii=False))
@@ -256,6 +263,12 @@ def materialize(stage,destination,line=None,number=None):
       'note':'External inputs and frozen absolute paths still require setup; see environment/README.md'},ensure_ascii=False))
 
 def doctor(stage,project,line=None,number=None):
+    if stage in ['34','35','36']:
+        from register_trustcpf_strong_series import doctor as doctor_strong
+        result=doctor_strong({'34':'02','35':'03','36':'04'}[stage],project)
+        print(json.dumps(result,ensure_ascii=False))
+        if not result['ready_for_package_preflight']:raise SystemExit(2)
+        return
     if stage=='33':
         from register_vgcpod_round_l import doctor as doctor_vgcpod_l
         result=doctor_vgcpod_l(project)

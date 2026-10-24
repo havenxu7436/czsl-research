@@ -1,0 +1,33 @@
+exec(open(__file__.replace('diagnose_compact_scaling.py','analyze_compact_v1.py'),encoding='utf-8-sig').read().split('descriptor=')[0])
+from trustcpf import compact
+rows=[]
+for seed in SEEDS:
+ d=W/f'seed{seed}';cfg=rd(d/'recipe.json');data=pt(d/'inputs/edge_statistics.pt');types=data['types'];ys=[s['target'] for s in data['folds']]
+ xs=[pt(d/'responses'/f'fold{j}.pt')['features'].double().numpy() for j in range(1,6)];xr=pt(d/'responses/reference.pt')['features'].double().numpy()
+ def fit(xs,ys,alpha,typed):
+  x=np.concatenate(xs);y=np.concatenate(ys);t=np.tile(types,len(xs));center=np.array([x[t==k].mean(0) for k in range(3)]) if typed else x.mean(0)
+  spread=np.maximum(np.array([x[t==k].std(0) for k in range(3)]) if typed else x.std(0),1e-6)
+  scales=np.array([max(y[t==k].std(),1e-12) for k in range(3)])
+  def design(h,tt):
+   z=np.column_stack([np.ones(len(h)),(h-(center[tt] if typed else center))/(spread[tt] if typed else spread)])
+   return np.concatenate([z*(tt==k)[:,None] for k in range(3)],1)
+  z=design(x,t);beta=np.linalg.solve(z.T@z+alpha*np.eye(27),z.T@(y/scales[t]))
+  return lambda h:design(h,types)@beta*scales[types]
+ result=[]
+ for typed in [False,True]:
+  candidates=[]
+  for alpha in [.1,1,10,100]:
+   model=fit(xs[:3],ys[:3],alpha,typed);m4=model(xs[3]);dec=compact.regret(m4,ys[3],types,cfg)
+   candidates.append((dec['regret'],-alpha,model,dec))
+  win=min(candidates,key=lambda r:(r[0],r[1]));alpha=-win[1];pred=win[2](xs[4]);dep=fit(xs,ys,alpha,typed)(xr);pi=compact.policy(dep,types,cfg)[0].numpy()
+  result.append(dict(typed_input=typed,alpha=alpha,q4_regret=win[0],q5=compact.regret(pred,ys[4],types,cfg),
+   point=compact.point_metrics(pred,ys[4]),by_type={TYPES[t]:compact.point_metrics(pred[types==t],ys[4][types==t]) for t in range(3)},
+   deployment_pi_sd=[float(pi[types==t].std()) for t in range(3)]))
+ model=pt(d/'utility/compact/model.pt');x=np.concatenate(xs[:3]);t=np.tile(types,3)
+ normalized=(x-model['center'])/model['spread']
+ row=dict(seed=seed,variants=result,within_type_standardized_feature_sd={TYPES[k]:normalized[t==k].std(0).tolist() for k in range(3)})
+ rows.append(row)
+save('type_scaling_diagnostic.json',dict(exploratory=True,formal_new_recognition_runs=False,rows=rows))
+for row in rows:
+ print(row['seed'],[(v['typed_input'],v['alpha'],v['point']['spearman'],v['q5']['regret'],v['deployment_pi_sd']) for v in row['variants']])
+ print('AE_INPUT_SDS',row['within_type_standardized_feature_sd']['AE'])

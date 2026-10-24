@@ -1,0 +1,432 @@
+# TRUST 强 CPF 基底：公式与核心实现
+
+日期：2026-10-23。公式与协议见 [PLAN.md](PLAN.md)。以下代码从交付源码自动摘取，与执行版本一致。
+
+
+
+设冻结全局特征为 $g$，原词与组合文本向量为 $e_a,e_o,e_{ao}$。G0 的完整分数为：
+
+$$
+\begin{aligned}
+s_o^0&=20g^\top e_o+(g^\top B_o)(e_o^\top C_o)^\top,\\
+c_{ao}^0&=20g^\top e_{ao}+(g^\top B_c)(e_{ao}^\top C_c)^\top
++3g^\top W_c[(A_u e_a)\odot(A_v e_o)].
+\end{aligned}
+$$
+
+低秩头 rank8，CP rank32。主实验加载对应 seed 的 G0，冻结这些基底参数，使无关系图时始终恢复同一个强基底。没有删除静态 CP，也没有用随机初始化的弱分类头替换它。
+
+TRUST 保留物体条件局部上下文：
+
+$$
+v_o(x)=\mathcal N\bigl(\mathcal N(g)+0.5\mathcal N(f_o(x))\bigr).
+$$
+
+$f_o$ 是原 CLIP 缓存中的物体查询局部特征；只为 TRUST 残差使用。G0 本身仍按原代码读取全局 $g$。无需重新提取图像特征。
+
+对 96 条 OI/OE/AE 关系，类型消息与节点原型为：
+
+$$
+\begin{aligned}
+m_e&=(I+L_{t(e)}R_{t(e)})(h_e-e_{v(e)}),\\
+z_v(G)&=\mathcal N\left(e_v+0.1\sum_{e:v(e)=v}\frac{b_e}{d_{v,t(e)}}m_e\right).
+\end{aligned}
+$$
+
+每种关系类型的消息秩为 16。定义 v1 的归一化三元交互，秩为 64：
+
+$$
+T(x,o,a;z)=\sum_{k=1}^{64}
+\mathcal N(P_vv_o(x))_k\mathcal N(P_oz_o)_k\mathcal N(P_az_a)_k.
+$$
+
+完整模型为：
+
+$$
+\begin{aligned}
+s_o&=s_o^0+\frac\alpha{t_g}g^\top(z_o-e_o),\\
+c_{ao}&=c_{ao}^0+\frac\alpha{t_g}\left[T(x,o,a;z)-T(x,o,a;e)\right],\\
+J_{ao}&=\log\operatorname{softmax}_o(s)_o+
+\log\operatorname{softmax}_a(c_{\cdot o})_a.
+\end{aligned}
+$$
+
+保持 v1 的固定 $\alpha=0.1,t_g=0.1$，没有引入 v2 的可学习有符号 alpha。所有边关闭时直接使用原型锚点，使两个残差精确为零。三个实际 G0 checkpoint 的该性质已逐元素验证。
+
+原 v1 的弱视觉 Adapter 由完整冻结 G0 代替。训练参数为类型消息 $L,R$ 与三元投影 $P_v,P_o,P_a$，共 221,184 个；capacity 使用相同参数集合构造不依赖关系附件的容量分支。r0 是已训练好的固定 G0，残差对输出为零。
+
+任务损失与强 G0 保持一致：
+
+$$
+\begin{aligned}
+\ell_{\rm pair}&=-J_{a_i o_i}+\log\sum_{c\in\mathcal C_{\rm train}}\exp J_c,\\
+\ell_o&=-\log p(o_i\mid x_i),\qquad
+\ell_a=-\log p(a_i\mid o_i,x_i),\\
+\mathcal L&=\frac{1.5}{1.075}\mathbb E[\ell_{\rm pair}+0.075(\ell_o+\ell_a)]
++\lambda_W\mathcal R_W,\\
+\mathcal R_W&=\frac1{768^2}\sum_{t=0}^{2}\|L_tR_t\|_F^2,\qquad\lambda_W=0.001.
+\end{aligned}
+$$
+
+## 3. 教师与效用测量
+
+**全量 G0 用于正式主实验，五折教师使用各自 Inner 上重新训练的同构 G0。** 全量 G0 已使用完整 TRAIN，直接作为五折教师会让 Query 组合进入基底训练；因此程序为每折执行：
+
+1. 新初始化 G0 架构，在该折 Inner 上训练 10 epochs，完整任务损失使用 Inner 组合候选；使用最后一个 epoch。
+2. 冻结该折 G0，在同一 Inner 上训练 TRUST 消息和三元残差 10 epochs，每 batch 使用 Bernoulli(0.5) 参考图。
+3. 在留出的 Query 组合上测量配对关系增益。支持摘要仅使用该折 Inner 图像。
+
+五折角色保持 Q1–Q3 拟合、Q4 开发、Q5 独立审计。拟合折各 512 个 episode，开发和审计各 128 个；每个 episode 最多 8 个 Query 组合、每组合 8 张图；每类型采 8 条边，共 24 条。普通配对使用 4 个背景图，Q5 使用 16 个背景图。
+
+对同一背景图，边关闭和开启共享所有其他关系及 Query 样本：
+
+$$
+\begin{aligned}
+d_{e,k}&=R_Q(G_{-e}^{(k)})-R_Q(G_{+e}^{(k)}),\\
+y_e&=\frac1K\sum_kd_{e,k},\qquad
+\nu_e=\frac{\operatorname{Var}_{k}(d_{e,k})}{K}.
+\end{aligned}
+$$
+
+$R_Q$ 是 Query 组合等权、组合内图像等权的候选 NLL，候选包含全部 TRAIN 组合。$y_e>0$ 表示开启该关系降低 Query 风险。每个真实/打乱知识流程产生 1,792 个 episode、43,008 条效用观测和 417,792 次关系头前向；原始配对差也保存。
+
+效用输入保持 v1：语义、Inner 视觉摘要、类型与来源特征。三成员网络输出均值与正方差；每类型尺度仅从拟合标签计算。带测量噪声的目标为：
+
+$$
+\mathcal L_u=\frac{|B|}{|E|}\frac1{|B|}\sum_{e\in B}
+\frac1{q_e}\frac12\left[\log(\sigma_e^2+\nu_e)
++\frac{(\mu_e-y_e)^2}{\sigma_e^2+\nu_e}\right].
+$$
+
+$q_e$ 为分层采边包含概率。类型标准化时，目标与噪声分别除以尺度及尺度平方，预测后恢复原单位。Q4 选择各成员训练 epoch；Q5 审计在最终五折标签合并拟合之前完成。
+
+部署时使用 16 次 TRAIN 支持摘要，合并任务方差、摘要方差和集成方差。关系奖励与结构为：
+
+$$
+\begin{aligned}
+r_e&=\mu_e-\lambda_{\rm var}\sqrt{v_e}-\lambda_{\rm ens}\sqrt{u_e},\\
+\pi_e&=\operatorname{sigmoid}\left(\operatorname{logit}(0.5)+\frac{r_e-\gamma_{t(e)}}\tau\right),\\
+\gamma_t&\ge0,\qquad\sum_{e:t(e)=t}\pi_e\le b|E_t|.
+\end{aligned}
+$$
+
+通过非负乘子二分求解类型上界预算。Q4 顺序选择风险系数、预算比例和温度尺度；使用原 v1 的固定候选集合。mean 把两项风险系数置零，robust 使用所选风险系数。drop 在每个类型内使用与 robust 相同的平均边概率，实际采图是独立 Bernoulli。
+
+
+
+## 1. 强基底、关系残差与任务损失
+
+源码：`trustcpf/model.py`
+
+```python
+class TypedGraph(nn.Module):
+    def __init__(self, bank, rank=16, eta=.1):
+        super().__init__()
+        for key in ('anchors', 'source', 'target', 'types', 'degree'):
+            self.register_buffer(key, bank[key].clone())
+        d = bank['anchors'].shape[1]
+        self.left = nn.Parameter(torch.randn(3, d, rank) * .01)
+        self.right = nn.Parameter(torch.zeros(3, rank, d))
+        self.eta = eta
+
+    def messages(self):
+        diff = self.source - self.anchors[self.target]
+        low = torch.einsum('erd,ed->er', self.right[self.types], diff)
+        return diff + torch.einsum('edr,er->ed', self.left[self.types], low)
+
+    def forward(self, edges):
+        msg = self.messages() * (edges / self.degree)[:, None]
+        # Dense incidence avoids CUDA scatter nondeterminism for this small graph.
+        incidence = F.one_hot(self.target, len(self.anchors)).to(msg.dtype).T
+        return unit(self.anchors + self.eta * (incidence @ msg))
+
+    def regularizer(self):
+        delta = self.left @ self.right
+        return delta.square().sum() / self.anchors.shape[1] ** 2
+
+class TrustCPF(nn.Module):
+    def __init__(self, text, bank, cfg):
+        super().__init__()
+        for k in ('ea', 'eo', 'ec'):
+            self.register_buffer(k, text[k].clone())
+        d = text['ea'].shape[1]
+        self.na, self.no = len(text['ea']), len(text['eo'])
+        self.cfg = cfg
+        gcfg=read_json(ROOT/'initial/g0_seed3351_protocol.json')['config'].copy()
+        gcfg.update(rank=cfg.get('backbone_rank',min(32,d)),adapter_rank=cfg.get('backbone_adapter_rank',min(8,d)))
+        self.backbone=VGCPOD(text['ea'],text['eo'],text['ec'],gcfg,cfg.get('seed',3351))
+        self.backbone.requires_grad_(False)
+        self.graph = TypedGraph(bank, cfg.get('message_rank', 16), cfg.get('eta', .1))
+        r = cfg.get('rank', 64)
+        self.pv = nn.Linear(d, r, bias=False)
+        self.po = nn.Linear(d, r, bias=False)
+        self.pa = nn.Linear(d, r, bias=False)
+
+    def base(self, g, fa, fo):
+        out=self.backbone(g,fa,fo)
+        return {'g':g,'obj':out['obj'],'cond':out['cond'],
+                'context':unit(unit(g)[:,None,:]+self.cfg.get('object_context',.5)*unit(fo))}
+
+    def score(self, base, edges, capacity=False):
+        anchors = self.graph.anchors
+        z = self.graph(edges) if torch.count_nonzero(edges) else anchors
+        ao, aa = anchors[self.na:], anchors[:self.na]
+        zo, za = z[self.na:], z[:self.na]
+        qx = unit(self.pv(base['context']))
+        def tri(o, a):
+            return torch.einsum('bor,or,ar->boa', qx, unit(self.po(o)), unit(self.pa(a)))
+        delta_o = base['g'] @ (zo - ao).T
+        delta_u = tri(zo, za) - tri(ao, aa)
+        if capacity:
+            # Same effective projection matrices; no relation attachment is used.
+            o = unit(ao + .1 * ((ao @ self.graph.right[0].T) @ self.graph.left[0].T))
+            a = unit(aa + .1 * ((aa @ self.graph.right[1].T) @ self.graph.left[1].T
+                            + (aa @ self.graph.right[2].T) @ self.graph.left[2].T))
+            delta_o = base['g'] @ (o - ao).T
+            delta_u = tri(o, a)  # generic trainable three-way head
+        gain = self.cfg.get('alpha', .1) / self.cfg.get('tg', .1)
+        obj = base['obj'] + gain * delta_o
+        conditional = base['cond'] + gain * delta_u
+        lo, lc = obj.log_softmax(-1), conditional.log_softmax(-1)
+        return lo[:, :, None] + lc, lo, lc
+
+    def forward(self, g, fa, fo, edges, capacity=False):
+        return self.score(self.base(g, fa, fo), edges, capacity)
+
+def task_loss(joint, lo, lc, attrs, objs, candidates):
+    flat = joint.flatten(1)
+    target = objs * joint.shape[2] + attrs
+    lp = -flat.gather(1, target[:, None]).mean() + flat[:, candidates].logsumexp(-1).mean()
+    rows = torch.arange(len(attrs), device=attrs.device)
+    return 1.5/1.075*(lp+.075*(F.nll_loss(lo,objs)+F.nll_loss(lc[rows,objs],attrs)))
+
+def task_logit_gradients(obj_logits, conditional_logits, attrs, objs, candidates):
+    """Analytic task-loss derivatives; used to verify the autograd implementation."""
+    po,pc=obj_logits.softmax(-1),conditional_logits.softmax(-1)
+    joint=obj_logits.log_softmax(-1)[:,:,None]+conditional_logits.log_softmax(-1)
+    h=torch.zeros_like(joint).flatten(1)
+    h[:,candidates]=candidate_logprob(joint,candidates).exp()
+    row=torch.arange(len(attrs),device=attrs.device)
+    h[row,objs*joint.shape[2]+attrs]-=1
+    h=h.reshape_as(joint); by_object=h.sum(-1)
+    go=by_object+.075*po
+    go[row,objs]-=.075
+    gu=h-pc*by_object[:,:,None]
+    gu[row,objs]+=.075*pc[row,objs]
+    gu[row,objs,attrs]-=.075
+    return 1.5/1.075*go/len(attrs),1.5/1.075*gu/len(attrs)
+
+def average_graphs(model, batch, pi, candidates, count=16, seed=1701, mode='probability', capacity=False, return_joint=False):
+    base = model.base(*batch)
+    gen = torch.Generator(device=pi.device).manual_seed(seed)
+    outputs = []
+    for _ in range(count):
+        edges = pi if mode == 'mean_graph' else (torch.rand(pi.shape, generator=gen, device=pi.device) < pi).float()
+        outputs.append(model.score(base, edges, capacity)[0])
+    stack = torch.stack(outputs)
+    if mode in ('mean_graph', 'mean_logit'):
+        logs = candidate_logprob(stack.mean(0), candidates)
+    else:
+        logs = torch.stack([candidate_logprob(j, candidates) for j in outputs]).logsumexp(0) - torch.log(pi.new_tensor(count))
+    probs = torch.stack([candidate_logprob(j, candidates).exp() for j in outputs])
+    variance = (probs - probs.mean(0)).square().sum(-1).mean(0)
+    if return_joint:
+        full = stack.mean(0) if mode in ('mean_graph','mean_logit') else stack.logsumexp(0)-torch.log(pi.new_tensor(count))
+        return logs, variance, full
+    return logs, variance
+```
+
+
+## 2. 折内强教师初始化与训练
+
+源码：`trustcpf/strong.py`
+
+```python
+def initialize(model,cfg):
+    if cfg.get('_cold_backbone') or cfg.get('synthetic'):
+        return
+    source=ROOT/'initial'/('g0_seed%d.pt'%cfg['seed'])
+    state=load_torch(source)
+    model.backbone.load_state_dict(state['model'])
+
+def fold_backbone(args,cfg,text,bank,manifest,pairs,out):
+    from .engine import new_model,batches,row_ids
+    from .data import mask_from_pairs
+    out=Path(out);out.mkdir(parents=True,exist_ok=True)
+    checkpoint=out/'last.pt'
+    inner_cfg=dict(cfg,_cold_backbone=True)
+    model=new_model(text,bank,inner_cfg,args.device)
+    head=model.backbone
+    head.requires_grad_(False)
+    for n in ('Bo','Co','Bc','Cc','Au','Av','Wc'):getattr(head,n).requires_grad_(True)
+    groups=[]
+    for names,scale in [(('Bo','Co','Bc','Cc'),1.),(('Au','Av','Wc'),cfg['backbone_cp_scale'])]:
+        groups.append(dict(params=[getattr(head,n) for n in names],lr=cfg['backbone_lr']*scale,
+                           initial_lr=cfg['backbone_lr']*scale))
+    opt=torch.optim.AdamW(groups,weight_decay=cfg['weight_decay'])
+    mask=mask_from_pairs(manifest['labels'],pairs).to(args.device)
+    loader=batches(args.cache,'train',cfg,row_ids(args.cache,pairs,manifest['labels']),True)
+    history=[];start=0
+    if checkpoint.exists():
+        state=load_torch(checkpoint)
+        if state['train_pairs']!=pairs:raise ValueError('Fold pair identity changed')
+        head.load_state_dict(state['model']);opt.load_state_dict(state['optimizer'])
+        start=state['epoch'];history=state['history']
+        torch.set_rng_state(state['torch_rng'])
+        if str(args.device).startswith('cuda'):torch.cuda.set_rng_state_all(state['cuda_rng'])
+    for epoch in range(start,cfg['backbone_epochs']):
+        factor=.01+.99*(1+math.cos(math.pi*epoch/max(1,cfg['backbone_epochs']-1)))/2
+        for group in opt.param_groups:group['lr']=group['initial_lr']*factor
+        losses=[]
+        for g,fa,fo,a,o in loader:
+            g,fa,fo,a,o=[x.to(args.device) for x in (g,fa,fo,a,o)]
+            loss=head.objective(head(g,fa,fo),a,o,mask)['total']
+            opt.zero_grad();loss.backward();torch.nn.utils.clip_grad_norm_(head.parameters(),cfg['gradient_clip']);opt.step()
+            losses.append(float(loss.detach()))
+        history.append(dict(epoch=epoch+1,loss=float(np.mean(losses))))
+        save_torch(checkpoint,dict(model=head.state_dict(),optimizer=opt.state_dict(),epoch=epoch+1,
+            history=history,train_pairs=pairs,initialization='fresh_G0_architecture',torch_rng=torch.get_rng_state(),
+            cuda_rng=torch.cuda.get_rng_state_all() if str(args.device).startswith('cuda') else None))
+        write_json(out/'history.json',history)
+        print('FOLD_BACKBONE',out.parent.name,epoch+1,history[-1]['loss'],flush=True)
+    model.backbone.requires_grad_(False)
+    wrapper=out/'trust_initial.pt'
+    save_torch(wrapper,dict(model=model.state_dict(),train_pairs=pairs,base_source=sha(checkpoint)))
+    return wrapper
+```
+
+
+## 3. 配对效用、方差与异方差目标
+
+源码：`trustcpf/utility.py`
+
+```python
+@torch.no_grad()
+def paired_utility(model, base, target_local, candidates, edge_ids, weights, backgrounds, generator):
+    ecount = len(model.graph.types)
+    ys, vs, differences = [], [], []
+    for e in edge_ids.tolist():
+        diffs = []
+        for _ in range(backgrounds):
+            b = (torch.rand(ecount,device=weights.device,generator=generator)<.5).float()
+            b[e]=0
+            minus=candidate_logprob(model.score(base,b)[0],candidates)
+            b[e]=1
+            plus=candidate_logprob(model.score(base,b)[0],candidates)
+            rows=torch.arange(len(weights),device=weights.device)
+            diff=((minus[rows,target_local]-plus[rows,target_local]) * -weights).sum()
+            diffs.append(diff)
+        ds=torch.stack(diffs)
+        ys.append(ds.mean()); vs.append(ds.var(unbiased=True)/backgrounds)
+        differences.append(ds)
+    return torch.stack(ys), torch.stack(vs), torch.stack(differences)
+
+class UtilityNet(nn.Module):
+    def __init__(self, dim, center, spread):
+        super().__init__()
+        self.register_buffer('center',center)
+        self.register_buffer('spread',spread)
+        self.net=nn.Sequential(nn.Linear(dim,256),nn.GELU(),nn.Linear(256,128),nn.GELU(),nn.Linear(128,2))
+
+    def forward(self,x):
+        v=self.net((x-self.center)/self.spread)
+        return v[:,0], F.softplus(v[:,1])+1e-4
+
+def utility_nll(mean, variance, target, noise, inclusion, edges):
+    v=variance+noise.detach()
+    loss=.5*(v.log()+(mean-target.detach()).square()/v)
+    # Records sample uniformly within the fixed-size stratified subsets B_t.
+    # Multiplying by |B_t|/|E| implements the full-edge HT objective.
+    return (loss/inclusion).mean()*edges['sampled']/edges['total']
+
+@torch.no_grad()
+def ensemble_moments(models, x, scales, types):
+    pred=[net(x) for net in models]
+    ms=torch.stack([p[0]*scales[types] for p in pred])
+    vs=torch.stack([p[1]*scales[types].square() for p in pred])
+    return ms.mean(0),vs.mean(0),ms.var(0,unbiased=False)
+
+def aggregate_moments(means, variances, ensemble_vars):
+    return means.mean(0),variances.mean(0)+means.var(0,unbiased=False),ensemble_vars.mean(0)
+```
+
+
+## 4. 类型预算求解
+
+源码：`trustcpf/graph.py`
+
+```python
+def solve_budget(reward, types, tau, fraction=.5, prior=.5):
+    """Unique convex optimum; multipliers are nonnegative, per-type upper budgets."""
+    pi, multipliers = torch.zeros_like(reward), {}
+    tau = max(float(tau), 1e-8)
+    prior = torch.as_tensor(prior, device=reward.device, dtype=reward.dtype).clamp(1e-6,1-1e-6)
+    prior_logit = torch.logit(prior).expand_as(reward)
+    for ty in types.unique().tolist():
+        mask = types == ty
+        budget = fraction * int(mask.sum())
+        def value(gamma): return torch.sigmoid(prior_logit[mask] + (reward[mask]-gamma)/tau)
+        if fraction == 0:
+            multipliers[str(ty)] = 0.; continue
+        if value(0).sum() <= budget:
+            gamma = 0.
+        else:
+            low, high = 0., max(1., float(reward[mask].abs().max()))
+            while value(high).sum() > budget: high *= 2
+            for _ in range(60):
+                mid = (low+high)/2
+                if value(mid).sum() > budget: low=mid
+                else: high=mid
+            gamma=high
+        pi[mask] = value(gamma)
+        multipliers[str(ty)] = gamma
+    return pi, multipliers
+```
+
+
+## 5. 风险结构与噪声评价
+
+源码：`trustcpf/stages.py`
+
+```python
+def make_structure(cfg,bank,moments):
+    m,v,e=moments
+    lv=0. if cfg['variant']=='mean' else cfg['lambda_var']
+    le=0. if cfg['variant']=='mean' else cfg['lambda_ens']
+    reward=m-lv*v.sqrt()-le*e.sqrt()
+    pi,gamma=solve_budget(reward,bank['types'],cfg['tau_absolute'],cfg['budget'])
+    if 'availability' in bank: pi=pi*bank['availability']
+    return {'pi':pi,'mean':m,'task_variance':v,'ensemble_variance':e,'reward':reward,'multipliers':gamma}
+
+def noise(args):
+    cfg,manifest,text,clean,folds,work=setup(args)
+    run=work/'runs'/cfg['variant']; state=load_torch(run/'best.pt')
+    bank0=load_torch(run/'bank.pt'); cfg=state['cfg']; model=new_model(text,bank0,cfg,args.device)
+    model.load_state_dict(state['model']); cal=read_json(run/'metrics.json')['val']
+    structure0=load_torch(work/'structure.pt')
+    if (work/'tuning.json').exists(): cfg.update(read_json(work/'tuning.json')['selected'])
+    cfg.setdefault('tau_absolute',read_json(work/'structure.json')['parameters']['tau_absolute'])
+    noise_file=run/('noise_delete.json' if args.deletion else 'noise_mismatch.json')
+    rows=read_json(noise_file) if noise_file.exists() else []
+    completed={(r['seed'],r['type'],r['rate']) for r in rows}
+    for seed in args.noise_seeds:
+        for ty in range(3):
+            for rate in args.rates:
+                if (seed,ty,rate) in completed:continue
+                bank=permute_bank(bank0,seed,rate,ty,args.deletion)
+                with torch.no_grad(): model.graph.source.copy_(bank['source'].to(args.device))
+                if rate==0:
+                    pi=state['pi'].clone()
+                elif cfg['variant'] in ('robust','mean'):
+                    moments=deployment_moments(args,cfg,manifest,bank,work,work/'utility_all')
+                    pi=make_structure(cfg,bank,moments)['pi']
+                else: pi=state['pi'].clone()
+                if 'availability' in bank: pi=pi*bank['availability']
+                metrics=read_json(run/'metrics.json')['test'] if rate==0 else evaluate_model(model,args.cache,cfg,manifest,pi,'test',cal)
+                changed=(bank['source']-bank0['source']).norm(dim=-1)>1e-6
+                actual=float((1-bank['availability'][bank['types']==ty]).mean()) if 'availability' in bank else float(changed[bank['types']==ty].float().mean())
+                rows.append({'seed':seed,'type':ty,'rate':rate,'actual_rate':actual,'kind':'deletion' if args.deletion else 'source_mismatch','test':metrics})
+                rows[-1]['expected_edges']={str(t):float(pi[bank['types']==t].sum()) for t in range(3)}
+                write_json(noise_file,rows)
+                print('NOISE',cfg['variant'],seed,ty,rate,metrics['ow']['AUC_native'],flush=True)
+```
