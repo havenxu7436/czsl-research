@@ -1,0 +1,75 @@
+from shared import *
+from trustcpf.compact import point_metrics
+r=read(OUT/'recognition_data.json');m=read(OUT/'mechanism_data.json');old=read(BASE/'analysis_TRUST_CPF_align_v1_20261024/analysis.json')
+ix={(x['seed'],x['variant'],x['snapshot'],x['bank'],x['phase'],x['world']):x for x in r['rows']}
+metrics=('auc','exact','hm','seen','unseen','raw_nll','nll','ece','seen_gate','unseen_gate','compatibility','gt_attr_unseen')
+def rows(v,world,snap='best',bank=1701,phase='test'):return [ix[(s,v,snap,bank,phase,world)] for s in SEEDS]
+main=[];paired=[];banks=[];changes=[]
+for v in VARIANTS:
+    main.append(dict(variant=v,**{w:{k:stats([x[k] for x in rows(v,w)]) for k in metrics} for w in ('cw','ow')}))
+    for b in (1701,2701,3701):
+        banks.append(dict(variant=v,bank=b,**{w:stats([x['auc'] for x in rows(v,w,bank=b)]) for w in ('cw','ow')}))
+    for w in ('cw','ow'):
+        changes.append(dict(variant=v,world=w,**{k:stats([a[k]-b[k] for a,b in zip(rows(v,w),rows(v,w,'epoch0'))]) for k in metrics}))
+for a,b in (('unll','uniform'),('balanced','uniform'),('competition','uniform'),('competition','unll'),('competition','permuted')):
+    for w in ('cw','ow'):
+        for bank in (1701,2701,3701):
+            paired.append(dict(comparison=a+'-'+b,world=w,bank=bank,**{k:stats([x[k]-y[k] for x,y in zip(rows(a,w,bank=bank),rows(b,w,bank=bank))]) for k in metrics}))
+dec=[]
+for source in ('predicted','measured'):
+    for target in TARGETS:
+        name=source+'_'+target;entry=dict(source=source,target=target,seeds=[])
+        for seed in SEEDS:
+            summary=m['decision_summaries'][str(seed)];real=summary[name];perm=summary[name+'_permuted'];v={}
+            for readout in ('single','mixture'):
+                for metric in ('AUC_gain','unll_gain','balanced_gain','competition_gain'):
+                    key=readout+'_'+metric;v[key]=real[key]['mean'];v[key+'_mcse']=real[key]['mcse'];v[key+'_perm']=perm[key]['mean']
+                    diff=np.array([x[key] for x in m['decisions'] if x['seed']==seed and x['policy']==name])-np.array([x[key] for x in m['decisions'] if x['seed']==seed and x['policy']==name+'_permuted'])
+                    v[key+'_vs_perm']=float(diff.mean());v[key+'_vs_perm_mcse']=float(diff.std(ddof=1)/np.sqrt(len(diff)))
+            v['seed']=seed;entry['seeds'].append(v)
+        entry['means']={k:stats([x[k] for x in entry['seeds']]) for k in entry['seeds'][0] if k!='seed'};dec.append(entry)
+predictors=[];label_summary=[];label_corr=[]
+for target in TARGETS:
+    for t in (-1,0,1,2):
+        a=[x for x in m['predictors'] if x['target']==target and x['type']==t]
+        predictors.append(dict(target=target,type=t,**{k:stats([x[k] for x in a]) for k in ('spearman','pearson','centered_r2','q5_reference_rho','sign_accuracy')}))
+    for fold in (0,5):
+        a=[x for x in m['labels'] if x['target']==target and (fold==0 or x['fold']==fold)]
+        label_summary.append(dict(target=target,fold=fold,**{k:stats([x[k] for x in a]) for k in ('half_rho','label_sd','mean_se','median_abs_over_se')}))
+for a,b in (('unll','balanced'),('unll','competition'),('balanced','competition')):
+    for fold in (0,5):
+        v=[x for x in m['correlations'] if x['target1']==a and x['target2']==b and (fold==0 or x['fold']==fold)]
+        label_corr.append(dict(pair=a+'-'+b,fold=fold,spearman=stats([x['spearman'] for x in v]),pearson=stats([x['pearson'] for x in v])))
+scan=[]
+for seed in SEEDS:
+    for k in (0,.5,1,2):
+        a=[x for x in r['scans'] if x['seed']==seed and x['target']=='competition' and x['strength']==k];real=next(x for x in a if x['permutation_seed'] is None)
+        p=[x for x in a if x['permutation_seed'] is not None]
+        uniform=next(x for x in r['scans'] if x['seed']==seed and x['target']=='competition' and x['strength']==0 and x['permutation_seed'] is None)
+        scan.append(dict(seed=seed,k=k,real_gain=real['val_cw']-uniform['val_cw'],permutation_gain=stats([x['val_cw']-uniform['val_cw'] for x in p]),beat_permutations=sum(real['val_cw']>x['val_cw'] for x in p)))
+history=[]
+for h in r['histories']:
+    if h['reused']:continue
+    a=h['rows'];best=h['selected_epoch'];top3=max(x['val_cw'] for x in a if x['epoch']<=3)
+    history.append(dict(seed=h['seed'],variant=h['variant'],best_epoch=best,val0=a[0]['val_cw'],val3=a[3]['val_cw'],val10=a[10]['val_cw'],valbest=a[best]['val_cw'],gain_after3=a[best]['val_cw']-top3,loss1=a[1]['loss'],loss10=a[10]['loss'],best_to_last=a[10]['val_cw']-a[best]['val_cw']))
+old_ix={(x['seed'],x['variant'],x['snapshot'],x['bank'],x['phase'],x['world']):x for x in old['rows']}
+previous=[]
+for world in ('cw','ow'):
+    for seed in SEEDS:
+        new=ix[(seed,'uniform','best',1701,'test',world)];o=old_ix[(seed,'uniform','best',1701,'test',world)]
+        previous.append(dict(seed=seed,world=world,old_auc=o['auc'],new_auc=new['auc'],gain=new['auc']-o['auc']))
+historical=[]
+for v in dict.fromkeys(x['variant'] for x in old['historical']):
+    historical.append(dict(variant=v,**{w:stats([x['auc'] for x in old['historical'] if x['variant']==v and x['world']==w]) for w in ('cw','ow')}))
+costs={str(s):sum(x['seconds'] for x in r['stages'] if x['seed']==s)/60 for s in SEEDS}
+out=dict(main=main,paired=paired,banks=banks,adaptation=changes,decision=dec,predictors=predictors,labels=label_summary,label_correlations=label_corr,scan=scan,training=history,previous=previous,historical=historical,cost_minutes=costs)
+write('analysis.json',out)
+for a in main:print('MAIN',a['variant'],*[f"{w}:AUC={a[w]['auc']['mean']:.6f}+/-{a[w]['auc']['sd']:.6f} HM={a[w]['hm']['mean']:.3f} NLL={a[w]['nll']['mean']:.4f} ECE={a[w]['ece']['mean']:.3f}" for w in ('cw','ow')])
+for a in paired:
+    if a['comparison'] in ('competition-uniform','competition-permuted'):print('PAIRED',a['comparison'],a['world'],a['bank'],a['auc']['mean'],a['auc']['values'])
+for a in dec:print('Q5',a['source'],a['target'],{k:round(a['means'][k]['mean'],6) for k in ('mixture_AUC_gain','mixture_AUC_gain_vs_perm','single_AUC_gain','mixture_unll_gain','mixture_competition_gain')})
+for a in predictors:print('PRED',a['target'],a['type'],'rho',a['spearman']['values'],'r2',a['centered_r2']['values'])
+for a in label_summary:print('LABEL',a['target'],a['fold'],'half',a['half_rho']['mean'],'se',a['mean_se']['mean'],'sd',a['label_sd']['mean'],'medSNR',a['median_abs_over_se']['mean'])
+for a in label_corr:print('CORR',a['pair'],a['fold'],a['spearman']['mean'])
+print('TRAINING',history)
+print('COST',costs)

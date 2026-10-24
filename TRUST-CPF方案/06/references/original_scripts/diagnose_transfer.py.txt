@@ -1,0 +1,27 @@
+from shared import *
+from trustcpf.compact import predict,point_metrics
+rows=[];fit=[]
+for seed in SEEDS:
+    w=WORK/('seed%d'%seed);types=load_torch(w/'policies.pt')['types'];x5=load_torch(w/'responses/fold5.pt')['features'].numpy();xr=load_torch(w/'responses/reference.pt')['features'].numpy()
+    for qi,target in enumerate(TARGETS):
+        m3=load_torch(w/'utility'/target/'model.pt');m5=load_torch(w/'utility_all'/target/'model.pt')
+        p35=predict(m3,x5,types);p3r=predict(m3,xr,types);p5r=predict(m5,xr,types)
+        y5=load_torch(w/'measurements/fold5.pt')['target'][:,qi]
+        for t in range(3):
+            k=types==t
+            rows.append(dict(seed=seed,target=target,type=t,
+                input_change_rho=point_metrics(p35[k],p3r[k])['spearman'],
+                refit_change_rho=point_metrics(p3r[k],p5r[k])['spearman'],
+                combined_rho=point_metrics(p35[k],p5r[k])['spearman'],
+                prediction_to_label_sd=float(p35[k].std()/y5[k].std()),
+                q5_label_to_fit_scale=float(y5[k].std()/m3['scales'][t])))
+        for f in range(1,6):
+            y=load_torch(w/('measurements/fold%d.pt'%f))['target'][:,qi]
+            for t in range(3):
+                k=types==t;fit.append(dict(seed=seed,fold=f,target=target,type=t,mean=float(y[k].mean()),sd=float(y[k].std())))
+write('transfer_diagnostic.json',dict(rows=rows,fold_label_scale=fit))
+for target in TARGETS:
+    selected=[x for x in rows if x['target']==target]
+    print(target,{key:stats([x[key] for x in selected]) for key in ('input_change_rho','refit_change_rho','combined_rho')})
+for x in rows:
+    if x['target']=='unll':print(x)

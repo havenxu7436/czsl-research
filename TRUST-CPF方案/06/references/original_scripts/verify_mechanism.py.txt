@@ -1,0 +1,148 @@
+from shared import *
+from trustcpf import compact, align, competition
+from trustcpf.metrics import native_curve, exact_curve
+
+def batch_diag(a, sm, temperature=1.):
+    a=torch.as_tensor(a,dtype=torch.float64)
+    if a.ndim==2:a=a[None]
+    sm=torch.as_tensor(sm,dtype=torch.bool)
+    s,u=a[:,sm,:],a[:,~sm,:]
+    gs,gu=torch.sigmoid(s[:,:,1]/temperature),torch.sigmoid(u[:,:,1]/temperature)
+    smooth=[];hard=[]
+    for i in range(0,len(a),8):
+        d=s[i:i+8,:,None,2]-u[i:i+8,None,:,2]
+        smooth.append((gs[i:i+8,:,None]*gu[i:i+8,None,:]*torch.sigmoid(d/temperature)).mean((1,2)))
+        hard.append((s[i:i+8,:,None,3]*u[i:i+8,None,:,3]*((d>0).double()+.5*(d==0).double())).mean((1,2))*100)
+    smooth=torch.cat(smooth);hard=torch.cat(hard)
+    ns,nu=-s[:,:,0].mean(1),-u[:,:,0].mean(1)
+    margin=torch.where(torch.isfinite(a[:,:,1]),a[:,:,1].abs(),0).sum(1)/torch.isfinite(a[:,:,1]).sum(1)
+    return {k:v.numpy() for k,v in dict(unll=nu,balanced=(ns+nu)/2,competition=1-smooth,smooth_area=smooth,AUC_exact=hard,
+        seen_nll=ns,seen_gate=gs.mean(1),unseen_gate=gu.mean(1),within_margin_abs_mean=margin,crossing_sd=a[:,:,2].std(1,unbiased=False)).items()}
+
+def ridge(xs,ys,types,alpha):
+    x=np.concatenate(xs).astype(float);y=np.concatenate(ys).astype(float);t=np.tile(types,len(xs))
+    center=x.mean(0);spread=np.maximum(x.std(0),1e-6);scales=np.array([max(y[t==k].std(),1e-12) for k in range(3)])
+    z=np.column_stack((np.ones(len(x)),(x-center)/spread))
+    z=np.concatenate([z*(t==k)[:,None] for k in range(3)],1)
+    beta=np.linalg.solve(z.T@z+alpha*np.eye(27),z.T@(y/scales[t]))
+    return dict(beta=beta,center=center,spread=spread,scales=scales)
+
+verification=dict(teachers=0,measurement_blocks=0,paired_edge_backgrounds=0,effect_values=0,decision_banks=0,decision_policies=0,max_measurement_error=0.,max_decision_error=0.,ridge_models=0)
+out=dict(splits=[],labels=[],predictors=[],decisions=[],decision_summaries={},correlations=[],feature_shift=[])
+
+for seed in SEEDS:
+    w=WORK/('seed%d'%seed);cfg=read(w/'recipe.json');types=load_torch(w/'policies.pt')['types']
+    xs=[];ys=[];all_blocks=[]
+    for fold in range(1,6):
+        split=read(w/('splits/fold%d.json'%fold));train=set(split['train_ids']);s=set(split['seen_pool']);u=set(split['unseen_pool'])
+        assert not(train&s or train&u or s&u)
+        assert len(train|s|u)==22998
+        for part in ('measure','evaluate'):
+            if split[part]:
+                assert set(split[part]['seen'])<=s and set(split[part]['unseen'])<=u
+                assert len(split[part]['seen'])==len(split[part]['unseen'])==256
+        if fold==5:
+            assert not(set(sum(split['measure'].values(),[]))&set(sum(split['evaluate'].values(),[])))
+        teacher=load_torch(w/('teachers/%d/last.pt'%fold));back=load_torch(w/('teachers/%d/backbone/last.pt'%fold))
+        assert teacher['epoch']==back['epoch']==10
+        assert teacher['train_ids']==back['train_ids']==split['train_ids']
+        assert teacher['train_pairs']==back['train_pairs']==split['inner_pairs']
+        assert all(torch.equal(v,back['model'][k[len('backbone.'):]]) for k,v in teacher['model'].items() if k.startswith('backbone.'))
+        response=load_torch(w/('responses/fold%d.pt'%fold));assert set(response['support_indices'])<=train
+        assert response['checkpoint_sha256']==sha(w/('teachers/%d/last.pt'%fold))
+        xs.append(response['features'].double().numpy())
+        saved=load_torch(w/('measurements/fold%d.pt'%fold));assert saved['teacher_sha256']==response['checkpoint_sha256']
+        assert saved['split']==split
+        blocks=[]
+        for file in sorted((w/('measurements/fold%d'%fold)).glob('block*.pt')):
+            b=load_torch(file);sm=b['seen_candidates'][b['truth']];assert torch.equal(sm,b['sample_seen'])
+            assert list(b['targets'])==list(TARGETS)
+            bo=batch_diag(b['off'],sm);bn=batch_diag(b['on'],sm)
+            effect=np.column_stack([bo[t]-bn[t] for t in TARGETS])
+            e=close(effect,b['effects'],1e-10);verification['max_measurement_error']=max(e,verification['max_measurement_error'])
+            blocks.append(effect);verification['measurement_blocks']+=1
+        blocks=np.stack(blocks);assert len(blocks)==(16 if fold==5 else 8)
+        close(blocks,saved['blocks'],1e-10);close(blocks.mean(0),saved['target'],1e-10);close(blocks.var(0,ddof=1)/len(blocks),saved['se2'],1e-12)
+        y=blocks.mean(0);ys.append(y);all_blocks.append(blocks)
+        verification['teachers']+=1;verification['paired_edge_backgrounds']+=len(blocks)*96;verification['effect_values']+=blocks.size
+        out['splits'].append(dict(seed=seed,fold=fold,train_images=len(train),seen_pool=len(s),unseen_pool=len(u),measure_seen=256,measure_unseen=256,evaluate_seen=256 if fold==5 else 0,response_images=len(response['support_indices'])))
+        for ti,target in enumerate(TARGETS):
+            for t in range(3):
+                k=types==t;a=y[k,ti];se=np.sqrt(saved['se2'][k,ti]);half=blocks.shape[0]//2
+                out['labels'].append(dict(seed=seed,fold=fold,target=target,type=t,label_mean=float(a.mean()),label_sd=float(a.std()),mean_se=float(se.mean()),median_abs_over_se=float(np.median(np.abs(a)/np.maximum(se,1e-15))),half_rho=compact.point_metrics(blocks[:half,k,ti].mean(0),blocks[half:,k,ti].mean(0))['spearman']))
+            for other in range(ti+1,3):
+                for t in range(3):
+                    out['correlations'].append(dict(seed=seed,fold=fold,type=t,target1=target,target2=TARGETS[other],**compact.point_metrics(y[types==t,ti],y[types==t,other])))
+        print('MEASURE_OK',seed,fold,flush=True)
+    selection=read(w/'utility/selection.json');preds=load_torch(w/'utility/predictions.pt');audit=read(w/'utility/audit.json')
+    xr=load_torch(w/'responses/reference.pt')['features'].double().numpy()
+    for ti,target in enumerate(TARGETS):
+        yy=[y[:,ti] for y in ys];trials=[]
+        for alpha in cfg['ridge_alphas']:
+            m=ridge(xs[:3],yy[:3],types,alpha);p=compact.predict(m,xs[3],types)
+            err=np.mean([np.var((p[types==t]-yy[3][types==t])/m['scales'][t]) for t in range(3)])
+            trials.append(dict(alpha=alpha,q4_error=float(err)))
+        for a,b in zip(trials,selection[target]['trials']):assert a['alpha']==b['alpha'];close(a['q4_error'],b['q4_error'])
+        alpha=min(trials,key=lambda a:(a['q4_error'],-a['alpha']))['alpha'];assert alpha==selection[target]['selected_alpha']
+        for n,dest in ((3,'utility'),(5,'utility_all')):
+            m=ridge(xs[:n],yy[:n],types,alpha);saved=load_torch(w/dest/target/'model.pt')
+            for key in m:close(m[key],saved[key],1e-10)
+            assert saved['fit_fold_ids']==list(range(1,n+1));verification['ridge_models']+=1
+            p=compact.predict(m,xs[4] if n==3 else xr,types)
+            close(p,preds[target]['q5' if n==3 else 'reference'],1e-10)
+        p=preds[target]['q5'];y=yy[4]
+        for t in (-1,0,1,2):
+            k=np.ones(len(types),dtype=bool) if t==-1 else types==t
+            point=compact.point_metrics(p[k],y[k]);saved=audit[target]['all'] if t==-1 else audit[target]['by_type'][str(t)]
+            for key in point:
+                if point[key] is not None:close(point[key],saved[key])
+            centered=np.concatenate([(p[types==tt]-p[types==tt].mean())-(y[types==tt]-y[types==tt].mean()) for tt in range(3)]) if t==-1 else (p[k]-p[k].mean())-(y[k]-y[k].mean())
+            base=np.concatenate([y[types==tt]-y[types==tt].mean() for tt in range(3)]) if t==-1 else y[k]-y[k].mean()
+            out['predictors'].append(dict(seed=seed,target=target,type=t,alpha=alpha,**point,centered_r2=float(1-np.mean(centered**2)/np.mean(base**2)),q5_reference_rho=compact.point_metrics(p[k],preds[target]['reference'][k])['spearman']))
+    # Separately record feature distribution shift under the Q1-3 training normalization.
+    m=load_torch(w/'utility/unll/model.pt');z5=(xs[4]-m['center'])/m['spread'];zr=(xr-m['center'])/m['spread']
+    out['feature_shift'].append(dict(seed=seed,q5_abs_z_mean=float(np.abs(z5).mean()),reference_abs_z_mean=float(np.abs(zr).mean()),q5_gt3=float((np.abs(z5)>3).mean()),reference_gt3=float((np.abs(zr)>3).mean())))
+    audit=read(w/'decision/audit.json');allrows=[]
+    perm=align.permutation(types,cfg['permutation_seeds'][0]);policies={'uniform':torch.full((96,),.5,dtype=torch.double)}
+    for target in TARGETS:
+        for source,key in (('predicted','q5'),('measured','q5_target')):
+            p,_=align.policy(preds[target][key],types,1.);name=source+'_'+target;policies[name]=p;policies[name+'_permuted']=p[perm]
+    for file in sorted((w/'decision/blocks').glob('evaluate*.pt')):
+        b=load_torch(file);sm=b['seen'][b['truth']];gen=torch.Generator().manual_seed(b['graph_seed']);uniforms=torch.rand(16,96,generator=gen).double()
+        baseline=b['results']['uniform'];rows=[]
+        for name,value in b['results'].items():
+            close(policies[name],b['policies'][name]);assert torch.equal((uniforms<policies[name][None]).float(),value['masks'])
+            single=batch_diag(value['single_statistics'],sm)
+            mixture=competition.sufficient(value['mixture_logprobs'],b['truth'],b['seen'])
+            mix=batch_diag(mixture,sm);mix['AUC_native']=np.array([native_curve(value['mixture_logprobs'].numpy(),b['truth'].numpy(),b['seen'].numpy())['AUC']])
+            close(exact_curve(value['mixture_logprobs'].numpy(),b['truth'].numpy(),b['seen'].numpy())['AUC'],mix['AUC_exact'][0])
+            for calc,key in ((single,'single'),(mix,'mixture')):
+                for metric,v in calc.items():
+                    e=close(v.mean(),value[key][metric],1e-9);verification['max_decision_error']=max(e,verification['max_decision_error'])
+            row=dict(policy=name,bank=b['graph_seed'])
+            for readout in ('single','mixture'):
+                for metric,v in value[readout].items():row[readout+'_'+metric]=v
+                for target in TARGETS:row[readout+'_'+target+'_gain']=baseline[readout][target]-value[readout][target]
+                row[readout+'_AUC_gain']=value[readout]['AUC_exact']-baseline[readout]['AUC_exact']
+            allrows.append(row);out['decisions'].append(dict(seed=seed,**row));verification['decision_policies']+=1
+        verification['decision_banks']+=1
+    for a,b in zip(allrows,audit['rows']):
+        for key in a:
+            if isinstance(a[key],str):assert a[key]==b[key]
+            else:close(a[key],b[key])
+    for name in policies:
+        rows=[r for r in allrows if r['policy']==name]
+        for key in rows[0]:
+            if key in ('policy','bank'):continue
+            v=np.array([r[key] for r in rows]);saved=audit['summary'][name][key]
+            close([v.mean(),v.std(ddof=1),v.std(ddof=1)/np.sqrt(len(v))],[saved['mean'],saved['sd'],saved['mcse']])
+    out['decision_summaries'][str(seed)]=audit['summary']
+    print('DECISION_OK',seed,flush=True)
+
+csvrows=csvread(WORK/'decision_risks.csv');assert len(csvrows)==312
+for c,r in zip(csvrows,out['decisions']):
+    assert int(c['seed'])==r['seed'] and c['policy']==r['policy'] and int(c['bank'])==r['bank']
+    for k,v in r.items():
+        if k not in ('seed','policy','bank'):close(v,float(c[k]))
+write('mechanism_verification.json',verification);write('mechanism_data.json',out)
+print('MECHANISM_COMPLETE',verification,flush=True)

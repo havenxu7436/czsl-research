@@ -1,0 +1,127 @@
+原始个人部署命令保留如下；从仓库恢复同版本的命令见 [SERVER_COMMANDS.md](SERVER_COMMANDS.md)。
+
+# TRUST-CPF Competition v1（10 epoch）：完整实践命令
+
+服务器为 `xhw@211.87.232.122`。本批目录为 `/data/xhw/experiments/trustcpf_competition_v1_10ep`。默认使用物理 GPU **0 / 1 / 2**。五组正式适配统一 **10 epoch**，在 epoch 0–10 中选取 VAL CW AUC 最佳权重。整批一次启动，依次完成教师、效用监督和五组识别。
+
+这是独立的十轮版本，从当前 Align 的 reference 开始运行，原三轮 Competition 目录与结果保留。无需先补跑旧 Align。
+
+## 1. 本机 Windows PowerShell：上传并解压
+
+复制整个代码块执行：
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass -Force
+& "C:\Users\llenovo\Documents\ChatGPT\USG\output\upload_trustcpf_competition_v1_10ep.ps1"
+ssh xhw@211.87.232.122
+```
+
+上传脚本已固定服务器、ZIP 和校验文件路径，完成本地 SHA256 校验、上传、远程 SHA256 校验和解压。成功标记为 `UPLOAD_AND_EXTRACTION_COMPLETE`。需要密码时输入服务器密码。
+
+## 2. 服务器 Bash：初始化并检查
+
+```bash
+conda activate vgcpod_v1
+cd /data/xhw/experiments/trustcpf_competition_v1_10ep
+
+python run.py setup \
+  --source /data/xhw/experiments/trustcpf_align_v1 \
+  --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14 \
+  --work /data/xhw/experiments/trustcpf_competition_v1_10ep/work
+
+source scripts/env.sh
+"$CPF_PY" -c 'import sys, torch; print(sys.executable); print("PyTorch:", torch.__version__); print("CUDA:", torch.cuda.is_available())'
+CUDA_VISIBLE_DEVICES="" "$CPF_PY" -m unittest discover -s tests -v
+```
+
+`--source` 指向服务器上已完成的 Align 项目。初始化会写入实际 Python 路径；每次重新登录后执行 `source scripts/env.sh` 即可恢复本项目的变量。继续复用当前环境和 CLIP 缓存。
+
+本地交付测试包括三 seed 精简全流程；服务器测试也使用 CPU 和合成特征。末尾应显示 `OK`，可能包含已有缓存提取测试的跳过提示。真实数据训练在下一步启动。
+
+## 3. 服务器 Bash：用 0/1/2 卡启动整批
+
+```bash
+cd /data/xhw/experiments/trustcpf_competition_v1_10ep
+mkdir -p logs
+nohup bash scripts/run_all.sh 0 1 2 >> logs/queue.log 2>&1 < /dev/null &
+echo "QUEUE_PID=$!"
+tail -F logs/queue.log
+```
+
+seed3351 使用物理卡 0，seed3352 使用卡 1，seed3353 使用卡 2。每个进程内部显示的 `cuda:0` 是它被分配到的物理卡。Ctrl+C 只退出日志查看。
+
+如本次改用 1/2/3，启动命令中的 `0 1 2` 改成 `1 2 3`，执行其中一条即可。
+
+查看各卡任务的进度：
+
+```bash
+cd /data/xhw/experiments/trustcpf_competition_v1_10ep
+tail -n 25 logs/seed3351.log
+tail -n 25 logs/seed3352.log
+tail -n 25 logs/seed3353.log
+nvidia-smi
+bash scripts/status.sh
+```
+
+日志顺序为 `FOLD_BACKBONE`、`EPOCH`、`RESPONSE_COMPLETE`、`UTILITY_BLOCK`，五折完成后为 `UTILITY_FIT`、`Q5_DECISION_BANK`、`FROZEN_VAL`、适配 `EPOCH` 和 `EVALUATED`。教师固定 10 epoch，因此教师日志的 `val_auc None` 正常；正式适配会记录 VAL AUC。
+
+完整队列结束会显示：
+
+```text
+STATUS 42 / 42 models 15 /15 audits 3 /3 teachers 15 /15 complete True
+ALL_EXPERIMENTS_COMPLETE: 42/42 stages, 15/15 model results, 15/15 teachers, 3/3 Q5 decision audits
+QUEUE_COMPLETE
+```
+
+中断后，重新执行同一启动命令续跑。完整阶段显示 `REUSE_STAGE`，教师从最近完整 epoch 恢复，测量从已完成的背景块继续。已经运行的队列由进程锁识别。
+
+## 4. 服务器 Bash：汇总并打包
+
+确认整批完成后执行：
+
+```bash
+cd /data/xhw/experiments/trustcpf_competition_v1_10ep
+bash scripts/pack_results.sh
+```
+
+脚本会重新汇总、检查完成状态，再打包代码、15 个教师、全部测量、预测器、模型、预测和日志。过程中显示 `PACK_PROGRESS`；出现 **`PACK_COMPLETE` 和 `DOWNLOAD_READY`** 并返回命令提示符后，再下载。
+
+归档名为 `trustcpf_competition_v1_10ep_results_日期_时间.tar.gz`，保存在 `/data/xhw/experiments/`。准确文件名、大小和 SHA256 自动写入项目内的 `download.json`。
+
+## 5. 本机 Windows PowerShell：下载、校验并解压
+
+另开本机 PowerShell，复制执行：
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass -Force
+& "C:\Users\llenovo\Documents\ChatGPT\USG\output\download_trustcpf_competition_v1_10ep.ps1"
+```
+
+脚本先下载 `download.json`，再下载其中指定的准确归档；传输失败自动重试三次。下载完成后核验大小和 SHA256，并用本机 Python 解压中文文件名。已下载且校验正确的归档直接复用。
+
+结果保存在：
+
+```text
+C:\Users\llenovo\Documents\ChatGPT\USG\
+  trustcpf_competition_v1_10ep_results_日期_时间\
+    trustcpf_competition_v1_10ep\work\
+```
+
+下载脚本最终显示 `DOWNLOAD_SHA256_EXTRACTION_COMPLETE` 及准确目录。无需手动设置 `$cpfRemoteArchive` 等跨窗口变量。
+
+## 6. 核心结果文件
+
+| 文件 | 主要内容 |
+| --- | --- |
+| `work/status.json` | 整批完成数量与输出校验 |
+| `work/summary.csv`、`aggregates.json` | 三 seed、五组、冻结／最佳权重、三个 bank 的 CW／OW 指标 |
+| `work/paired_comparisons.csv` | Competition 对三个主要对照及 U-NLL 的逐 seed 配对差 |
+| `work/decision_risks.csv` | Q5 独立图像的单图／混合 NLL、竞争风险和 AUC 收益 |
+| `work/utility_correlations.csv` | 各目标预测准确性、Q5 到 reference 的排序变化 |
+| `work/scan.csv`、`deployment.csv` | 强度扫描、概率分布、预算、覆盖和原型位移 |
+| `work/adaptation_gain.csv`、`costs.csv` | 冻结到适配的变化、阶段实际耗时 |
+| `work/training_curves.csv` | 五组 epoch 0–10 的 165 行曲线，含损失、当前 VAL AUC、学习率和选中 epoch |
+| `work/seed*/splits/`、`measurements/` | 图像清单、完整配对效用及复算所需统计量 |
+| `work/seed*/runs/*/` | 权重、逐 epoch 历史、VAL／TEST 预测及指标 |
+
+主结果使用 bank1701；2701、3701 用于确认图采样的一致性，每个 bank 都是独立 16 图读出。三个 bank 不能当作新增训练 seed。

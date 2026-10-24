@@ -1,0 +1,26 @@
+from shared import *
+import re
+s=(OUT/'report.md').read_text(encoding='utf8')
+assert not any(ord(c)<32 and c!='\n' for c in s)
+assert '\ufffd' not in s
+blocks=re.findall(r'\$\$(.*?)\$\$',s,re.S);assert len(blocks)==3
+for b in blocks:
+    depth=0
+    for c in b:
+        if c=='{':depth+=1
+        elif c=='}':depth-=1
+        assert depth>=0
+    assert depth==0
+    assert r'\frac' in b
+links=re.findall(r'\]\(<?(C:/[^\n>]*?)>?\)',s)
+assert all(Path(p).exists() for p in links)
+count=0;size=None
+for line in s.splitlines()+['']:
+    if line.startswith('| '):
+        current=line.count('|')-1
+        if size is None:size=current;count+=1
+        else:assert size==current,(size,current,line)
+    else:size=None
+write('report_validation.json',dict(passed=True,tables=count,formula_blocks=len(blocks),existing_links=len(links),characters=len(s),no_control_characters=True))
+print('REPORT_VALIDATED',count,'tables',len(blocks),'formula blocks',len(links),'links')
+for b in blocks:print(b)

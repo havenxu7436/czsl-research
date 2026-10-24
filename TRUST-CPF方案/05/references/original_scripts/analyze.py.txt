@@ -1,0 +1,317 @@
+"""Recompute TRUST-Align results from archived predictions and intervention blocks."""
+import csv
+import hashlib
+import json
+import math
+import sys
+from pathlib import Path
+import numpy as np
+import torch
+
+OUT = Path(__file__).resolve().parent
+BASE = OUT.parent
+ROOT = BASE / 'trustcpf_align_v1_results_20261024_164626/trustcpf_align_v1'
+WORK = ROOT / 'work'
+sys.path.insert(0, str(ROOT))
+from trustcpf.common import load_torch
+from trustcpf.metrics import native_curve, exact_curve
+from trustcpf.engine import calibration_metrics
+from trustcpf.align import policy, permutation
+from trustcpf.compact import predict, point_metrics
+
+torch.set_num_threads(4)
+SEEDS = (3351, 3352, 3353)
+VARIANTS = ('uniform', 'align', 'permuted')
+BANKS = ('1701', '2701', '3701')
+TYPE_NAMES = ('OI', 'OE', 'AE')
+
+
+def read(path):
+    return json.loads(Path(path).read_text(encoding='utf-8-sig'))
+
+
+def write(name, value):
+    def default(x):
+        if isinstance(x, np.ndarray): return x.tolist()
+        if isinstance(x, np.generic): return x.item()
+        if isinstance(x, Path): return str(x)
+        raise TypeError(type(x))
+    (OUT / name).write_text(json.dumps(value, default=default, ensure_ascii=False, indent=2, allow_nan=False)+'\n', encoding='utf8')
+
+
+def sha(path):
+    h = hashlib.sha256()
+    with Path(path).open('rb') as f:
+        for b in iter(lambda: f.read(4*1024*1024), b''): h.update(b)
+    return h.hexdigest()
+
+
+def stats(values):
+    x = np.asarray(values, dtype=float)
+    return dict(mean=float(x.mean()), sd=float(x.std(ddof=1)) if len(x)>1 else 0., values=x.tolist())
+
+
+def close(actual, expected, tolerance=1e-9):
+    error = float(np.max(np.abs(np.asarray(actual)-np.asarray(expected))))
+    if error > tolerance: raise AssertionError((error, tolerance))
+    return error
+
+
+def integrity():
+    descriptor = read(BASE / 'trustcpf_align_v1_download.json')
+    archive = BASE / descriptor['name']
+    assert archive.stat().st_size == descriptor['bytes']
+    assert sha(archive) == descriptor['sha256']
+    files = read(ROOT / 'MANIFEST.json')
+    for name, value in files.items(): assert sha(ROOT / name) == value, name
+    checks = 0; stages = []
+    for seed in SEEDS:
+        folder = WORK / ('seed%d'%seed)
+        for p in sorted((WORK / 'progress' / ('seed%d'%seed)).glob('*.json')):
+            marker = read(p)
+            if 'outputs' not in marker: continue
+            for name, value in marker['outputs'].items():
+                assert sha(folder / name) == value, (seed, name)
+                checks += 1
+            stages.append(dict(seed=seed, stage=marker['stage'], seconds=marker['seconds'],
+                               peak_gpu_MB=marker['peak_gpu_bytes']/1024**2))
+        identity = read(WORK / 'progress' / ('seed%d'%seed) / 'identity.json')
+        for name, value in identity['implementation'].items(): assert sha(ROOT/name)==value, name
+    result = dict(archive_sha256=descriptor['sha256'], archive_bytes=descriptor['bytes'],
+                  release_files=len(files), checked_stage_outputs=checks, stages=len(stages),
+                  status=read(WORK/'status.json'), all_passed=True)
+    write('integrity.json', result)
+    return result, stages
+
+
+def prediction_check():
+    rows = []; replay = {}; replay_count = 0; max_error = 0.; histories=[]; selections=[]; deploy=[]; scans=[]
+    for seed in SEEDS:
+        folder = WORK / ('seed%d'%seed)
+        select = read(folder/'selection.json'); selections.append(dict(seed=seed,**select))
+        scanned = read(folder/'scan/results.json')
+        real = [r for r in scanned if r['permutation_seed'] is None]
+        selected = max(real,key=lambda x:(x['val']['cw']['AUC_native'],-x['strength']))
+        assert selected['key']==select['key']
+        uniform_val = next(r['val']['cw']['AUC_native'] for r in real if r['strength']==0)
+        for r in real:
+            peers=[q for q in scanned if q['strength']==r['strength'] and q['permutation_seed'] is not None]
+            values=[q['val']['cw']['AUC_native'] for q in peers]
+            scans.append(dict(seed=seed,strength=r['strength'],real=r['val']['cw']['AUC_native'],
+                delta_uniform=r['val']['cw']['AUC_native']-uniform_val, permutations=values,
+                permutation_mean=float(np.mean(values)), real_minus_permutation_mean=r['val']['cw']['AUC_native']-float(np.mean(values)),
+                rank_among_six=1+sum(v>r['val']['cw']['AUC_native'] for v in values)))
+        policies=load_torch(folder/'policies.pt');types=policies['types'];bank=load_torch(folder/'inputs/bank.pt')
+        predictor=load_torch(folder/'utility_all/compact/model.pt');response=load_torch(folder/'responses/reference.pt')
+        mu=predict(predictor,response['features'].numpy(),types)
+        close(mu,policies['mu'],1e-12)
+        ref=load_torch(folder/'reference/last.pt')
+        for strength in (0.,.5,1.,2.):
+            pi,_=policy(mu,types,strength)
+            close(pi,policies['scanned']['k%g_real'%strength]['pi'],1e-12)
+        for variant in VARIANTS:
+            run=folder/'runs'/variant
+            value=read(run/'metrics.json'); best=load_torch(run/'best.pt'); last=load_torch(run/'last.pt')
+            for key, original in ref['model'].items():
+                if key.startswith('backbone.'):
+                    assert torch.equal(original,best['model'][key])
+                    assert torch.equal(original,last['model'][key])
+            close(best['pi'],policies['formal'][variant].float(),0)
+            history=read(run/'history.json')
+            initial_val=value['results']['epoch0']['1701']['val']['cw']['AUC_native']
+            hs=[dict(epoch=0,loss=None,val_cw=initial_val,val_ow=value['results']['epoch0']['1701']['val']['ow']['AUC_native'])]
+            hs += [dict(epoch=h['epoch'],loss=h['loss'],val_cw=h['val']['cw']['AUC_native'],val_ow=h['val']['ow']['AUC_native']) for h in history]
+            expected=max(hs,key=lambda r:(r['val_cw'],-r['epoch']))['epoch']
+            assert best['epoch']==value['epoch']==expected
+            assert last['epoch']==3
+            histories.append(dict(seed=seed,variant=variant,selected_epoch=expected,rows=hs,reused=(run/'reuse.json').exists()))
+            for snapshot in ('epoch0','best'):
+                for bs in BANKS:
+                    entry=value['results'][snapshot][bs]
+                    for ty, d in entry['deployment'].items():
+                        deploy.append(dict(seed=seed,variant=variant,snapshot=snapshot,bank=int(bs),type=TYPE_NAMES[int(ty)],**d))
+                    for phase in ('val','test'):
+                        file=run/snapshot/('bank'+bs)/(phase+'_predictions.npz')
+                        digest=sha(file)
+                        if digest not in replay:
+                            with np.load(file) as a:
+                                result={}
+                                for w in ('cw','ow'):
+                                    x,y,seen=a[w+'_logprob'],a[w+'_truth'],a[w+'_seen']
+                                    assert np.isfinite(x).all()
+                                    n,e=native_curve(x,y,seen),exact_curve(x,y,seen)
+                                    result[w]=dict(native=n['AUC'],exact=e['AUC'])
+                                    si,ui=np.flatnonzero(seen),np.flatnonzero(~seen);sm=seen[y]
+                                    sp=si[x[:,si].argmax(1)];up=ui[x[:,ui].argmax(1)]
+                                    gs=float((sp[sm]==y[sm]).mean());gu=float((up[~sm]==y[~sm]).mean())
+                                    result[w].update(seen_gate=gs*100,unseen_gate=gu*100,compatibility=e['AUC']/100/(gs*gu),
+                                        seen_images=int(sm.sum()),unseen_images=int((~sm).sum()),candidates=len(seen))
+                                replay[digest]=result
+                        replay_count+=1
+                        with np.load(file) as a:
+                            for w in ('cw','ow'):
+                                m=entry[phase][w]; checks=replay[digest][w]
+                                max_error=max(max_error,close(checks['native'],m['AUC_native'],3e-5),close(checks['exact'],m['AUC_exact'],1e-10))
+                                for calibration in ('unbiased','at_val_bias','calibrated'):
+                                    c=m[calibration]
+                                    q=calibration_metrics(a[w+'_logprob'],a[w+'_truth'],a[w+'_seen'],c['bias'],c['temperature'])
+                                    for metric in ('HM','NLL','NLL_seen','NLL_unseen','ECE','seen','unseen'):
+                                        max_error=max(max_error,close(q[metric],c[metric],1e-9))
+                                if phase=='test':
+                                    for k in ('bias','temperature'): close(m['calibrated'][k],entry['val'][w]['calibrated'][k],0)
+                                rows.append(dict(seed=seed,variant=variant,snapshot=snapshot,bank=int(bs),phase=phase,world=w,
+                                    epoch=entry['epoch'],auc=m['AUC_native'],hm=m['at_val_bias']['HM'],
+                                    nll=m['calibrated']['NLL'],raw_nll=m['unbiased']['NLL'],nll_seen=m['unbiased']['NLL_seen'],
+                                    nll_unseen=m['unbiased']['NLL_unseen'],ece=m['calibrated']['ECE'],
+                                    seen=m['at_val_bias']['seen'],unseen=m['at_val_bias']['unseen'],
+                                    gt_attr_unseen=m['gt_object_attr_acc_unseen'],**checks))
+        print('REPLAYED_PREDICTIONS',seed,flush=True)
+    # The supplied CSV is also reconciled to the raw JSON/prediction replay.
+    with (WORK/'summary.csv').open(encoding='utf-8-sig') as f: summary=list(csv.DictReader(f))
+    assert len(summary)==len(rows)==216
+    ix={(r['seed'],r['variant'],r['snapshot'],r['bank'],r['phase'],r['world']):r for r in rows}
+    for r in summary:
+        p=ix[(int(r['seed']),r['variant'],r['snapshot'],int(r['bank']),r['phase'],r['world'])]
+        close(float(r['AUC_native']),p['auc'],1e-12)
+    result=dict(prediction_files=replay_count,unique_prediction_contents=len(replay),max_metric_error=max_error,
+                all_backbones_frozen=True,all_epoch_choices_match_VAL=True,all_probabilities_recomputed=True,
+                all_csv_rows_reconciled=True)
+    write('prediction_verification.json',result)
+    return rows,histories,selections,deploy,scans
+
+
+def audit_check():
+    summaries=[]; correlations=[]; effects_extra=[]; sampling=[]; max_effect_error=max_risk_error=0.;all_risks=[]
+    for seed in SEEDS:
+        folder=WORK/('seed%d'%seed); q=read(folder/'decision/sampling.json'); audit=read(folder/'decision/audit.json')
+        effects=load_torch(folder/'decision/effects.pt'); types=effects['types']
+        m_ids={r['row_id'] for r in q['measure']};e_ids={r['row_id'] for r in q['evaluate']}
+        assert not m_ids&e_ids
+        assert not {r['image'] for r in q['measure']}&{r['image'] for r in q['evaluate']}
+        assert q['teacher_sha256']==sha(folder/'teacher_q5/last.pt')
+        assert q['predictor_sha256']==sha(folder/'utility/compact/model.pt')
+        fit=load_torch(folder/'utility/compact/model.pt');assert fit['fit_fold_ids']==[1,2,3]
+        teacher=load_torch(folder/'teacher_q5/last.pt')
+        assert not set(map(tuple,teacher['train_pairs']))&set(map(tuple,q['pairs']))
+        weights={}
+        for split in ('measure','evaluate'):
+            weights[split]=torch.tensor([r['weight'] for r in q[split]],dtype=torch.double)
+            close(weights[split].sum(),1,1e-12)
+            for pair in q['pairs']: close(sum(r['weight'] for r in q[split] if tuple(r['pair'])==tuple(pair)),1/len(q['pairs']),1e-12)
+        sampling.append(dict(seed=seed,pairs=len(q['pairs']),measure=len(m_ids),evaluate=len(e_ids),excluded=len(q['excluded']),
+                             same_query_pairs_all_seeds=q['pairs']))
+        pred=predict(fit,load_torch(folder/'responses/fold5.pt')['features'].numpy(),types)
+        close(pred,effects['predicted'],1e-12)
+        d1=[];dm=[]
+        for file in sorted((folder/'decision/blocks').glob('measure_*.pt')):
+            b=load_torch(file);lp0,lp1=b['log_off'],b['log_on'];ls=b['log_companion'].logsumexp(0)
+            close(b['weights'],weights['measure'],1e-12)
+            s=((lp1-lp0)*b['weights']).sum(-1).numpy()
+            m=((torch.logaddexp(ls,lp1)-torch.logaddexp(ls,lp0))*b['weights']).sum(-1).numpy()
+            max_effect_error=max(max_effect_error,close(s,b['d_single'],1e-12),close(m,b['d_mixture_slot'],1e-12))
+            d1.append(s);dm.append(m)
+        d1,dm=np.array(d1),np.array(dm)
+        for k,actual in dict(single=d1.mean(0),mixture=16*dm.mean(0),single_se2=d1.var(0,ddof=1)/8,mixture_se2=256*dm.var(0,ddof=1)/8).items():
+            max_effect_error=max(max_effect_error,close(actual,effects[k],1e-12))
+        recomputed=[]
+        for file in sorted((folder/'decision/blocks').glob('evaluate_*.pt')):
+            b=load_torch(file);w=b['weights']; close(w,weights['evaluate'],1e-12)
+            for name,lp in b['true_logprobs'].items():
+                r1=float(-(lp.mean(0)*w).sum());r16=float(-((lp.logsumexp(0)-math.log(16))*w).sum())
+                max_risk_error=max(max_risk_error,close(r1,b['values'][name]['single_nll'],1e-12),close(r16,b['values'][name]['mixture_nll'],1e-12))
+                u=b['values']['uniform']
+                recomputed.append(dict(policy=name,bank=b['seed'],single_nll=r1,mixture_nll=r16,
+                                        single_gain=u['single_nll']-r1,mixture_gain=u['mixture_nll']-r16))
+        assert len(recomputed)==104
+        index={(r['policy'],r['bank']):r for r in recomputed}
+        for original in audit['rows']:
+            for k in ('single_nll','mixture_nll','single_gain','mixture_gain'): close(index[(original['policy'],original['bank'])][k],original[k],1e-12)
+        all_risks.extend(dict(seed=seed,**r) for r in recomputed)
+        for name,p in audit['policies'].items():
+            selected=[r for r in recomputed if r['policy']==name]
+            entry=dict(seed=seed,policy=name,**p)
+            entry['positive_mixture_banks']=sum(r['mixture_gain']>0 for r in selected)
+            entry['positive_single_banks']=sum(r['single_gain']>0 for r in selected)
+            for metric in ('single_nll','mixture_nll','single_gain','mixture_gain'):
+                vals=np.array([r[metric] for r in selected])
+                close(vals.mean(),p[metric]['mean'],1e-12)
+                close(vals.std(ddof=1)/math.sqrt(8),p[metric]['mcse'],1e-12)
+            if not p['permuted'] and name!='uniform':
+                perm=p['source']+'_permuted'+('_local' if p['local'] else '')
+                diffs=[index[(perm,r['bank'])]['mixture_nll']-r['mixture_nll'] for r in selected]
+                entry['mixture_gain_vs_permutation']=dict(stats(diffs),mcse=float(np.std(diffs,ddof=1)/math.sqrt(8)),positive_banks=int(np.sum(np.array(diffs)>0)))
+            summaries.append(entry)
+        for ty in range(3):
+            mask=types==ty
+            for pair,a,b in [('predicted_single',pred,effects['single']),('predicted_mixture',pred,effects['mixture']),('single_mixture',effects['single'],effects['mixture'])]:
+                metric=point_metrics(a[mask],b[mask]);close(metric['spearman'],audit['correlations'][str(ty)][pair]['spearman'],1e-12)
+                correlations.append(dict(seed=seed,type=TYPE_NAMES[ty],comparison=pair,**metric))
+            for name,u in [('single',effects['single']),('mixture',effects['mixture'])]:
+                centered=u[mask]-u[mask].mean()
+                effects_extra.append(dict(seed=seed,type=TYPE_NAMES[ty],effect=name,mu_mean=float(u[mask].mean()),mu_std=float(u[mask].std()),
+                    median_measurement_se=float(np.median(np.sqrt(effects[name+'_se2'][mask]))),
+                    positive_effects=int(np.sum(u[mask]>0)),negative_effects=int(np.sum(u[mask]<0)),
+                    predicted_policy_proxy=float(np.dot(centered,effects['policies']['predicted'][mask].numpy()-.5))))
+        print('REPLAYED_AUDIT',seed,flush=True)
+    write('audit_verification.json',dict(measurement_blocks=24,evaluation_banks=24,risk_rows=312,
+        max_effect_error=max_effect_error,max_risk_error=max_risk_error,disjoint_images=True,equal_pair_weights=True,
+        q5_excluded_from_teacher_training=True,audit_predictor_folds=[1,2,3]))
+    return summaries,correlations,effects_extra,sampling,all_risks
+
+
+def additional_diagnostics():
+    diagnostics=[];historical=[]
+    for seed in SEEDS:
+        folder=WORK/('seed%d'%seed)
+        labels=read(folder/'runs/uniform/best/bank1701/prediction_axes.json');na=len(labels['attrs'])
+        train=load_torch(folder/'reference/last.pt')['train_pairs']
+        train_ids={labels['objs'].index(o)*na+labels['attrs'].index(a) for a,o in train}
+        for variant in VARIANTS:
+            with np.load(folder/'runs'/variant/'best/bank1701/test_predictions.npz') as a:
+                row=np.arange(len(a['attrs']));objs=a['objs'];attrs=a['attrs'];unseen=~a['cw_seen'][a['cw_truth']]
+                cond=a['joint'][row,objs];attr_pred=cond.argmax(1);wrong=unseen&(attr_pred!=attrs)
+                into_seen=np.array([int(o)*na+int(ap) in train_ids for o,ap in zip(objs,attr_pred)])
+                diagnostics.append(dict(seed=seed,variant=variant,unseen_images=int(unseen.sum()),
+                    attr_wrong_given_object=int(wrong.sum()),into_seen_composition=int((wrong&into_seen).sum()),
+                    fraction_into_seen=float((wrong&into_seen).sum()/wrong.sum()),
+                    conditional_attr_acc=float((attr_pred[unseen]==attrs[unseen]).mean()*100)))
+        for v,d in read(folder/'reference_benchmarks.json').items():
+            for world in ('cw','ow'):
+                historical.append(dict(seed=seed,variant=v,world=world,auc=d['test'][world]['AUC_native'],exact=d['test'][world]['AUC_exact']))
+    return diagnostics,historical
+
+
+def main():
+    integrity_result,costs=integrity();print('ARCHIVE_AND_STAGE_HASHES_OK',flush=True)
+    rows,histories,selections,deployment,scans=prediction_check()
+    audit,correlations,effects,sampling,risks=audit_check()
+    diagnostics,historical=additional_diagnostics()
+    main_table=[]
+    for variant in VARIANTS:
+        record=dict(variant=variant)
+        for world in ('cw','ow'):
+            selected=[r for r in rows if r['variant']==variant and r['world']==world and r['phase']=='test' and r['snapshot']=='best' and r['bank']==1701]
+            record[world]={m:stats([r[m] for r in selected]) for m in ('auc','exact','hm','raw_nll','nll','ece','seen','unseen')}
+        main_table.append(record)
+    paired=[];bank_means=[]
+    for seed in SEEDS:
+        for snapshot in ('epoch0','best'):
+            for world in ('cw','ow'):
+                for control in ('uniform','permuted'):
+                    for bank in (1701,2701,3701):
+                        a=next(r for r in rows if (r['seed'],r['variant'],r['snapshot'],r['phase'],r['world'],r['bank'])==(seed,'align',snapshot,'test',world,bank))
+                        b=next(r for r in rows if (r['seed'],r['variant'],r['snapshot'],r['phase'],r['world'],r['bank'])==(seed,control,snapshot,'test',world,bank))
+                        paired.append(dict(seed=seed,snapshot=snapshot,world=world,bank=bank,control=control,
+                            auc=a['auc']-b['auc'],exact=a['exact']-b['exact'],hm=a['hm']-b['hm'],nll_gain=b['raw_nll']-a['raw_nll']))
+                for variant in VARIANTS:
+                    items=[r for r in rows if (r['seed'],r['variant'],r['snapshot'],r['phase'],r['world'])==(seed,variant,snapshot,'test',world)]
+                    bank_means.append(dict(seed=seed,variant=variant,snapshot=snapshot,world=world,**stats([r['auc'] for r in items])))
+    value=dict(integrity=integrity_result,rows=rows,main_table=main_table,paired=paired,bank_means=bank_means,
+               histories=histories,selections=selections,deployment=deployment,scans=scans,audit=audit,
+               utility_correlations=correlations,effects=effects,sampling=sampling,risks=risks,
+               conditional_errors=diagnostics,historical=historical,costs=costs)
+    write('analysis.json',value)
+    print('ANALYSIS_SAVED',OUT/'analysis.json',flush=True)
+
+
+if __name__=='__main__':main()

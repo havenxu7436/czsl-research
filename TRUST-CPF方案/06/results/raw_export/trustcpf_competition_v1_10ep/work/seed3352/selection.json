@@ -1,0 +1,49 @@
+{
+  "targets": {
+    "unll": {
+      "key": "unll_k2_real",
+      "strength": 2.0,
+      "val_auc": 41.34036376973571
+    },
+    "balanced": {
+      "key": "balanced_k0_real",
+      "strength": 0.0,
+      "val_auc": 41.25305155784349
+    },
+    "competition": {
+      "key": "competition_k0_real",
+      "strength": 0.0,
+      "val_auc": 41.25305155784349
+    }
+  },
+  "permutation_seed": 7101,
+  "permutation_optima": {
+    "7101": {
+      "key": "competition_k0_7101",
+      "strength": 0.0,
+      "val_auc": 41.25305155784349
+    },
+    "7102": {
+      "key": "competition_k2_7102",
+      "strength": 2.0,
+      "val_auc": 42.00665672083345
+    },
+    "7103": {
+      "key": "competition_k0.5_7103",
+      "strength": 0.5,
+      "val_auc": 41.39210697452853
+    },
+    "7104": {
+      "key": "competition_k1_7104",
+      "strength": 1.0,
+      "val_auc": 41.439629409146875
+    },
+    "7105": {
+      "key": "competition_k1_7105",
+      "strength": 1.0,
+      "val_auc": 41.37424930677162
+    }
+  },
+  "rule": "epoch0 VAL CW native AUC; ties smaller strength",
+  "permuted": "same selected Competition probability multiset; type-wise permutation"
+}

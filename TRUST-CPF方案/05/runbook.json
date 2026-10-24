@@ -1,0 +1,32 @@
+{
+  "line": "TRUST-CPF方案",
+  "stage": "05",
+  "primary_package": "trustcpf_align_v1",
+  "commands": [
+    {
+      "source": "README.md",
+      "language": "bash",
+      "text": "git lfs pull --include=\"TRUST-CPF方案/05/**\"\npython tools/register_trustcpf_followup.py --stage 05 --check\npython tools/reproduce.py materialize --line TRUST-CPF方案 --stage 05 --dest \"$HOME/experiments/trust-05-replay\"\ncd \"$HOME/experiments/trust-05-replay/trustcpf_align_v1\"\npython -m unittest discover -s tests -v\n"
+    },
+    {
+      "source": "SERVER_COMMANDS.md",
+      "language": "bash",
+      "text": "conda activate vgcpod_v1\ncd \"$HOME/czsl-research\"\nexport CPF_REPO=\"$PWD\"\ngit lfs pull --include=\"TRUST-CPF方案/**\"\npython tools/reproduce.py materialize --line TRUST-CPF方案 --stage 05 --dest \"$HOME/experiments/trust-05-replay\"\ncd \"$HOME/experiments/trust-05-replay/trustcpf_align_v1\"\npython run.py setup \\\n  --source \"$CPF_REPO/TRUST-CPF方案/04/results/raw_export/trustcpf_compact_v1\" \\\n  --teacher-source \"$CPF_REPO/TRUST-CPF方案/02/results/raw_export/trustcpf_strong_v1\" \\\n  --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14 \\\n  --work \"$PWD/work\"\nsource scripts/env.sh\nCUDA_VISIBLE_DEVICES=\"\" \"$CPF_PY\" -m unittest discover -s tests -v\nmkdir -p logs\nnohup bash scripts/run_all.sh 0 2 3 >> logs/queue.log 2>&1 < /dev/null &\ntail -F logs/queue.log\n"
+    },
+    {
+      "source": "SERVER_COMMANDS.md",
+      "language": "bash",
+      "text": "source scripts/env.sh\n\"$CPF_PY\" run.py report\n\"$CPF_PY\" scripts/check_complete.py\nbash scripts/pack_results.sh\n"
+    },
+    {
+      "source": "SERVER_COMMANDS.md",
+      "language": "powershell",
+      "text": "git lfs pull --include=\"TRUST-CPF方案/05/**\"\n$cpfSavedArchive = Join-Path $PWD \"../trust-05-saved-archive\"\npython tools/register_trustcpf_followup.py --stage 05 --restore-archive \"$cpfSavedArchive\"\n"
+    },
+    {
+      "source": "analysis/REPRODUCE.md",
+      "language": "bash",
+      "text": "git lfs pull --include=\"TRUST-CPF方案/**\"\npython tools/analyze_trustcpf_followup.py --stage 05 --dest \"$HOME/analysis/trust-05-recompute\"\n"
+    }
+  ]
+}

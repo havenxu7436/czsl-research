@@ -1,0 +1,162 @@
+# TRUST-CPF Align v1：公式、实现与验证指标
+
+对应后续方案第一批 A。分类器、CLIP 特征、关系头结构和 Compact 输入保持当前实现；新增内容是效用输出到采边概率的校准，以及真实风险诊断。
+
+## 1. 继承的模型和实验边界
+
+正式部署加载每个 seed 的 `reference/last.pt` 和 `utility_all/compact/model.pt`。后者已经使用 Q1–Q5 重拟合，三个 seed 的岭系数分别为 10、100、100。Q5 诊断加载该折教师和 `utility/compact/model.pt`；审计模型仅由 Q1–Q3 拟合、Q4 选择正则。
+
+知识图共有 96 条边，类型 OI／OE／AE 的边数分别为 12／36／48。每条边独立按其概率进行 Bernoulli 采样。类型期望边数固定为 6／18／24；单张采样图的实际边数会波动。
+
+| 正式组 | 概率 | 起点与训练 |
+| --- | --- | --- |
+| Uniform-0.5 | 全部为 0.5 | 同 seed 的 reference；冻结 CPF；关系头适配 3 epoch |
+| TRUST-Align | 类型内标准化效用后求预算等式解 | 同上 |
+| Permuted-Align | 类型内置换已选 Align 概率，置换 seed 7101 | 同上 |
+
+损失、AdamW、学习率 0.0003、weight decay 0.0001、batch size 64、warmup＋cosine 调度均由原 `engine.train_model` 执行。模型、训练器和评价器文件与 Compact／Strong 来源进行哈希比对。
+
+## 2. 半密度概率求解
+
+令预测效用为 $\mu_e$，类型集合为 $E_t$，$N_t=|E_t|$。采用总体标准差：
+
+$$
+c_t=\frac{1}{N_t}\sum_{e\in E_t}\mu_e,
+\qquad
+s_t=\sqrt{\frac{1}{N_t}\sum_{e\in E_t}(\mu_e-c_t)^2},
+\qquad
+r_e=\begin{cases}(\mu_e-c_t)/s_t,&s_t>10^{-12},\\0,&s_t\le10^{-12}.\end{cases}
+$$
+
+对 $\kappa\in\{0,0.5,1,2\}$ 求解：
+
+$$
+\max_{0<\pi_e<1}
+\left[\kappa\sum_e r_e\pi_e-
+\sum_eD_{\mathrm{KL}}\bigl(\operatorname{Bern}(\pi_e)\Vert\operatorname{Bern}(0.5)\bigr)\right],
+\qquad \sum_{e\in E_t}\pi_e=N_t/2.
+$$
+
+KL 对概率的一阶导数为 $\log(\pi_e/(1-\pi_e))$。加入每类型等式乘子 $\gamma_t$，一阶条件给出：
+
+$$
+\kappa r_e-\log\frac{\pi_e}{1-\pi_e}-\gamma_t=0,
+\qquad
+\pi_e=\sigma(\kappa r_e-\gamma_t).
+$$
+
+目标的二阶导数为 $-1/[\pi_e(1-\pi_e)]<0$，故解唯一。类型概率和随乘子单调下降，用 float64 二分求解。实现中收敛误差为 $10^{-12}$，最后检查不超过 $10^{-10}$。全常数类型和 $\kappa=0$ 返回精确的 0.5。
+
+核心实现：`trustcpf/align.py::policy`。原始效用、类型尺度、乘子及 float64 概率保存到 `policies.pt`。训练和推理使用 float32 概率，部署表报告实际使用概率；其预算误差仅来自 float32 舍入。
+
+```python
+prob, type_scale = policy(mu, types, strength)
+indices = permutation(types, 7101)
+permuted_prob = prob[indices]
+```
+
+类型内概率置换保留概率多重集合、熵、期望边数和各类型边数分布，改变概率与关系的对应。节点覆盖差异单独记录。
+
+## 3. 统一选择、适配和多 bank 评价
+
+冻结 reference，图种子 1701，每次 16 图。真实策略的四个强度按 VAL CW native AUC 选择，并列取较小强度。五个置换 seed 7101–7105 都扫描相同四个强度；保存固定 $\kappa=1$ 的比较及各置换自身最优强度。零强度完全相同的计算只执行一次；每 seed 保存 24 条扫描行、实际评价 19 个策略。
+
+正式置换组取真实组选中的概率集合，使用 seed 7101。三组分别重置同一训练 seed，保证初始化、数据顺序与随机数流采用相同设置。Bernoulli 阈值因策略而异。
+
+按 VAL CW native AUC 在 epoch 0、1、2、3 中选择；分数相同保留更早的 epoch。选好策略与模型后，分别在 graph seed 1701、2701、3701 上评价 epoch 0 和最佳权重。每个 bank 各自使用 16 图；各自 VAL 给出 CW／OW bias 和温度，再用于对应 TEST。
+
+候选集 $\mathcal C$ 下先对每图归一化，再混合：
+
+$$
+P_{\mathcal C}(y\mid x,b)=
+\frac{\exp s_y(x,b)}{\sum_{c\in\mathcal C}\exp s_c(x,b)},
+\qquad
+\log\overline P_{\mathcal C}(y\mid x)=
+\operatorname{logsumexp}_{m=1}^{16}\log P_{\mathcal C}(y\mid x,b^m)-\log16.
+$$
+
+实现：`align.frozen_scan`、`align.adapt_and_evaluate` 和原 `evaluation.evaluate_model`。AUC 的 native／exact 定义沿用原工程，报告尺度为 0–100。
+
+## 4. Q5 的单图与混合效用
+
+每个 Q5 Query 组合用固定 seed 8101 划分图像为两个不重叠集合，各集合每组合最多 8 张。少于两张的组合记录在 `sampling.json`，其余组合在两侧具有相同支持集。
+
+令保留组合数为 $Q$，某侧组合 $q$ 的图像数为 $n_q$，样本权重为 $w_i=1/(Qn_q)$。测量和评价分别按自身 $n_q$ 计算权重。
+
+测量使用 $K=8$ 个独立背景块，每块 $M=16$ 张独立半密度图。背景块 seed 为 8111–8118。干预第一槽的边 $e$，其余开关固定；所有边共享该块的另外 15 个伴随槽。
+
+定义真实类概率 $p^0_{i,e,k},p^1_{i,e,k}$ 和伴随概率之和 $S_{i,k}$，候选为全部 TRAIN 组合：
+
+$$
+d^{(1)}_{e,k}=\sum_iw_i\left(\log p^1_{i,e,k}-\log p^0_{i,e,k}\right),
+$$
+
+$$
+S_{i,k}=\sum_{m=2}^{M}P_{\mathcal C_{\mathrm{tr}}}(y_i\mid x_i,b_k^m),
+\qquad
+d^{(M)}_{e,k}=\sum_iw_i\left[\log(S_{i,k}+p^1_{i,e,k})-\log(S_{i,k}+p^0_{i,e,k})\right].
+$$
+
+于是：
+
+$$
+\widehat u^{(1)}_e=\frac1K\sum_kd^{(1)}_{e,k},
+\qquad
+\widehat u^{(M)}_e=\frac{M}{K}\sum_kd^{(M)}_{e,k}.
+$$
+
+混合 NLL 的分母 $M$ 在 on/off 差中抵消；共享概率控制 $M$ 个独立槽位，因此单槽差需要乘 $M$ 才对应整个混合风险对采边概率的负梯度。单图和混合标签复用同一对前向分数。
+
+对应标准误平方：
+
+$$
+\widehat{\operatorname{SE}}^2(\widehat u^{(1)}_e)
+=\frac{\operatorname{Var}_{k,\mathrm{unbiased}}(d^{(1)}_{e,k})}{K},
+\qquad
+\widehat{\operatorname{SE}}^2(\widehat u^{(M)}_e)
+=\frac{M^2\operatorname{Var}_{k,\mathrm{unbiased}}(d^{(M)}_{e,k})}{K}.
+$$
+
+核心实现：
+
+```python
+single = ((log_on - log_off) * weights).sum(-1)
+mixture = ((torch.logaddexp(log_companion_sum, log_on)
+            - torch.logaddexp(log_companion_sum, log_off)) * weights).sum(-1)
+u_single = single_blocks.mean(0)
+u_mixture = graphs * mixture_slot_blocks.mean(0)
+```
+
+见 `decision_audit.block_effect`、`measure`、`summarize_effect`。保存各块 96 条边的 on/off 真类 log 概率、15 个伴随槽的 log 概率、图掩码、图像与候选 ID、权重及教师哈希。所有加法在 log 域完成。
+
+## 5. 独立图像上的真实决策作用
+
+用审计版 Compact 的预测、实测单图效用、实测混合效用各生成 $\kappa=1$ 策略；每个策略增加 seed 7101 的类型内概率置换。对六个方向分别保存完整策略与局部策略：
+
+$$
+\pi^{\mathrm{local}}=\tfrac12\mathbf1+\eta(\pi-\tfrac12\mathbf1),
+\qquad
+\eta=\min\left(1,\frac{0.1}{\|\pi-\tfrac12\mathbf1\|_\infty}\right).
+$$
+
+零方向取 $\eta=1$。加上 Uniform 共 13 个策略。局部策略保留预算，最大概率位移为 0.1。
+
+评价集合使用全新的 8 个 bank，种子 8201–8208，每个 16 图。策略间共享 uniform 随机数，再按各自概率阈值采样。对于同一组预测同时计算：
+
+$$
+\widehat R_1=-\sum_iw_i\frac1M\sum_m\log p_i^m,
+\qquad
+\widehat R_M=-\sum_iw_i\log\left(\frac1M\sum_mp_i^m\right).
+$$
+
+`single_gain`／`mixture_gain` 定义为 Uniform 风险减当前风险，**正值代表改善**。真实策略相对概率置换的配对收益保存在 `decision/audit.json`。每个 bank 的结果独立保存，另汇总均值、标准差与 MCSE；这里的 MCSE 表示固定教师和图像条件下的图采样变化。三个训练 seed 的结果另行比较。
+
+同时保存原单位的一阶代理 $u^\top(\pi-0.5)$，以及预测—单图实测、预测—混合实测、单图—混合实测的类型内 Spearman／Pearson。这样可以检查代理收益是否转化为实际风险改善。
+
+## 6. 完成标准与结果解读
+
+本批共有 18 个队列阶段、9 组识别结果、3 份 Q5 审计；正式默认配置输出 216 条识别行、72 条扫描行、312 条 Q5 bank 风险行。强度为 0 的 seed 仍保留三组完整结果，并记录 Uniform 复用来源。
+
+先看主 bank 1701 的 Align−Uniform 与 Align−Permuted，再结合另两个 bank、epoch 0／最佳权重和 Q5 实际风险。若实测效用策略有效而 Compact 策略较弱，后续重点是预测目标与相对拟合；若混合效用更能改善混合风险，后续重点是混合监督。第一批保留效用监督—模型响应—关系分配这条 TRUST 主线。
+
+本地验证覆盖预算 KKT、概率置换、混合风险梯度的完全枚举验证、独立图像权重、三 seed 合成数据全流程、冻结 CPF、已完成阶段复用、Q5 块续跑和归档 UTF-8 解压。真实归档中的三个 reference、三个 Q5 教师及六个 Compact 模型完成来源核验。真实数据的 GPU 识别结果由服务器队列产生。

@@ -29,3 +29,6 @@ python -m unittest discover -s tests -v
 ```
 
 [文件清单](file_manifest.json) · [原包成员映射](package_members.json) · [原始服务器成员映射](results/raw_export_members.json) · [来源与许可](来源与许可.md) · [外部输入](external_inputs.json)
+
+
+后续已完成 [05 Align 半密度对齐](../05/README.md) 和 [06 Competition 10 epoch](../06/README.md)；本页保留本轮结果与当时的研究安排。

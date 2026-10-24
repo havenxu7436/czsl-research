@@ -1,0 +1,142 @@
+原始个人部署命令保留如下；从仓库恢复同版本的命令见 [SERVER_COMMANDS.md](SERVER_COMMANDS.md)。
+
+# TRUST-CPF Align v1：上传、训练和保存到本地
+
+服务器：`xhw@211.87.232.122`。本批 GPU：**0 / 1 / 2**，分别对应 seed **3351 / 3352 / 3353**。项目：`/data/xhw/experiments/trustcpf_align_v1`。
+
+整批一次启动，包含三组识别实验、冻结扫描和 Q5 实际效用诊断。
+
+## 1. 本机 Windows PowerShell：上传并解压
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass -Force
+& "C:\Users\llenovo\Documents\ChatGPT\USG\output\upload_trustcpf_align_v1.ps1"
+ssh xhw@211.87.232.122
+```
+
+上传脚本独立设置服务器和文件路径，先校验本地 ZIP，再上传 ZIP 与 SHA256 文件，在服务器校验并解压。成功时输出 `UPLOAD_AND_EXTRACTION_COMPLETE`。校验文件使用 LF 换行，路径和文件名均为 ASCII。
+
+## 2. 服务器 Bash：初始化
+
+```bash
+conda activate vgcpod_v1
+cd /data/xhw/experiments/trustcpf_align_v1
+
+python run.py setup \
+  --source /data/xhw/experiments/trustcpf_compact_v1 \
+  --teacher-source /data/xhw/experiments/trustcpf_strong_v1 \
+  --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14 \
+  --work /data/xhw/experiments/trustcpf_align_v1/work
+
+source scripts/env.sh
+"$CPF_PY" -c 'import sys, torch, numpy; print(sys.executable); print("PyTorch:", torch.__version__, "NumPy:", numpy.__version__, "CUDA:", torch.cuda.is_available())'
+CUDA_VISIBLE_DEVICES="" "$CPF_PY" -m unittest discover -s tests -v
+```
+
+初始化会校验已有缓存文件，结束输出 `SETUP_COMPLETE`，并将当前环境的实际 Python 路径写入 `server_env.sh`。测试在 CPU 上执行，正常末尾为 `OK (skipped=1)`；跳过项是已有 CLIP 特征的重新提取接口。复用当前 NumPy／PyTorch 环境即可。
+
+## 3. 服务器 Bash：三卡启动整批
+
+```bash
+cd /data/xhw/experiments/trustcpf_align_v1
+mkdir -p logs
+nohup bash scripts/run_all.sh 0 1 2 >> logs/queue.log 2>&1 < /dev/null &
+echo "QUEUE_PID=$!"
+tail -F logs/queue.log
+```
+
+每张卡执行一个完整 seed。每个 seed 依次进行导入、冻结扫描、Uniform、Align、Permuted、Q5 诊断。Ctrl+C 退出日志查看，后台任务继续。
+
+三个日志的查看命令：
+
+```bash
+cd /data/xhw/experiments/trustcpf_align_v1
+tail -n 20 logs/seed3351.log
+tail -n 20 logs/seed3352.log
+tail -n 20 logs/seed3353.log
+nvidia-smi
+bash scripts/status.sh
+```
+
+阶段日志包括 `FROZEN_VAL`、`EPOCH`、`EVALUATED`、`Q5_MEASURE_BLOCK`、`Q5_EVALUATE_BANK`。Q5 每完成一个背景块输出一次进度。
+
+完成时显示：
+
+```text
+STATUS 18 / 18 models 9 /9 audits 3 /3 complete True
+ALL_EXPERIMENTS_COMPLETE: 18/18 stages, 9/9 model results, 3/3 Q5 decision audits
+QUEUE_COMPLETE
+```
+
+正式配置下，`summary.csv` 有 216 行，冻结扫描表有 72 行，Q5 独立 bank 风险表有 312 行。三个 bank 分别保持 16 图；216 行包含 VAL／TEST、CW／OW、epoch 0／最佳权重。
+
+中断后执行同一条启动命令即可续跑；已完成阶段显示 `REUSE_STAGE`，Q5 已完成的测量／评价块直接读取。训练从最近完整 epoch 续跑。已运行的队列由锁避免重复启动。
+
+更换三张物理卡只改启动参数，例如使用 1/2/3：
+
+```bash
+nohup bash scripts/run_all.sh 1 2 3 >> logs/queue.log 2>&1 < /dev/null &
+```
+
+每个进程内部的 `cuda:0` 对应它被分配的物理卡。换卡命令用于下一次启动或已中断任务的续跑。
+
+## 4. 服务器 Bash：汇总并打包
+
+三 seed 完成后执行：
+
+```bash
+cd /data/xhw/experiments/trustcpf_align_v1
+source scripts/env.sh
+"$CPF_PY" run.py report
+"$CPF_PY" scripts/check_complete.py
+bash scripts/pack_results.sh
+```
+
+等待 `PACK_PROGRESS`、`HASHING_ARCHIVE`，最终出现 **`PACK_COMPLETE` 与 `DOWNLOAD_READY`**，并返回命令提示符。归档放在 `/data/xhw/experiments/`，项目中的 `download.json` 记录准确路径、大小及 SHA256。
+
+## 5. 本机 Windows PowerShell：下载、校验、解压
+
+在本机另开 PowerShell 执行：
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass -Force
+& "C:\Users\llenovo\Documents\ChatGPT\USG\output\download_trustcpf_align_v1.ps1"
+```
+
+脚本读取服务器的 `download.json`，自动确定本次结果包；下载到 `.part` 后校验大小和 SHA256，再用 Python 解压。每个文件传输最多尝试三次；已完整下载且哈希相同的归档直接复用。成功输出 `DOWNLOAD_SHA256_EXTRACTION_COMPLETE`。
+
+默认保存结构：
+
+```text
+C:\Users\llenovo\Documents\ChatGPT\USG\
+  trustcpf_align_v1_results_YYYYMMDD_HHMMSS.tar.gz
+  trustcpf_align_v1_results_YYYYMMDD_HHMMSS\
+    trustcpf_align_v1\work\
+```
+
+指定其他本地保存目录：
+
+```powershell
+& "C:\Users\llenovo\Documents\ChatGPT\USG\output\download_trustcpf_align_v1.ps1" `
+  -LocalRoot "C:\Users\llenovo\Desktop\USG\TRUST_Align_results"
+```
+
+本机解压器使用 `C:\Users\llenovo\anaconda3\envs\ai-lab\python.exe`，通过 `-PythonPath` 可指定其他 Python。
+
+## 6. 返回后重点分析的文件
+
+| 文件 | 要回答的问题 |
+| --- | --- |
+| `work/summary.csv`、`aggregates.json` | 三 seed 的识别结果；主读数为 bank 1701、best、test |
+| `work/paired_comparisons.csv` | Align 相对 Uniform／Permuted 的配对增益 |
+| `work/scan.csv`、`seed*/selection.json` | 强度扫描、固定 κ=1 比较、五个置换各自最优强度 |
+| `work/deployment.csv` | 概率差异、类型预算、KL、节点覆盖、原型位移 |
+| `work/adaptation_gain.csv`、`bank_stability.csv` | 适配增益与图采样变化 |
+| `work/decision_summary.csv`、`decision_risks.csv` | 实测与预测效用引导后的实际单图／混合 NLL 变化 |
+| `work/utility_correlations.csv` | 预测、单图实测和混合实测的类型内关联 |
+| `work/historical.csv` | Capacity、Dense、原 robust、原 Compact 等历史参照 |
+| `work/costs.csv`、`inference_latency.csv` | 阶段耗时、峰值显存和暖机前向延迟 |
+| `work/seed*/decision/` | 图像 ID／权重、96 边效用、背景块、实际策略风险与置换配对结果 |
+| `work/seed*/runs/*/` | 最优和末次权重、训练历史、每个 bank 的完整 VAL／TEST 预测 |
+
+归档同时保存本次源码、导入的 reference／Q5 教师／Compact 模型／响应、配置与来源哈希，便于完整复算。

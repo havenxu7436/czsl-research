@@ -1,0 +1,34 @@
+{
+  "stage": "05",
+  "layout": "C:\\Users\\llenovo\\Documents\\ChatGPT\\USG\\tmp\\trust-followup-05-recompute",
+  "scripts": [
+    {
+      "script": "analyze.py",
+      "source_sha256": "5d4e1c5535396db88dfc4929800298277b613516f9483037dcaaefbafe6d2257",
+      "log": "analyze.py.log"
+    }
+  ],
+  "comparisons": [
+    {
+      "file": "analysis.json",
+      "numerically_equal": true,
+      "absolute_tolerance": 1e-09,
+      "relative_tolerance": 1e-09
+    },
+    {
+      "file": "prediction_verification.json",
+      "numerically_equal": true,
+      "absolute_tolerance": 1e-09,
+      "relative_tolerance": 1e-09
+    },
+    {
+      "file": "audit_verification.json",
+      "numerically_equal": true,
+      "absolute_tolerance": 1e-09,
+      "relative_tolerance": 1e-09
+    }
+  ],
+  "passed": true,
+  "prepared": true,
+  "training_started": false
+}

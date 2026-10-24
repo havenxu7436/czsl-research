@@ -123,7 +123,9 @@ def verify():
         round_l_check=check_vgcpod_l()
     from register_trustcpf_strong_series import check as check_strong_series
     strong_series_check=check_strong_series()
-    result={'trustcpf_strong_series':strong_series_check,'passed':not(failures or links or formatting or syntax),'original_canonical_files':len(expected),
+    from register_trustcpf_followup import check as check_followup
+    followup_check=check_followup()
+    result={'trustcpf_followup':followup_check,'trustcpf_strong_series':strong_series_check,'passed':not(failures or links or formatting or syntax),'original_canonical_files':len(expected),
       'changed_or_missing':failures,'broken_links':links,'formatting_errors':formatting,
       'python_syntax_errors':syntax,'vgcpod':route_check,'vgcpod_round_b':b_check,'vgcpod_round_c':c_check,'vgcpod_round_d':d_check,'vgcpod_round_e':e_check,'vgcpod_round_f':f_check,'vgcpod_round_g':g_check,'vgcpod_round_h':h_check,'vgcpod_round_i':i_check,'vgcpod_round_j':j_check,'vgcpod_round_k':k_check,'trustcpf':trust_check,'vgcpod_round_l':round_l_check,'training_started':False}
     print(json.dumps(result,ensure_ascii=False))
@@ -140,6 +142,10 @@ def archive_stage(line,number):
     return matches[0]
 
 def materialize(stage,destination,line=None,number=None):
+    if stage in ['37','38']:
+        from register_trustcpf_followup import materialize as restore_followup
+        print(json.dumps(restore_followup({'37':'05','38':'06'}[stage],destination),ensure_ascii=False))
+        return
     if stage in ['34','35','36']:
         from register_trustcpf_strong_series import materialize as restore_strong
         print(json.dumps(restore_strong({'34':'02','35':'03','36':'04'}[stage],destination),ensure_ascii=False))
@@ -263,6 +269,12 @@ def materialize(stage,destination,line=None,number=None):
       'note':'External inputs and frozen absolute paths still require setup; see environment/README.md'},ensure_ascii=False))
 
 def doctor(stage,project,line=None,number=None):
+    if stage in ['37','38']:
+        from register_trustcpf_followup import doctor as doctor_followup
+        result=doctor_followup({'37':'05','38':'06'}[stage],project)
+        print(json.dumps(result,ensure_ascii=False))
+        if not result['ready_for_package_preflight']:raise SystemExit(2)
+        return
     if stage in ['34','35','36']:
         from register_trustcpf_strong_series import doctor as doctor_strong
         result=doctor_strong({'34':'02','35':'03','36':'04'}[stage],project)
