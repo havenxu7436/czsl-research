@@ -12,9 +12,3 @@ CLIP / CPF 上的可迁移关系效用监督、结构选择与 CZSL 研究。强
 02–04 保存全部方案、公式与代码、配置、初始权重、教师与测量、模型权重、预测、审计、日志、分析和原始发布包。48 份识别/读出记录中有 9 份跨阶段复用对照；读出和冻结基底评价另有明确标注。
 
 当前证据支持继续研究低维效用监督及其结构部署方式。04 分析末尾的类型内校准与半密度对齐是下一轮提案，尚未计入已完成实验。
-
-[弱基底完整结果](v1/analysis/server-results-20261022/README.md) · [全仓库索引](../README.md)
-
-[本次全仓库校验](04/analysis/repository_qa/repository_verify.json) · [公式语法检查](04/analysis/repository_qa/math_checks.json) · [Compact 分析重算核对](04/analysis/repository_qa/analysis_reproduction.json)
-
-[GitHub 35 页排版检查](04/analysis/repository_qa/github/checks.json) · [浏览器核验](04/analysis/repository_qa/github/browser_checks.json) · [公式截图](04/analysis/repository_qa/github/formula-render.png) · [分析图截图](04/analysis/repository_qa/github/compact-render.png)
