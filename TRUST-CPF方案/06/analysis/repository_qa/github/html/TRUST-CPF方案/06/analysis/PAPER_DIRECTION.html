@@ -1,0 +1,35 @@
+<article class="markdown-body entry-content container-lg" itemprop="text"><div class="markdown-heading" dir="auto"><h1 tabindex="-1" class="heading-element" dir="auto">当前结果与论文目标</h1><a id="user-content-当前结果与论文目标" class="anchor" aria-label="Permalink: 当前结果与论文目标" href="#当前结果与论文目标"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">最终目标是学习可迁移的关系效用，并在强 CPF 上稳定提高 CZSL。当前机制证据正向，终端方法收益仍弱。</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>论点</th>
+<th>本轮依据</th>
+<th>当前判断</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>关系具有可利用效用</td>
+<td>测量效用在独立 Q5 图像上提高 AUC 2.69–2.79 点，真实对应优于置换</td>
+<td>明确正向</td>
+</tr>
+<tr>
+<td>效用具有可学习性</td>
+<td>预测 U-NLL / Balanced 提高 Q5 AUC 1.28 / 1.30 点，两个 seed 优于对应置换</td>
+<td>部分正向</td>
+</tr>
+<tr>
+<td>价值迁移后提高最终识别</td>
+<td>Competition−Uniform 为 +0.016 CW / −0.038 OW；仅一个 seed 非均匀</td>
+<td>收益尚弱</td>
+</tr>
+<tr>
+<td>竞争目标优于原 NLL</td>
+<td>预测 Competition 的 Q5 平均收益 −0.059 点</td>
+<td>本次比较为负向</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">后续集中推进 R5 相对效用拟合，沿用强 CPF 和 10 epoch；主要判断是最终 CW/OW 相对 Uniform 和匹配置换的增益，同时保留 Q5 实际决策端点。<a href="/havenxu7436/czsl-research/blob/codex/trustcpf-align-competition-archive/TRUST-CPF%E6%96%B9%E6%A1%88/06/analysis/README.md">完整数据与下一批建议</a>。</p>
+</article>

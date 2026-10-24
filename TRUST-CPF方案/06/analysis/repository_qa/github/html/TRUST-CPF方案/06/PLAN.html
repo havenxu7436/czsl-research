@@ -1,0 +1,47 @@
+<article class="markdown-body entry-content container-lg" itemprop="text"><p dir="auto">以下为本批设计与完成标准，实际执行及复用情况见 <a href="/havenxu7436/czsl-research/blob/codex/trustcpf-align-competition-archive/TRUST-CPF%E6%96%B9%E6%A1%88/06/analysis/README.md">完整分析</a>。原 3 epoch 发布包见 <a href="/havenxu7436/czsl-research/blob/codex/trustcpf-align-competition-archive/TRUST-CPF%E6%96%B9%E6%A1%88/06/references/pre_10epoch/README.md">修订记录</a>。</p>
+<div class="markdown-heading" dir="auto"><h1 tabindex="-1" class="heading-element" dir="auto">TRUST-CPF Competition v1（10 epoch）</h1><a id="user-content-trust-cpf-competition-v110-epoch" class="anchor" aria-label="Permalink: TRUST-CPF Competition v1（10 epoch）" href="#trust-cpf-competition-v110-epoch"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">本批实现下一步 TRUST-Competition：在 CLIP ViT-L/14 缓存和强 CPF 上，比较三种关系效用监督能否改善组合识别。TRUST 的完整链条保留：TRAIN 内组合留出 → 关系开关收益 → 八维模型响应 → 27 参数效用预测 → 关系采样概率 → CPF 联合识别。</p>
+<p dir="auto"><strong>整批为 5 方法 × 3 seed，共 15 组识别结果。</strong> 默认物理 GPU 0/1/2 分别执行 seed 3351/3352/3353。三种监督共用 15 个新教师、相同风险图像和相同关系开关背景。最终 reference、知识库和图像特征沿用已完成的 Align。</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>效用来源</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Uniform-0.5</td>
+<td>所有关系概率为 0.5</td>
+</tr>
+<tr>
+<td>TRUST-U-NLL</td>
+<td>伪未见图像 NLL 下降</td>
+</tr>
+<tr>
+<td>TRUST-Balanced</td>
+<td>伪已见、伪未见各占一半的 NLL 下降</td>
+</tr>
+<tr>
+<td>TRUST-Competition</td>
+<td>平滑组合竞争面积提高</td>
+</tr>
+<tr>
+<td>Permuted-Competition</td>
+<td>类型内置换已选 Competition 概率</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">关键比较为 Competition−Balanced、Competition−Uniform、Competition−Permuted；同时保留 Balanced−U-NLL 和 Competition−U-NLL。</p>
+<ul dir="auto">
+<li><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-align-competition-archive/TRUST-CPF%E6%96%B9%E6%A1%88/06/results/package_support/trustcpf_competition_v1_10ep/SERVER_COMMANDS.md.txt">完整上传、服务器训练和下载命令</a></li>
+<li><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-align-competition-archive/TRUST-CPF%E6%96%B9%E6%A1%88/06/results/package_support/trustcpf_competition_v1_10ep/FORMULAS_AND_CODE.md.txt">公式、实现与核心指标</a></li>
+<li><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-align-competition-archive/TRUST-CPF%E6%96%B9%E6%A1%88/06/configs/trustcpf_competition_v1_10ep/configs/default.json">默认配置</a></li>
+</ul>
+<p dir="auto">主要实现：<code>competition.py</code> 定义划分和风险公式；<code>competition_training.py</code> 完成教师、测量、拟合、扫描和 Q5 实际决策；<code>competition_workflow.py</code> 管理三 seed 队列、恢复和汇总。<code>engine.py</code> 与 <code>strong.py</code> 增加显式训练图像 ID，保证 G0 和关系教师都使用同一训练图像清单。分类器、原损失和 native/exact 识别指标沿用上一轮。</p>
+<p dir="auto">五组正式适配统一为 <strong>10 epoch</strong>，从同一 reference 开始，使用相同的首轮预热和十轮余弦学习率计划。在 epoch 0–10 中按 VAL CW AUC 选择最佳权重；所有任务完成第 10 轮后结束。每个 seed 重跑本批 Uniform；其他组若选中零强度，复用与之完全相同的本批 Uniform 结果。</p>
+<p dir="auto">新版目录为 <code>trustcpf_competition_v1_10ep</code>，与原三轮版本独立。<code>training_curves.csv</code> 汇总五组、三个 seed 从 epoch 0 到 10 的 165 行曲线；每轮保存损失、VAL CW/OW AUC、学习率及选中标记。日志 <code>val_auc</code> 为当前轮，<code>val_best</code> 为历史最佳值。</p>
+<p dir="auto">服务器继续使用 <code>vgcpod_v1</code> 的 Python 3.8、PyTorch 1.13.1 和 NumPy，不需要重新提取 CLIP 特征或安装新模型依赖。启动前运行交付测试；测试使用精简合成特征，全量 UT-Zappos 训练由服务器命令启动。</p>
+<p dir="auto">每 seed 包含 14 个阶段：导入、5 折教师与测量、拟合、Q5 决策、VAL 扫描、5 组适配。整批完成状态为 <strong>42/42 阶段、15/15 教师、15/15 识别结果、3/3 Q5 审计</strong>。报告有 360 行识别结果、96 行冻结扫描、312 行 Q5 策略／图 bank 结果。</p>
+<p dir="auto">本轮耗时主要来自 15 个新教师和完整关系测量，不能套用上一轮约 5.5 分钟的耗时。各 seed 顺序执行 5 折，每折 G0 10 epoch、关系头 10 epoch，完成一个测量背景立即打印进度。<code>costs.csv</code> 保存真实耗时。</p>
+</article>

@@ -1,0 +1,834 @@
+<article class="markdown-body entry-content container-lg" itemprop="text"><p dir="auto">本报告为 05 完成后的解释与当时下一步建议；Competition 现已完成，见 <a href="/havenxu7436/czsl-research/blob/codex/trustcpf-align-competition-archive/TRUST-CPF%E6%96%B9%E6%A1%88/06/analysis/README.md">06 完整分析</a>。</p>
+<div class="markdown-heading" dir="auto"><h1 tabindex="-1" class="heading-element" dir="auto">TRUST-CPF Align v1：完整实验结果分析</h1><a id="user-content-trust-cpf-align-v1完整实验结果分析" class="anchor" aria-label="Permalink: TRUST-CPF Align v1：完整实验结果分析" href="#trust-cpf-align-v1完整实验结果分析"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">分析日期：2026-10-24。结果归档：<code>trustcpf_align_v1_results_20261024_164626.tar.gz</code>。本轮为后续方案的第一批 A；数据集 UT-Zappos，CLIP ViT-L/14，冻结强 CPF，训练 seed 3351／3352／3353。</p>
+<p dir="auto"><strong>核心结论：TRUST 的效用监督与实际关系分配作用得到加强，但本轮部署校准没有带来稳定的终端识别增益。</strong> Compact 预测引导的策略在三个 Q5 教师的独立图像上都降低了 NLL，也都优于对应概率置换。进入最终 reference 后，两个 seed 选择均匀图，唯一非均匀 seed 的冻结部署收益在适配后未形成整体 AUC 优势。下一批应进入组合竞争效用，保留当前紧凑预测器与强基底。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">1. 数据完整性与复算范围</h2><a id="user-content-1-数据完整性与复算范围" class="anchor" aria-label="Permalink: 1. 数据完整性与复算范围" href="#1-数据完整性与复算范围"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>项目</th>
+<th>核对结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>结果包</td>
+<td>689,345,555 字节，SHA256 与下载描述一致</td>
+</tr>
+<tr>
+<td>发布文件与阶段输出</td>
+<td>71 个发布文件、532 个阶段输出哈希全部匹配</td>
+</tr>
+<tr>
+<td>执行完成度</td>
+<td>18/18 阶段，9/9 方法结果，3/3 Q5 审计</td>
+</tr>
+<tr>
+<td>识别数据</td>
+<td>216 行指标，108 份 VAL／TEST 预测文件；其中 54 份不同内容</td>
+</tr>
+<tr>
+<td>策略扫描</td>
+<td>72 行，三个 seed 各 4 个强度 × 6 个真实／置换实例</td>
+</tr>
+<tr>
+<td>Q5 原始数据</td>
+<td>24 个测量背景块、24 个评价 bank、312 行策略风险</td>
+</tr>
+<tr>
+<td>模型与选择</td>
+<td>CPF 全部张量保持冻结；概率由原 Compact 重新计算一致；最佳 epoch 与 VAL 选择一致</td>
+</tr>
+<tr>
+<td>指标复算</td>
+<td>native／exact AUC、工作点 HM、NLL、ECE 与归档一致，最大差约 7.1e-15</td>
+</tr>
+<tr>
+<td>效用与风险复算</td>
+<td>从逐图像 on/off 与伴随槽 log 概率重算，最大差小于 9e-16</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">实际环境为 Python 3.8.18、PyTorch 1.13.1+cu117、NumPy 1.24.4；三进程分别使用物理 GPU 0／1／2。VAL 为 3,214 张图，TEST 为 2,914 张，其中 TEST seen 1,023 张、unseen 1,891 张。CW 的 VAL／TEST 候选数为 98／101，OW 为 192。</p>
+<p dir="auto">9 组方法结果中，3351、3353 的 Align 和 Permuted 直接复用 Uniform，共 4 组复用；实际新增适配为 5 次。以下配对比较保留这些零差值，并明确单独讨论真正发生概率重分配的 seed3352。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">2. 正式识别结果：没有稳定超过 Uniform</h2><a id="user-content-2-正式识别结果没有稳定超过-uniform" class="anchor" aria-label="Permalink: 2. 正式识别结果：没有稳定超过 Uniform" href="#2-正式识别结果没有稳定超过-uniform"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">主读数按原计划采用 graph bank 1701、VAL 选中的最佳权重。AUC 为 0–100 尺度，差值单位为百分点；“±”为三个训练 seed 的样本标准差。HM 使用对应 VAL 确定的 bias。</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>CW native AUC</th>
+<th>OW native AUC</th>
+<th>CW exact AUC</th>
+<th>OW exact AUC</th>
+<th>CW HM</th>
+<th>OW HM</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Uniform-0.5</td>
+<td>35.481 ± 1.198</td>
+<td>26.144 ± 1.720</td>
+<td>35.568</td>
+<td>26.220</td>
+<td>50.891</td>
+<td>42.068</td>
+</tr>
+<tr>
+<td>TRUST-Align</td>
+<td>35.393 ± 1.067</td>
+<td>26.153 ± 1.718</td>
+<td>35.495</td>
+<td>26.251</td>
+<td>50.802</td>
+<td>41.910</td>
+</tr>
+<tr>
+<td>Permuted-Align</td>
+<td>35.429 ± 1.120</td>
+<td>26.065 ± 1.741</td>
+<td>35.532</td>
+<td>26.136</td>
+<td>50.918</td>
+<td>41.927</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">主 bank 上，Align 相对 Uniform 为 <strong>−0.0877 CW、+0.0080 OW</strong>；相对 Permuted 为 <strong>−0.0360 CW、+0.0874 OW</strong>。exact AUC 给出相同方向：相对 Uniform 为 −0.0725 CW、+0.0304 OW。CW HM 下降 0.0882，OW HM 下降 0.1577。</p>
+<p dir="auto">这组结果的判断是：<strong>Align 维持了半密度图的整体性能，但学习到的概率分配还没有提供额外的主指标优势。</strong></p>
+<p dir="auto"><a target="_blank" rel="noopener noreferrer" href="/havenxu7436/czsl-research/blob/codex/trustcpf-align-competition-archive/TRUST-CPF%E6%96%B9%E6%A1%88/05/analysis/figures/recognition.png"><img src="/havenxu7436/czsl-research/raw/codex/trustcpf-align-competition-archive/TRUST-CPF%E6%96%B9%E6%A1%88/05/analysis/figures/recognition.png" alt="主识别结果与历史参照" style="max-width: 100%;"></a></p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">逐 seed 结果</h3><a id="user-content-逐-seed-结果" class="anchor" aria-label="Permalink: 逐 seed 结果" href="#逐-seed-结果"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>seed</th>
+<th>方法</th>
+<th>κ</th>
+<th>选中 epoch</th>
+<th>TEST CW AUC</th>
+<th>TEST OW AUC</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3351</td>
+<td>Uniform-0.5</td>
+<td>0</td>
+<td>2</td>
+<td>35.446</td>
+<td>27.967</td>
+</tr>
+<tr>
+<td>3351</td>
+<td>TRUST-Align</td>
+<td>0.0</td>
+<td>2</td>
+<td>35.446</td>
+<td>27.967</td>
+</tr>
+<tr>
+<td>3351</td>
+<td>Permuted-Align</td>
+<td>0.0</td>
+<td>2</td>
+<td>35.446</td>
+<td>27.967</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>Uniform-0.5</td>
+<td>0</td>
+<td>2</td>
+<td>36.697</td>
+<td>25.917</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>TRUST-Align</td>
+<td>0.5</td>
+<td>0</td>
+<td>36.434</td>
+<td>25.941</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>Permuted-Align</td>
+<td>0.5</td>
+<td>2</td>
+<td>36.542</td>
+<td>25.679</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>Uniform-0.5</td>
+<td>0</td>
+<td>1</td>
+<td>34.301</td>
+<td>24.550</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>TRUST-Align</td>
+<td>0.0</td>
+<td>1</td>
+<td>34.301</td>
+<td>24.550</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>Permuted-Align</td>
+<td>0.0</td>
+<td>1</td>
+<td>34.301</td>
+<td>24.550</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">3351、3353 选中 κ=0，因此三个方法的数值相同是设计中的正确复用。3352 使用 κ=0.5，Align 最佳权重为 epoch 0；Uniform 与 Permuted 均选 epoch 2。正式结果同时包含概率分配和各组合法 VAL 选模后的效果。</p>
+<p dir="auto">三个独立 bank 各保持 16 图。先对每个 seed 的三个 bank 取均值，再对三个 seed 汇总，得到：</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>CW AUC，三 bank 均值</th>
+<th>OW AUC，三 bank 均值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Uniform</td>
+<td>35.4316</td>
+<td>26.1004</td>
+</tr>
+<tr>
+<td>Align</td>
+<td>35.3498</td>
+<td>26.1143</td>
+</tr>
+<tr>
+<td>Permuted</td>
+<td>35.4232</td>
+<td>26.0619</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">Align−Uniform 为 −0.0817 CW、+0.0139 OW。更换图 bank 后结论保持一致，主 bank 的接近结果并非某一次图采样造成。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">3. 冻结部署有一个正向 seed，适配尚未保住该优势</h2><a id="user-content-3-冻结部署有一个正向-seed适配尚未保住该优势" class="anchor" aria-label="Permalink: 3. 冻结部署有一个正向 seed，适配尚未保住该优势" href="#3-冻结部署有一个正向-seed适配尚未保住该优势"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">3.1 四个强度的完整 VAL 扫描</h3><a id="user-content-31-四个强度的完整-val-扫描" class="anchor" aria-label="Permalink: 3.1 四个强度的完整 VAL 扫描" href="#31-四个强度的完整-val-扫描"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>seed</th>
+<th>κ=0</th>
+<th>κ=0.5</th>
+<th>κ=1</th>
+<th>κ=2</th>
+<th>选中 κ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3351</td>
+<td>43.577</td>
+<td>43.144</td>
+<td>43.178</td>
+<td>43.110</td>
+<td>0.0</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>41.253</td>
+<td>41.480</td>
+<td>41.440</td>
+<td>41.239</td>
+<td>0.5</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>44.017</td>
+<td>43.747</td>
+<td>43.601</td>
+<td>43.557</td>
+<td>0.0</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">3351 与 3353 的三个非零强度均低于 Uniform。3352 的 κ=0.5 比 Uniform 提高 0.2268 VAL CW AUC；κ=1 也有小幅收益，κ=2 回落。继续扩大当前强度搜索网格的优先级较低。</p>
+<p dir="auto">固定 κ=1 后，真实分配与五个类型内置换的比较如下。排名 1/6 表示真实分配在六者中最高。</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>seed</th>
+<th>真实 VAL CW</th>
+<th>真实−Uniform</th>
+<th>五置换均值</th>
+<th>真实−置换均值</th>
+<th>真实排名</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3351</td>
+<td>43.178</td>
+<td>-0.399</td>
+<td>43.349</td>
+<td>-0.171</td>
+<td>5/6</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>41.440</td>
+<td>+0.187</td>
+<td>41.289</td>
+<td>+0.152</td>
+<td>1/6</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>43.601</td>
+<td>-0.416</td>
+<td>44.026</td>
+<td>-0.425</td>
+<td>6/6</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">这一比较使用相同强度，避免 κ=0 的复用掩盖真实分配差异。真实排序在 3352 有价值，在另外两个 seed 上没有表现出同样优势。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">3.2 seed3352 的冻结／适配对照</h3><a id="user-content-32-seed3352-的冻结适配对照" class="anchor" aria-label="Permalink: 3.2 seed3352 的冻结／适配对照" href="#32-seed3352-的冻结适配对照"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">下表均为 Align−Uniform 的 TEST AUC 差值：</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>图 bank</th>
+<th>epoch 0 CW</th>
+<th>epoch 0 OW</th>
+<th>最佳权重 CW</th>
+<th>最佳权重 OW</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1701</td>
+<td>+0.212</td>
+<td>+0.286</td>
+<td>-0.263</td>
+<td>+0.024</td>
+</tr>
+<tr>
+<td>2701</td>
+<td>+0.184</td>
+<td>+0.116</td>
+<td>-0.208</td>
+<td>-0.021</td>
+</tr>
+<tr>
+<td>3701</td>
+<td>+0.077</td>
+<td>+0.232</td>
+<td>-0.265</td>
+<td>+0.122</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">在同一个冻结 reference 上，非均匀分配在三个 bank 的 CW／OW 都为正；三 bank 平均为 <strong>+0.1576 CW、+0.2114 OW</strong>。相对冻结 Permuted，平均为 +0.1723 CW、+0.2430 OW。这是本轮真实部署中的正向信号。</p>
+<p dir="auto">适配与选模后，Uniform 获得了更好的 CW 模型，Align 保留 epoch 0，最终三 bank 平均变为 <strong>−0.2452 CW、+0.0418 OW</strong>。因此，本轮不能把最终接近简单归因于“概率完全不起作用”；更准确的位置是：<strong>一个 seed 的冻结关系分配改善了识别，但收益没有在多 seed 和适配后的比较中延续。</strong></p>
+<p dir="auto">适配本身也不稳定。Uniform 在主 bank 的三个 seed 上，最佳权重相对 epoch 0 的 CW 变化为 −0.3327、+0.4753、−0.4917；OW 为 −0.0241、+0.2619、−0.3918。三个 seed 的 VAL 都选中了高于 epoch 0 的分数，但 TEST 有两个 seed 下降。当前数据不支持用延长训练解决主问题；保留 3 epoch 与 epoch 0 对照即可。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">4. 半密度确实改善了基线，概率差异也已充分形成</h2><a id="user-content-4-半密度确实改善了基线概率差异也已充分形成" class="anchor" aria-label="Permalink: 4. 半密度确实改善了基线，概率差异也已充分形成" href="#4-半密度确实改善了基线概率差异也已充分形成"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">4.1 与历史实验的连续比较</h3><a id="user-content-41-与历史实验的连续比较" class="anchor" aria-label="Permalink: 4.1 与历史实验的连续比较" href="#41-与历史实验的连续比较"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>CW AUC 均值</th>
+<th>OW AUC 均值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>r0</td>
+<td>34.512</td>
+<td>25.184</td>
+</tr>
+<tr>
+<td>capacity</td>
+<td>35.805</td>
+<td>26.400</td>
+</tr>
+<tr>
+<td>dense</td>
+<td>35.646</td>
+<td>26.288</td>
+</tr>
+<tr>
+<td>robust</td>
+<td>35.201</td>
+<td>26.149</td>
+</tr>
+<tr>
+<td>old_compact</td>
+<td>34.922</td>
+<td>25.931</td>
+</tr>
+<tr>
+<td>old_drop</td>
+<td>34.988</td>
+<td>25.908</td>
+</tr>
+<tr>
+<td>Uniform-0.5</td>
+<td>35.481</td>
+<td>26.144</td>
+</tr>
+<tr>
+<td>TRUST-Align</td>
+<td>35.393</td>
+<td>26.153</td>
+</tr>
+<tr>
+<td>Permuted-Align</td>
+<td>35.429</td>
+<td>26.065</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">Align 相对旧 Compact 提高 0.4717 CW、0.2212 OW；但半密度 Uniform 已提高 0.5593 CW、0.2132 OW。<strong>这轮改善首先体现在半密度基线，而不是额外的学习分配优势。</strong></p>
+<p dir="auto">Align 相对强 CPF r0 提高 0.8817 CW、0.9689 OW，说明当前知识分支整体仍有收益；相对 Capacity 低 0.4119 CW、0.2479 OW，相对 Dense 低 0.2521 CW、0.1359 OW。Capacity 仍是当前同工程中更强的简单参照。</p>
+<p dir="auto">这些历史行采用原实验已选权重；第一批的直接机制判断来自本轮三个匹配组。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">4.2 seed3352 的部署概率与覆盖</h3><a id="user-content-42-seed3352-的部署概率与覆盖" class="anchor" aria-label="Permalink: 4.2 seed3352 的部署概率与覆盖" href="#42-seed3352-的部署概率与覆盖"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>类型</th>
+<th>期望边数</th>
+<th>概率标准差</th>
+<th>概率范围</th>
+<th>期望覆盖节点数</th>
+<th>原型平均位移</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Uniform-0.5</td>
+<td>OI</td>
+<td>6.000000</td>
+<td>0.000</td>
+<td>0.500–0.500</td>
+<td>6.000</td>
+<td>0.4395</td>
+</tr>
+<tr>
+<td>Uniform-0.5</td>
+<td>OE</td>
+<td>18.000000</td>
+<td>0.000</td>
+<td>0.500–0.500</td>
+<td>10.500</td>
+<td>0.4395</td>
+</tr>
+<tr>
+<td>Uniform-0.5</td>
+<td>AE</td>
+<td>24.000000</td>
+<td>0.000</td>
+<td>0.500–0.500</td>
+<td>14.000</td>
+<td>0.0348</td>
+</tr>
+<tr>
+<td>TRUST-Align</td>
+<td>OI</td>
+<td>6.000000</td>
+<td>0.120</td>
+<td>0.259–0.636</td>
+<td>6.000</td>
+<td>0.4323</td>
+</tr>
+<tr>
+<td>TRUST-Align</td>
+<td>OE</td>
+<td>18.000000</td>
+<td>0.115</td>
+<td>0.252–0.829</td>
+<td>10.315</td>
+<td>0.4323</td>
+</tr>
+<tr>
+<td>TRUST-Align</td>
+<td>AE</td>
+<td>24.000000</td>
+<td>0.105</td>
+<td>0.291–0.886</td>
+<td>13.821</td>
+<td>0.0359</td>
+</tr>
+<tr>
+<td>Permuted-Align</td>
+<td>OI</td>
+<td>6.000000</td>
+<td>0.120</td>
+<td>0.259–0.636</td>
+<td>6.000</td>
+<td>0.4446</td>
+</tr>
+<tr>
+<td>Permuted-Align</td>
+<td>OE</td>
+<td>18.000000</td>
+<td>0.115</td>
+<td>0.252–0.829</td>
+<td>10.591</td>
+<td>0.4446</td>
+</tr>
+<tr>
+<td>Permuted-Align</td>
+<td>AE</td>
+<td>24.000000</td>
+<td>0.105</td>
+<td>0.291–0.886</td>
+<td>14.030</td>
+<td>0.0367</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">本轮总期望边数为 48。3352 的 Align 三类型概率标准差均约 0.10–0.12，AE 已由旧部署中接近常数的状态变成明显重分配，最高概率约 0.886。因而本轮接近结果已经不能归结为“学到的概率都近似常数”。</p>
+<p dir="auto">类型内置换保持概率多重集合与类型预算，也会改变覆盖到的目标节点。上表的覆盖差异已经记录在结果中。OI 与 OE 都作用于物体节点，原型位移来自完整采样图，不能把表中的两行当作两项可相加的独立位移。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">5. 本轮最重要的新证据：预测效用带来实际风险下降</h2><a id="user-content-5-本轮最重要的新证据预测效用带来实际风险下降" class="anchor" aria-label="Permalink: 5. 本轮最重要的新证据：预测效用带来实际风险下降" href="#5-本轮最重要的新证据预测效用带来实际风险下降"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">5.1 诊断协议</h3><a id="user-content-51-诊断协议" class="anchor" aria-label="Permalink: 5.1 诊断协议" href="#51-诊断协议"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">每个 seed 使用本身的 Q5 教师。Compact 审计模型由 Q1–Q3 拟合、Q4 选正则，Q5 未用于该模型拟合。三 seed 使用相同 16 个留出组合，测量侧 126 张图、评价侧 127 张图，图像互不重叠、各组合等权，没有排除组合。</p>
+<p dir="auto">在测量侧对 96 条边使用 8 个背景块，分别得到单图效用和 16 图混合效用。评价侧使用全新的 8 个 bank，各 16 图。这里检验的是同一组留出组合上，从测量图像到其他图像的实际策略作用。</p>
+<p dir="auto">风险增益定义为 Uniform NLL 减当前策略 NLL，<strong>正值代表改善</strong>。下表“±”为固定教师和图像条件下、八个图 bank 的配对 MCSE，单位为 nat；它不替代训练 seed 间差异。</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>seed</th>
+<th>Uniform 混合 NLL</th>
+<th>Compact 预测：下降 ± MCSE</th>
+<th>预测概率置换：下降</th>
+<th>预测−置换收益</th>
+<th>实测单图效用：下降</th>
+<th>实测混合效用：下降</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3351</td>
+<td>3.35022</td>
+<td>0.02443 ± 0.00305</td>
+<td>-0.01686</td>
+<td>0.04129</td>
+<td>0.09172</td>
+<td>0.08706</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>3.45274</td>
+<td>0.01579 ± 0.00260</td>
+<td>0.00356</td>
+<td>0.01223</td>
+<td>0.11535</td>
+<td>0.11009</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>3.35619</td>
+<td>0.02339 ± 0.00129</td>
+<td>0.00042</td>
+<td>0.02296</td>
+<td>0.05547</td>
+<td>0.05490</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">Compact 预测策略在 <strong>3/3 seed、24/24 评价 bank</strong> 中都降低混合 NLL；相对对应概率置换，三个 seed 的平均收益也都为正，分别为 0.04129、0.01223、0.02296。跨 seed 均值：</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>策略</th>
+<th>单图 NLL 平均下降</th>
+<th>16 图混合 NLL 平均下降</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>predicted</td>
+<td>0.01888</td>
+<td>0.02120</td>
+</tr>
+<tr>
+<td>predicted_permuted</td>
+<td>-0.00348</td>
+<td>-0.00429</td>
+</tr>
+<tr>
+<td>single</td>
+<td>0.08354</td>
+<td>0.08751</td>
+</tr>
+<tr>
+<td>single_permuted</td>
+<td>-0.00104</td>
+<td>-0.00228</td>
+</tr>
+<tr>
+<td>mixture</td>
+<td>0.07948</td>
+<td>0.08402</td>
+</tr>
+<tr>
+<td>mixture_permuted</td>
+<td>0.00031</td>
+<td>-0.00024</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto"><strong>效用监督已经产生可以实际使用的关系分配信息。</strong> 这一结论来自独立评价图像的风险，而不只来自边排序相关系数或一阶代理遗憾。</p>
+<p dir="auto">直接测量单图效用的混合 NLL 下降为 0.08751，Compact 为 0.02120，后者约为前者的 <strong>24.2%</strong>，逐 seed 比例为 26.6%、13.7%、42.2%。这给出了清楚的预测提升空间。直接测量策略使用 Q5 测量图像的标签，是诊断参照；该比值描述本次实验差距，不是理论上限。</p>
+<p dir="auto"><a target="_blank" rel="noopener noreferrer" href="/havenxu7436/czsl-research/blob/codex/trustcpf-align-competition-archive/TRUST-CPF%E6%96%B9%E6%A1%88/05/analysis/figures/utility_and_scan.png"><img src="/havenxu7436/czsl-research/raw/codex/trustcpf-align-competition-archive/TRUST-CPF%E6%96%B9%E6%A1%88/05/analysis/figures/utility_and_scan.png" alt="Q5 实际风险收益与冻结强度扫描" style="max-width: 100%;"></a></p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">5.2 局部方向同样有效</h3><a id="user-content-52-局部方向同样有效" class="anchor" aria-label="Permalink: 5.2 局部方向同样有效" href="#52-局部方向同样有效"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">将最大采边概率位移缩至 0.1 后，三 seed 平均结果为：</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>效用来源</th>
+<th>真实局部策略混合 NLL 下降</th>
+<th>对应置换局部策略下降</th>
+<th>真实−置换收益</th>
+<th>真实策略为正的 bank</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>predicted</td>
+<td>0.002501</td>
+<td>-0.001973</td>
+<td>0.004473</td>
+<td>23/24</td>
+</tr>
+<tr>
+<td>single</td>
+<td>0.011548</td>
+<td>-0.000864</td>
+<td>0.012411</td>
+<td>24/24</td>
+</tr>
+<tr>
+<td>mixture</td>
+<td>0.011146</td>
+<td>-0.000837</td>
+<td>0.011983</td>
+<td>24/24</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">预测局部策略仍优于对应置换，说明正向信号不只依赖较大的概率位移。完整策略的收益更大，因此本轮没有发现将所有正式部署都限制到很小局部步长的必要性。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">6. 单图／混合目标与效用迁移：下一步问题更明确了</h2><a id="user-content-6-单图混合目标与效用迁移下一步问题更明确了" class="anchor" aria-label="Permalink: 6. 单图／混合目标与效用迁移：下一步问题更明确了" href="#6-单图混合目标与效用迁移下一步问题更明确了"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">6.1 单图标签与 16 图标签几乎一致</h3><a id="user-content-61-单图标签与-16-图标签几乎一致" class="anchor" aria-label="Permalink: 6.1 单图标签与 16 图标签几乎一致" href="#61-单图标签与-16-图标签几乎一致"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>seed</th>
+<th>预测→单图实测：OI ρ</th>
+<th>预测→单图实测：OE ρ</th>
+<th>预测→单图实测：AE ρ</th>
+<th>单图→混合：三类型最低 ρ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3351</td>
+<td>-0.140</td>
+<td>0.308</td>
+<td>0.124</td>
+<td>0.986</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>0.406</td>
+<td>0.215</td>
+<td>0.254</td>
+<td>0.986</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>0.517</td>
+<td>0.257</td>
+<td>0.398</td>
+<td>0.994</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">9 个 seed×类型组合的单图／混合效用 Spearman 范围为 <strong>0.9860–1.0000</strong>，平均 <strong>0.9943</strong>。用混合标签构造的策略，在三个 seed 的混合 NLL 上都略弱于用单图标签构造的策略，平均少改善 <strong>0.00349 nat</strong>；局部策略也没有形成反向优势。</p>
+<p dir="auto">因此，<strong>R3 的 16 图效用替换目前不应成为下一批主实验。</strong> 混合读出梯度公式已通过数据复算，但其标签并未提供明显不同的有用排序。</p>
+<p dir="auto">预测能力则仍有提升空间。三个类型的预测—实测排序整体为弱到中等正相关，3351 的 OI 为负；直接测量策略明显更强。R5 的相对效用拟合值得保留，但仅提高旧 NLL 预测精度，还不能保证解决终端 AUC 的问题。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">6.2 Q5 的正向排序进入最终 reference 时变化很大</h3><a id="user-content-62-q5-的正向排序进入最终-reference-时变化很大" class="anchor" aria-label="Permalink: 6.2 Q5 的正向排序进入最终 reference 时变化很大" href="#62-q5-的正向排序进入最终-reference-时变化很大"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">补充比较“Q5 审计预测”与“最终五折模型对 reference 的预测”，得到同一组边的类型内 Spearman：</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>seed</th>
+<th>OI</th>
+<th>OE</th>
+<th>AE</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3351</td>
+<td>0.133</td>
+<td>-0.039</td>
+<td>-0.079</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>0.056</td>
+<td>0.193</td>
+<td>0.040</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>0.070</td>
+<td>-0.013</td>
+<td>-0.091</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">九项平均为 <strong>0.0298</strong>。这表示正式部署使用的排序与 Q5 诊断使用的排序已经明显不同。两者同时改变了教师、支持图像和拟合数据；排序变化本身不说明哪一组预测错误，但说明 <strong>Q5 的实际 NLL 收益与最终 reference 的识别收益是两项不同的迁移问题</strong>。</p>
+<p dir="auto">后续实验需要继续同时保留这两个端点：Q5 的实际策略风险，以及最终 reference 的冻结／适配识别。只看其中一个会漏掉这轮已经出现的断点。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">6.3 NLL 与组合竞争的差异已经进入最终模型</h3><a id="user-content-63-nll-与组合竞争的差异已经进入最终模型" class="anchor" aria-label="Permalink: 6.3 NLL 与组合竞争的差异已经进入最终模型" href="#63-nll-与组合竞争的差异已经进入最终模型"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">主 bank 的最终结果中，Align 的 CW 未校准 NLL 为 <strong>2.43619</strong>，优于 Uniform 的 <strong>2.44017</strong>，但 CW AUC 低 0.0877。OW 未校准 NLL 也从 2.54873 降至 2.54491，AUC 仅提高 0.0080。</p>
+<p dir="auto">这种方向差异在唯一非均匀 seed3352 中更直观：Align 的 CW NLL 为 2.42242，优于 Uniform 的 2.43436，但 AUC 为 36.4336，低于 Uniform 的 36.6966。改善平均真实类概率与改善 seen／unseen 竞争面积并不等价。</p>
+<p dir="auto">按给定真实物体的属性预测分析，Align 的未见图像错误仍集中进入该物体的已见搭配：</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>seed</th>
+<th>真实物体条件下属性准确率</th>
+<th>未见图像属性错误数</th>
+<th>其中预测为已见搭配</th>
+<th>占属性错误比例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3351</td>
+<td>26.441</td>
+<td>1391</td>
+<td>1245</td>
+<td>89.50%</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>24.643</td>
+<td>1425</td>
+<td>1289</td>
+<td>90.46%</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>25.754</td>
+<td>1404</td>
+<td>1246</td>
+<td>88.75%</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">这里是真实物体条件下的诊断，正式模型仍用完整联合候选集。约 <strong>88.7%–90.5%</strong> 的属性错误进入已见搭配，与之前几轮对组合竞争的判断一致。</p>
+<p dir="auto">当前证据把下一步重点指向：<strong>让效用监督显式反映 seen／unseen 的竞争，同时检验这种效用能否迁移到最终 reference。</strong></p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">7. 成本与运行情况</h2><a id="user-content-7-成本与运行情况" class="anchor" aria-label="Permalink: 7. 成本与运行情况" href="#7-成本与运行情况"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">以下为每阶段秒数；适配阶段包含训练与 epoch 0／最佳权重的多 bank 评价：</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>3351</th>
+<th>3352</th>
+<th>3353</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>scan</td>
+<td>73.3</td>
+<td>76.3</td>
+<td>73.4</td>
+</tr>
+<tr>
+<td>adapt_uniform</td>
+<td>76.2</td>
+<td>83.5</td>
+<td>78.8</td>
+</tr>
+<tr>
+<td>adapt_align</td>
+<td>0.1</td>
+<td>81.9</td>
+<td>0.1</td>
+</tr>
+<tr>
+<td>adapt_permuted</td>
+<td>0.1</td>
+<td>77.9</td>
+<td>0.1</td>
+</tr>
+<tr>
+<td>decision</td>
+<td>9.2</td>
+<td>9.3</td>
+<td>9.6</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">三个 seed 的阶段时间分别为 159.2、329.1、162.4 秒。三卡并行的最长计算队列约 <strong>5.5 分钟</strong>，不含初始化、测试、打包和传输。3351、3353 的 Align／Permuted 为结果复用，因而其阶段只需约 0.1 秒。</p>
+<p dir="auto">暖机后，batch size 256、16 图、CW／OW 两候选集前向耗时约 <strong>0.173–0.241 ms／图像</strong>。这是缓存特征上的模型前向，未计 CLIP 编码、文件读写和曲线计算。PyTorch 记录的峰值张量分配约 53.7 MiB；它与 <code>nvidia-smi</code> 显示的进程总占用口径不同。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">8. 本轮对 TRUST 主线的结论与下一步</h2><a id="user-content-8-本轮对-trust-主线的结论与下一步" class="anchor" aria-label="Permalink: 8. 本轮对 TRUST 主线的结论与下一步" href="#8-本轮对-trust-主线的结论与下一步"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto"><strong>值得保留的核心：效用监督、紧凑预测、关系对应的概率分配。</strong> 审计版 Compact 学到的关系价值已经在独立图像上带来真实 NLL 下降；概率置换明显削弱该收益。TRUST 的“从留出组合识别收益学习关系使用价值”仍有实证基础。</p>
+<p dir="auto"><strong>第一批的任务已完成：恢复教师一致的半密度、放大概率差异后，终端识别增益仍不稳定。</strong> 因而接下来不再扩大这组 κ 网格、延长当前适配，或直接重复整套噪声实验。</p>
+<p dir="auto">建议沿用原方案的 <strong>TRUST-Competition</strong> 作为下一批主方向，集中做一个五组队列：</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>组别</th>
+<th>本批要检验的作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Uniform-0.5</td>
+<td>当前半密度基线</td>
+</tr>
+<tr>
+<td>TRUST-U-NLL</td>
+<td>原伪未见 NLL 效用在统一新教师上的参照</td>
+</tr>
+<tr>
+<td>TRUST-Balanced</td>
+<td>加入伪已见风险后的作用</td>
+</tr>
+<tr>
+<td>TRUST-Competition</td>
+<td>将关系监督改成平滑 seen／unseen 竞争面积改善</td>
+</tr>
+<tr>
+<td>Permuted-Competition</td>
+<td>竞争效用与具体关系对应的作用</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">五组统一保留八维响应、27 参数岭回归、半密度预算、相同强度扫描和 3 epoch 适配。关键比较为 Competition−Balanced、Competition−Uniform、Competition−Permuted。旧教师用过全部 Inner 图像，下一批应按原计划建立带伪已见风险留出图像的新教师，并让三种监督共用这些教师与风险样本；最终部署继续使用当前 reference。</p>
+<p dir="auto">每种监督同时报告 Q5 实际风险与最终 reference 的 epoch 0／最佳权重结果。这样一个队列可以集中判断：改变监督对象是否既改善决策，又改善最终组合识别。</p>
+<p dir="auto">本轮建议将 R3 混合标签和风险扣分放到后续，把 R5 相对拟合作为预测改进候选，Capacity 共同起点作为表达改进候选。当前优先完成监督目标这一个主要问题。</p>
+<p dir="auto"><strong>对论文方向的定位：这轮加强了效用监督和实际选图作用的依据；TRUST-Align 本身还不适合作为主性能结果。下一步需要把这份机制收益推进到竞争指标和最终 reference。</strong></p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">9. 数据与复算文件</h2><a id="user-content-9-数据与复算文件" class="anchor" aria-label="Permalink: 9. 数据与复算文件" href="#9-数据与复算文件"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<ul dir="auto">
+<li><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-align-competition-archive/TRUST-CPF%E6%96%B9%E6%A1%88/05/results/raw_export/trustcpf_align_v1/work/status.json">本轮实验完成状态</a></li>
+<li><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-align-competition-archive/TRUST-CPF%E6%96%B9%E6%A1%88/05/analysis/confirmed/analysis.json">汇总后的逐项分析数据</a></li>
+<li><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-align-competition-archive/TRUST-CPF%E6%96%B9%E6%A1%88/05/analysis/confirmed/integrity.json">归档与阶段输出核验</a></li>
+<li><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-align-competition-archive/TRUST-CPF%E6%96%B9%E6%A1%88/05/analysis/confirmed/prediction_verification.json">108 份预测复算记录</a></li>
+<li><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-align-competition-archive/TRUST-CPF%E6%96%B9%E6%A1%88/05/analysis/confirmed/audit_verification.json">原始效用块与实际风险复算记录</a></li>
+<li><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-align-competition-archive/TRUST-CPF%E6%96%B9%E6%A1%88/05/analysis/confirmed/response_shift_diagnostic.json">Q5／reference 排序变化诊断</a></li>
+<li><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-align-competition-archive/TRUST-CPF%E6%96%B9%E6%A1%88/05/references/original_scripts/analyze.py.txt">可复跑分析脚本</a></li>
+</ul>
+<p dir="auto">所有原始归档和实验代码保持原状，本报告与复算产物单独保存在 <code>analysis_TRUST_CPF_align_v1_20261024</code>。</p>
+</article>

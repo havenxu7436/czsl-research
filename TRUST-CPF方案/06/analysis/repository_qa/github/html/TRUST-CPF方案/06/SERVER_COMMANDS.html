@@ -1,0 +1,50 @@
+<article class="markdown-body entry-content container-lg" itemprop="text"><div class="markdown-heading" dir="auto"><h1 tabindex="-1" class="heading-element" dir="auto">Competition 三目标与 10 epoch：仓库恢复、服务器训练与本地保存</h1><a id="user-content-competition-三目标与-10-epoch仓库恢复服务器训练与本地保存" class="anchor" aria-label="Permalink: Competition 三目标与 10 epoch：仓库恢复、服务器训练与本地保存" href="#competition-三目标与-10-epoch仓库恢复服务器训练与本地保存"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">本页从仓库重建同一执行版本；<a href="/havenxu7436/czsl-research/blob/codex/trustcpf-align-competition-archive/TRUST-CPF%E6%96%B9%E6%A1%88/06/PERSONAL_SERVER_COMMANDS.md">个人上传、训练和下载原命令</a> 保留当时路径与操作说明。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">服务器：从仓库恢复</h2><a id="user-content-服务器从仓库恢复" class="anchor" aria-label="Permalink: 服务器：从仓库恢复" href="#服务器从仓库恢复"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<div class="highlight highlight-source-shell notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="conda activate vgcpod_v1
+cd &quot;$HOME/czsl-research&quot;
+export CPF_REPO=&quot;$PWD&quot;
+git lfs pull --include=&quot;TRUST-CPF方案/**&quot;
+python tools/reproduce.py materialize --line TRUST-CPF方案 --stage 06 --dest &quot;$HOME/experiments/trust-06-replay&quot;
+cd &quot;$HOME/experiments/trust-06-replay/trustcpf_competition_v1_10ep&quot;
+python run.py setup \
+  --source &quot;$CPF_REPO/TRUST-CPF方案/05/results/raw_export/trustcpf_align_v1&quot; \
+  --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14 \
+  --work &quot;$PWD/work&quot;
+source scripts/env.sh
+CUDA_VISIBLE_DEVICES=&quot;&quot; &quot;$CPF_PY&quot; -m unittest discover -s tests -v
+mkdir -p logs
+nohup bash scripts/run_all.sh 0 2 3 &gt;&gt; logs/queue.log 2&gt;&amp;1 &lt; /dev/null &amp;
+tail -F logs/queue.log"><pre>conda activate vgcpod_v1
+<span class="pl-c1">cd</span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$HOME</span>/czsl-research<span class="pl-pds">"</span></span>
+<span class="pl-k">export</span> CPF_REPO=<span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$PWD</span><span class="pl-pds">"</span></span>
+git lfs pull --include=<span class="pl-s"><span class="pl-pds">"</span>TRUST-CPF方案/**<span class="pl-pds">"</span></span>
+python tools/reproduce.py materialize --line TRUST-CPF方案 --stage 06 --dest <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$HOME</span>/experiments/trust-06-replay<span class="pl-pds">"</span></span>
+<span class="pl-c1">cd</span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$HOME</span>/experiments/trust-06-replay/trustcpf_competition_v1_10ep<span class="pl-pds">"</span></span>
+python run.py setup \
+  --source <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$CPF_REPO</span>/TRUST-CPF方案/05/results/raw_export/trustcpf_align_v1<span class="pl-pds">"</span></span> \
+  --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14 \
+  --work <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$PWD</span>/work<span class="pl-pds">"</span></span>
+<span class="pl-c1">source</span> scripts/env.sh
+CUDA_VISIBLE_DEVICES=<span class="pl-s"><span class="pl-pds">"</span><span class="pl-pds">"</span></span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$CPF_PY</span><span class="pl-pds">"</span></span> -m unittest discover -s tests -v
+mkdir -p logs
+nohup bash scripts/run_all.sh 0 2 3 <span class="pl-k">&gt;&gt;</span> logs/queue.log <span class="pl-k">2&gt;&amp;1</span> <span class="pl-k">&lt;</span> /dev/null <span class="pl-k">&amp;</span>
+tail -F logs/queue.log</pre></div>
+<p dir="auto">队列参数是三张物理卡与 seed3351/3352/3353 的对应，可按服务器空闲卡修改。缓存需与本阶段 assets 指纹一致。运行包含本批全部识别及 Q5 队列。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">服务器：完成检查和打包</h2><a id="user-content-服务器完成检查和打包" class="anchor" aria-label="Permalink: 服务器：完成检查和打包" href="#服务器完成检查和打包"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<div class="highlight highlight-source-shell notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="source scripts/env.sh
+&quot;$CPF_PY&quot; run.py report
+&quot;$CPF_PY&quot; scripts/check_complete.py
+bash scripts/pack_results.sh"><pre><span class="pl-c1">source</span> scripts/env.sh
+<span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$CPF_PY</span><span class="pl-pds">"</span></span> run.py report
+<span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$CPF_PY</span><span class="pl-pds">"</span></span> scripts/check_complete.py
+bash scripts/pack_results.sh</pre></div>
+<p dir="auto">下载新运行结果时，在 Windows 执行恢复包内的 scripts/download_trustcpf_competition_v1_10ep.ps1；下载脚本根据服务器 latest_archive.json 取得归档名，校验 SHA256 后使用 UTF-8 解压。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">本地：保存仓库内已完成的原始结果包</h2><a id="user-content-本地保存仓库内已完成的原始结果包" class="anchor" aria-label="Permalink: 本地：保存仓库内已完成的原始结果包" href="#本地保存仓库内已完成的原始结果包"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">在本地仓库根目录执行：</p>
+<div class="highlight highlight-source-powershell notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="git lfs pull --include=&quot;TRUST-CPF方案/06/**&quot;
+$cpfSavedArchive = Join-Path $PWD &quot;../trust-06-saved-archive&quot;
+python tools/register_trustcpf_followup.py --stage 06 --restore-archive &quot;$cpfSavedArchive&quot;"><pre>git lfs pull <span class="pl-k">--</span>include<span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">"</span>TRUST-CPF方案/06/**<span class="pl-pds">"</span></span>
+<span class="pl-smi">$cpfSavedArchive</span> <span class="pl-k">=</span> <span class="pl-c1">Join-Path</span> <span class="pl-c1">$PWD</span> <span class="pl-s"><span class="pl-pds">"</span>../trust-06-saved-archive<span class="pl-pds">"</span></span>
+python tools<span class="pl-k">/</span>register_trustcpf_followup.py <span class="pl-k">--</span>stage <span class="pl-c1">06</span> <span class="pl-k">--</span><span class="pl-c1">restore-archive</span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$cpfSavedArchive</span><span class="pl-pds">"</span></span></pre></div>
+</article>

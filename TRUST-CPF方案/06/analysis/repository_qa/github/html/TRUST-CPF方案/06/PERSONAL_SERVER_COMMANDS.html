@@ -1,0 +1,143 @@
+<article class="markdown-body entry-content container-lg" itemprop="text"><p dir="auto">原始个人部署命令保留如下；从仓库恢复同版本的命令见 <a href="/havenxu7436/czsl-research/blob/codex/trustcpf-align-competition-archive/TRUST-CPF%E6%96%B9%E6%A1%88/06/SERVER_COMMANDS.md">SERVER_COMMANDS.md</a>。</p>
+<div class="markdown-heading" dir="auto"><h1 tabindex="-1" class="heading-element" dir="auto">TRUST-CPF Competition v1（10 epoch）：完整实践命令</h1><a id="user-content-trust-cpf-competition-v110-epoch完整实践命令" class="anchor" aria-label="Permalink: TRUST-CPF Competition v1（10 epoch）：完整实践命令" href="#trust-cpf-competition-v110-epoch完整实践命令"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">服务器为 <code>xhw@211.87.232.122</code>。本批目录为 <code>/data/xhw/experiments/trustcpf_competition_v1_10ep</code>。默认使用物理 GPU <strong>0 / 1 / 2</strong>。五组正式适配统一 <strong>10 epoch</strong>，在 epoch 0–10 中选取 VAL CW AUC 最佳权重。整批一次启动，依次完成教师、效用监督和五组识别。</p>
+<p dir="auto">这是独立的十轮版本，从当前 Align 的 reference 开始运行，原三轮 Competition 目录与结果保留。无需先补跑旧 Align。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">1. 本机 Windows PowerShell：上传并解压</h2><a id="user-content-1-本机-windows-powershell上传并解压" class="anchor" aria-label="Permalink: 1. 本机 Windows PowerShell：上传并解压" href="#1-本机-windows-powershell上传并解压"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">复制整个代码块执行：</p>
+<div class="highlight highlight-source-powershell notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="Set-ExecutionPolicy -Scope Process Bypass -Force
+&amp; &quot;C:\Users\llenovo\Documents\ChatGPT\USG\output\upload_trustcpf_competition_v1_10ep.ps1&quot;
+ssh xhw@211.87.232.122"><pre><span class="pl-c1">Set-ExecutionPolicy</span> <span class="pl-k">-</span>Scope <span class="pl-k">Process</span> Bypass <span class="pl-k">-</span>Force
+<span class="pl-k">&amp;</span> <span class="pl-s"><span class="pl-pds">"</span>C:\Users\llenovo\Documents\ChatGPT\USG\output\upload_trustcpf_competition_v1_10ep.ps1<span class="pl-pds">"</span></span>
+ssh xhw<span class="pl-smi">@211<span class="pl-smi">.87.232.122</span></span></pre></div>
+<p dir="auto">上传脚本已固定服务器、ZIP 和校验文件路径，完成本地 SHA256 校验、上传、远程 SHA256 校验和解压。成功标记为 <code>UPLOAD_AND_EXTRACTION_COMPLETE</code>。需要密码时输入服务器密码。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">2. 服务器 Bash：初始化并检查</h2><a id="user-content-2-服务器-bash初始化并检查" class="anchor" aria-label="Permalink: 2. 服务器 Bash：初始化并检查" href="#2-服务器-bash初始化并检查"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<div class="highlight highlight-source-shell notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="conda activate vgcpod_v1
+cd /data/xhw/experiments/trustcpf_competition_v1_10ep
+
+python run.py setup \
+  --source /data/xhw/experiments/trustcpf_align_v1 \
+  --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14 \
+  --work /data/xhw/experiments/trustcpf_competition_v1_10ep/work
+
+source scripts/env.sh
+&quot;$CPF_PY&quot; -c 'import sys, torch; print(sys.executable); print(&quot;PyTorch:&quot;, torch.__version__); print(&quot;CUDA:&quot;, torch.cuda.is_available())'
+CUDA_VISIBLE_DEVICES=&quot;&quot; &quot;$CPF_PY&quot; -m unittest discover -s tests -v"><pre>conda activate vgcpod_v1
+<span class="pl-c1">cd</span> /data/xhw/experiments/trustcpf_competition_v1_10ep
+
+python run.py setup \
+  --source /data/xhw/experiments/trustcpf_align_v1 \
+  --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14 \
+  --work /data/xhw/experiments/trustcpf_competition_v1_10ep/work
+
+<span class="pl-c1">source</span> scripts/env.sh
+<span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$CPF_PY</span><span class="pl-pds">"</span></span> -c <span class="pl-s"><span class="pl-pds">'</span>import sys, torch; print(sys.executable); print("PyTorch:", torch.__version__); print("CUDA:", torch.cuda.is_available())<span class="pl-pds">'</span></span>
+CUDA_VISIBLE_DEVICES=<span class="pl-s"><span class="pl-pds">"</span><span class="pl-pds">"</span></span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$CPF_PY</span><span class="pl-pds">"</span></span> -m unittest discover -s tests -v</pre></div>
+<p dir="auto"><code>--source</code> 指向服务器上已完成的 Align 项目。初始化会写入实际 Python 路径；每次重新登录后执行 <code>source scripts/env.sh</code> 即可恢复本项目的变量。继续复用当前环境和 CLIP 缓存。</p>
+<p dir="auto">本地交付测试包括三 seed 精简全流程；服务器测试也使用 CPU 和合成特征。末尾应显示 <code>OK</code>，可能包含已有缓存提取测试的跳过提示。真实数据训练在下一步启动。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">3. 服务器 Bash：用 0/1/2 卡启动整批</h2><a id="user-content-3-服务器-bash用-012-卡启动整批" class="anchor" aria-label="Permalink: 3. 服务器 Bash：用 0/1/2 卡启动整批" href="#3-服务器-bash用-012-卡启动整批"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<div class="highlight highlight-source-shell notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="cd /data/xhw/experiments/trustcpf_competition_v1_10ep
+mkdir -p logs
+nohup bash scripts/run_all.sh 0 1 2 &gt;&gt; logs/queue.log 2&gt;&amp;1 &lt; /dev/null &amp;
+echo &quot;QUEUE_PID=$!&quot;
+tail -F logs/queue.log"><pre><span class="pl-c1">cd</span> /data/xhw/experiments/trustcpf_competition_v1_10ep
+mkdir -p logs
+nohup bash scripts/run_all.sh 0 1 2 <span class="pl-k">&gt;&gt;</span> logs/queue.log <span class="pl-k">2&gt;&amp;1</span> <span class="pl-k">&lt;</span> /dev/null <span class="pl-k">&amp;</span>
+<span class="pl-c1">echo</span> <span class="pl-s"><span class="pl-pds">"</span>QUEUE_PID=<span class="pl-smi">$!</span><span class="pl-pds">"</span></span>
+tail -F logs/queue.log</pre></div>
+<p dir="auto">seed3351 使用物理卡 0，seed3352 使用卡 1，seed3353 使用卡 2。每个进程内部显示的 <code>cuda:0</code> 是它被分配到的物理卡。Ctrl+C 只退出日志查看。</p>
+<p dir="auto">如本次改用 1/2/3，启动命令中的 <code>0 1 2</code> 改成 <code>1 2 3</code>，执行其中一条即可。</p>
+<p dir="auto">查看各卡任务的进度：</p>
+<div class="highlight highlight-source-shell notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="cd /data/xhw/experiments/trustcpf_competition_v1_10ep
+tail -n 25 logs/seed3351.log
+tail -n 25 logs/seed3352.log
+tail -n 25 logs/seed3353.log
+nvidia-smi
+bash scripts/status.sh"><pre><span class="pl-c1">cd</span> /data/xhw/experiments/trustcpf_competition_v1_10ep
+tail -n 25 logs/seed3351.log
+tail -n 25 logs/seed3352.log
+tail -n 25 logs/seed3353.log
+nvidia-smi
+bash scripts/status.sh</pre></div>
+<p dir="auto">日志顺序为 <code>FOLD_BACKBONE</code>、<code>EPOCH</code>、<code>RESPONSE_COMPLETE</code>、<code>UTILITY_BLOCK</code>，五折完成后为 <code>UTILITY_FIT</code>、<code>Q5_DECISION_BANK</code>、<code>FROZEN_VAL</code>、适配 <code>EPOCH</code> 和 <code>EVALUATED</code>。教师固定 10 epoch，因此教师日志的 <code>val_auc None</code> 正常；正式适配会记录 VAL AUC。</p>
+<p dir="auto">完整队列结束会显示：</p>
+<div class="snippet-clipboard-content notranslate position-relative overflow-auto" data-snippet-clipboard-copy-content="STATUS 42 / 42 models 15 /15 audits 3 /3 teachers 15 /15 complete True
+ALL_EXPERIMENTS_COMPLETE: 42/42 stages, 15/15 model results, 15/15 teachers, 3/3 Q5 decision audits
+QUEUE_COMPLETE"><pre lang="text" class="notranslate"><code>STATUS 42 / 42 models 15 /15 audits 3 /3 teachers 15 /15 complete True
+ALL_EXPERIMENTS_COMPLETE: 42/42 stages, 15/15 model results, 15/15 teachers, 3/3 Q5 decision audits
+QUEUE_COMPLETE
+</code></pre></div>
+<p dir="auto">中断后，重新执行同一启动命令续跑。完整阶段显示 <code>REUSE_STAGE</code>，教师从最近完整 epoch 恢复，测量从已完成的背景块继续。已经运行的队列由进程锁识别。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">4. 服务器 Bash：汇总并打包</h2><a id="user-content-4-服务器-bash汇总并打包" class="anchor" aria-label="Permalink: 4. 服务器 Bash：汇总并打包" href="#4-服务器-bash汇总并打包"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">确认整批完成后执行：</p>
+<div class="highlight highlight-source-shell notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="cd /data/xhw/experiments/trustcpf_competition_v1_10ep
+bash scripts/pack_results.sh"><pre><span class="pl-c1">cd</span> /data/xhw/experiments/trustcpf_competition_v1_10ep
+bash scripts/pack_results.sh</pre></div>
+<p dir="auto">脚本会重新汇总、检查完成状态，再打包代码、15 个教师、全部测量、预测器、模型、预测和日志。过程中显示 <code>PACK_PROGRESS</code>；出现 <strong><code>PACK_COMPLETE</code> 和 <code>DOWNLOAD_READY</code></strong> 并返回命令提示符后，再下载。</p>
+<p dir="auto">归档名为 <code>trustcpf_competition_v1_10ep_results_日期_时间.tar.gz</code>，保存在 <code>/data/xhw/experiments/</code>。准确文件名、大小和 SHA256 自动写入项目内的 <code>download.json</code>。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">5. 本机 Windows PowerShell：下载、校验并解压</h2><a id="user-content-5-本机-windows-powershell下载校验并解压" class="anchor" aria-label="Permalink: 5. 本机 Windows PowerShell：下载、校验并解压" href="#5-本机-windows-powershell下载校验并解压"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">另开本机 PowerShell，复制执行：</p>
+<div class="highlight highlight-source-powershell notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="Set-ExecutionPolicy -Scope Process Bypass -Force
+&amp; &quot;C:\Users\llenovo\Documents\ChatGPT\USG\output\download_trustcpf_competition_v1_10ep.ps1&quot;"><pre><span class="pl-c1">Set-ExecutionPolicy</span> <span class="pl-k">-</span>Scope <span class="pl-k">Process</span> Bypass <span class="pl-k">-</span>Force
+<span class="pl-k">&amp;</span> <span class="pl-s"><span class="pl-pds">"</span>C:\Users\llenovo\Documents\ChatGPT\USG\output\download_trustcpf_competition_v1_10ep.ps1<span class="pl-pds">"</span></span></pre></div>
+<p dir="auto">脚本先下载 <code>download.json</code>，再下载其中指定的准确归档；传输失败自动重试三次。下载完成后核验大小和 SHA256，并用本机 Python 解压中文文件名。已下载且校验正确的归档直接复用。</p>
+<p dir="auto">结果保存在：</p>
+<div class="snippet-clipboard-content notranslate position-relative overflow-auto" data-snippet-clipboard-copy-content="C:\Users\llenovo\Documents\ChatGPT\USG\
+  trustcpf_competition_v1_10ep_results_日期_时间\
+    trustcpf_competition_v1_10ep\work\"><pre lang="text" class="notranslate"><code>C:\Users\llenovo\Documents\ChatGPT\USG\
+  trustcpf_competition_v1_10ep_results_日期_时间\
+    trustcpf_competition_v1_10ep\work\
+</code></pre></div>
+<p dir="auto">下载脚本最终显示 <code>DOWNLOAD_SHA256_EXTRACTION_COMPLETE</code> 及准确目录。无需手动设置 <code>$cpfRemoteArchive</code> 等跨窗口变量。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">6. 核心结果文件</h2><a id="user-content-6-核心结果文件" class="anchor" aria-label="Permalink: 6. 核心结果文件" href="#6-核心结果文件"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>文件</th>
+<th>主要内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>work/status.json</code></td>
+<td>整批完成数量与输出校验</td>
+</tr>
+<tr>
+<td><code>work/summary.csv</code>、<code>aggregates.json</code></td>
+<td>三 seed、五组、冻结／最佳权重、三个 bank 的 CW／OW 指标</td>
+</tr>
+<tr>
+<td><code>work/paired_comparisons.csv</code></td>
+<td>Competition 对三个主要对照及 U-NLL 的逐 seed 配对差</td>
+</tr>
+<tr>
+<td><code>work/decision_risks.csv</code></td>
+<td>Q5 独立图像的单图／混合 NLL、竞争风险和 AUC 收益</td>
+</tr>
+<tr>
+<td><code>work/utility_correlations.csv</code></td>
+<td>各目标预测准确性、Q5 到 reference 的排序变化</td>
+</tr>
+<tr>
+<td><code>work/scan.csv</code>、<code>deployment.csv</code></td>
+<td>强度扫描、概率分布、预算、覆盖和原型位移</td>
+</tr>
+<tr>
+<td><code>work/adaptation_gain.csv</code>、<code>costs.csv</code></td>
+<td>冻结到适配的变化、阶段实际耗时</td>
+</tr>
+<tr>
+<td><code>work/training_curves.csv</code></td>
+<td>五组 epoch 0–10 的 165 行曲线，含损失、当前 VAL AUC、学习率和选中 epoch</td>
+</tr>
+<tr>
+<td><code>work/seed*/splits/</code>、<code>measurements/</code></td>
+<td>图像清单、完整配对效用及复算所需统计量</td>
+</tr>
+<tr>
+<td><code>work/seed*/runs/*/</code></td>
+<td>权重、逐 epoch 历史、VAL／TEST 预测及指标</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">主结果使用 bank1701；2701、3701 用于确认图采样的一致性，每个 bank 都是独立 16 图读出。三个 bank 不能当作新增训练 seed。</p>
+</article>

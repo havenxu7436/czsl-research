@@ -1,0 +1,161 @@
+<article class="markdown-body entry-content container-lg" itemprop="text"><p dir="auto">原始个人部署命令保留如下；从仓库恢复同版本的命令见 <a href="/havenxu7436/czsl-research/blob/codex/trustcpf-align-competition-archive/TRUST-CPF%E6%96%B9%E6%A1%88/05/SERVER_COMMANDS.md">SERVER_COMMANDS.md</a>。</p>
+<div class="markdown-heading" dir="auto"><h1 tabindex="-1" class="heading-element" dir="auto">TRUST-CPF Align v1：上传、训练和保存到本地</h1><a id="user-content-trust-cpf-align-v1上传训练和保存到本地" class="anchor" aria-label="Permalink: TRUST-CPF Align v1：上传、训练和保存到本地" href="#trust-cpf-align-v1上传训练和保存到本地"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">服务器：<code>xhw@211.87.232.122</code>。本批 GPU：<strong>0 / 1 / 2</strong>，分别对应 seed <strong>3351 / 3352 / 3353</strong>。项目：<code>/data/xhw/experiments/trustcpf_align_v1</code>。</p>
+<p dir="auto">整批一次启动，包含三组识别实验、冻结扫描和 Q5 实际效用诊断。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">1. 本机 Windows PowerShell：上传并解压</h2><a id="user-content-1-本机-windows-powershell上传并解压" class="anchor" aria-label="Permalink: 1. 本机 Windows PowerShell：上传并解压" href="#1-本机-windows-powershell上传并解压"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<div class="highlight highlight-source-powershell notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="Set-ExecutionPolicy -Scope Process Bypass -Force
+&amp; &quot;C:\Users\llenovo\Documents\ChatGPT\USG\output\upload_trustcpf_align_v1.ps1&quot;
+ssh xhw@211.87.232.122"><pre><span class="pl-c1">Set-ExecutionPolicy</span> <span class="pl-k">-</span>Scope <span class="pl-k">Process</span> Bypass <span class="pl-k">-</span>Force
+<span class="pl-k">&amp;</span> <span class="pl-s"><span class="pl-pds">"</span>C:\Users\llenovo\Documents\ChatGPT\USG\output\upload_trustcpf_align_v1.ps1<span class="pl-pds">"</span></span>
+ssh xhw<span class="pl-smi">@211<span class="pl-smi">.87.232.122</span></span></pre></div>
+<p dir="auto">上传脚本独立设置服务器和文件路径，先校验本地 ZIP，再上传 ZIP 与 SHA256 文件，在服务器校验并解压。成功时输出 <code>UPLOAD_AND_EXTRACTION_COMPLETE</code>。校验文件使用 LF 换行，路径和文件名均为 ASCII。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">2. 服务器 Bash：初始化</h2><a id="user-content-2-服务器-bash初始化" class="anchor" aria-label="Permalink: 2. 服务器 Bash：初始化" href="#2-服务器-bash初始化"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<div class="highlight highlight-source-shell notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="conda activate vgcpod_v1
+cd /data/xhw/experiments/trustcpf_align_v1
+
+python run.py setup \
+  --source /data/xhw/experiments/trustcpf_compact_v1 \
+  --teacher-source /data/xhw/experiments/trustcpf_strong_v1 \
+  --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14 \
+  --work /data/xhw/experiments/trustcpf_align_v1/work
+
+source scripts/env.sh
+&quot;$CPF_PY&quot; -c 'import sys, torch, numpy; print(sys.executable); print(&quot;PyTorch:&quot;, torch.__version__, &quot;NumPy:&quot;, numpy.__version__, &quot;CUDA:&quot;, torch.cuda.is_available())'
+CUDA_VISIBLE_DEVICES=&quot;&quot; &quot;$CPF_PY&quot; -m unittest discover -s tests -v"><pre>conda activate vgcpod_v1
+<span class="pl-c1">cd</span> /data/xhw/experiments/trustcpf_align_v1
+
+python run.py setup \
+  --source /data/xhw/experiments/trustcpf_compact_v1 \
+  --teacher-source /data/xhw/experiments/trustcpf_strong_v1 \
+  --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14 \
+  --work /data/xhw/experiments/trustcpf_align_v1/work
+
+<span class="pl-c1">source</span> scripts/env.sh
+<span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$CPF_PY</span><span class="pl-pds">"</span></span> -c <span class="pl-s"><span class="pl-pds">'</span>import sys, torch, numpy; print(sys.executable); print("PyTorch:", torch.__version__, "NumPy:", numpy.__version__, "CUDA:", torch.cuda.is_available())<span class="pl-pds">'</span></span>
+CUDA_VISIBLE_DEVICES=<span class="pl-s"><span class="pl-pds">"</span><span class="pl-pds">"</span></span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$CPF_PY</span><span class="pl-pds">"</span></span> -m unittest discover -s tests -v</pre></div>
+<p dir="auto">初始化会校验已有缓存文件，结束输出 <code>SETUP_COMPLETE</code>，并将当前环境的实际 Python 路径写入 <code>server_env.sh</code>。测试在 CPU 上执行，正常末尾为 <code>OK (skipped=1)</code>；跳过项是已有 CLIP 特征的重新提取接口。复用当前 NumPy／PyTorch 环境即可。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">3. 服务器 Bash：三卡启动整批</h2><a id="user-content-3-服务器-bash三卡启动整批" class="anchor" aria-label="Permalink: 3. 服务器 Bash：三卡启动整批" href="#3-服务器-bash三卡启动整批"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<div class="highlight highlight-source-shell notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="cd /data/xhw/experiments/trustcpf_align_v1
+mkdir -p logs
+nohup bash scripts/run_all.sh 0 1 2 &gt;&gt; logs/queue.log 2&gt;&amp;1 &lt; /dev/null &amp;
+echo &quot;QUEUE_PID=$!&quot;
+tail -F logs/queue.log"><pre><span class="pl-c1">cd</span> /data/xhw/experiments/trustcpf_align_v1
+mkdir -p logs
+nohup bash scripts/run_all.sh 0 1 2 <span class="pl-k">&gt;&gt;</span> logs/queue.log <span class="pl-k">2&gt;&amp;1</span> <span class="pl-k">&lt;</span> /dev/null <span class="pl-k">&amp;</span>
+<span class="pl-c1">echo</span> <span class="pl-s"><span class="pl-pds">"</span>QUEUE_PID=<span class="pl-smi">$!</span><span class="pl-pds">"</span></span>
+tail -F logs/queue.log</pre></div>
+<p dir="auto">每张卡执行一个完整 seed。每个 seed 依次进行导入、冻结扫描、Uniform、Align、Permuted、Q5 诊断。Ctrl+C 退出日志查看，后台任务继续。</p>
+<p dir="auto">三个日志的查看命令：</p>
+<div class="highlight highlight-source-shell notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="cd /data/xhw/experiments/trustcpf_align_v1
+tail -n 20 logs/seed3351.log
+tail -n 20 logs/seed3352.log
+tail -n 20 logs/seed3353.log
+nvidia-smi
+bash scripts/status.sh"><pre><span class="pl-c1">cd</span> /data/xhw/experiments/trustcpf_align_v1
+tail -n 20 logs/seed3351.log
+tail -n 20 logs/seed3352.log
+tail -n 20 logs/seed3353.log
+nvidia-smi
+bash scripts/status.sh</pre></div>
+<p dir="auto">阶段日志包括 <code>FROZEN_VAL</code>、<code>EPOCH</code>、<code>EVALUATED</code>、<code>Q5_MEASURE_BLOCK</code>、<code>Q5_EVALUATE_BANK</code>。Q5 每完成一个背景块输出一次进度。</p>
+<p dir="auto">完成时显示：</p>
+<div class="snippet-clipboard-content notranslate position-relative overflow-auto" data-snippet-clipboard-copy-content="STATUS 18 / 18 models 9 /9 audits 3 /3 complete True
+ALL_EXPERIMENTS_COMPLETE: 18/18 stages, 9/9 model results, 3/3 Q5 decision audits
+QUEUE_COMPLETE"><pre lang="text" class="notranslate"><code>STATUS 18 / 18 models 9 /9 audits 3 /3 complete True
+ALL_EXPERIMENTS_COMPLETE: 18/18 stages, 9/9 model results, 3/3 Q5 decision audits
+QUEUE_COMPLETE
+</code></pre></div>
+<p dir="auto">正式配置下，<code>summary.csv</code> 有 216 行，冻结扫描表有 72 行，Q5 独立 bank 风险表有 312 行。三个 bank 分别保持 16 图；216 行包含 VAL／TEST、CW／OW、epoch 0／最佳权重。</p>
+<p dir="auto">中断后执行同一条启动命令即可续跑；已完成阶段显示 <code>REUSE_STAGE</code>，Q5 已完成的测量／评价块直接读取。训练从最近完整 epoch 续跑。已运行的队列由锁避免重复启动。</p>
+<p dir="auto">更换三张物理卡只改启动参数，例如使用 1/2/3：</p>
+<div class="highlight highlight-source-shell notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="nohup bash scripts/run_all.sh 1 2 3 &gt;&gt; logs/queue.log 2&gt;&amp;1 &lt; /dev/null &amp;"><pre>nohup bash scripts/run_all.sh 1 2 3 <span class="pl-k">&gt;&gt;</span> logs/queue.log <span class="pl-k">2&gt;&amp;1</span> <span class="pl-k">&lt;</span> /dev/null <span class="pl-k">&amp;</span></pre></div>
+<p dir="auto">每个进程内部的 <code>cuda:0</code> 对应它被分配的物理卡。换卡命令用于下一次启动或已中断任务的续跑。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">4. 服务器 Bash：汇总并打包</h2><a id="user-content-4-服务器-bash汇总并打包" class="anchor" aria-label="Permalink: 4. 服务器 Bash：汇总并打包" href="#4-服务器-bash汇总并打包"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">三 seed 完成后执行：</p>
+<div class="highlight highlight-source-shell notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="cd /data/xhw/experiments/trustcpf_align_v1
+source scripts/env.sh
+&quot;$CPF_PY&quot; run.py report
+&quot;$CPF_PY&quot; scripts/check_complete.py
+bash scripts/pack_results.sh"><pre><span class="pl-c1">cd</span> /data/xhw/experiments/trustcpf_align_v1
+<span class="pl-c1">source</span> scripts/env.sh
+<span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$CPF_PY</span><span class="pl-pds">"</span></span> run.py report
+<span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$CPF_PY</span><span class="pl-pds">"</span></span> scripts/check_complete.py
+bash scripts/pack_results.sh</pre></div>
+<p dir="auto">等待 <code>PACK_PROGRESS</code>、<code>HASHING_ARCHIVE</code>，最终出现 <strong><code>PACK_COMPLETE</code> 与 <code>DOWNLOAD_READY</code></strong>，并返回命令提示符。归档放在 <code>/data/xhw/experiments/</code>，项目中的 <code>download.json</code> 记录准确路径、大小及 SHA256。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">5. 本机 Windows PowerShell：下载、校验、解压</h2><a id="user-content-5-本机-windows-powershell下载校验解压" class="anchor" aria-label="Permalink: 5. 本机 Windows PowerShell：下载、校验、解压" href="#5-本机-windows-powershell下载校验解压"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">在本机另开 PowerShell 执行：</p>
+<div class="highlight highlight-source-powershell notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="Set-ExecutionPolicy -Scope Process Bypass -Force
+&amp; &quot;C:\Users\llenovo\Documents\ChatGPT\USG\output\download_trustcpf_align_v1.ps1&quot;"><pre><span class="pl-c1">Set-ExecutionPolicy</span> <span class="pl-k">-</span>Scope <span class="pl-k">Process</span> Bypass <span class="pl-k">-</span>Force
+<span class="pl-k">&amp;</span> <span class="pl-s"><span class="pl-pds">"</span>C:\Users\llenovo\Documents\ChatGPT\USG\output\download_trustcpf_align_v1.ps1<span class="pl-pds">"</span></span></pre></div>
+<p dir="auto">脚本读取服务器的 <code>download.json</code>，自动确定本次结果包；下载到 <code>.part</code> 后校验大小和 SHA256，再用 Python 解压。每个文件传输最多尝试三次；已完整下载且哈希相同的归档直接复用。成功输出 <code>DOWNLOAD_SHA256_EXTRACTION_COMPLETE</code>。</p>
+<p dir="auto">默认保存结构：</p>
+<div class="snippet-clipboard-content notranslate position-relative overflow-auto" data-snippet-clipboard-copy-content="C:\Users\llenovo\Documents\ChatGPT\USG\
+  trustcpf_align_v1_results_YYYYMMDD_HHMMSS.tar.gz
+  trustcpf_align_v1_results_YYYYMMDD_HHMMSS\
+    trustcpf_align_v1\work\"><pre lang="text" class="notranslate"><code>C:\Users\llenovo\Documents\ChatGPT\USG\
+  trustcpf_align_v1_results_YYYYMMDD_HHMMSS.tar.gz
+  trustcpf_align_v1_results_YYYYMMDD_HHMMSS\
+    trustcpf_align_v1\work\
+</code></pre></div>
+<p dir="auto">指定其他本地保存目录：</p>
+<div class="highlight highlight-source-powershell notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="&amp; &quot;C:\Users\llenovo\Documents\ChatGPT\USG\output\download_trustcpf_align_v1.ps1&quot; `
+  -LocalRoot &quot;C:\Users\llenovo\Desktop\USG\TRUST_Align_results&quot;"><pre><span class="pl-k">&amp;</span> <span class="pl-s"><span class="pl-pds">"</span>C:\Users\llenovo\Documents\ChatGPT\USG\output\download_trustcpf_align_v1.ps1<span class="pl-pds">"</span></span> <span class="pl-k">`</span>
+  <span class="pl-k">-</span>LocalRoot <span class="pl-s"><span class="pl-pds">"</span>C:\Users\llenovo\Desktop\USG\TRUST_Align_results<span class="pl-pds">"</span></span></pre></div>
+<p dir="auto">本机解压器使用 <code>C:\Users\llenovo\anaconda3\envs\ai-lab\python.exe</code>，通过 <code>-PythonPath</code> 可指定其他 Python。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">6. 返回后重点分析的文件</h2><a id="user-content-6-返回后重点分析的文件" class="anchor" aria-label="Permalink: 6. 返回后重点分析的文件" href="#6-返回后重点分析的文件"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>文件</th>
+<th>要回答的问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>work/summary.csv</code>、<code>aggregates.json</code></td>
+<td>三 seed 的识别结果；主读数为 bank 1701、best、test</td>
+</tr>
+<tr>
+<td><code>work/paired_comparisons.csv</code></td>
+<td>Align 相对 Uniform／Permuted 的配对增益</td>
+</tr>
+<tr>
+<td><code>work/scan.csv</code>、<code>seed*/selection.json</code></td>
+<td>强度扫描、固定 κ=1 比较、五个置换各自最优强度</td>
+</tr>
+<tr>
+<td><code>work/deployment.csv</code></td>
+<td>概率差异、类型预算、KL、节点覆盖、原型位移</td>
+</tr>
+<tr>
+<td><code>work/adaptation_gain.csv</code>、<code>bank_stability.csv</code></td>
+<td>适配增益与图采样变化</td>
+</tr>
+<tr>
+<td><code>work/decision_summary.csv</code>、<code>decision_risks.csv</code></td>
+<td>实测与预测效用引导后的实际单图／混合 NLL 变化</td>
+</tr>
+<tr>
+<td><code>work/utility_correlations.csv</code></td>
+<td>预测、单图实测和混合实测的类型内关联</td>
+</tr>
+<tr>
+<td><code>work/historical.csv</code></td>
+<td>Capacity、Dense、原 robust、原 Compact 等历史参照</td>
+</tr>
+<tr>
+<td><code>work/costs.csv</code>、<code>inference_latency.csv</code></td>
+<td>阶段耗时、峰值显存和暖机前向延迟</td>
+</tr>
+<tr>
+<td><code>work/seed*/decision/</code></td>
+<td>图像 ID／权重、96 边效用、背景块、实际策略风险与置换配对结果</td>
+</tr>
+<tr>
+<td><code>work/seed*/runs/*/</code></td>
+<td>最优和末次权重、训练历史、每个 bank 的完整 VAL／TEST 预测</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">归档同时保存本次源码、导入的 reference／Q5 教师／Compact 模型／响应、配置与来源哈希，便于完整复算。</p>
+</article>

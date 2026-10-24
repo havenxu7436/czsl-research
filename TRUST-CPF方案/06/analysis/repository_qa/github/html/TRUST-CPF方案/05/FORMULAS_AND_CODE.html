@@ -1,0 +1,115 @@
+<article class="markdown-body entry-content container-lg" itemprop="text"><div class="markdown-heading" dir="auto"><h1 tabindex="-1" class="heading-element" dir="auto">TRUST-CPF Align v1：公式、实现与验证指标</h1><a id="user-content-trust-cpf-align-v1公式实现与验证指标" class="anchor" aria-label="Permalink: TRUST-CPF Align v1：公式、实现与验证指标" href="#trust-cpf-align-v1公式实现与验证指标"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">对应后续方案第一批 A。分类器、CLIP 特征、关系头结构和 Compact 输入保持当前实现；新增内容是效用输出到采边概率的校准，以及真实风险诊断。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">1. 继承的模型和实验边界</h2><a id="user-content-1-继承的模型和实验边界" class="anchor" aria-label="Permalink: 1. 继承的模型和实验边界" href="#1-继承的模型和实验边界"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">正式部署加载每个 seed 的 <code>reference/last.pt</code> 和 <code>utility_all/compact/model.pt</code>。后者已经使用 Q1–Q5 重拟合，三个 seed 的岭系数分别为 10、100、100。Q5 诊断加载该折教师和 <code>utility/compact/model.pt</code>；审计模型仅由 Q1–Q3 拟合、Q4 选择正则。</p>
+<p dir="auto">知识图共有 96 条边，类型 OI／OE／AE 的边数分别为 12／36／48。每条边独立按其概率进行 Bernoulli 采样。类型期望边数固定为 6／18／24；单张采样图的实际边数会波动。</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>正式组</th>
+<th>概率</th>
+<th>起点与训练</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Uniform-0.5</td>
+<td>全部为 0.5</td>
+<td>同 seed 的 reference；冻结 CPF；关系头适配 3 epoch</td>
+</tr>
+<tr>
+<td>TRUST-Align</td>
+<td>类型内标准化效用后求预算等式解</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>Permuted-Align</td>
+<td>类型内置换已选 Align 概率，置换 seed 7101</td>
+<td>同上</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">损失、AdamW、学习率 0.0003、weight decay 0.0001、batch size 64、warmup＋cosine 调度均由原 <code>engine.train_model</code> 执行。模型、训练器和评价器文件与 Compact／Strong 来源进行哈希比对。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">2. 半密度概率求解</h2><a id="user-content-2-半密度概率求解" class="anchor" aria-label="Permalink: 2. 半密度概率求解" href="#2-半密度概率求解"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">令预测效用为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$\mu_e$</math-renderer>，类型集合为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$E_t$</math-renderer>，<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$N_t=\vert E_t\vert $</math-renderer>。采用总体标准差：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$$c_t=\frac{1}{N_t}\sum_{e\in E_t}\mu_e,
+\qquad
+s_t=\sqrt{\frac{1}{N_t}\sum_{e\in E_t}(\mu_e-c_t)^2},
+\qquad
+r_e=\begin{cases}(\mu_e-c_t)/s_t,&amp;s_t\gt 10^{-12},\\0,&amp;s_t\le10^{-12}.\end{cases}$$</math-renderer>
+<p dir="auto">对 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$\kappa\in\{0,0.5,1,2\}$</math-renderer> 求解：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$$\max_{0\lt \pi_e\lt 1}
+\left[\kappa\sum_e r_e\pi_e-
+\sum_eD_{\mathrm{KL}}\bigl(\mathop{\mathrm{Bern}}\nolimits(\pi_e)\Vert\mathop{\mathrm{Bern}}\nolimits(0.5)\bigr)\right],
+\qquad \sum_{e\in E_t}\pi_e=N_t/2.$$</math-renderer>
+<p dir="auto">KL 对概率的一阶导数为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$\log(\pi_e/(1-\pi_e))$</math-renderer>。加入每类型等式乘子 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$\gamma_t$</math-renderer>，一阶条件给出：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$$\kappa r_e-\log\frac{\pi_e}{1-\pi_e}-\gamma_t=0,
+\qquad
+\pi_e=\sigma(\kappa r_e-\gamma_t).$$</math-renderer>
+<p dir="auto">目标的二阶导数为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$-1/[\pi_e(1-\pi_e)]\lt 0$</math-renderer>，故解唯一。类型概率和随乘子单调下降，用 float64 二分求解。实现中收敛误差为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$10^{-12}$</math-renderer>，最后检查不超过 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$10^{-10}$</math-renderer>。全常数类型和 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$\kappa=0$</math-renderer> 返回精确的 0.5。</p>
+<p dir="auto">核心实现：<code>trustcpf/align.py::policy</code>。原始效用、类型尺度、乘子及 float64 概率保存到 <code>policies.pt</code>。训练和推理使用 float32 概率，部署表报告实际使用概率；其预算误差仅来自 float32 舍入。</p>
+<div class="highlight highlight-source-python notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="prob, type_scale = policy(mu, types, strength)
+indices = permutation(types, 7101)
+permuted_prob = prob[indices]"><pre><span class="pl-s1">prob</span>, <span class="pl-s1">type_scale</span> <span class="pl-c1">=</span> <span class="pl-en">policy</span>(<span class="pl-s1">mu</span>, <span class="pl-s1">types</span>, <span class="pl-s1">strength</span>)
+<span class="pl-s1">indices</span> <span class="pl-c1">=</span> <span class="pl-en">permutation</span>(<span class="pl-s1">types</span>, <span class="pl-c1">7101</span>)
+<span class="pl-s1">permuted_prob</span> <span class="pl-c1">=</span> <span class="pl-s1">prob</span>[<span class="pl-s1">indices</span>]</pre></div>
+<p dir="auto">类型内概率置换保留概率多重集合、熵、期望边数和各类型边数分布，改变概率与关系的对应。节点覆盖差异单独记录。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">3. 统一选择、适配和多 bank 评价</h2><a id="user-content-3-统一选择适配和多-bank-评价" class="anchor" aria-label="Permalink: 3. 统一选择、适配和多 bank 评价" href="#3-统一选择适配和多-bank-评价"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">冻结 reference，图种子 1701，每次 16 图。真实策略的四个强度按 VAL CW native AUC 选择，并列取较小强度。五个置换 seed 7101–7105 都扫描相同四个强度；保存固定 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$\kappa=1$</math-renderer> 的比较及各置换自身最优强度。零强度完全相同的计算只执行一次；每 seed 保存 24 条扫描行、实际评价 19 个策略。</p>
+<p dir="auto">正式置换组取真实组选中的概率集合，使用 seed 7101。三组分别重置同一训练 seed，保证初始化、数据顺序与随机数流采用相同设置。Bernoulli 阈值因策略而异。</p>
+<p dir="auto">按 VAL CW native AUC 在 epoch 0、1、2、3 中选择；分数相同保留更早的 epoch。选好策略与模型后，分别在 graph seed 1701、2701、3701 上评价 epoch 0 和最佳权重。每个 bank 各自使用 16 图；各自 VAL 给出 CW／OW bias 和温度，再用于对应 TEST。</p>
+<p dir="auto">候选集 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$\mathcal C$</math-renderer> 下先对每图归一化，再混合：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$$P_{\mathcal C}(y\mid x,b)=
+\frac{\exp s_y(x,b)}{\sum_{c\in\mathcal C}\exp s_c(x,b)},
+\qquad
+\log\overline P_{\mathcal C}(y\mid x)=
+\mathop{\mathrm{logsumexp}}\nolimits_{m=1}^{16}\log P_{\mathcal C}(y\mid x,b^m)-\log16.$$</math-renderer>
+<p dir="auto">实现：<code>align.frozen_scan</code>、<code>align.adapt_and_evaluate</code> 和原 <code>evaluation.evaluate_model</code>。AUC 的 native／exact 定义沿用原工程，报告尺度为 0–100。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">4. Q5 的单图与混合效用</h2><a id="user-content-4-q5-的单图与混合效用" class="anchor" aria-label="Permalink: 4. Q5 的单图与混合效用" href="#4-q5-的单图与混合效用"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">每个 Q5 Query 组合用固定 seed 8101 划分图像为两个不重叠集合，各集合每组合最多 8 张。少于两张的组合记录在 <code>sampling.json</code>，其余组合在两侧具有相同支持集。</p>
+<p dir="auto">令保留组合数为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$Q$</math-renderer>，某侧组合 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$q$</math-renderer> 的图像数为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$n_q$</math-renderer>，样本权重为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$w_i=1/(Qn_q)$</math-renderer>。测量和评价分别按自身 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$n_q$</math-renderer> 计算权重。</p>
+<p dir="auto">测量使用 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$K=8$</math-renderer> 个独立背景块，每块 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$M=16$</math-renderer> 张独立半密度图。背景块 seed 为 8111–8118。干预第一槽的边 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$e$</math-renderer>，其余开关固定；所有边共享该块的另外 15 个伴随槽。</p>
+<p dir="auto">定义真实类概率 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$p^0_{i,e,k},p^1_{i,e,k}$</math-renderer> 和伴随概率之和 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$S_{i,k}$</math-renderer>，候选为全部 TRAIN 组合：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$$d^{(1)}_{e,k}=\sum_iw_i\left(\log p^1_{i,e,k}-\log p^0_{i,e,k}\right),$$</math-renderer>
+<math-renderer class="js-display-math" style="display: block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$$S_{i,k}=\sum_{m=2}^{M}P_{\mathcal C_{\mathrm{tr}}}(y_i\mid x_i,b_k^m),
+\qquad
+d^{(M)}_{e,k}=\sum_iw_i\left[\log(S_{i,k}+p^1_{i,e,k})-\log(S_{i,k}+p^0_{i,e,k})\right].$$</math-renderer>
+<p dir="auto">于是：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$$\widehat u^{(1)}_e=\frac1K\sum_kd^{(1)}_{e,k},
+\qquad
+\widehat u^{(M)}_e=\frac{M}{K}\sum_kd^{(M)}_{e,k}.$$</math-renderer>
+<p dir="auto">混合 NLL 的分母 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$M$</math-renderer> 在 on/off 差中抵消；共享概率控制 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$M$</math-renderer> 个独立槽位，因此单槽差需要乘 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$M$</math-renderer> 才对应整个混合风险对采边概率的负梯度。单图和混合标签复用同一对前向分数。</p>
+<p dir="auto">对应标准误平方：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$$\widehat{\mathop{\mathrm{SE}}\nolimits}^2(\widehat u^{(1)}_e)
+=\frac{\mathop{\mathrm{Var}}\nolimits_{k,\mathrm{unbiased}}(d^{(1)}_{e,k})}{K},
+\qquad
+\widehat{\mathop{\mathrm{SE}}\nolimits}^2(\widehat u^{(M)}_e)
+=\frac{M^2\mathop{\mathrm{Var}}\nolimits_{k,\mathrm{unbiased}}(d^{(M)}_{e,k})}{K}.$$</math-renderer>
+<p dir="auto">核心实现：</p>
+<div class="highlight highlight-source-python notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="single = ((log_on - log_off) * weights).sum(-1)
+mixture = ((torch.logaddexp(log_companion_sum, log_on)
+            - torch.logaddexp(log_companion_sum, log_off)) * weights).sum(-1)
+u_single = single_blocks.mean(0)
+u_mixture = graphs * mixture_slot_blocks.mean(0)"><pre><span class="pl-s1">single</span> <span class="pl-c1">=</span> ((<span class="pl-s1">log_on</span> <span class="pl-c1">-</span> <span class="pl-s1">log_off</span>) <span class="pl-c1">*</span> <span class="pl-s1">weights</span>).<span class="pl-c1">sum</span>(<span class="pl-c1">-</span><span class="pl-c1">1</span>)
+<span class="pl-s1">mixture</span> <span class="pl-c1">=</span> ((<span class="pl-s1">torch</span>.<span class="pl-c1">logaddexp</span>(<span class="pl-s1">log_companion_sum</span>, <span class="pl-s1">log_on</span>)
+            <span class="pl-c1">-</span> <span class="pl-s1">torch</span>.<span class="pl-c1">logaddexp</span>(<span class="pl-s1">log_companion_sum</span>, <span class="pl-s1">log_off</span>)) <span class="pl-c1">*</span> <span class="pl-s1">weights</span>).<span class="pl-c1">sum</span>(<span class="pl-c1">-</span><span class="pl-c1">1</span>)
+<span class="pl-s1">u_single</span> <span class="pl-c1">=</span> <span class="pl-s1">single_blocks</span>.<span class="pl-c1">mean</span>(<span class="pl-c1">0</span>)
+<span class="pl-s1">u_mixture</span> <span class="pl-c1">=</span> <span class="pl-s1">graphs</span> <span class="pl-c1">*</span> <span class="pl-s1">mixture_slot_blocks</span>.<span class="pl-c1">mean</span>(<span class="pl-c1">0</span>)</pre></div>
+<p dir="auto">见 <code>decision_audit.block_effect</code>、<code>measure</code>、<code>summarize_effect</code>。保存各块 96 条边的 on/off 真类 log 概率、15 个伴随槽的 log 概率、图掩码、图像与候选 ID、权重及教师哈希。所有加法在 log 域完成。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">5. 独立图像上的真实决策作用</h2><a id="user-content-5-独立图像上的真实决策作用" class="anchor" aria-label="Permalink: 5. 独立图像上的真实决策作用" href="#5-独立图像上的真实决策作用"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">用审计版 Compact 的预测、实测单图效用、实测混合效用各生成 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$\kappa=1$</math-renderer> 策略；每个策略增加 seed 7101 的类型内概率置换。对六个方向分别保存完整策略与局部策略：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$$\pi^{\mathrm{local}}=\tfrac12\mathbf1+\eta(\pi-\tfrac12\mathbf1),
+\qquad
+\eta=\min\left(1,\frac{0.1}{\|\pi-\tfrac12\mathbf1\|_\infty}\right).$$</math-renderer>
+<p dir="auto">零方向取 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$\eta=1$</math-renderer>。加上 Uniform 共 13 个策略。局部策略保留预算，最大概率位移为 0.1。</p>
+<p dir="auto">评价集合使用全新的 8 个 bank，种子 8201–8208，每个 16 图。策略间共享 uniform 随机数，再按各自概率阈值采样。对于同一组预测同时计算：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$$\widehat R_1=-\sum_iw_i\frac1M\sum_m\log p_i^m,
+\qquad
+\widehat R_M=-\sum_iw_i\log\left(\frac1M\sum_mp_i^m\right).$$</math-renderer>
+<p dir="auto"><code>single_gain</code>／<code>mixture_gain</code> 定义为 Uniform 风险减当前风险，<strong>正值代表改善</strong>。真实策略相对概率置换的配对收益保存在 <code>decision/audit.json</code>。每个 bank 的结果独立保存，另汇总均值、标准差与 MCSE；这里的 MCSE 表示固定教师和图像条件下的图采样变化。三个训练 seed 的结果另行比较。</p>
+<p dir="auto">同时保存原单位的一阶代理 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="dfe7a676b9dd3970356ccafbc79802d8">$u^\top(\pi-0.5)$</math-renderer>，以及预测—单图实测、预测—混合实测、单图—混合实测的类型内 Spearman／Pearson。这样可以检查代理收益是否转化为实际风险改善。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">6. 完成标准与结果解读</h2><a id="user-content-6-完成标准与结果解读" class="anchor" aria-label="Permalink: 6. 完成标准与结果解读" href="#6-完成标准与结果解读"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">本批共有 18 个队列阶段、9 组识别结果、3 份 Q5 审计；正式默认配置输出 216 条识别行、72 条扫描行、312 条 Q5 bank 风险行。强度为 0 的 seed 仍保留三组完整结果，并记录 Uniform 复用来源。</p>
+<p dir="auto">先看主 bank 1701 的 Align−Uniform 与 Align−Permuted，再结合另两个 bank、epoch 0／最佳权重和 Q5 实际风险。若实测效用策略有效而 Compact 策略较弱，后续重点是预测目标与相对拟合；若混合效用更能改善混合风险，后续重点是混合监督。第一批保留效用监督—模型响应—关系分配这条 TRUST 主线。</p>
+<p dir="auto">本地验证覆盖预算 KKT、概率置换、混合风险梯度的完全枚举验证、独立图像权重、三 seed 合成数据全流程、冻结 CPF、已完成阶段复用、Q5 块续跑和归档 UTF-8 解压。真实归档中的三个 reference、三个 Q5 教师及六个 Compact 模型完成来源核验。真实数据的 GPU 识别结果由服务器队列产生。</p>
+</article>
