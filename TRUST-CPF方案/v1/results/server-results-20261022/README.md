@@ -37,7 +37,7 @@
 | [全部运行清单](../../configs/server-results-20261022/run_inventory.json) | 22 个终端识别模型的选中 epoch、指标与 checkpoint |
 | [完整派生分析与 CSV](../../analysis/server-results-20261022/confirmed/) | 主结果、配对差值、效用审计、同样本消融及噪声长表 |
 | [图像与运行截图](images/README.md) | 15 张原图及其 SHA256；完整数据统计图另存 analysis |
-| [原分析文档字节](package_support/) | 发布到仓库前的 Markdown 原文 |
+| [原发布文档字节](../package_support/trustcpf_clip_v1/) | 运行发布包的 Markdown 原文 |
 
 ## 噪声数据恢复
 
