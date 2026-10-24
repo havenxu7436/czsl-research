@@ -1,4 +1,4 @@
-本报告中的 Compact 结果已完成；末尾的类型内校准、半密度策略是下一轮设计，尚未实施。
+本报告保留 Compact 完成时的解释与下一轮设计。半密度 Align 现已完成，见 [05 阶段](../../05/README.md)；后续 Competition 见 [06 阶段](../../06/README.md)。
 
 # TRUST-CPF Compact v1：完整结果分析与下一步实验方案
 
