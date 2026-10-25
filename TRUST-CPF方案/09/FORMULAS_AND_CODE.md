@@ -136,7 +136,7 @@ h_e=
 [\mathbb E\Delta\ell,\mathop{\mathrm{SD}}\nolimits(\Delta\ell),
  \sqrt{\mathbb E\,\mathop{\mathrm{mean}}\nolimits_c(\Delta z_c-\overline{\Delta z})^2},
  \mathbb E(H(p^+)-H(p^-))]_{\mathrm{all}}
-\ \oplus\
+\;\oplus\;
 [\cdots]_{\mathrm{target}}\in\mathbb R^8.
 ```
 
