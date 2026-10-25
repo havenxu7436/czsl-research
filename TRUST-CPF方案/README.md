@@ -18,6 +18,4 @@ CLIP / CPF 上的可迁移关系效用监督、关系概率分配与 CZSL 研究
 
 六路线后续安排保留于 [05/PLAN.md](05/PLAN.md)。Align、Competition 与 R5 均已完成；07 分析中的固定非零策略完整适配仍为下一批提案。修订前 Competition 3 epoch 发布包作为 [历史版本](06/references/pre_10epoch/README.md) 保存，未计为独立已完成实验。
 
-[全部实验路线](../README.md) · [05 复算](05/analysis/REPRODUCE.md) · [06 复算](06/analysis/REPRODUCE.md)
-
-[GitHub 网页排版检查](06/analysis/repository_qa/github/main_checks.json) · [公式与链接检查](06/analysis/repository_qa/markdown_math_checks.json) · [全仓库校验](06/analysis/repository_qa/repository_verify_final.json)
+[全部实验路线](../README.md) 
