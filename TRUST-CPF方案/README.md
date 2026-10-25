@@ -1,6 +1,6 @@
 # TRUST-CPF 方案
 
-CLIP / CPF 上的可迁移关系效用监督、关系概率分配与 CZSL 研究。01–07 按实际执行顺序归档。
+CLIP / CPF 上的可迁移关系效用监督、关系概率分配与 CZSL 研究。01–09 按实际执行顺序归档。
 
 | 编号 | 实验 | 已完成内容 | 入口 |
 | --- | --- | --- | --- |
@@ -11,11 +11,13 @@ CLIP / CPF 上的可迁移关系效用监督、关系概率分配与 CZSL 研究
 | 05 | Align 半密度对齐 | 9 份识别、5 次实际适配、216 行识别、312 行 Q5 风险 | [阶段首页](05/README.md) · [分析](05/analysis/README.md) |
 | 06 | Competition 三目标 / 10 epoch | 15 个新教师、15 份识别、6 次实际适配、312 行 Q5 风险、165 行曲线 | [阶段首页](06/README.md) · [分析](06/analysis/README.md) |
 | 07 | R5 相对效用拟合 / 10 epoch | 27 阶段、15 份结果标签、1 次新适配；168 行 Q5 风险 | [阶段首页](07/README.md) · [分析](07/analysis/README.md) |
+| 08 | State 第一批 / 10 epoch | 3 条 Uniform 重训、1512 行识别、600 行 Q5、756 份预测 | [阶段首页](08/README.md) · [分析](08/analysis/README.md) |
+| 09 | Stage 第二批 / 10 epoch | 15 个教师追加训练、972 行识别、744 行 Q5、486 份预测 | [阶段首页](09/README.md) · [分析](09/analysis/README.md) |
 
 各阶段保存方案、公式、实现、配置、知识指纹、发布包、权重、测量、预测、审计、日志与复算入口。相同概率下复用的 Uniform、跨阶段复用的历史对照均明确标注。
 
-最新 R5 主 bank TEST AUC：Uniform 与 Relative 均为 35.934 / 26.532，Absolute 为 35.729 / 26.316（CW / OW）。Relative 三 seed 均选零强度；当前相对拟合没有提高最终识别。[最新完整分析](07/analysis/README.md) 保存全部结果、复用边界及下一批提案。
+最新第二批完成教师阶段匹配与双响应比较。三 bank 平均的 Uniform 为 35.904 / 26.461，Matched-Single 为 35.903 / 26.463，Matched-Average 为 35.936 / 26.483（CW / OW）。阶段匹配主要修复了上一批的下降，正式终端仍接近持平；Q5 的效用决策信号继续保留。[最新完整分析](09/analysis/README.md)。
 
-六路线后续安排保留于 [05/PLAN.md](05/PLAN.md)。Align、Competition 与 R5 均已完成；07 分析中的固定非零策略完整适配仍为下一批提案。修订前 Competition 3 epoch 发布包作为 [历史版本](06/references/pre_10epoch/README.md) 保存，未计为独立已完成实验。
+历史六路线安排保留于 [05/PLAN.md](05/PLAN.md)，v6 修订与本次两批设计见 [08/PLAN.md](08/PLAN.md)。08、09 已完成，09 分析末尾的新方向为后续提案。修订前 Competition 3 epoch 包见 [历史版本](06/references/pre_10epoch/README.md)。
 
 [全部实验路线](../README.md) 
