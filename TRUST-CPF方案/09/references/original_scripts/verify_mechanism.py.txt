@@ -1,0 +1,117 @@
+
+from common_analysis import *
+from trustcpf import state,matched,compact,r5,align,competition as cmp
+from trustcpf.metrics import exact_curve,native_curve
+import time
+tic=time.time();cfg=read_json(ROOT/'configs/default.json');data={};error=0.;raw_count=0;labelrows=[]
+old=BASE/'output/state_results/server_results_20261025_113118/trustcpf_state_v1_10ep/work'
+for seed in SEEDS:
+    w=WORK/('seed%d'%seed);ty=load_torch(w/'inputs/bank.pt')['types'].numpy();xx=[];yy=[]
+    for j in range(1,6):
+        cp=w/('teachers/%d/best.pt'%j);m=load_torch(w/('measurements/fold%d.pt'%j));h=load_torch(w/('responses/fold%d.pt'%j))
+        split=read_json(w/('splits/fold%d.json'%j));assert m['split']==split
+        assert m['teacher_sha256']==h['checkpoint_sha256']==sha(cp)
+        initial=w/('old/teachers/%d/last.pt'%j)
+        assert sha(initial)==sha(old/('seed%d/teachers/%d/last.pt'%(seed,j)))
+        assert set(h['support_indices'])<=set(split['train_ids'])
+        used=set(split['train_ids'])
+        stop=set(split['stop']['seen']+split['stop']['unseen'])
+        measure=set(split['measure']['seen']+split['measure']['unseen'])
+        evaluate=set(sum(split['evaluate'].values(),[]))
+        assert len(stop)==512 and not (stop&used or stop&measure or stop&evaluate or used&measure or used&evaluate or measure&evaluate)
+        values=[]
+        for block in sorted((w/('measurements/fold%d'%j)).glob('block*.pt')):
+            b=load_torch(block);assert b['checkpoint_sha256']==sha(cp)
+            eff=(b['on'][:,~b['sample_seen'],0]-b['off'][:,~b['sample_seen'],0]).mean(1)[:,None]
+            error=max(error,close(eff,b['effects'],1e-12));values.append(eff.numpy())
+            gen=torch.Generator().manual_seed(cfg['measurement_seed']+1000*j+len(values)-1)
+            assert torch.equal((torch.rand(96,generator=gen)<.5).float(),b['mask'])
+        raw_count+=len(values);blocks=np.stack(values)
+        error=max(error,close(blocks,m['blocks']),close(m['target'],blocks.mean(0)),close(m['se2'],blocks.var(0,ddof=1)/len(blocks)))
+        oldm=load_torch(w/('old/measurements/fold%d.pt'%j));oy=oldm['target'][:,0];ny=m['target'][:,0]
+        for t in range(3):
+            ix=ty==t;v=blocks[:,:,0][:,ix];half=len(v)//2
+            labelrows.append(dict(seed=seed,fold=j,type=t,**compact.point_metrics(ny[ix],oy[ix]),
+                old_rms=float(np.sqrt(np.mean(oy[ix]**2))),new_rms=float(np.sqrt(np.mean(ny[ix]**2))),
+                se_rms=float(np.sqrt(np.mean(m['se2'][ix,0]))),half_spearman=compact.point_metrics(v[:half].mean(0),v[half:].mean(0))['spearman']))
+        xx.append(h['features'].double().numpy());yy.append(np.asarray(m['target'])[:,0])
+    data[seed]=(xx,yy,ty)
+xs=[x for s in SEEDS for x in data[s][0][:3]];ys=[y for s in SEEDS for y in data[s][1][:3]]
+selection=read_json(WORK/'utility/selection.json');trials=[]
+for lam in cfg['teacher_lambdas']:
+    m=state.fit_one(xs,ys,ty,lam)
+    errs=[float(np.mean([np.var((compact.predict(m,data[s][0][3],ty)[ty==t]-data[s][1][3][ty==t])/m['scales'][t]) for t in range(3)])) for s in SEEDS]
+    trials.append((float(np.mean(errs)),lam,m))
+    saved=next(v for v in selection['trials'] if v['lam']==lam);error=max(error,close(errs,saved['by_seed'],1e-8))
+choice=min(trials,key=lambda x:(x[0],-x[1]));assert choice[1]==selection['selected_lambda']
+newmodel=load_torch(WORK/'utility/matched.pt');oldmodel=load_torch(WORK/'utility/old.pt')
+assert sha(WORK/'utility/old.pt')==sha(old/'utility/pooled_absolute/shared.pt')
+for k in ('beta','center','spread','scales','raw_slopes','raw_intercepts'):error=max(error,close(choice[2][k],newmodel[k],1e-9))
+models={'old':oldmodel,'matched':newmodel}
+print('MEASUREMENT_AND_RIDGE_VERIFIED',raw_count,flush=True)
+repeat_scores=[];noise=[];shift=[];similarity=[];decisions=0;singlegraphs=0
+for seed in SEEDS:
+    w=WORK/('seed%d'%seed);pol=load_torch(w/'policies.pt')
+    for j in range(1,6):
+        a,b=[load_torch(w/('responses/fold%d%s.pt'%(j,s))) for s in ('','_repeat')]
+        template=load_torch(w/('old/responses/fold%d.pt'%j));sp=read_json(w/('splits/fold%d.json'%j))
+        assert a['support_indices']==template['support_indices'] and a['seed']==template['seed']
+        assert torch.equal(a['weights'],template['weights'])
+        assert a['checkpoint_sha256']==b['checkpoint_sha256']==sha(w/('teachers/%d/best.pt'%j))
+        assert set(b['support_indices'])<=set(sp['train_ids']) and b['seed']==a['seed']+100000
+    for name in ('reference','uniform_best','fold5'):
+        a,b=[load_torch(w/('responses/'+name+suffix+'.pt')) for suffix in ('','_repeat')]
+        cp=w/('teachers/5/best.pt' if name=='fold5' else 'reference/last.pt' if name=='reference' else 'runs/uniform/best.pt')
+        assert a['checkpoint_sha256']==b['checkpoint_sha256']==sha(cp)
+        x0,x1=a['features'].double().numpy(),b['features'].double().numpy()
+        for key,m in models.items():
+            p0,p1=[compact.predict(m,x,ty) for x in (x0,x1)];avg=compact.predict(m,(x0+x1)/2,ty)
+            close(avg,(p0+p1)/2,1e-12)
+            pi0,_=align.policy(p0,ty,1.);pi1,_=align.policy(p1,ty,1.)
+            for t in range(3):
+                ix=ty==t;signal=.5*(np.var(p0[ix])+np.var(p1[ix]));nv=np.var(p1[ix]-p0[ix])/2
+                noise.append(dict(seed=seed,state=name,model=key,type=t,rho=compact.point_metrics(p0[ix],p1[ix])['spearman'],
+                    probability_rmse=float(torch.sqrt((pi1[ix]-pi0[ix]).square().mean())),
+                    noise_to_observed_variance=nv/signal if signal>0 else 0.))
+            for label,p in [('single',p0),('average',avg)]:
+                method=key+'_'+label;pi,_=align.policy(p,ty,1.)
+                if name=='fold5':
+                    y=data[seed][1][4]
+                    repeat_scores.append(dict(seed=seed,method=method,**compact.point_metrics(p,y),
+                        centered_r2=r5.centered_metrics(p,y,ty)['r2'],linear_gain=float(y@(pi.numpy()-.5))))
+                    close(pol['q5'][method]['pi'],pi,1e-12)
+                elif name=='uniform_best':
+                    close(pol['states'][name][method]['pi'],pi,1e-12);close(pol['states'][name][method]['mu'],p)
+                elif key=='matched':
+                    control='matched_cross' if label=='single' else 'matched_average_cross'
+                    close(pol['states']['uniform_best'][control]['pi'],pi,1e-12)
+            shift.append(dict(seed=seed,state=name,model=key,standardized_rms=float(np.sqrt(np.mean(((x0-m['center'])/m['spread'])**2)))))
+    for a,b in [('old_single','matched_single'),('old_average','matched_average'),('old_single','old_average'),('matched_single','matched_average')]:
+        for t in range(3):
+            p,q=[pol['states']['uniform_best'][k]['pi'].numpy()[ty==t] for k in (a,b)]
+            similarity.append(dict(seed=seed,pair=a+' vs '+b,type=t,**compact.point_metrics(p,q)))
+    audit=read_json(w/'decision/audit.json');rows={(r['bank'],r['policy']):r for r in audit['rows']}
+    for bank in cfg['audit_eval_seeds']:
+        gen=torch.Generator().manual_seed(bank);uniforms=torch.rand(16,96,generator=gen).double()
+        for policy in matched.q5_keys(cfg):
+            v=load_torch(w/'decision'/('bank%d'%bank)/(policy+'.pt'))
+            assert v['checkpoint_sha256']==sha(w/'teachers/5/best.pt')
+            close(v['pi'],pol['q5'][policy]['pi'],0)
+            assert torch.equal((uniforms<v['pi'][None]).float(),v['masks'])
+            sm=v['seen'][v['truth']]
+            mix=cmp.diagnostics(cmp.sufficient(v['mixture_logprobs'],v['truth'],v['seen']),sm)
+            per=[cmp.diagnostics(x,sm) for x in v['single_statistics']]
+            single={k:float(np.mean([p[k] for p in per])) for k in per[0]}
+            mix['AUC_native']=native_curve(v['mixture_logprobs'].numpy(),v['truth'].numpy(),v['seen'].numpy())['AUC']
+            error=max(error,close(exact_curve(v['mixture_logprobs'].numpy(),v['truth'].numpy(),v['seen'].numpy())['AUC'],mix['AUC_exact']))
+            for mode,vals in [('single',single),('mixture',mix)]:
+                for k,num in vals.items():error=max(error,close(num,v[mode][k],3e-5 if k=='AUC_native' else 1e-8),close(num,rows[(bank,policy)][mode+'_'+k],3e-5 if k=='AUC_native' else 1e-8))
+            decisions+=1;singlegraphs+=len(per)
+        print('Q5_RECOMPUTED',seed,bank,'total',decisions,flush=True)
+write('mechanism_verification.json',dict(passed=True,teachers=15,measurement_blocks=raw_count,ridge_candidates=4,new_fitted_models=1,
+    q5_policy_banks=decisions,single_graph_statistics=singlegraphs,independent_stopping_and_evaluation_images=True,
+    response_state_matched=True,common_random_graphs=True,max_error=error,seconds=time.time()-tic))
+write('mechanism_details.json',dict(repeat_q5=repeat_scores,repeat_noise=noise,input_shift=shift,policy_similarity=similarity,
+    label_changes=labelrows,new_model={k:newmodel[k] for k in ('lam','alpha','raw_slopes','raw_intercepts','scales')},
+    old_model={k:oldmodel[k] for k in ('lam','alpha','raw_slopes','raw_intercepts','scales')}))
+print('MECHANISM_COMPLETE',decisions,error,flush=True)

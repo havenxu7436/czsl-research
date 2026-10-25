@@ -1,0 +1,88 @@
+TEACHER       stop_best_gain  stop_last_gain    seconds
+seed                                           
+3351        1.070251        0.203247  65.232549
+3352        1.177979        0.729218  63.958476
+3353        1.072388        0.521088  64.688439
+EPOCHS fold  1  2  3  4  5
+seed               
+3351  6  4  1  3  3
+3352  9  1  5  3  2
+3353  8  9  1  4  1
+TEACHER_ALL {'stop_best_gain': 1.10687255859375, 'stop_last_gain': 0.4845174153645833, 'loss1': 1.5257109701769713, 'loss10': 1.4918970663111282} sumseconds 969.397323317975
+NOISE                            rho  probability_rmse  noise_to_observed_variance
+state        model                                                          
+fold5        matched  0.513376          0.174884                    0.561831
+             old      0.545687          0.185579                    0.590865
+reference    matched  0.462950          0.178245                    0.481490
+             old      0.487787          0.155051                    0.384105
+uniform_best matched  0.366921          0.217098                    0.667059
+             old      0.360716          0.200847                    0.573890
+POLICY_SIM                                    spearman      rmse       mae
+pair                                                           
+matched_single vs matched_average  0.824913  0.111939  0.084762
+old_average vs matched_average     0.861560  0.089922  0.066365
+old_single vs matched_single       0.865209  0.089178  0.059860
+old_single vs old_average          0.831625  0.106092  0.083717
+SHIFT state         model  
+fold5         matched    1.031859
+              old        1.238734
+reference     matched    0.852264
+              old        1.021042
+uniform_best  matched    0.925151
+              old        1.113867
+LABEL        old_rms   new_rms    se_rms  half_spearman
+type                                             
+0     0.007899  0.006519  0.002519       0.860140
+1     0.004403  0.004026  0.002389       0.765165
+2     0.001315  0.001020  0.000167       0.885316
+GAIN_SD                                                   mean       std
+comparison                             world                    
+matched_average-minus-cross_response   cw    -0.026312  0.080192
+                                       ow    -0.034620  0.096355
+matched_average-minus-old_average      cw     0.010066  0.044645
+                                       ow    -0.029474  0.037697
+matched_average-minus-permutation_mean cw     0.046226  0.048770
+                                       ow     0.016317  0.122612
+matched_average-minus-single           cw     0.032974  0.065413
+                                       ow     0.020246  0.069473
+matched_average-minus-uniform          cw     0.032113  0.093228
+                                       ow     0.022578  0.140437
+matched_average_cross-minus-uniform    cw     0.058425  0.024815
+                                       ow     0.057199  0.101245
+matched_cross-minus-uniform            cw    -0.002814  0.075483
+                                       ow     0.015919  0.171407
+matched_single-minus-cross_response    cw     0.001953  0.022203
+                                       ow    -0.013587  0.030692
+matched_single-minus-old_single        cw     0.111456  0.160073
+                                       ow     0.010253  0.136764
+matched_single-minus-permutation_mean  cw     0.000047  0.005166
+                                       ow    -0.027210  0.155013
+matched_single-minus-uniform           cw    -0.000862  0.053609
+                                       ow     0.002332  0.201734
+old_average-minus-permutation_mean     cw     0.030885  0.065260
+                                       ow     0.090248  0.134366
+old_average-minus-single               cw     0.134365  0.185946
+                                       ow     0.059973  0.174937
+old_average-minus-uniform              cw     0.022047  0.099469
+                                       ow     0.052052  0.155971
+old_single-minus-permutation_mean      cw    -0.085335  0.190405
+                                       ow     0.000805  0.298384
+old_single-minus-uniform               cw    -0.112318  0.178292
+                                       ow    -0.007921  0.325746
+COSTS seed
+global        3.598356
+seed3351    837.339217
+seed3352    773.003624
+seed3353    805.102456
+DECOMP                        gate_seen  gate_unseen  crossing  raw_nll_seen  raw_nll_unseen  gt_attr_unseen  graph_variance
+policy          world                                                                                                
+matched_average cw     62.267840    65.485634  0.883990      1.260147        3.082314       25.647806        0.000394
+                ow     62.267840    50.943064  0.838614      1.327075        3.213283       25.647806        0.000357
+matched_single  cw     62.300424    65.520888  0.883718      1.260101        3.082542       25.524414        0.000370
+                ow     62.300424    51.031200  0.837630      1.327031        3.213511       25.524414        0.000327
+old_average     cw     62.300424    65.432752  0.884140      1.259959        3.081403       25.612550        0.000382
+                ow     62.300424    50.872554  0.839842      1.326874        3.212426       25.612550        0.000348
+old_single      cw     62.104920    65.432752  0.883640      1.262789        3.080012       25.559668        0.000442
+                ow     62.104920    51.048828  0.838397      1.329748        3.211106       25.559668        0.000399
+uniform         cw     62.333007    65.520888  0.883419      1.257846        3.082528       25.418650        0.000321
+                ow     62.333007    50.925436  0.838151      1.324833        3.213275       25.418650        0.000293

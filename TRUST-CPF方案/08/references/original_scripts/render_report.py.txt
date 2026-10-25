@@ -1,0 +1,8 @@
+from pathlib import Path
+import markdown
+p=Path(__file__).resolve().parent
+s=(p/'report.md').read_text(encoding='utf8')
+body=markdown.markdown(s,extensions=['tables','fenced_code'])
+body=body.replace('src="C:/','src="file:///C:/')
+style='''body{font-family:Microsoft YaHei,Arial,sans-serif;color:#183046;max-width:1120px;margin:38px auto;font-size:16px;line-height:1.75;padding:0 24px}h1{font-size:29px}h2{font-size:23px;margin-top:36px}h3{font-size:19px;margin-top:30px}table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14px}th,td{padding:9px 11px;border-bottom:1px solid #d6e0ea;vertical-align:top}th{background:#edf3f8;color:#183046;text-align:left}img{max-width:100%;height:auto}code{font-family:Consolas,monospace;overflow-wrap:anywhere;background:#f0f3f6}a{color:#246493}pre{white-space:pre-wrap}'''
+(p/'report.html').write_text('<!doctype html><meta charset="utf-8"><style>'+style+'</style><article>'+body+'</article>',encoding='utf8')

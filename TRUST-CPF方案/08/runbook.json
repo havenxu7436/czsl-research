@@ -1,0 +1,37 @@
+{
+  "line": "TRUST-CPF方案",
+  "stage": "08",
+  "primary_package": "trustcpf_state_v1_10ep",
+  "commands": [
+    {
+      "source": "README.md",
+      "language": "bash",
+      "text": "git lfs pull --include=\"TRUST-CPF方案/08/**\"\npython tools/register_trustcpf_state_stage.py --stage 08 --check\npython tools/reproduce.py materialize --line TRUST-CPF方案 --stage 08 --dest \"$HOME/experiments/trust-08-replay\"\ncd \"$HOME/experiments/trust-08-replay/trustcpf_state_v1_10ep\"\npython -m unittest discover -s tests -v\n"
+    },
+    {
+      "source": "SERVER_COMMANDS.md",
+      "language": "bash",
+      "text": "conda activate vgcpod_v1\nexport CPF_REPO=\"$PWD\"\ngit lfs pull --include=\"TRUST-CPF方案/07/results/raw_export/**,TRUST-CPF方案/08/**\"\npython tools/reproduce.py materialize --line TRUST-CPF方案 --stage 08 --dest \"$HOME/experiments/trust-08-replay\"\ncd \"$HOME/experiments/trust-08-replay/trustcpf_state_v1_10ep\"\npython -m pip install -r requirements.txt\npython run.py setup \\\n  --source \"$CPF_REPO/TRUST-CPF方案/07/results/raw_export/trustcpf_r5_v1_10ep\" \\\n  --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14 \\\n  --work \"$PWD/work\"\nmkdir -p logs\nnohup bash scripts/run_all.sh 1 2 3 >> logs/queue.log 2>&1 < /dev/null &\ntail -F logs/queue.log\n"
+    },
+    {
+      "source": "SERVER_COMMANDS.md",
+      "language": "bash",
+      "text": "bash scripts/status.sh\nbash scripts/pack_results.sh\n"
+    },
+    {
+      "source": "SERVER_COMMANDS.md",
+      "language": "powershell",
+      "text": "git lfs pull --include=\"TRUST-CPF方案/08/results/archives/**\"\n$cpfSavedArchive = Join-Path $PWD \"../trust-08-saved-archive\"\npython tools/register_trustcpf_state_stage.py --stage 08 --restore-archive \"$cpfSavedArchive\"\n"
+    },
+    {
+      "source": "SERVER_COMMANDS.md",
+      "language": "powershell",
+      "text": "$cpfServer = \"xhw@211.87.232.122\"\n$cpfRemote = \"/data/xhw/experiments/trust-08-replay/trustcpf_state_v1_10ep_results.tar.gz\"\n$cpfLocal = Join-Path $PWD \"../trust-08-rerun-results\"\nNew-Item -ItemType Directory -Force -Path $cpfLocal | Out-Null\n$cpfArchive = Join-Path $cpfLocal \"trustcpf_state_v1_10ep_results.tar.gz\"\nscp -o ServerAliveInterval=30 -o ServerAliveCountMax=6 \"${cpfServer}:$cpfRemote\" \"$cpfArchive\"\nif ($LASTEXITCODE -ne 0) { throw \"Archive download failed\" }\nscp -o ServerAliveInterval=30 -o ServerAliveCountMax=6 \"${cpfServer}:${cpfRemote}.sha256\" \"$cpfArchive.sha256\"\nif ($LASTEXITCODE -ne 0) { throw \"Checksum download failed\" }\n$cpfExpected = ((Get-Content -LiteralPath \"$cpfArchive.sha256\" -Raw).Trim() -split '\\s+')[0]\n$cpfActual = (Get-FileHash -LiteralPath $cpfArchive -Algorithm SHA256).Hash\nif ($cpfActual -ine $cpfExpected) { throw \"Archive SHA256 mismatch\" }\n$cpfExtract = Join-Path $cpfLocal (\"server_results_\" + (Get-Date -Format \"yyyyMMdd_HHmmss\"))\nNew-Item -ItemType Directory -Path $cpfExtract | Out-Null\ntar -xzf \"$cpfArchive\" -C \"$cpfExtract\"\nif ($LASTEXITCODE -ne 0) { throw \"Archive extraction failed\" }\nWrite-Host \"Saved: $cpfExtract\"\n"
+    },
+    {
+      "source": "analysis/REPRODUCE.md",
+      "language": "bash",
+      "text": "git lfs pull --include=\"TRUST-CPF方案/08/**,TRUST-CPF方案/07/results/raw_export/**\"\npython tools/analyze_trustcpf_state_stage.py --stage 08 --dest \"$HOME/analysis/trust-08-recompute\"\n"
+    }
+  ]
+}

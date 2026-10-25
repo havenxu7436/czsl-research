@@ -1,0 +1,535 @@
+
+main_bank1701
+         policy world AUC_native          AUC_exact                 HM               NLL           raw_NLL               ECE         
+                            mean      std      mean      std      mean      std     mean      std     mean      std     mean      std
+matched_average    cw  35.947127 0.859969 36.043621 0.920336 51.186768 1.978876 1.506345 0.025071 2.442617 0.045223 4.135197 0.666125
+matched_average    ow  26.496469 1.236441 26.597081 1.241012 42.069519 2.002941 1.981542 0.041146 2.551104 0.043075 5.587671 2.061133
+ matched_single    cw  35.964539 0.862991 36.069985 0.924313 50.720605 2.388444 1.503984 0.026862 2.442749 0.044694 4.368146 0.565093
+ matched_single    ow  26.536152 1.205241 26.625167 1.236636 42.117159 2.048870 1.981790 0.040137 2.551236 0.042733 5.676450 2.056199
+    old_average    cw  35.944327 0.879682 36.039624 0.938204 51.170253 2.016020 1.506406 0.026017 2.441960 0.046551 4.053155 0.723292
+    old_average    ow  26.526787 1.246162 26.612778 1.285384 42.049030 1.968420 1.981704 0.041827 2.550477 0.044109 5.691014 1.947328
+     old_single    cw  35.811760 0.974556 35.908203 1.042236 50.570484 2.680663 1.506909 0.024465 2.442051 0.045372 4.430257 0.993383
+     old_single    ow  26.503413 1.284154 26.577920 1.321215 42.135412 2.036083 1.975364 0.030327 2.550629 0.043147 4.555805 0.283499
+        uniform    cw  35.934342 0.771187 36.075016 0.801183 50.793391 2.497367 1.505047 0.023865 2.441948 0.046430 4.249994 0.671881
+        uniform    ow  26.531689 1.366248 26.602698 1.373655 42.068579 2.001553 1.980310 0.041485 2.550311 0.044629 5.601102 2.066890
+
+main_seed_bank1701
+ seed          policy        cw        ow
+ 3351 matched_average 35.309871 27.835253
+ 3351  matched_single 35.341663 27.835511
+ 3351     old_average 35.302531 27.896457
+ 3351      old_single 35.244454 27.832151
+ 3351         uniform 35.359446 28.083819
+ 3352 matched_average 36.925282 26.256647
+ 3352  matched_single 36.949603 26.318162
+ 3352     old_average 36.947071 26.223951
+ 3352      old_single 36.937068 26.409038
+ 3352         uniform 36.810730 26.000171
+ 3353 matched_average 35.606229 25.397507
+ 3353  matched_single 35.602352 25.454783
+ 3353     old_average 35.583381 25.459953
+ 3353      old_single 35.253759 25.269050
+ 3353         uniform 35.632851 25.511077
+
+main_bankmean
+         policy world AUC_native          AUC_exact                 HM               NLL           raw_NLL               ECE         
+                            mean      std      mean      std      mean      std     mean      std     mean      std     mean      std
+matched_average    cw  35.935930 0.849269 36.039256 0.892950 51.165575 1.934796 1.505737 0.025467 2.443042 0.045008 4.117657 0.575820
+matched_average    ow  26.483413 1.275597 26.588942 1.288202 42.072590 2.027327 1.981969 0.040612 2.551606 0.043009 5.616777 2.068110
+ matched_single    cw  35.902956 0.867187 36.024397 0.911404 50.702325 2.363369 1.503974 0.028870 2.443308 0.044474 4.391087 0.545749
+ matched_single    ow  26.463167 1.290129 26.545951 1.311516 42.071310 2.097620 1.981434 0.040490 2.551821 0.042584 5.542942 2.160810
+    old_average    cw  35.925864 0.889679 36.045431 0.943726 50.998077 2.148703 1.505188 0.027829 2.442606 0.046160 4.299014 0.588022
+    old_average    ow  26.512887 1.304239 26.602308 1.330290 42.047522 2.018947 1.979169 0.037721 2.551176 0.043922 5.269076 1.444615
+     old_single    cw  35.791500 0.981010 35.899191 1.030697 50.675806 2.556617 1.507302 0.025513 2.443067 0.045697 4.328189 0.792043
+     old_single    ow  26.452915 1.348920 26.529282 1.392687 42.110257 2.056741 1.975153 0.031044 2.551696 0.043509 4.521312 0.306498
+        uniform    cw  35.903817 0.821528 36.039136 0.853236 50.884043 2.340484 1.506112 0.024103 2.444101 0.046882 4.340160 0.657956
+        uniform    ow  26.460835 1.338033 26.546881 1.359029 42.001097 1.927302 1.979469 0.037527 2.552433 0.045242 5.144220 1.519221
+
+paired
+                            comparison phase world  AUC_native  AUC_exact        HM  raw_NLL_gain
+  matched_average-minus-cross_response  test    cw   -0.026312  -0.029161 -0.002003     -0.000633
+  matched_average-minus-cross_response  test    ow   -0.034620   0.001315  0.012690     -0.000676
+  matched_average-minus-cross_response   val    cw    0.030039   0.046867  0.004682      0.000132
+  matched_average-minus-cross_response   val    ow    0.039692   0.039244  0.079269     -0.000024
+     matched_average-minus-old_average  test    cw    0.010066  -0.006174  0.167498     -0.000436
+     matched_average-minus-old_average  test    ow   -0.029474  -0.013366  0.025068     -0.000430
+     matched_average-minus-old_average   val    cw   -0.309464  -0.302235 -0.242609     -0.001170
+     matched_average-minus-old_average   val    ow   -0.214305  -0.214123 -0.226023     -0.001216
+matched_average-minus-permutation_mean  test    cw    0.046226   0.021496  0.198309     -0.000010
+matched_average-minus-permutation_mean  test    ow    0.016317   0.040121  0.035420     -0.000202
+matched_average-minus-permutation_mean   val    cw   -0.052607  -0.075405 -0.055050     -0.002274
+matched_average-minus-permutation_mean   val    ow   -0.082213  -0.070202 -0.011349     -0.002670
+          matched_average-minus-single  test    cw    0.032974   0.014859  0.463251      0.000266
+          matched_average-minus-single  test    ow    0.020246   0.042991  0.001280      0.000215
+          matched_average-minus-single   val    cw   -0.013913  -0.010130 -0.007195      0.000152
+          matched_average-minus-single   val    ow   -0.039147  -0.048669 -0.051891      0.000049
+         matched_average-minus-uniform  test    cw    0.032113   0.000121  0.281532      0.001058
+         matched_average-minus-uniform  test    ow    0.022578   0.042061  0.071493      0.000827
+         matched_average-minus-uniform   val    cw   -0.009202  -0.042546 -0.035714     -0.002774
+         matched_average-minus-uniform   val    ow   -0.069820  -0.058083 -0.007821     -0.003101
+   matched_average_cross-minus-uniform  test    cw    0.058425   0.029281  0.283535      0.001691
+   matched_average_cross-minus-uniform  test    ow    0.057199   0.040746  0.058803      0.001503
+   matched_average_cross-minus-uniform   val    cw   -0.039242  -0.089413 -0.040396     -0.002905
+   matched_average_cross-minus-uniform   val    ow   -0.109512  -0.097328 -0.087090     -0.003077
+           matched_cross-minus-uniform  test    cw   -0.002814  -0.012148  0.068605      0.002536
+           matched_cross-minus-uniform  test    ow    0.015919   0.014807  0.132285      0.002400
+           matched_cross-minus-uniform   val    cw   -0.067565  -0.103096 -0.062444     -0.002569
+           matched_cross-minus-uniform   val    ow   -0.127486  -0.098352 -0.074024     -0.002606
+   matched_single-minus-cross_response  test    cw    0.001953  -0.002590 -0.250324     -0.001743
+   matched_single-minus-cross_response  test    ow   -0.013587  -0.015738 -0.062072     -0.001788
+   matched_single-minus-cross_response   val    cw    0.072276   0.070680  0.033925     -0.000357
+   matched_single-minus-cross_response   val    ow    0.096813   0.088938  0.118094     -0.000543
+       matched_single-minus-old_single  test    cw    0.111456   0.125207  0.026519     -0.000241
+       matched_single-minus-old_single  test    ow    0.010253   0.016668 -0.038947     -0.000125
+       matched_single-minus-old_single   val    cw   -0.157078  -0.155419 -0.172813     -0.001459
+       matched_single-minus-old_single   val    ow   -0.061146  -0.055598 -0.076068     -0.001405
+ matched_single-minus-permutation_mean  test    cw    0.000047  -0.011091 -0.242234      0.000212
+ matched_single-minus-permutation_mean  test    ow   -0.027210  -0.023755  0.185646      0.000067
+ matched_single-minus-permutation_mean   val    cw   -0.021182  -0.042656 -0.027724     -0.002446
+ matched_single-minus-permutation_mean   val    ow   -0.026110  -0.005976  0.037891     -0.002769
+          matched_single-minus-uniform  test    cw   -0.000862  -0.014738 -0.181718      0.000793
+          matched_single-minus-uniform  test    ow    0.002332  -0.000930  0.070214      0.000612
+          matched_single-minus-uniform   val    cw    0.004711  -0.032416 -0.028519     -0.002926
+          matched_single-minus-uniform   val    ow   -0.030673  -0.009414  0.044070     -0.003149
+    old_average-minus-permutation_mean  test    cw    0.030885   0.032127  0.151778      0.001020
+    old_average-minus-permutation_mean  test    ow    0.090248   0.096628 -0.036317      0.000830
+    old_average-minus-permutation_mean   val    cw    0.270262   0.243536  0.193423     -0.001682
+    old_average-minus-permutation_mean   val    ow    0.127031   0.137485  0.204655     -0.002090
+              old_average-minus-single  test    cw    0.134365   0.146240  0.322271      0.000461
+              old_average-minus-single  test    ow    0.059973   0.073025 -0.062735      0.000520
+              old_average-minus-single   val    cw    0.138472   0.136686  0.062600     -0.000136
+              old_average-minus-single   val    ow    0.114012   0.109856  0.098064     -0.000140
+             old_average-minus-uniform  test    cw    0.022047   0.006295  0.114034      0.001495
+             old_average-minus-uniform  test    ow    0.052052   0.055427  0.046426      0.001257
+             old_average-minus-uniform   val    cw    0.300261   0.259689  0.206895     -0.001603
+             old_average-minus-uniform   val    ow    0.144484   0.156040  0.218202     -0.001884
+     old_single-minus-permutation_mean  test    cw   -0.085335  -0.107410 -0.207972      0.000295
+     old_single-minus-permutation_mean  test    ow    0.000805  -0.009553  0.114837      0.000092
+     old_single-minus-permutation_mean   val    cw    0.136354   0.146632  0.166453     -0.001102
+     old_single-minus-permutation_mean   val    ow    0.056782   0.069771  0.124740     -0.001423
+              old_single-minus-uniform  test    cw   -0.112318  -0.139945 -0.208237      0.001034
+              old_single-minus-uniform  test    ow   -0.007921  -0.017599  0.109160      0.000737
+              old_single-minus-uniform   val    cw    0.161789   0.123003  0.144294     -0.001467
+              old_single-minus-uniform   val    ow    0.030473   0.046184  0.120138     -0.001745
+
+paired_seed
+ seed                             comparison world  AUC_native  AUC_exact
+ 3351   matched_average-minus-cross_response    cw   -0.103714  -0.116758
+ 3351   matched_average-minus-cross_response    ow   -0.145680  -0.128165
+ 3351      matched_average-minus-old_average    cw    0.022374   0.013044
+ 3351      matched_average-minus-old_average    ow   -0.052589  -0.050487
+ 3351 matched_average-minus-permutation_mean    cw   -0.007298  -0.065447
+ 3351 matched_average-minus-permutation_mean    ow   -0.048176  -0.032450
+ 3351           matched_average-minus-single    cw   -0.012071  -0.045473
+ 3351           matched_average-minus-single    ow    0.029008   0.044559
+ 3351          matched_average-minus-uniform    cw   -0.069511  -0.143380
+ 3351          matched_average-minus-uniform    ow   -0.082580  -0.070406
+ 3351    matched_average_cross-minus-uniform    cw    0.034203  -0.026622
+ 3351    matched_average_cross-minus-uniform    ow    0.063100   0.057758
+ 3351            matched_cross-minus-uniform    cw   -0.080219  -0.080211
+ 3351            matched_cross-minus-uniform    ow   -0.076463  -0.070768
+ 3351    matched_single-minus-cross_response    cw    0.022779  -0.017696
+ 3351    matched_single-minus-cross_response    ow   -0.035125  -0.044198
+ 3351        matched_single-minus-old_single    cw    0.070251   0.096356
+ 3351        matched_single-minus-old_single    ow    0.002292  -0.025037
+ 3351  matched_single-minus-permutation_mean    cw    0.001170  -0.036240
+ 3351  matched_single-minus-permutation_mean    ow   -0.104913  -0.096168
+ 3351           matched_single-minus-uniform    cw   -0.057440  -0.097907
+ 3351           matched_single-minus-uniform    ow   -0.111588  -0.114966
+ 3351     old_average-minus-permutation_mean    cw   -0.044446  -0.072188
+ 3351     old_average-minus-permutation_mean    ow    0.066185   0.075489
+ 3351               old_average-minus-single    cw    0.035806   0.037839
+ 3351               old_average-minus-single    ow    0.083889   0.070010
+ 3351              old_average-minus-uniform    cw   -0.091885  -0.156423
+ 3351              old_average-minus-uniform    ow   -0.029991  -0.019919
+ 3351      old_single-minus-permutation_mean    cw   -0.058981  -0.115713
+ 3351      old_single-minus-permutation_mean    ow   -0.059237  -0.036192
+ 3351               old_single-minus-uniform    cw   -0.127691  -0.194263
+ 3351               old_single-minus-uniform    ow   -0.113880  -0.089929
+ 3352   matched_average-minus-cross_response    cw   -0.031627  -0.047058
+ 3352   matched_average-minus-cross_response    ow    0.026699   0.092789
+ 3352      matched_average-minus-old_average    cw   -0.039442  -0.067994
+ 3352      matched_average-minus-old_average    ow   -0.049858  -0.032291
+ 3352 matched_average-minus-permutation_mean    cw    0.057824   0.044852
+ 3352 matched_average-minus-permutation_mean    ow    0.157716   0.185232
+ 3352           matched_average-minus-single    cw    0.002990  -0.018954
+ 3352           matched_average-minus-single    ow   -0.053192  -0.033825
+ 3352          matched_average-minus-uniform    cw    0.052167   0.029689
+ 3352          matched_average-minus-uniform    ow    0.182063   0.189765
+ 3352    matched_average_cross-minus-uniform    cw    0.083795   0.076747
+ 3352    matched_average_cross-minus-uniform    ow    0.155364   0.096976
+ 3352            matched_cross-minus-uniform    cw    0.070587   0.062118
+ 3352            matched_cross-minus-uniform    ow    0.213700   0.188318
+ 3352    matched_single-minus-cross_response    cw   -0.021410  -0.013475
+ 3352    matched_single-minus-cross_response    ow    0.021556   0.035272
+ 3352        matched_single-minus-old_single    cw   -0.023986  -0.016921
+ 3352        matched_single-minus-old_single    ow   -0.122358  -0.086776
+ 3352  matched_single-minus-permutation_mean    cw   -0.005588   0.000979
+ 3352  matched_single-minus-permutation_mean    ow    0.151287   0.157313
+ 3352           matched_single-minus-uniform    cw    0.049177   0.048643
+ 3352           matched_single-minus-uniform    ow    0.235256   0.223590
+ 3352     old_average-minus-permutation_mean    cw    0.070197   0.097612
+ 3352     old_average-minus-permutation_mean    ow    0.235019   0.242844
+ 3352               old_average-minus-single    cw    0.018446   0.032119
+ 3352               old_average-minus-single    ow   -0.125692  -0.088309
+ 3352              old_average-minus-uniform    cw    0.091609   0.097683
+ 3352              old_average-minus-uniform    ow    0.231921   0.222056
+ 3352      old_single-minus-permutation_mean    cw    0.090520   0.094702
+ 3352      old_single-minus-permutation_mean    ow    0.324645   0.290922
+ 3352               old_single-minus-uniform    cw    0.073163   0.065564
+ 3352               old_single-minus-uniform    ow    0.357613   0.310366
+ 3353   matched_average-minus-cross_response    cw    0.056406   0.076334
+ 3353   matched_average-minus-cross_response    ow    0.015120   0.039321
+ 3353      matched_average-minus-old_average    cw    0.047265   0.036426
+ 3353      matched_average-minus-old_average    ow    0.014026   0.042681
+ 3353 matched_average-minus-permutation_mean    cw    0.088151   0.085083
+ 3353 matched_average-minus-permutation_mean    ow   -0.060590  -0.032418
+ 3353           matched_average-minus-single    cw    0.108004   0.109004
+ 3353           matched_average-minus-single    ow    0.084923   0.118239
+ 3353          matched_average-minus-uniform    cw    0.113682   0.114052
+ 3353          matched_average-minus-uniform    ow   -0.031748   0.006823
+ 3353    matched_average_cross-minus-uniform    cw    0.057276   0.037719
+ 3353    matched_average_cross-minus-uniform    ow   -0.046868  -0.032498
+ 3353            matched_cross-minus-uniform    cw    0.001189  -0.018351
+ 3353            matched_cross-minus-uniform    ow   -0.089481  -0.073129
+ 3353    matched_single-minus-cross_response    cw    0.004489   0.023400
+ 3353    matched_single-minus-cross_response    ow   -0.027190  -0.038287
+ 3353        matched_single-minus-old_single    cw    0.288103   0.296184
+ 3353        matched_single-minus-old_single    ow    0.150823   0.161817
+ 3353  matched_single-minus-permutation_mean    cw    0.004559   0.001988
+ 3353  matched_single-minus-permutation_mean    ow   -0.128004  -0.132410
+ 3353           matched_single-minus-uniform    cw    0.005678   0.005049
+ 3353           matched_single-minus-uniform    ow   -0.116671  -0.111416
+ 3353     old_average-minus-permutation_mean    cw    0.066905   0.070957
+ 3353     old_average-minus-permutation_mean    ow   -0.030461  -0.028448
+ 3353               old_average-minus-single    cw    0.348842   0.368762
+ 3353               old_average-minus-single    ow    0.221721   0.237375
+ 3353              old_average-minus-uniform    cw    0.066417   0.077626
+ 3353              old_average-minus-uniform    ow   -0.045774  -0.035858
+ 3353      old_single-minus-permutation_mean    cw   -0.287545  -0.301219
+ 3353      old_single-minus-permutation_mean    ow   -0.262992  -0.283389
+ 3353               old_single-minus-uniform    cw   -0.282425  -0.291136
+ 3353               old_single-minus-uniform    ow   -0.267495  -0.273233
+
+q5
+         policy  mixture_AUC_exact  mixture_AUC_gain  mixture_NLL_gain  single_AUC_gain
+matched_average          43.471336          1.207670          0.089351         0.770428
+ matched_single          43.726349          1.462682          0.091904         0.882288
+       measured          44.378026          2.114360          0.176349         1.970581
+    old_average          43.340747          1.077080          0.084382         0.635179
+     old_single          43.599765          1.336098          0.095519         0.892437
+        uniform          42.263667          0.000000          0.000000         0.000000
+
+q5_pairs
+                            comparison  AUC_exact  NLL_gain
+     matched_average-minus-old_average   0.130590  0.004968
+matched_average-minus-permutation_mean   1.059583  0.081488
+          matched_average-minus-single  -0.255013 -0.002554
+         matched_average-minus-uniform   1.207670  0.089351
+       matched_single-minus-old_single   0.126584 -0.003614
+ matched_single-minus-permutation_mean   1.318728  0.084502
+          matched_single-minus-uniform   1.462682  0.091904
+       measured-minus-permutation_mean   2.207603  0.176949
+                measured-minus-uniform   2.114360  0.176349
+    old_average-minus-permutation_mean   0.967840  0.080252
+              old_average-minus-single  -0.259018 -0.011136
+             old_average-minus-uniform   1.077080  0.084382
+     old_single-minus-permutation_mean   1.218224  0.091004
+              old_single-minus-uniform   1.336098  0.095519
+
+q5_seed
+ seed                             comparison  AUC_exact  NLL_gain
+ 3351      matched_average-minus-old_average   0.224876  0.002293
+ 3351 matched_average-minus-permutation_mean   0.468483  0.069313
+ 3351           matched_average-minus-single  -0.489044  0.006054
+ 3351          matched_average-minus-uniform   0.714302  0.074854
+ 3351        matched_single-minus-old_single   0.042725 -0.014113
+ 3351  matched_single-minus-permutation_mean   0.863914  0.061407
+ 3351           matched_single-minus-uniform   1.203346  0.068800
+ 3351        measured-minus-permutation_mean   1.574631  0.152266
+ 3351                 measured-minus-uniform   1.562500  0.150956
+ 3351     old_average-minus-permutation_mean   0.242004  0.071206
+ 3351               old_average-minus-single  -0.671196 -0.010351
+ 3351              old_average-minus-uniform   0.489426  0.072561
+ 3351      old_single-minus-permutation_mean   0.876007  0.081215
+ 3351               old_single-minus-uniform   1.160622  0.082913
+ 3352      matched_average-minus-old_average  -0.016975 -0.005036
+ 3352 matched_average-minus-permutation_mean   1.125755  0.064784
+ 3352           matched_average-minus-single   0.008202  0.001266
+ 3352          matched_average-minus-uniform   1.449394  0.085042
+ 3352        matched_single-minus-old_single   0.170898 -0.005732
+ 3352  matched_single-minus-permutation_mean   1.329193  0.069536
+ 3352           matched_single-minus-uniform   1.441193  0.083776
+ 3352        measured-minus-permutation_mean   2.907410  0.196055
+ 3352                 measured-minus-uniform   2.709961  0.195815
+ 3352     old_average-minus-permutation_mean   1.294250  0.077310
+ 3352               old_average-minus-single   0.196075  0.000570
+ 3352              old_average-minus-uniform   1.466370  0.090078
+ 3352      old_single-minus-permutation_mean   1.113739  0.077998
+ 3352               old_single-minus-uniform   1.270294  0.089508
+ 3353      matched_average-minus-old_average   0.183868  0.017649
+ 3353 matched_average-minus-permutation_mean   1.584511  0.110368
+ 3353           matched_average-minus-single  -0.284195 -0.014981
+ 3353          matched_average-minus-uniform   1.459312  0.108156
+ 3353        matched_single-minus-old_single   0.166130  0.009002
+ 3353  matched_single-minus-permutation_mean   1.763077  0.122562
+ 3353           matched_single-minus-uniform   1.743507  0.123137
+ 3353        measured-minus-permutation_mean   2.140770  0.182525
+ 3353                 measured-minus-uniform   2.070618  0.182276
+ 3353     old_average-minus-permutation_mean   1.367264  0.092241
+ 3353               old_average-minus-single  -0.301933 -0.023628
+ 3353              old_average-minus-uniform   1.275444  0.090507
+ 3353      old_single-minus-permutation_mean   1.664925  0.113799
+ 3353               old_single-minus-uniform   1.577377  0.114135
+
+utility
+         method  linear_gain  centered_r2  spearman  pearson     rmse
+matched_average     0.058024     0.043656  0.244678 0.452669 0.008938
+ matched_single     0.051511     0.041196  0.183600 0.417012 0.008948
+    old_average     0.053033     0.052542  0.313257 0.383575 0.008884
+     old_single     0.049185     0.047025  0.256665 0.333459 0.008905
+
+utility_type
+         method type  spearman  pearson     rmse
+matched_average    0  0.456876 0.543832 0.017855
+matched_average    1  0.372716 0.304889 0.009875
+matched_average    2  0.285678 0.291575 0.002260
+ matched_single    0  0.424242 0.503594 0.017861
+ matched_single    1  0.180695 0.317184 0.009883
+ matched_single    2  0.185772 0.109964 0.002302
+    old_average    0  0.414918 0.395932 0.017748
+    old_average    1  0.479108 0.329164 0.009816
+    old_average    2  0.351715 0.176628 0.002331
+     old_single    0  0.351981 0.324963 0.017761
+     old_single    1  0.430287 0.408270 0.009829
+     old_single    2  0.236105 0.044137 0.002440
+
+repeats
+       state   model      rho  prediction_rmse  probability_mse
+       fold5 matched 0.513376         0.000572         0.032469
+       fold5     old 0.545687         0.001037         0.035660
+   reference matched 0.462950         0.000374         0.035657
+   reference     old 0.487787         0.000834         0.028949
+uniform_best matched 0.366921         0.000464         0.048025
+uniform_best     old 0.360716         0.001031         0.042187
+
+curves
+ index  seed  fold  epoch  selected     loss  learning_rate  STOP_AUC_native  STOP_AUC_exact
+     0  3351     1      0     False      NaN            NaN        45.641327       46.076965
+     1  3351     1      1     False 1.468390   3.000000e-04        46.128845       46.415710
+     2  3351     1      2     False 1.468773   2.910370e-04        46.630096       46.755981
+     3  3351     1      3     False 1.463019   2.650631e-04        46.382904       46.827698
+     4  3351     1      4     False 1.457984   2.252108e-04        45.980835       46.330261
+     5  3351     1      5     False 1.452869   1.762870e-04        46.080780       46.609497
+     6  3351     1      6      True 1.447793   1.241926e-04        47.584534       47.889709
+     7  3351     1      7     False 1.447502   7.521101e-05        46.440887       46.788025
+     8  3351     1      8     False 1.440306   3.525003e-05        47.007751       47.160339
+     9  3351     1      9     False 1.439686   9.129586e-06        46.684265       46.850586
+    10  3351     1     10     False 1.438303   1.976965e-10        46.670532       46.850586
+    11  3351     2      0     False      NaN            NaN        42.297363       42.697144
+    12  3351     2      1     False 1.443011   3.000000e-04        41.714478       41.921997
+    13  3351     2      2     False 1.460096   2.910290e-04        42.139435       42.590332
+    14  3351     2      3     False 1.436905   2.650480e-04        42.606354       42.991638
+    15  3351     2      4      True 1.437730   2.251904e-04        43.340302       43.515015
+    16  3351     2      5     False 1.431899   1.762639e-04        43.130493       43.374634
+    17  3351     2      6     False 1.420342   1.241695e-04        42.396545       42.657471
+    18  3351     2      7     False 1.414048   7.519061e-05        42.784882       43.200684
+    19  3351     2      8     False 1.413047   3.523487e-05        42.860413       43.254089
+    20  3351     2      9     False 1.411245   9.121503e-06        42.736816       43.179321
+    21  3351     2     10     False 1.407582   1.613325e-10        42.633820       43.083191
+    22  3351     3      0     False      NaN            NaN        42.514801       42.669678
+    23  3351     3      1      True 1.552521   3.000000e-04        43.081665       43.196106
+    24  3351     3      2     False 1.555236   2.910189e-04        41.911316       42.124939
+    25  3351     3      3     False 1.545181   2.650290e-04        41.529083       41.938782
+    26  3351     3      4     False 1.537910   2.251648e-04        42.907715       43.093872
+    27  3351     3      5     False 1.534630   1.762347e-04        42.233276       42.460632
+    28  3351     3      6     False 1.527994   1.241403e-04        42.651367       42.849731
+    29  3351     3      7     False 1.533799   7.516495e-05        42.129517       42.274475
+    30  3351     3      8     False 1.520471   3.521581e-05        41.561127       42.031860
+    31  3351     3      9     False 1.519803   9.111341e-06        42.344666       42.520142
+    32  3351     3     10     False 1.516549   1.208400e-10        42.542267       42.790222
+    33  3351     4      0     False      NaN            NaN        37.734222       37.977600
+    34  3351     4      1     False 1.533180   3.000000e-04        37.393188       37.620544
+    35  3351     4      2     False 1.535605   2.910428e-04        37.978363       38.208008
+    36  3351     4      3      True 1.528785   2.650739e-04        38.218689       38.488770
+    37  3351     4      4     False 1.524026   2.252255e-04        37.274170       37.515259
+    38  3351     4      5     False 1.518628   1.763037e-04        37.485504       37.757874
+    39  3351     4      6     False 1.512967   1.242094e-04        37.303925       37.649536
+    40  3351     4      7     False 1.510228   7.522571e-05        37.449646       37.791443
+    41  3351     4      8     False 1.506042   3.526095e-05        37.696838       37.892151
+    42  3351     4      9     False 1.505280   9.135415e-06        37.316895       37.707520
+    43  3351     4     10     False 1.503387   2.261954e-10        37.306976       37.709045
+    44  3351     5      0     False      NaN            NaN        43.448639       43.650818
+    45  3351     5      1     False 1.618431   3.000000e-04        43.899536       44.071960
+    46  3351     5      2     False 1.621005   2.910344e-04        43.682098       43.986511
+    47  3351     5      3      True 1.614459   2.650581e-04        44.762421       45.095825
+    48  3351     5      4     False 1.612126   2.252042e-04        43.272400       43.534851
+    49  3351     5      5     False 1.602506   1.762795e-04        43.801880       44.070435
+    50  3351     5      6     False 1.598984   1.241851e-04        44.670105       45.101929
+    51  3351     5      7     False 1.592531   7.520435e-05        43.682098       43.972778
+    52  3351     5      8     False 1.589357   3.524508e-05        43.267822       43.586731
+    53  3351     5      9     False 1.587730   9.126948e-06        43.258667       43.502808
+    54  3351     5     10     False 1.588448   1.854257e-10        43.498993       43.771362
+    55  3352     1      0     False      NaN            NaN        48.915100       49.302673
+    56  3352     1      1     False 1.456267   3.000000e-04        48.377228       48.808289
+    57  3352     1      2     False 1.457535   2.910370e-04        49.293518       49.720764
+    58  3352     1      3     False 1.453113   2.650631e-04        49.425507       49.673462
+    59  3352     1      4     False 1.447331   2.252108e-04        48.964691       49.482727
+    60  3352     1      5     False 1.439600   1.762870e-04        48.841095       49.406433
+    61  3352     1      6     False 1.436057   1.241926e-04        49.407959       50.061035
+    62  3352     1      7     False 1.428468   7.521101e-05        49.858093       50.430298
+    63  3352     1      8     False 1.425085   3.525003e-05        49.308777       49.847412
+    64  3352     1      9      True 1.425280   9.129586e-06        50.029755       50.294495
+    65  3352     1     10     False 1.422331   1.976965e-10        50.016022       50.299072
+    66  3352     2      0     False      NaN            NaN        41.211700       41.532898
+    67  3352     2      1      True 1.450367   3.000000e-04        41.503906       41.748047
+    68  3352     2      2     False 1.446296   2.910290e-04        40.879822       41.319275
+    69  3352     2      3     False 1.442021   2.650480e-04        40.989685       41.316223
+    70  3352     2      4     False 1.454373   2.251904e-04        41.341400       41.632080
+    71  3352     2      5     False 1.436388   1.762639e-04        40.890503       41.087341
+    72  3352     2      6     False 1.423462   1.241695e-04        40.985107       41.365051
+    73  3352     2      7     False 1.418793   7.519061e-05        40.814209       40.974426
+    74  3352     2      8     False 1.414691   3.523487e-05        40.697479       40.950012
+    75  3352     2      9     False 1.418939   9.121503e-06        40.935516       41.163635
+    76  3352     2     10     False 1.413275   1.613325e-10        40.911102       41.152954
+    77  3352     3      0     False      NaN            NaN        39.131165       39.611816
+    78  3352     3      1     False 1.560160   3.000000e-04        40.182495       40.556335
+    79  3352     3      2     False 1.565993   2.910189e-04        40.313721       40.811157
+    80  3352     3      3     False 1.558909   2.650290e-04        39.588928       40.116882
+    81  3352     3      4     False 1.554466   2.251648e-04        40.139771       40.460205
+    82  3352     3      5      True 1.542838   1.762347e-04        40.802002       41.268921
+    83  3352     3      6     False 1.540436   1.241403e-04        40.016174       40.412903
+    84  3352     3      7     False 1.538838   7.516495e-05        40.216827       40.582275
+    85  3352     3      8     False 1.536324   3.521581e-05        40.336609       40.864563
+    86  3352     3      9     False 1.530410   9.111341e-06        40.267944       40.710449
+    87  3352     3     10     False 1.529751   1.208400e-10        40.222168       40.704346
+    88  3352     4      0     False      NaN            NaN        38.150024       38.342285
+    89  3352     4      1     False 1.548558   3.000000e-04        38.150024       38.517761
+    90  3352     4      2     False 1.553476   2.910428e-04        38.178253       38.449097
+    91  3352     4      3      True 1.543420   2.650739e-04        39.345551       39.517212
+    92  3352     4      4     False 1.536801   2.252255e-04        38.198090       38.368225
+    93  3352     4      5     False 1.530537   1.763037e-04        37.998199       38.174438
+    94  3352     4      6     False 1.526552   1.242094e-04        38.134766       38.536072
+    95  3352     4      7     False 1.518829   7.522571e-05        38.253784       38.508606
+    96  3352     4      8     False 1.515045   3.526095e-05        38.335419       38.676453
+    97  3352     4      9     False 1.512873   9.135415e-06        38.381958       38.719177
+    98  3352     4     10     False 1.514213   2.261954e-10        38.409424       38.739014
+    99  3352     5      0     False      NaN            NaN        40.081024       40.385437
+   100  3352     5      1     False 1.608191   3.000000e-04        40.243530       40.596008
+   101  3352     5      2      True 1.609334   2.910344e-04        41.697693       42.010498
+   102  3352     5      3     False 1.604827   2.650581e-04        41.658783       41.891479
+   103  3352     5      4     False 1.598597   2.252042e-04        41.205597       41.383362
+   104  3352     5      5     False 1.589928   1.762795e-04        40.075684       40.209961
+   105  3352     5      6     False 1.582558   1.241851e-04        41.175842       41.390991
+   106  3352     5      7     False 1.579161   7.520435e-05        41.480255       41.804504
+   107  3352     5      8     False 1.576464   3.524508e-05        41.044617       41.255188
+   108  3352     5      9     False 1.574191   9.126948e-06        40.977478       41.209412
+   109  3352     5     10     False 1.575018   1.854257e-10        41.576385       41.876221
+   110  3353     1      0     False      NaN            NaN        48.969269       49.218750
+   111  3353     1      1     False 1.460160   3.000000e-04        48.928070       49.197388
+   112  3353     1      2     False 1.464359   2.910370e-04        48.704529       49.050903
+   113  3353     1      3     False 1.456339   2.650631e-04        49.518585       49.678040
+   114  3353     1      4     False 1.451032   2.252108e-04        48.493195       48.667908
+   115  3353     1      5     False 1.444357   1.762870e-04        49.456024       49.653625
+   116  3353     1      6     False 1.436319   1.241926e-04        49.192047       49.388123
+   117  3353     1      7     False 1.431481   7.521101e-05        49.390411       49.548340
+   118  3353     1      8      True 1.431717   3.525003e-05        49.630737       49.794006
+   119  3353     1      9     False 1.427246   9.129586e-06        49.569702       49.757385
+   120  3353     1     10     False 1.426009   1.976965e-10        49.541473       49.758911
+   121  3353     2      0     False      NaN            NaN        36.392212       36.662292
+   122  3353     2      1     False 1.453093   3.000000e-04        36.107635       36.334229
+   123  3353     2      2     False 1.455719   2.910290e-04        37.035370       37.347412
+   124  3353     2      3     False 1.444976   2.650480e-04        36.782837       37.013245
+   125  3353     2      4     False 1.452999   2.251904e-04        37.232208       37.403870
+   126  3353     2      5     False 1.432886   1.762639e-04        36.718750       37.051392
+   127  3353     2      6     False 1.429901   1.241695e-04        37.361145       37.521362
+   128  3353     2      7     False 1.424293   7.519061e-05        37.222290       37.460327
+   129  3353     2      8     False 1.420551   3.523487e-05        37.211609       37.483215
+   130  3353     2      9      True 1.441285   9.121503e-06        37.632751       37.901306
+   131  3353     2     10     False 1.418319   1.613325e-10        37.611389       37.895203
+   132  3353     3      0     False      NaN            NaN        41.770935       41.879272
+   133  3353     3      1      True 1.582786   3.000000e-04        42.726898       42.990112
+   134  3353     3      2     False 1.581219   2.910189e-04        42.037964       42.121887
+   135  3353     3      3     False 1.571232   2.650290e-04        40.996552       41.162109
+   136  3353     3      4     False 1.565877   2.251648e-04        40.851593       40.991211
+   137  3353     3      5     False 1.561296   1.762347e-04        41.110992       41.313171
+   138  3353     3      6     False 1.557739   1.241403e-04        41.641235       41.828918
+   139  3353     3      7     False 1.546224   7.516495e-05        40.729523       40.879822
+   140  3353     3      8     False 1.544013   3.521581e-05        41.671753       41.838074
+   141  3353     3      9     False 1.548971   9.111341e-06        41.625977       41.844177
+   142  3353     3     10     False 1.545580   1.208400e-10        41.641235       41.821289
+   143  3353     4      0     False      NaN            NaN        37.165833       37.426758
+   144  3353     4      1     False 1.535031   3.000000e-04        37.701416       38.008118
+   145  3353     4      2     False 1.535881   2.910428e-04        37.339020       37.583923
+   146  3353     4      3     False 1.530849   2.650739e-04        37.393188       37.712097
+   147  3353     4      4      True 1.524715   2.252255e-04        38.417816       38.809204
+   148  3353     4      5     False 1.519083   1.763037e-04        37.982941       38.232422
+   149  3353     4      6     False 1.512920   1.242094e-04        37.461853       37.603760
+   150  3353     4      7     False 1.507795   7.522571e-05        37.424469       37.719727
+   151  3353     4      8     False 1.503457   3.526095e-05        37.531281       37.826538
+   152  3353     4      9     False 1.503277   9.135415e-06        37.545013       37.823486
+   153  3353     4     10     False 1.502466   2.261954e-10        37.475586       37.799072
+   154  3353     5      0     False      NaN            NaN        43.791962       44.195557
+   155  3353     5      1      True 1.615518   3.000000e-04        45.043945       45.547485
+   156  3353     5      2     False 1.617442   2.910344e-04        44.213104       44.708252
+   157  3353     5      3     False 1.609864   2.650581e-04        43.872833       44.250488
+   158  3353     5      4     False 1.604781   2.252042e-04        44.316101       44.929504
+   159  3353     5      5     False 1.596513   1.762795e-04        44.430542       44.920349
+   160  3353     5      6     False 1.592210   1.241851e-04        44.387817       44.895935
+   161  3353     5      7     False 1.587392   7.520435e-05        44.428253       44.865417
+   162  3353     5      8     False 1.583893   3.524508e-05        44.182587       44.566345
+   163  3353     5      9     False 1.581033   9.126948e-06        44.451904       44.833374
+   164  3353     5     10     False 1.577224   1.854257e-10        44.425964       44.810486
+
+teacher_change
+ type  spearman  pearson     rmse  old_mean  new_mean   old_sd   new_sd
+    0  0.787413 0.863585 0.002531 -0.002468 -0.001941 0.007441 0.006170
+    1  0.860060 0.901099 0.001238 -0.000995 -0.000963 0.004249 0.003884
+    2  0.617702 0.531730 0.000746 -0.000055 -0.000054 0.001295 0.001001
+
+deployment
+         policy  type  expected_edges  probability_std       kl  expected_covered_nodes  prototype_displacement
+matched_average     0             6.0         0.207923 1.122776                6.000000                0.553837
+matched_average     1            18.0         0.199265 3.127941               10.122810                0.553837
+matched_average     2            24.0         0.182624 3.601387               13.601895                0.050427
+ matched_single     0             6.0         0.207646 1.123692                6.000000                0.554521
+ matched_single     1            18.0         0.195304 3.012482               10.173893                0.554521
+ matched_single     2            24.0         0.178899 3.466551               13.623468                0.052197
+    old_average     0             6.0         0.187062 0.940430                6.000000                0.549078
+    old_average     1            18.0         0.198938 3.118644               10.060777                0.549078
+    old_average     2            24.0         0.179349 3.479160               13.627366                0.052380
+     old_single     0             6.0         0.209463 1.137500                6.000000                0.549224
+     old_single     1            18.0         0.192442 2.933531               10.177547                0.549224
+     old_single     2            24.0         0.182996 3.608399               13.566381                0.053134
+        uniform     0             6.0         0.000000 0.000000                6.000000                0.561057
+        uniform     1            18.0         0.000000 0.000000               10.500000                0.561057
+        uniform     2            24.0         0.000000 0.000000               14.000000                0.050915
+
+costs
+ index     seed       stage    seconds  peak_gpu_bytes
+     0   global      import   1.539643               0
+     1   global         fit   2.058713               0
+     2 seed3351    teacher1  20.594702        45517312
+     3 seed3351    teacher2  80.420291        72736256
+     4 seed3351    teacher3  90.962520        72736256
+     5 seed3351    teacher4  72.708681        72736768
+     6 seed3351    teacher5  88.347204        72736768
+     7 seed3351    policies   0.698865               0
+     8 seed3351          q5  53.432162        45517312
+     9 seed3351 recognition 430.174793       270387200
+    10 seed3352    teacher1  20.467899        45517312
+    11 seed3352    teacher2  75.902541        72736256
+    12 seed3352    teacher3  88.992082        72736256
+    13 seed3352    teacher4  73.442326        72736768
+    14 seed3352    teacher5  89.282552        72736768
+    15 seed3352    policies   0.672017               0
+    16 seed3352          q5  53.297933        45517312
+    17 seed3352 recognition 370.946273       270387200
+    18 seed3353    teacher1  23.911379        45517312
+    19 seed3353    teacher2  74.762930        72736256
+    20 seed3353    teacher3  90.623592        72736256
+    21 seed3353    teacher4  75.130798        72736768
+    22 seed3353    teacher5  91.519142        72736768
+    23 seed3353    policies   0.730128               0
+    24 seed3353          q5  67.044815        45517312
+    25 seed3353 recognition 381.379673       270387200

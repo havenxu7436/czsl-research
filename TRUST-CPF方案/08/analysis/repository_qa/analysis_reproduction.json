@@ -1,0 +1,81 @@
+{
+  "stage": "08",
+  "passed": true,
+  "prepared": true,
+  "scripts": [
+    {
+      "script": "verify_predictions.py",
+      "sha256": "8b44f6967e46134759223c12f46faf729dc828097d7c65e02ef28dbf5b72caa0",
+      "log": "verify_predictions.py.log"
+    },
+    {
+      "script": "verify_mechanism.py",
+      "sha256": "6abe7868198b7f9fd7c2c19e56821c819f83471596b30f22a9313d53a6dcdb72",
+      "log": "verify_mechanism.py.log"
+    },
+    {
+      "script": "summarize.py",
+      "sha256": "7ffed75a17063f5505cf7d16ad6d9e57c50465735510e4f68c034f19889af3a5",
+      "log": "summarize.py.log"
+    },
+    {
+      "script": "check_tables.py",
+      "sha256": "75692c93773058fefae2366e34eb94e0e2b0ab662bf1eb36c110ee7e88caaaa6",
+      "log": "check_tables.py.log"
+    }
+  ],
+  "comparisons": [
+    {
+      "file": "verification.json",
+      "numerically_equal": true,
+      "absolute_tolerance": 1e-09,
+      "relative_tolerance": 1e-09,
+      "ignored_runtime_field": "seconds",
+      "relocated_path_fields": []
+    },
+    {
+      "file": "prediction_details.json",
+      "numerically_equal": true,
+      "absolute_tolerance": 1e-09,
+      "relative_tolerance": 1e-09,
+      "ignored_runtime_field": "seconds",
+      "relocated_path_fields": []
+    },
+    {
+      "file": "mechanism_verification.json",
+      "numerically_equal": true,
+      "absolute_tolerance": 1e-09,
+      "relative_tolerance": 1e-09,
+      "ignored_runtime_field": "seconds",
+      "relocated_path_fields": []
+    },
+    {
+      "file": "mechanism_details.json",
+      "numerically_equal": true,
+      "absolute_tolerance": 1e-09,
+      "relative_tolerance": 1e-09,
+      "ignored_runtime_field": "seconds",
+      "relocated_path_fields": []
+    },
+    {
+      "file": "summary_data.json",
+      "numerically_equal": true,
+      "absolute_tolerance": 1e-09,
+      "relative_tolerance": 1e-09,
+      "ignored_runtime_field": "seconds",
+      "relocated_path_fields": [
+        "data_root"
+      ]
+    },
+    {
+      "file": "table_verification.json",
+      "numerically_equal": true,
+      "absolute_tolerance": 1e-09,
+      "relative_tolerance": 1e-09,
+      "ignored_runtime_field": "seconds",
+      "relocated_path_fields": []
+    }
+  ],
+  "additional_checks": [],
+  "training_started": false
+}

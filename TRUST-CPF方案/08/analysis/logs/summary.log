@@ -1,0 +1,361 @@
+
+main
+              policy world AUC_native          AUC_exact                 HM               NLL           raw_NLL               ECE         
+                                 mean      std      mean      std      mean      std     mean      std     mean      std     mean      std
+independent_absolute    cw  35.838020 0.777334 35.955984 0.866928 51.142543 1.807889 1.506386 0.022123 2.442156 0.042096 4.311863 0.221073
+independent_absolute    ow  26.459793 1.229191 26.529371 1.256159 41.499942 2.044022 1.981085 0.037343 2.550952 0.040610 5.649081 2.011445
+     pooled_absolute    cw  35.811760 0.974556 35.908203 1.042236 50.570484 2.680663 1.506909 0.024465 2.442051 0.045372 4.430257 0.993383
+     pooled_absolute    ow  26.503413 1.284154 26.577920 1.321215 42.135412 2.036083 1.975364 0.030327 2.550629 0.043147 4.555805 0.283499
+     pooled_relative    cw  35.821763 1.042499 35.940080 1.097693 50.506132 2.618029 1.504865 0.028760 2.442252 0.045614 4.584692 0.762271
+     pooled_relative    ow  26.516181 1.303883 26.586725 1.318419 42.121323 2.127889 1.982575 0.041897 2.550827 0.043418 5.813019 2.333248
+             uniform    cw  35.934342 0.771187 36.075016 0.801183 50.793391 2.497367 1.505047 0.023865 2.441948 0.046430 4.249994 0.671881
+             uniform    ow  26.531689 1.366248 26.602698 1.373655 42.068579 2.001553 1.980310 0.041485 2.550311 0.044629 5.601102 2.066890
+
+main_seed
+ seed               policy  epoch        cw        ow
+ 3351 independent_absolute      2 35.179166 27.873867
+ 3351      pooled_absolute      2 35.244454 27.832151
+ 3351      pooled_relative      2 35.213567 27.851975
+ 3351              uniform      2 35.359446 28.083819
+ 3352 independent_absolute      2 36.695351 25.858610
+ 3352      pooled_absolute      2 36.937068 26.409038
+ 3352      pooled_relative      2 37.025515 26.449824
+ 3352              uniform      2 36.810730 26.000171
+ 3353 independent_absolute      6 35.639545 25.646901
+ 3353      pooled_absolute      6 35.253759 25.269050
+ 3353      pooled_relative      6 35.226207 25.246744
+ 3353              uniform      6 35.632851 25.511077
+
+main_banks
+              policy  bank world  AUC_native
+independent_absolute  1701    cw   35.838020
+independent_absolute  1701    ow   26.459793
+independent_absolute  2701    cw   35.754553
+independent_absolute  2701    ow   26.342561
+independent_absolute  3701    cw   35.752218
+independent_absolute  3701    ow   26.257698
+     pooled_absolute  1701    cw   35.811760
+     pooled_absolute  1701    ow   26.503413
+     pooled_absolute  2701    cw   35.729353
+     pooled_absolute  2701    ow   26.398933
+     pooled_absolute  3701    cw   35.833385
+     pooled_absolute  3701    ow   26.456398
+     pooled_relative  1701    cw   35.821763
+     pooled_relative  1701    ow   26.516181
+     pooled_relative  2701    cw   35.768510
+     pooled_relative  2701    ow   26.390903
+     pooled_relative  3701    cw   35.812157
+     pooled_relative  3701    ow   26.451780
+             uniform  1701    cw   35.934342
+             uniform  1701    ow   26.531689
+             uniform  2701    cw   35.857405
+             uniform  2701    ow   26.417473
+             uniform  3701    cw   35.919704
+             uniform  3701    ow   26.433343
+
+paired_state
+       state                                   comparison world  AUC_native  AUC_exact        HM  raw_NLL_gain
+   reference  independent_absolute-minus-permutation_mean    cw    0.043608   0.024048  0.043934      0.001779
+   reference  independent_absolute-minus-permutation_mean    ow   -0.004511  -0.012455  0.108086      0.001328
+   reference           independent_absolute-minus-uniform    cw    0.041458   0.024836 -0.000027      0.001718
+   reference           independent_absolute-minus-uniform    ow    0.026005   0.015189  0.199976      0.001270
+   reference         pooled_absolute-minus-cross_response    cw    0.094886   0.082617  0.032697      0.002083
+   reference         pooled_absolute-minus-cross_response    ow    0.023337   0.013710 -0.083713      0.002043
+   reference   pooled_absolute-minus-independent_absolute    cw    0.025646   0.031108 -0.021119      0.004173
+   reference   pooled_absolute-minus-independent_absolute    ow    0.043198   0.059625  0.122332      0.004368
+   reference       pooled_absolute-minus-permutation_mean    cw    0.063801   0.040839 -0.043760      0.005856
+   reference       pooled_absolute-minus-permutation_mean    ow    0.027805   0.034917  0.225519      0.005636
+   reference                pooled_absolute-minus-uniform    cw    0.067103   0.055943 -0.021146      0.005890
+   reference                pooled_absolute-minus-uniform    ow    0.069203   0.074814  0.322308      0.005638
+   reference pooled_absolute_cross_response-minus-uniform    cw   -0.027782  -0.026674 -0.053843      0.003807
+   reference pooled_absolute_cross_response-minus-uniform    ow    0.045866   0.061104  0.406021      0.003595
+   reference       pooled_relative-minus-permutation_mean    cw    0.053408   0.039814 -0.046629      0.005905
+   reference       pooled_relative-minus-permutation_mean    ow    0.026361   0.040414  0.275857      0.005671
+   reference        pooled_relative-minus-pooled_absolute    cw   -0.002295   0.002487  0.022779     -0.000186
+   reference        pooled_relative-minus-pooled_absolute    ow   -0.002137   0.000706  0.012618     -0.000210
+   reference                pooled_relative-minus-uniform    cw    0.064809   0.058430  0.001633      0.005704
+   reference                pooled_relative-minus-uniform    ow    0.067066   0.075521  0.334926      0.005428
+uniform_best             direct_support_nll-minus-uniform    cw   -0.031665  -0.035260  0.112098      0.002248
+uniform_best             direct_support_nll-minus-uniform    ow    0.004049   0.001258  0.024253      0.002192
+uniform_best           historical_edge_mean-minus-uniform    cw   -0.177040  -0.201253 -0.154269     -0.001831
+uniform_best           historical_edge_mean-minus-uniform    ow   -0.130537  -0.135893 -0.588843     -0.001777
+uniform_best  independent_absolute-minus-permutation_mean    cw   -0.088615  -0.104310  0.226064      0.000067
+uniform_best  independent_absolute-minus-permutation_mean    ow   -0.097414  -0.093033 -0.414391     -0.000408
+uniform_best           independent_absolute-minus-uniform    cw   -0.122220  -0.147561  0.232498      0.001236
+uniform_best           independent_absolute-minus-uniform    ow   -0.107484  -0.110167 -0.501063      0.000722
+uniform_best         pooled_absolute-minus-cross_response    cw   -0.114828  -0.119583 -0.071585     -0.001207
+uniform_best         pooled_absolute-minus-cross_response    ow   -0.021657  -0.038299 -0.066262     -0.001373
+uniform_best   pooled_absolute-minus-independent_absolute    cw    0.009902   0.007616 -0.440735     -0.000202
+uniform_best   pooled_absolute-minus-independent_absolute    ow    0.099564   0.092568  0.610223      0.000015
+uniform_best       pooled_absolute-minus-permutation_mean    cw   -0.085335  -0.107410 -0.207972      0.000295
+uniform_best       pooled_absolute-minus-permutation_mean    ow    0.000805  -0.009553  0.114837      0.000092
+uniform_best                pooled_absolute-minus-uniform    cw   -0.112318  -0.139945 -0.208237      0.001034
+uniform_best                pooled_absolute-minus-uniform    ow   -0.007921  -0.017599  0.109160      0.000737
+uniform_best pooled_absolute_cross_response-minus-uniform    cw    0.002510  -0.020361 -0.136652      0.002241
+uniform_best pooled_absolute_cross_response-minus-uniform    ow    0.013736   0.020700  0.175423      0.002110
+uniform_best       pooled_relative-minus-permutation_mean    cw   -0.074257  -0.087974 -0.289010     -0.000071
+uniform_best       pooled_relative-minus-permutation_mean    ow    0.002045   0.005776  0.101270     -0.000268
+uniform_best        pooled_relative-minus-pooled_absolute    cw    0.009310   0.018845 -0.063007     -0.000472
+uniform_best        pooled_relative-minus-pooled_absolute    ow    0.000040   0.011395  0.003466     -0.000466
+uniform_best                pooled_relative-minus-uniform    cw   -0.103007  -0.121100 -0.271244      0.000562
+uniform_best                pooled_relative-minus-uniform    ow   -0.007880  -0.006203  0.112627      0.000271
+
+paired_seed
+ seed                                   comparison world  AUC_native
+ 3351             direct_support_nll-minus-uniform    cw   -0.070131
+ 3351             direct_support_nll-minus-uniform    ow   -0.153305
+ 3351           historical_edge_mean-minus-uniform    cw   -0.298304
+ 3351           historical_edge_mean-minus-uniform    ow   -0.219575
+ 3351  independent_absolute-minus-permutation_mean    cw   -0.093594
+ 3351  independent_absolute-minus-permutation_mean    ow   -0.038267
+ 3351           independent_absolute-minus-uniform    cw   -0.200604
+ 3351           independent_absolute-minus-uniform    ow   -0.129052
+ 3351         pooled_absolute-minus-cross_response    cw   -0.105239
+ 3351         pooled_absolute-minus-cross_response    ow   -0.102361
+ 3351   pooled_absolute-minus-independent_absolute    cw    0.072913
+ 3351   pooled_absolute-minus-independent_absolute    ow    0.015172
+ 3351       pooled_absolute-minus-permutation_mean    cw   -0.058981
+ 3351       pooled_absolute-minus-permutation_mean    ow   -0.059237
+ 3351                pooled_absolute-minus-uniform    cw   -0.127691
+ 3351                pooled_absolute-minus-uniform    ow   -0.113880
+ 3351 pooled_absolute_cross_response-minus-uniform    cw   -0.022452
+ 3351 pooled_absolute_cross_response-minus-uniform    ow   -0.011519
+ 3351       pooled_relative-minus-permutation_mean    cw   -0.040934
+ 3351       pooled_relative-minus-permutation_mean    ow   -0.040912
+ 3351        pooled_relative-minus-pooled_absolute    cw    0.007599
+ 3351        pooled_relative-minus-pooled_absolute    ow    0.007022
+ 3351                pooled_relative-minus-uniform    cw   -0.120092
+ 3351                pooled_relative-minus-uniform    ow   -0.106858
+ 3352             direct_support_nll-minus-uniform    cw    0.085621
+ 3352             direct_support_nll-minus-uniform    ow    0.235514
+ 3352           historical_edge_mean-minus-uniform    cw   -0.264806
+ 3352           historical_edge_mean-minus-uniform    ow   -0.195856
+ 3352  independent_absolute-minus-permutation_mean    cw   -0.271713
+ 3352  independent_absolute-minus-permutation_mean    ow   -0.287081
+ 3352           independent_absolute-minus-uniform    cw   -0.240631
+ 3352           independent_absolute-minus-uniform    ow   -0.265435
+ 3352         pooled_absolute-minus-cross_response    cw   -0.049350
+ 3352         pooled_absolute-minus-cross_response    ow    0.129974
+ 3352   pooled_absolute-minus-independent_absolute    cw    0.313794
+ 3352   pooled_absolute-minus-independent_absolute    ow    0.623048
+ 3352       pooled_absolute-minus-permutation_mean    cw    0.090520
+ 3352       pooled_absolute-minus-permutation_mean    ow    0.324645
+ 3352                pooled_absolute-minus-uniform    cw    0.073163
+ 3352                pooled_absolute-minus-uniform    ow    0.357613
+ 3352 pooled_absolute_cross_response-minus-uniform    cw    0.122513
+ 3352 pooled_absolute_cross_response-minus-uniform    ow    0.227640
+ 3352       pooled_relative-minus-permutation_mean    cw    0.099292
+ 3352       pooled_relative-minus-permutation_mean    ow    0.286511
+ 3352        pooled_relative-minus-pooled_absolute    cw   -0.002998
+ 3352        pooled_relative-minus-pooled_absolute    ow   -0.027906
+ 3352                pooled_relative-minus-uniform    cw    0.070165
+ 3352                pooled_relative-minus-uniform    ow    0.329707
+ 3353             direct_support_nll-minus-uniform    cw   -0.110485
+ 3353             direct_support_nll-minus-uniform    ow   -0.070061
+ 3353           historical_edge_mean-minus-uniform    cw    0.031990
+ 3353           historical_edge_mean-minus-uniform    ow    0.023822
+ 3353  independent_absolute-minus-permutation_mean    cw    0.099463
+ 3353  independent_absolute-minus-permutation_mean    ow    0.033106
+ 3353           independent_absolute-minus-uniform    cw    0.074576
+ 3353           independent_absolute-minus-uniform    ow    0.072034
+ 3353         pooled_absolute-minus-cross_response    cw   -0.189895
+ 3353         pooled_absolute-minus-cross_response    ow   -0.092582
+ 3353   pooled_absolute-minus-independent_absolute    cw   -0.357001
+ 3353   pooled_absolute-minus-independent_absolute    ow   -0.339529
+ 3353       pooled_absolute-minus-permutation_mean    cw   -0.287545
+ 3353       pooled_absolute-minus-permutation_mean    ow   -0.262992
+ 3353                pooled_absolute-minus-uniform    cw   -0.282425
+ 3353                pooled_absolute-minus-uniform    ow   -0.267495
+ 3353 pooled_absolute_cross_response-minus-uniform    cw   -0.092531
+ 3353 pooled_absolute_cross_response-minus-uniform    ow   -0.174912
+ 3353       pooled_relative-minus-permutation_mean    cw   -0.281128
+ 3353       pooled_relative-minus-permutation_mean    ow   -0.239463
+ 3353        pooled_relative-minus-pooled_absolute    cw    0.023331
+ 3353        pooled_relative-minus-pooled_absolute    ow    0.021005
+ 3353                pooled_relative-minus-uniform    cw   -0.259095
+ 3353                pooled_relative-minus-uniform    ow   -0.246490
+
+paired_validation
+       state                                   comparison world  AUC_native  AUC_exact
+   reference  independent_absolute-minus-permutation_mean    cw   -0.222889  -0.129823
+   reference  independent_absolute-minus-permutation_mean    ow   -0.124183  -0.125747
+   reference           independent_absolute-minus-uniform    cw   -0.110810  -0.093706
+   reference           independent_absolute-minus-uniform    ow   -0.113667  -0.103443
+   reference         pooled_absolute-minus-cross_response    cw   -0.070954   0.006221
+   reference         pooled_absolute-minus-cross_response    ow   -0.017199  -0.009154
+   reference   pooled_absolute-minus-independent_absolute    cw    0.105853   0.104695
+   reference   pooled_absolute-minus-independent_absolute    ow   -0.027171  -0.017226
+   reference       pooled_absolute-minus-permutation_mean    cw   -0.077043  -0.010609
+   reference       pooled_absolute-minus-permutation_mean    ow   -0.161161  -0.151936
+   reference                pooled_absolute-minus-uniform    cw   -0.004958   0.010989
+   reference                pooled_absolute-minus-uniform    ow   -0.140838  -0.120669
+   reference pooled_absolute_cross_response-minus-uniform    cw    0.065996   0.004768
+   reference pooled_absolute_cross_response-minus-uniform    ow   -0.123640  -0.111515
+   reference       pooled_relative-minus-permutation_mean    cw   -0.113974  -0.041449
+   reference       pooled_relative-minus-permutation_mean    ow   -0.182641  -0.175097
+   reference        pooled_relative-minus-pooled_absolute    cw   -0.032118  -0.028277
+   reference        pooled_relative-minus-pooled_absolute    ow   -0.017866  -0.017378
+   reference                pooled_relative-minus-uniform    cw   -0.037076  -0.017288
+   reference                pooled_relative-minus-uniform    ow   -0.158704  -0.138047
+uniform_best             direct_support_nll-minus-uniform    cw    0.300033   0.250304
+uniform_best             direct_support_nll-minus-uniform    ow    0.247442   0.225749
+uniform_best           historical_edge_mean-minus-uniform    cw    0.422762   0.396337
+uniform_best           historical_edge_mean-minus-uniform    ow    0.247664   0.242075
+uniform_best  independent_absolute-minus-permutation_mean    cw   -0.212742  -0.145847
+uniform_best  independent_absolute-minus-permutation_mean    ow   -0.147944  -0.147483
+uniform_best           independent_absolute-minus-uniform    cw   -0.237849  -0.163873
+uniform_best           independent_absolute-minus-uniform    ow   -0.218384  -0.207092
+uniform_best         pooled_absolute-minus-cross_response    cw    0.035046   0.049496
+uniform_best         pooled_absolute-minus-cross_response    ow    0.014594   0.013531
+uniform_best   pooled_absolute-minus-independent_absolute    cw    0.399638   0.286876
+uniform_best   pooled_absolute-minus-independent_absolute    ow    0.248857   0.253275
+uniform_best       pooled_absolute-minus-permutation_mean    cw    0.136354   0.146632
+uniform_best       pooled_absolute-minus-permutation_mean    ow    0.056782   0.069771
+uniform_best                pooled_absolute-minus-uniform    cw    0.161789   0.123003
+uniform_best                pooled_absolute-minus-uniform    ow    0.030473   0.046184
+uniform_best pooled_absolute_cross_response-minus-uniform    cw    0.126743   0.073507
+uniform_best pooled_absolute_cross_response-minus-uniform    ow    0.015879   0.032652
+uniform_best       pooled_relative-minus-permutation_mean    cw    0.141642   0.131081
+uniform_best       pooled_relative-minus-permutation_mean    ow    0.039796   0.067075
+uniform_best        pooled_relative-minus-pooled_absolute    cw   -0.012274  -0.012577
+uniform_best        pooled_relative-minus-pooled_absolute    ow   -0.016860  -0.003936
+uniform_best                pooled_relative-minus-uniform    cw    0.149515   0.110425
+uniform_best                pooled_relative-minus-uniform    ow    0.013613   0.042248
+
+q5
+              policy  mixture_AUC_exact  mixture_AUC_gain  mixture_NLL_gain  single_AUC_gain
+independent_absolute          42.846616          1.055845          0.055529         0.630581
+            measured          44.564247          2.773476          0.194506         2.623614
+     pooled_absolute          43.130175          1.339404          0.069985         0.587634
+     pooled_relative          43.071683          1.280912          0.074039         0.608325
+             uniform          41.790771          0.000000          0.000000         0.000000
+
+q5_seed
+ seed                                  comparison  AUC_exact  NLL_gain
+ 3351 independent_absolute-minus-permutation_mean   1.302223  0.091527
+ 3351          independent_absolute-minus-uniform   1.418495  0.097612
+ 3351             measured-minus-permutation_mean   1.671028  0.159928
+ 3351                      measured-minus-uniform   1.779556  0.159231
+ 3351      pooled_absolute-minus-permutation_mean   0.824928  0.056924
+ 3351               pooled_absolute-minus-uniform   1.088142  0.063518
+ 3351      pooled_relative-minus-permutation_mean   0.877190  0.072833
+ 3351               pooled_relative-minus-uniform   1.117706  0.078019
+ 3352 independent_absolute-minus-permutation_mean   0.935478  0.046926
+ 3352          independent_absolute-minus-uniform   1.312447  0.057882
+ 3352             measured-minus-permutation_mean   4.082909  0.236502
+ 3352                      measured-minus-uniform   4.252434  0.236002
+ 3352      pooled_absolute-minus-permutation_mean   1.048851  0.056983
+ 3352               pooled_absolute-minus-uniform   1.154709  0.054333
+ 3352      pooled_relative-minus-permutation_mean   1.017227  0.055961
+ 3352               pooled_relative-minus-uniform   1.113319  0.051628
+ 3353 independent_absolute-minus-permutation_mean   0.229683  0.006701
+ 3353          independent_absolute-minus-uniform   0.436592  0.011095
+ 3353             measured-minus-permutation_mean   2.284584  0.188160
+ 3353                      measured-minus-uniform   2.288437  0.188284
+ 3353      pooled_absolute-minus-permutation_mean   1.662712  0.089761
+ 3353               pooled_absolute-minus-uniform   1.775360  0.092105
+ 3353      pooled_relative-minus-permutation_mean   1.510468  0.091802
+ 3353               pooled_relative-minus-uniform   1.611710  0.092470
+
+utility
+                cell      lam  alpha  linear_gain  centered_r2  spearman  pearson
+independent_absolute 0.033333    0.1     0.038065     0.010285  0.198748 0.154428
+independent_relative 0.033333    0.1     0.035051     0.010866  0.174272 0.144922
+     pooled_absolute 3.333333   30.0     0.038514     0.025186  0.195017 0.253704
+     pooled_relative 3.333333   30.0     0.039890     0.026006  0.249308 0.250148
+
+utility_type
+                cell type      spearman
+independent_absolute    0 -7.692308e-02
+independent_absolute    1  4.162162e-01
+independent_absolute    2  1.829136e-01
+independent_relative    0 -3.962704e-02
+independent_relative    1  3.781210e-01
+independent_relative    2  1.852656e-01
+     pooled_absolute    0  1.850372e-17
+     pooled_absolute    1  4.054054e-01
+     pooled_absolute    2  2.098350e-01
+     pooled_relative    0  2.331002e-03
+     pooled_relative    1  4.233376e-01
+     pooled_relative    2  2.188812e-01
+
+repeats
+       state               method      rho  probability_mse
+          q5 independent_absolute 0.468938         0.040131
+          q5      pooled_absolute 0.487002         0.038822
+          q5      pooled_relative 0.478245         0.037204
+   reference independent_absolute 0.492569         0.032042
+   reference      pooled_absolute 0.487787         0.028949
+   reference      pooled_relative 0.474786         0.029142
+uniform_best independent_absolute 0.496175         0.037712
+uniform_best      pooled_absolute 0.360716         0.042187
+uniform_best      pooled_relative 0.321384         0.042659
+
+transfers
+       state               method  input_change_rho
+   reference independent_absolute          0.150170
+   reference      pooled_absolute         -0.012439
+   reference      pooled_relative         -0.008320
+uniform_best independent_absolute          0.078454
+uniform_best      pooled_absolute         -0.001242
+uniform_best      pooled_relative         -0.018125
+
+training
+ index  seed  epoch  selected     loss  learning_rate  VAL_CW_AUC  VAL_OW_AUC
+     0  3351      0     False      NaN            NaN   43.576879   30.873426
+     1  3351      1     False 1.676294   3.000000e-04   42.775386   30.418887
+     2  3351      2      True 1.676044   2.910036e-04   44.254395   30.983231
+     3  3351      3     False 1.671565   2.650001e-04   43.227950   30.894967
+     4  3351      4     False 1.666536   2.251259e-04   43.028808   30.471337
+     5  3351      5     False 1.662038   1.761904e-04   43.500741   30.492757
+     6  3351      6     False 1.655922   1.240960e-04   43.122464   30.455992
+     7  3351      7     False 1.651935   7.512599e-05   43.112022   30.430353
+     8  3351      8     False 1.648691   3.518688e-05   42.955401   30.270464
+     9  3351      9     False 1.647731   9.095918e-06   43.054570   30.335649
+    10  3351     10     False 1.644271   7.051329e-11   42.812908   30.337284
+    11  3352      0     False      NaN            NaN   41.253052   29.610172
+    12  3352      1     False 1.682127   3.000000e-04   40.611959   29.103817
+    13  3352      2      True 1.681901   2.910036e-04   41.740646   30.085741
+    14  3352      3     False 1.675208   2.650001e-04   40.243806   28.452503
+    15  3352      4     False 1.668272   2.251259e-04   41.191258   29.484193
+    16  3352      5     False 1.664872   1.761904e-04   40.225435   28.971056
+    17  3352      6     False 1.658698   1.240960e-04   41.343584   29.561308
+    18  3352      7     False 1.654804   7.512599e-05   41.198747   29.644960
+    19  3352      8     False 1.649218   3.518688e-05   41.162397   29.417813
+    20  3352      9     False 1.648462   9.095918e-06   41.131708   29.304398
+    21  3352     10     False 1.647161   7.051329e-11   41.098067   29.250386
+    22  3353      0     False      NaN            NaN   44.016830   33.345092
+    23  3353      1     False 1.680746   3.000000e-04   44.514012   33.772576
+    24  3353      2     False 1.681445   2.910036e-04   43.761676   33.042246
+    25  3353      3     False 1.676085   2.650001e-04   43.851916   33.287007
+    26  3353      4     False 1.671075   2.251259e-04   42.783120   32.217455
+    27  3353      5     False 1.666545   1.761904e-04   43.723425   33.526254
+    28  3353      6      True 1.662472   1.240960e-04   44.890267   34.495297
+    29  3353      7     False 1.660201   7.512599e-05   44.132270   33.686387
+    30  3353      8     False 1.656207   3.518688e-05   43.861894   33.346068
+    31  3353      9     False 1.654475   9.095918e-06   43.151274   33.162004
+    32  3353     10     False 1.653957   7.051329e-11   43.662776   33.228457
+
+controls
+                        policy world  AUC_native  AUC_exact        HM      NLL
+            direct_support_nll    cw   35.872152  36.003875 50.996141 1.506213
+            direct_support_nll    ow   26.464884  26.548139 42.025350 1.976313
+          historical_edge_mean    cw   35.726777  35.837883 50.729774 1.505634
+          historical_edge_mean    ow   26.330299  26.410988 41.412254 1.982001
+pooled_absolute_cross_response    cw   35.906327  36.018774 50.747391 1.505547
+pooled_absolute_cross_response    ow   26.474571  26.567581 42.176519 1.973518
+
+deployment
+              policy  type  expected_edges  probability_std       kl  expected_covered_nodes  prototype_displacement
+independent_absolute     0             6.0         0.198063 1.039707                6.000000                0.544411
+independent_absolute     1            18.0         0.195511 3.017701               10.058653                0.544411
+independent_absolute     2            24.0         0.168059 3.157471               13.506593                0.049508
+     pooled_absolute     0             6.0         0.209463 1.137500                6.000000                0.549224
+     pooled_absolute     1            18.0         0.192442 2.933531               10.177547                0.549224
+     pooled_absolute     2            24.0         0.182996 3.608399               13.566381                0.053134
+     pooled_relative     0             6.0         0.206270 1.108899                6.000000                0.549597
+     pooled_relative     1            18.0         0.192103 2.921756               10.143107                0.549597
+     pooled_relative     2            24.0         0.182698 3.598226               13.553649                0.052481
+             uniform     0             6.0         0.000000 0.000000                6.000000                0.561057
+             uniform     1            18.0         0.000000 0.000000               10.500000                0.561057
+             uniform     2            24.0         0.000000 0.000000               14.000000                0.050915

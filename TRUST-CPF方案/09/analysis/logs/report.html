@@ -1,0 +1,663 @@
+<!doctype html><meta charset="utf-8"><style>body{font-family:Microsoft YaHei,Arial,sans-serif;color:#183046;max-width:1120px;margin:38px auto;font-size:16px;line-height:1.75;padding:0 24px}h1{font-size:29px}h2{font-size:23px;margin-top:36px}h3{font-size:19px;margin-top:30px}table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14px}th,td{padding:9px 11px;border-bottom:1px solid #d6e0ea;vertical-align:top}th{background:#edf3f8;color:#183046;text-align:left}img{max-width:100%;height:auto}code{font-family:Consolas,monospace;overflow-wrap:anywhere;background:#f0f3f6}a{color:#246493}pre{white-space:pre-wrap}</style><article><h1>TRUST-CPF Stage v1：第二批 10 epoch 完整结果分析</h1>
+<p>日期：2026-10-25。数据：<code>output/stage_results/server_results_20261025_183634/trustcpf_stage_v1_10ep</code>。任务为 UT-Zappos CZSL，使用 CLIP ViT-L/14 特征和 CPF 强基底。</p>
+<p><strong>本轮结论：教师阶段匹配把上一批正式识别的下降基本修复到 Uniform 水平，但没有产生明确的识别优势。两次响应平均带来很小的正式 TEST 改善，却降低了 Q5 实际决策收益。效用监督在留出教师上有效的证据继续成立，“当前紧凑映射已经能稳定提高最终 CZSL”仍未成立。</strong></p>
+<p>三图 bank 先在每个 seed 内平均后，Uniform 为 <strong>35.904 CW／26.461 OW</strong>；Matched-Single 为 <strong>35.903／26.463</strong>；Matched-Average 为 <strong>35.936／26.483</strong>。新预测器单次响应在 Q5 提高 <strong>1.463 点</strong>，比旧预测器增加 <strong>0.127 点</strong>，并在三个 seed 上都超过 Uniform 与自身五次置换的均值。</p>
+<h2>1. 数据完整性与此前报错的影响</h2>
+<table>
+<thead>
+<tr>
+<th>核对项</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>归档</td>
+<td>3,459,130,358 字节；SHA256 与下载的校验文件一致</td>
+</tr>
+<tr>
+<td>队列</td>
+<td>26/26 阶段；三个训练进程、联合拟合、三个评分进程均返回 0</td>
+</tr>
+<tr>
+<td>教师训练</td>
+<td>15/15 教师，每个追加 10 epoch，共 165 个 epoch0–10 记录点</td>
+</tr>
+<tr>
+<td>正式识别</td>
+<td>972/972 行指标，486 份逐图像预测 NPZ</td>
+</tr>
+<tr>
+<td>Q5</td>
+<td>744/744 组策略—bank 评分，11904 组单图统计</td>
+</tr>
+<tr>
+<td>效用监督</td>
+<td>15 个教师、144 个 on/off 背景块全部复算</td>
+</tr>
+<tr>
+<td>文件哈希</td>
+<td>89 个发布文件与 2580 个阶段输出通过核对</td>
+</tr>
+<tr>
+<td>汇总表</td>
+<td>576 行正式配对、336 行 Q5 配对、541 条聚合记录重算一致</td>
+</tr>
+<tr>
+<td>GPU</td>
+<td>3351→物理卡1；3352→2；3353→3</td>
+</tr>
+</tbody>
+</table>
+<p>此前 CPU/CUDA 报错发生在教师十轮结束后的冻结权重检查。本次完成状态与 checkpoint 证明修复后正常恢复：15 个教师的 backbone 与各自起点逐张量相同，best.pt 与 last.pt 内记录的最佳权重逐张量相同，正式识别权重与第一批完全一致。补丁没有改变训练目标或清空已经完成的训练。</p>
+<p>从保存的预测复算 native/exact AUC、NLL、ECE、HM，以及 VAL 校准参数向 TEST 的迁移，最大差为 <strong>7.11e-15</strong>；重算效用标签、岭回归和 Q5 统计，最大差为 <strong>2.00e-15</strong>。本轮结果方向不能归因于这些评分或汇总环节的错误。</p>
+<p>Uniform 与 Old-Single 及其五个置换对照，共 63 组 seed—policy—bank 的完整 VAL/TEST 指标，与第一批逐项相同。因此这里新增的证据来自阶段匹配和双响应读出。</p>
+<h2>2. 正式识别：主要是修复下降，整体接近持平</h2>
+<p>Old 指第一批九教师联合 Absolute 预测器；Matched 指本轮阶段匹配后重新测量、重新拟合的同类预测器。Single 使用一份当前响应，Average 使用两份响应的平均。所有方法共享第一批 Uniform-best，三个 seed 的正式最佳 epoch 仍为 2／2／6。</p>
+<p>下表按预设主 bank1701 报告 TEST native AUC，± 为三个 seed 的样本标准差；AUC 为 0–100 尺度，增量单位为百分点。</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>CW AUC</th>
+<th>OW AUC</th>
+<th>相对 Uniform：CW／OW</th>
+<th>CW HM／OW HM</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Uniform-0.5</td>
+<td>35.934 ± 0.771</td>
+<td>26.532 ± 1.366</td>
+<td>0 / 0</td>
+<td>50.793 / 42.069</td>
+</tr>
+<tr>
+<td>Old-Single</td>
+<td>35.812 ± 0.975</td>
+<td>26.503 ± 1.284</td>
+<td>-0.123 / -0.028</td>
+<td>50.570 / 42.135</td>
+</tr>
+<tr>
+<td>Matched-Single</td>
+<td>35.965 ± 0.863</td>
+<td>26.536 ± 1.205</td>
+<td>+0.030 / +0.004</td>
+<td>50.721 / 42.117</td>
+</tr>
+<tr>
+<td>Old-Average</td>
+<td>35.944 ± 0.880</td>
+<td>26.527 ± 1.246</td>
+<td>+0.010 / -0.005</td>
+<td>51.170 / 42.049</td>
+</tr>
+<tr>
+<td>Matched-Average</td>
+<td>35.947 ± 0.860</td>
+<td>26.496 ± 1.236</td>
+<td>+0.013 / -0.035</td>
+<td>51.187 / 42.070</td>
+</tr>
+</tbody>
+</table>
+<h3>2.1 三个图 bank、exact AUC 与置换对照</h3>
+<p>三图 bank 不是额外训练 seed。先在每个 seed 内取平均，再比较三个 seed；五次置换也先在同 seed、同 bank 内取均值。</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>相对 Uniform native：CW／OW</th>
+<th>相对自身置换 native：CW／OW</th>
+<th>相对 Uniform exact：CW／OW</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Old-Single</td>
+<td>-0.112 / -0.008</td>
+<td>-0.085 / +0.001</td>
+<td>-0.140 / -0.018</td>
+</tr>
+<tr>
+<td>Matched-Single</td>
+<td>-0.001 / +0.002</td>
+<td>+0.000 / -0.027</td>
+<td>-0.015 / -0.001</td>
+</tr>
+<tr>
+<td>Old-Average</td>
+<td>+0.022 / +0.052</td>
+<td>+0.031 / +0.090</td>
+<td>+0.006 / +0.055</td>
+</tr>
+<tr>
+<td>Matched-Average</td>
+<td>+0.032 / +0.023</td>
+<td>+0.046 / +0.016</td>
+<td>+0.000 / +0.042</td>
+</tr>
+</tbody>
+</table>
+<p>Matched-Single 相对 Uniform 为 <strong>−0.001 CW／+0.002 OW</strong>，几乎完全持平；相对自身置换为 <strong>+0.000 CW／−0.027 OW</strong>。阶段匹配改善了旧模型，但没有使真实关系分配稳定优于均匀分配或置换。</p>
+<p>Matched-Average 的 native 增量为 <strong>+0.032 CW／+0.023 OW</strong>；CW exact 增量只有 <strong>+0.0001</strong>，OW exact 为 <strong>+0.042</strong>。因此 CW 的微小 native 正值不能单独作为性能提升的核心依据。</p>
+<p>Old-Average 的平均增量为 <strong>+0.022 CW／+0.052 OW</strong>，与 Matched-Average 相近。新教师加双响应未明显优于直接对旧预测器做双响应。</p>
+<table>
+<thead>
+<tr>
+<th>seed</th>
+<th>Old-Single：CW／OW</th>
+<th>Matched-Single：CW／OW</th>
+<th>Old-Average：CW／OW</th>
+<th>Matched-Average：CW／OW</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3351</td>
+<td>-0.128 / -0.114</td>
+<td>-0.057 / -0.112</td>
+<td>-0.092 / -0.030</td>
+<td>-0.070 / -0.083</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>+0.073 / +0.358</td>
+<td>+0.049 / +0.235</td>
+<td>+0.092 / +0.232</td>
+<td>+0.052 / +0.182</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>-0.282 / -0.267</td>
+<td>+0.006 / -0.117</td>
+<td>+0.066 / -0.046</td>
+<td>+0.114 / -0.032</td>
+</tr>
+</tbody>
+</table>
+<p>两个 Average 组的 OW 增益都主要来自 seed3352，另两个 seed 为负。Matched-Average 的平均增益及配对 SD 为 <strong>+0.032±0.093 CW／+0.023±0.140 OW</strong>；这描述三个识别重复的差异，三个重复共享一个效用预测器。当前更合适的结论是“接近持平并有局部小幅改善”。</p>
+<h3>2.2 阶段匹配与响应平均的增量可以分开看</h3>
+<table>
+<thead>
+<tr>
+<th>比较</th>
+<th>TEST CW</th>
+<th>TEST OW</th>
+<th>VAL CW</th>
+<th>VAL OW</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Matched-Single − Old-Single</td>
+<td>+0.111</td>
+<td>+0.010</td>
+<td>-0.157</td>
+<td>-0.061</td>
+</tr>
+<tr>
+<td>Old-Average − Old-Single</td>
+<td>+0.134</td>
+<td>+0.060</td>
+<td>+0.138</td>
+<td>+0.114</td>
+</tr>
+<tr>
+<td>Matched-Average − Matched-Single</td>
+<td>+0.033</td>
+<td>+0.020</td>
+<td>-0.014</td>
+<td>-0.039</td>
+</tr>
+<tr>
+<td>Matched-Average − Old-Average</td>
+<td>+0.010</td>
+<td>-0.029</td>
+<td>-0.309</td>
+<td>-0.214</td>
+</tr>
+</tbody>
+</table>
+<p>阶段匹配的单次响应 CW 改善为 +0.111 点，但这主要填补了 Old-Single 原本相对 Uniform 的 −0.112 点缺口。它在 VAL 上反而降低 CW／OW，说明并非一致改善所有组合。</p>
+<p>两次平均在旧预测器上提升 TEST +0.134 CW／+0.060 OW，在新预测器上只提升 +0.033／+0.020。平均响应确实修复了一部分单次测量的不稳定性，其终点仍接近 Uniform。</p>
+<p>Old-Average 的 VAL 相对 Uniform 为 +0.300 CW／+0.144 OW，TEST 只有 +0.022／+0.052。这仍体现了开发组合与测试组合之间的迁移落差。</p>
+<p><img alt="第二批结果总览" src="file:///C:/Users/llenovo/Documents/ChatGPT/USG/analysis_TRUST_CPF_stage_v1_20261025/stage_results_overview.png" /></p>
+<p>图 A、B 的黑点为三个 seed。图 C 的 Q5 使用 exact AUC、正式 TEST 使用 native AUC。图 D 每条灰线为一个教师，星号为其选中轮次，蓝线为十五教师平均的 STOP 变化。</p>
+<h2>3. Q5：监督仍有效，阶段匹配带来小幅实际收益</h2>
+<p>本批 Q5 固定各自新增训练后选中的教师状态，在独立 evaluate 图像上实际评分。测量、STOP、evaluate 图像互不重叠。STOP 用到了相同 Query 组合的其他图像与标签，因此这里是同组合的独立图像决策评估。Q5 没有参与共享效用拟合或 Q4 正则选择。</p>
+<table>
+<thead>
+<tr>
+<th>策略</th>
+<th>相对 Uniform exact AUC</th>
+<th>相对五置换均值</th>
+<th>U-NLL 收益（nat）</th>
+<th>单图平均 AUC 增益</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Old-Single</td>
+<td>+1.336</td>
+<td>+1.218</td>
+<td>0.095519</td>
+<td>+0.892</td>
+</tr>
+<tr>
+<td>Matched-Single</td>
+<td>+1.463</td>
+<td>+1.319</td>
+<td>0.091904</td>
+<td>+0.882</td>
+</tr>
+<tr>
+<td>Old-Average</td>
+<td>+1.077</td>
+<td>+0.968</td>
+<td>0.084382</td>
+<td>+0.635</td>
+</tr>
+<tr>
+<td>Matched-Average</td>
+<td>+1.208</td>
+<td>+1.060</td>
+<td>0.089351</td>
+<td>+0.770</td>
+</tr>
+<tr>
+<td>测量效用</td>
+<td>+2.114</td>
+<td>+2.208</td>
+<td>0.176349</td>
+<td>+1.971</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>seed</th>
+<th>Old-Single 增益</th>
+<th>Matched-Single 增益</th>
+<th>Matched−Old</th>
+<th>Matched−自身置换</th>
+<th>测量效用增益</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3351</td>
+<td>+1.161</td>
+<td>+1.203</td>
+<td>+0.043</td>
+<td>+0.864</td>
+<td>+1.562</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>+1.270</td>
+<td>+1.441</td>
+<td>+0.171</td>
+<td>+1.329</td>
+<td>+2.710</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>+1.577</td>
+<td>+1.744</td>
+<td>+0.166</td>
+<td>+1.763</td>
+<td>+2.071</td>
+</tr>
+</tbody>
+</table>
+<p><strong>新预测器在三个 seed 上都比旧预测器多获得 Q5 AUC，平均增加 +0.127 点。</strong> 相对自身置换均值的收益为 +1.319 点，说明其关系—效用对应仍能改善实际决策。新模型的 U-NLL 改善为 0.091904 nat，略低于旧模型的 0.095519 nat；AUC 与 NLL 并不严格同向。</p>
+<p>测量效用策略提高 +2.114 点，新预测器提高 +1.463 点，仍有约 0.652 点差距。测量效用来自独立测量图像，不是直接使用 evaluate 标签选择策略，因此它提供了可用关系信息的参考。但它不构成预测方法的严格上界。</p>
+<p>第一批 Old-Single 的 Q5 增量约 +1.339，本批在新教师上仍为 +1.336。旧监督在新教师状态上已经保留了大部分效用。第一批与本批 Q5 的教师参数不同，跨轮绝对分数不能当作同一固定识别器上的纯方法增量；本批同状态下的 Matched−Old 才是阶段匹配的直接比较。</p>
+<h2>4. 十轮训练确实改变了教师，但没有解决最终识别迁移</h2>
+<p>十五个教师全部训练到第 10 epoch，并从 epoch0–10 中按 STOP native AUC 选最早最佳值。</p>
+<table>
+<thead>
+<tr>
+<th>seed</th>
+<th>Q1 最佳</th>
+<th>Q2 最佳</th>
+<th>Q3 最佳</th>
+<th>Q4 最佳</th>
+<th>Q5 最佳</th>
+<th>平均 STOP 最佳增量</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3351</td>
+<td>6</td>
+<td>4</td>
+<td>1</td>
+<td>3</td>
+<td>3</td>
+<td>+1.070</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>9</td>
+<td>1</td>
+<td>5</td>
+<td>3</td>
+<td>2</td>
+<td>+1.178</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>8</td>
+<td>9</td>
+<td>1</td>
+<td>4</td>
+<td>1</td>
+<td>+1.072</td>
+</tr>
+</tbody>
+</table>
+<p>十五个教师的选中轮次都大于 0，没有选中第 10 epoch；12/15 的最佳轮次位于前 6 epoch。平均 STOP 最佳值比起点高 <strong>+1.107 点</strong>，第 10 轮平均仍高 <strong>+0.485 点</strong>。训练 loss 从第 1 轮平均 1.5257 降到第 10 轮 1.4919。</p>
+<p>最佳 STOP 增量包含在该集合上选模的收益，应结合独立 Q5 判断。曲线说明本批训练和选模已经实际执行，也说明继续单纯延长教师训练不是当前最直接的改进方向。不能把 loss 尚在下降直接等同于跨组合泛化还会继续提高。</p>
+<table>
+<thead>
+<tr>
+<th>关系类型</th>
+<th>新旧效用 Spearman</th>
+<th>新旧效用 Pearson</th>
+<th>旧标签 RMS</th>
+<th>新标签 RMS</th>
+<th>新标签背景 SE RMS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OI</td>
+<td>0.787</td>
+<td>0.864</td>
+<td>0.007899</td>
+<td>0.006519</td>
+<td>0.002519</td>
+</tr>
+<tr>
+<td>OE</td>
+<td>0.860</td>
+<td>0.901</td>
+<td>0.004403</td>
+<td>0.004026</td>
+<td>0.002389</td>
+</tr>
+<tr>
+<td>AE</td>
+<td>0.618</td>
+<td>0.532</td>
+<td>0.001315</td>
+<td>0.001020</td>
+<td>0.000167</td>
+</tr>
+</tbody>
+</table>
+<p>新旧标签的 OI／OE 排序保持较高相关，AE 变化更明显；三类效用幅度都缩小了。按背景对半计算的新标签排序相关均值分别约为 OI 0.860、OE 0.765、AE 0.885，说明可用信号并未消失，同时测量具有有限背景样本带来的误差。</p>
+<p>共享预测器仍选择 λ=3.3333、α=9λ=30，与第一批 pooled Absolute 一致。因此本批比较没有混入正则候选范围扩大或新一轮 TEST 选参。</p>
+<h2>5. 重复响应：预测指标改善与决策收益出现分离</h2>
+<p>以下指标在本批 Q5 上计算；类型中心化 R² 是先在每种关系类型内去均值，再衡量残差。</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>整体 Spearman</th>
+<th>类型中心化 R²</th>
+<th>一阶代理收益</th>
+<th>实际 Q5 AUC 增益</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Old-Single</td>
+<td>0.257</td>
+<td>0.0470</td>
+<td>0.04919</td>
+<td>+1.336</td>
+</tr>
+<tr>
+<td>Matched-Single</td>
+<td>0.184</td>
+<td>0.0412</td>
+<td>0.05151</td>
+<td>+1.463</td>
+</tr>
+<tr>
+<td>Old-Average</td>
+<td>0.313</td>
+<td>0.0525</td>
+<td>0.05303</td>
+<td>+1.077</td>
+</tr>
+<tr>
+<td>Matched-Average</td>
+<td>0.245</td>
+<td>0.0437</td>
+<td>0.05802</td>
+<td>+1.208</td>
+</tr>
+</tbody>
+</table>
+<p>新预测器使用平均响应后，整体 Spearman 从 0.184 提高到 0.245，一阶代理收益从 0.05151 提高到 0.05802；但实际 Q5 AUC 从 +1.463 降到 +1.208。旧预测器也出现相同方向：Spearman 从 0.257 提高到 0.313，实际 Q5 AUC 从 +1.336 降到 +1.077。</p>
+<p><strong>“响应平均使预测更准”没有自动转化为“图策略更好”。</strong> 平均后的效用还要经过类型内标准化、预算求解与 Bernoulli 图采样，实际概率混合含有关系交互。当前数据表明代理与实际决策的联系仍不充分；单凭相关性或一阶代理增加不能选出更好的策略。</p>
+<p>同一正式识别器的两份独立响应，类型内预测排序一致性仍偏低：</p>
+<table>
+<thead>
+<tr>
+<th>响应状态</th>
+<th>旧预测器：ρ／概率 RMSE</th>
+<th>新预测器：ρ／概率 RMSE</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Q5</td>
+<td>0.546 / 0.186</td>
+<td>0.513 / 0.175</td>
+</tr>
+<tr>
+<td>Reference</td>
+<td>0.488 / 0.155</td>
+<td>0.463 / 0.178</td>
+</tr>
+<tr>
+<td>正式 Uniform-best</td>
+<td>0.361 / 0.201</td>
+<td>0.367 / 0.217</td>
+</tr>
+</tbody>
+</table>
+<p>正式 Uniform-best 的重复排序相关由 0.361 到 0.367，基本没变；概率 RMSE 从 0.201 到 0.217。阶段匹配没有明显提升正式响应的稳定性。这里的概率 RMSE 是各 seed、各类型 RMSE 的均值。</p>
+<p>新预测器的原始重复预测 RMSE 虽然更低，但类型内标准化会重新缩放输出；较小的效用数值波动并不保证最终分配概率更稳定。这个机制与保存的概率统计一致。</p>
+<h3>5.1 当前状态响应也未稳定优于 reference 响应</h3>
+<table>
+<thead>
+<tr>
+<th>新预测器读出</th>
+<th>TEST 相对 Uniform：CW／OW</th>
+<th>TEST 相对 reference 响应：CW／OW</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>单次当前响应</td>
+<td>-0.001 / +0.002</td>
+<td>+0.002 / -0.014</td>
+</tr>
+<tr>
+<td>两次平均当前响应</td>
+<td>+0.032 / +0.023</td>
+<td>-0.026 / -0.035</td>
+</tr>
+<tr>
+<td>单次 reference 响应</td>
+<td>-0.003 / +0.016</td>
+<td>—</td>
+</tr>
+<tr>
+<td>两次平均 reference 响应</td>
+<td>+0.058 / +0.057</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p>两次 reference 响应的正式增量反而为 +0.058 CW／+0.057 OW，比两次当前响应略高。因此，“用当前模型响应条件化就能改善泛化”在本轮仍未获得识别端支持。它是控制组的观察结果，不据此改选一个新的主方法。</p>
+<h2>6. 识别变化位置、分配结构与成本</h2>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>已见组内正确率</th>
+<th>CW 未见组内正确率</th>
+<th>OW 未见组内正确率</th>
+<th>CW 未校准 seen／unseen NLL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Uniform-0.5</td>
+<td>62.333</td>
+<td>65.521</td>
+<td>50.925</td>
+<td>1.2578 / 3.0825</td>
+</tr>
+<tr>
+<td>Old-Single</td>
+<td>62.105</td>
+<td>65.433</td>
+<td>51.049</td>
+<td>1.2628 / 3.0800</td>
+</tr>
+<tr>
+<td>Matched-Single</td>
+<td>62.300</td>
+<td>65.521</td>
+<td>51.031</td>
+<td>1.2601 / 3.0825</td>
+</tr>
+<tr>
+<td>Old-Average</td>
+<td>62.300</td>
+<td>65.433</td>
+<td>50.873</td>
+<td>1.2600 / 3.0814</td>
+</tr>
+<tr>
+<td>Matched-Average</td>
+<td>62.268</td>
+<td>65.486</td>
+<td>50.943</td>
+<td>1.2601 / 3.0823</td>
+</tr>
+</tbody>
+</table>
+<p>相较 Old-Single，Matched-Single 的已见组内正确率从 62.105% 恢复到 62.300%，接近 Uniform 的 62.333%；CW 未见组内正确率也恢复到 Uniform 水平。这与“修复下降、接近基线”一致。没有看到大范围判别能力提升。</p>
+<p>所有策略的 OI／OE／AE 期望边数都是 6／18／24，非均匀策略的类型内概率标准差约 0.18–0.21。置换确实保持了各类型概率多重集。图分配已生效，表现近似 Uniform 并非因为实现退化成常数概率。</p>
+<p>新旧单次概率分配的类型内排序相关均值约 0.865，平均绝对差约 0.060；变化存在，但未产生稳定的识别收益。Matched-Average 的 OE／AE 预期节点覆盖为 10.123／13.602，Uniform 为 10.500／14.000；该结构变化本身不足以解释微小 AUC 差异。</p>
+<p>概率校准没有形成新方法的额外优势。主 bank 上，Matched-Single 的 CW／OW 校准 NLL 为 1.5040／1.9818，Uniform 为 1.5050／1.9803；OW ECE 为 5.676，Uniform 为 5.601。Old-Single 的 OW 校准 NLL、ECE 仍更低，但其 AUC 没有优势。</p>
+<p>十五个教师的逐 epoch 记录合计训练时间约 <strong>16.16 GPU·分钟</strong>。成功续跑阶段记录的三个 seed 总用时分别为 <strong>13.96／12.88／13.42 分钟</strong>；这些阶段时间不包含此前已完成、随后在检查处报错的第一个教师训练时间。评分峰值 PyTorch 张量分配约 257.86 MiB，不含 CUDA 上下文和其他进程显存。</p>
+<h2>7. 对 TRUST 路线的判断</h2>
+<table>
+<thead>
+<tr>
+<th>研究点</th>
+<th>本轮证据</th>
+<th>结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>关系效用确实存在</td>
+<td>Q5 测量效用 +2.114，三 seed 都超过自身置换均值</td>
+<td>继续保留</td>
+</tr>
+<tr>
+<td>效用可由响应学习并用于决策</td>
+<td>Matched-Single Q5 +1.463，相对置换 +1.319</td>
+<td>继续保留效用监督</td>
+</tr>
+<tr>
+<td>教师阶段匹配是关键突破</td>
+<td>Q5 较旧预测器 +0.127；正式主方法与 Uniform 持平</td>
+<td>小幅机制收益，不足以作为主要性能贡献</td>
+</tr>
+<tr>
+<td>两次响应平均可稳定改善策略</td>
+<td>正式收益很小；Q5 两套预测器均下降约 0.26 点</td>
+<td>作为读出比较保留，不升级为核心创新</td>
+</tr>
+<tr>
+<td>当前状态响应优于错配响应</td>
+<td>正式 TEST 当前响应未超过 reference 响应</td>
+<td>本轮未支持</td>
+</tr>
+<tr>
+<td>当前配方已经达到最终论文目标</td>
+<td>正式增量很小，部分指标、seed、bank 不同向</td>
+<td>尚未达到</td>
+</tr>
+</tbody>
+</table>
+<p>本轮对论文目标的整体判断是：<strong>比第一批略有改善，但仍未出现识别性能上的突破。</strong> 正向证据集中在留出教师的效用决策；正式 CZSL 端仍存在迁移缺口。应保留 TRUST 的效用监督主线，同时降低对“继续匹配训练阶段和降低探针噪声就能解决问题”的预期。</p>
+<h3>下一步建议</h3>
+<p>把后续工作集中为一批“决策情境条件化的效用迁移”实验：保留当前强 CPF 基底、on/off 监督和共享拟合框架，检验关系效用是否需要显式依赖候选组合或竞争组，而非继续为每个模型只输出一组全局关系概率。旧全局映射、条件化映射和匹配置换使用相同正式权重或同一训练预算比较。</p>
+<p>这与此前 Competition 只替换效用标量目标不同：新的研究变量是效用函数是否能表示“关系在什么组合竞争情境下有用”。当前结果提供了动机——留出教师上可用的效用没有稳定迁移到正式测试组合——尚未证明这个解释。下一批应直接测量相应条件效用并评价真实决策，不再仅用预测相关性选择方案。</p>
+<p>本批结果不支持把主要资源继续投入更长教师训练、更多同类小范围正则搜索或扩大噪声实验。先改变并检验影响组合迁移的核心建模假设；真实识别增量建立后，再做新划分或第二数据集确认。</p>
+<h2>8. 数据来源与复算范围</h2>
+<p>本报告覆盖本轮保存的全部正式结果和 Q5 策略，不筛选最好的 seed 或图 bank。正式主表保留 bank1701，同时给出三 bank 平均；Q5 使用八 bank 平均。三套正式模型共享一个效用预测器，图 bank 和置换均不是独立训练重复。</p>
+<p>复算使用已保存的逐图像预测、效用 on/off 统计与 checkpoint；未重新执行 CLIP 编码或 GPU 图像前向。报告中的后续实验尚未实施。</p>
+<ul>
+<li>
+<p><a href="C:/Users/llenovo/Documents/ChatGPT/USG/output/stage_results/server_results_20261025_183634/trustcpf_stage_v1_10ep/work/status.json">完整执行状态</a></p>
+</li>
+<li>
+<p><a href="C:/Users/llenovo/Documents/ChatGPT/USG/output/stage_results/server_results_20261025_183634/trustcpf_stage_v1_10ep/work/summary.csv">972 行正式识别结果</a></p>
+</li>
+<li>
+<p><a href="C:/Users/llenovo/Documents/ChatGPT/USG/output/stage_results/server_results_20261025_183634/trustcpf_stage_v1_10ep/work/paired.csv">576 行正式配对</a></p>
+</li>
+<li>
+<p><a href="C:/Users/llenovo/Documents/ChatGPT/USG/output/stage_results/server_results_20261025_183634/trustcpf_stage_v1_10ep/work/q5_decisions.csv">744 行 Q5 决策</a></p>
+</li>
+<li>
+<p><a href="C:/Users/llenovo/Documents/ChatGPT/USG/output/stage_results/server_results_20261025_183634/trustcpf_stage_v1_10ep/work/q5_paired.csv">336 行 Q5 配对</a></p>
+</li>
+<li>
+<p><a href="C:/Users/llenovo/Documents/ChatGPT/USG/output/stage_results/server_results_20261025_183634/trustcpf_stage_v1_10ep/work/utility.csv">效用预测指标</a></p>
+</li>
+<li>
+<p><a href="C:/Users/llenovo/Documents/ChatGPT/USG/output/stage_results/server_results_20261025_183634/trustcpf_stage_v1_10ep/work/teacher_curves.csv">十五教师完整训练曲线</a></p>
+</li>
+<li>
+<p><a href="C:/Users/llenovo/Documents/ChatGPT/USG/output/stage_results/server_results_20261025_183634/trustcpf_stage_v1_10ep/work/teacher_change.csv">新旧效用变化</a></p>
+</li>
+<li>
+<p><a href="C:/Users/llenovo/Documents/ChatGPT/USG/output/stage_results/server_results_20261025_183634/trustcpf_stage_v1_10ep/work/response_repeats.csv">重复响应</a></p>
+</li>
+<li>
+<p><a href="C:/Users/llenovo/Documents/ChatGPT/USG/output/stage_results/server_results_20261025_183634/trustcpf_stage_v1_10ep/work/deployment.csv">图分配结构</a></p>
+</li>
+<li>
+<p><a href="C:/Users/llenovo/Documents/ChatGPT/USG/output/stage_results/server_results_20261025_183634/trustcpf_stage_v1_10ep/work/costs.csv">阶段成本</a></p>
+</li>
+</ul>
+<p>归档 SHA256：<code>511d8ffa1a733eb73f09db187f1641cf166b6b1ae50e5afaf264e50240d33b76</code>。</p>
+<ul>
+<li>
+<p><a href="C:/Users/llenovo/Documents/ChatGPT/USG/analysis_TRUST_CPF_stage_v1_20261025/verification.json">预测、checkpoint 与文件完整性复算</a></p>
+</li>
+<li>
+<p><a href="C:/Users/llenovo/Documents/ChatGPT/USG/analysis_TRUST_CPF_stage_v1_20261025/mechanism_verification.json">效用测量、拟合及 Q5 决策复算</a></p>
+</li>
+<li>
+<p><a href="C:/Users/llenovo/Documents/ChatGPT/USG/analysis_TRUST_CPF_stage_v1_20261025/table_verification.json">配对与聚合表复算</a></p>
+</li>
+</ul></article>

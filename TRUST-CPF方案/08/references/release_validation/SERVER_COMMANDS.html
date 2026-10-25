@@ -1,0 +1,151 @@
+<!doctype html><meta charset="utf-8"><style>body{font:16px/1.8 "Microsoft YaHei",sans-serif;max-width:1200px;margin:32px auto;padding:24px;color:#1e293b}h1{font-size:29px}h2{margin-top:38px}table{border-collapse:collapse;width:100%;font-size:14px}th,td{border:1px solid #d6dce5;padding:8px}th{background:#eef3fa}.math-block{padding:20px 0;overflow-x:auto}math{font-family:"Cambria Math";font-size:20px}pre{font:14px/1.6 Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;background:#f3f5f8;padding:16px;border-radius:6px}</style><h1>TRUST-CPF 第一批：上传、10 epoch 训练、结果下载</h1>
+<p>服务器：xhw@211.87.232.122。默认使用 <strong>0／1／2 卡</strong>，分别运行 seed 3351／3352／3353。</p>
+<p>本版每个 seed 先从旧 reference 重新训练 10 epoch Uniform，随后冻结共同最佳权重完成所有策略比较。效用岭回归为闭式求解，不另设 epoch。</p>
+<h2>1. 在本机 PowerShell 上传</h2>
+<p>直接复制以下整段。压缩包与校验文件已在同一个本地目录。</p>
+<pre><code class="language-powershell">$cpfServer = &quot;xhw@211.87.232.122&quot;
+$cpfZip = &quot;C:\Users\llenovo\Documents\ChatGPT\USG\output\trustcpf_state_v1_10ep.zip&quot;
+
+ssh -o ServerAliveInterval=30 -o ServerAliveCountMax=6 $cpfServer &quot;mkdir -p /data/xhw/experiments&quot;
+if ($LASTEXITCODE -ne 0) { throw &quot;服务器目录创建失败&quot; }
+
+scp -o ServerAliveInterval=30 -o ServerAliveCountMax=6 $cpfZip &quot;$cpfZip.sha256&quot; &quot;$($cpfServer):/data/xhw/experiments/&quot;
+if ($LASTEXITCODE -ne 0) { throw &quot;上传未完成，重新执行上传命令&quot; }
+
+ssh -o ServerAliveInterval=30 -o ServerAliveCountMax=6 $cpfServer
+</code></pre>
+<p>输入密码时终端不显示字符。最后一条命令登录服务器。</p>
+<h2>2. 在服务器解压并准备</h2>
+<pre><code class="language-bash">cd /data/xhw/experiments
+sha256sum -c trustcpf_state_v1_10ep.zip.sha256
+unzip -o trustcpf_state_v1_10ep.zip -d /data/xhw/experiments
+
+cd /data/xhw/experiments/trustcpf_state_v1_10ep
+conda activate vgcpod_v1
+python -c &quot;import torch; print('PyTorch:', torch.__version__, 'CUDA:', torch.cuda.is_available())&quot;
+python -m pip install -r requirements.txt
+
+python run.py setup \
+  --source /data/xhw/experiments/trustcpf_r5_v1_10ep \
+  --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14 \
+  --work /data/xhw/experiments/trustcpf_state_v1_10ep/work
+</code></pre>
+<p>setup 导入已有 15 个教师、响应、U-NLL 标签和 reference，并统一完成四种岭回归拟合。正式 GPU 评分使用其中三个预测器。完成时显示 SETUP_COMPLETE，后续脚本会自动读取本次 Python 和路径。</p>
+<p>代码包不重复打包原始图像与 CLIP 特征缓存；使用上一轮 R5 已运行成功的缓存。R5 的旧实验文件保持原样。</p>
+<h2>3. 在服务器用 0／1／2 卡运行完整队列</h2>
+<pre><code class="language-bash">cd /data/xhw/experiments/trustcpf_state_v1_10ep
+mkdir -p logs
+nohup bash scripts/run_all.sh 0 1 2 &gt; logs/queue.log 2&gt;&amp;1 &amp;
+tail -f logs/queue.log
+</code></pre>
+<p>三卡各一条完整队列；10 epoch 训练结束后，会自动继续提取响应、生成策略、执行 Q5 审计和冻结识别。</p>
+<p>查看具体训练进度，另开一个服务器终端执行：</p>
+<pre><code class="language-bash">cd /data/xhw/experiments/trustcpf_state_v1_10ep
+tail -f logs/seed3351.log
+</code></pre>
+<p>其余两条日志为 logs/seed3352.log、logs/seed3353.log。按 Ctrl+C 退出 tail，不会停止 nohup 任务。</p>
+<p>若使用 1／2／3 卡，只把启动命令改成：</p>
+<pre><code class="language-bash">nohup bash scripts/run_all.sh 1 2 3 &gt; logs/queue.log 2&gt;&amp;1 &amp;
+</code></pre>
+<p>一次只启动一条队列。中断后在同一目录重新运行原启动命令，程序继续未完成 epoch 或阶段。</p>
+<h2>4. 检查三 seed 是否全部完成</h2>
+<pre><code class="language-bash">cd /data/xhw/experiments/trustcpf_state_v1_10ep
+bash scripts/status.sh
+</code></pre>
+<p>正式配置最终应显示：</p>
+<pre><code class="language-text">STATUS 17 /17 recognition 1512 / 1512 Q5 600 / 600 curves 33 /33 complete True
+</code></pre>
+<p>队列日志还会显示 QUEUE_COMPLETE。最佳 epoch 可能小于 10；实际训练到达第 10 epoch，由 training_contract.json 和 last.pt 记录。</p>
+<p>查看卡占用：</p>
+<pre><code class="language-bash">nvidia-smi
+</code></pre>
+<h2>5. 在服务器打包完整结果</h2>
+<p>确认 complete True 后运行：</p>
+<pre><code class="language-bash">cd /data/xhw/experiments/trustcpf_state_v1_10ep
+bash scripts/pack_results.sh
+</code></pre>
+<p>打包会持续输出 PACK_PROGRESS，最后输出 PACK_COMPLETE。结果固定保存在：</p>
+<pre><code class="language-text">/data/xhw/experiments/trustcpf_state_v1_10ep_results.tar.gz
+/data/xhw/experiments/trustcpf_state_v1_10ep_results.tar.gz.sha256
+</code></pre>
+<p>包内包含预测、效用模型、教师、Uniform 权重、标签、配置和日志。文件名采用英文，校验文件采用 LF 换行。</p>
+<h2>6. 回到本机 PowerShell 下载、校验、解压</h2>
+<p>以下整段独立可运行，不依赖前面会话中的变量：</p>
+<pre><code class="language-powershell">$ErrorActionPreference = &quot;Stop&quot;
+$cpfServer = &quot;xhw@211.87.232.122&quot;
+$cpfLocal = &quot;C:\Users\llenovo\Documents\ChatGPT\USG\output\state_results&quot;
+New-Item -ItemType Directory -Force -Path $cpfLocal | Out-Null
+
+$cpfArchive = Join-Path $cpfLocal &quot;trustcpf_state_v1_10ep_results.tar.gz&quot;
+$cpfHashFile = &quot;$cpfArchive.sha256&quot;
+
+scp -o ServerAliveInterval=30 -o ServerAliveCountMax=6 &quot;$($cpfServer):/data/xhw/experiments/trustcpf_state_v1_10ep_results.tar.gz&quot; $cpfArchive
+if ($LASTEXITCODE -ne 0) { throw &quot;结果下载未完成，重新执行下载命令&quot; }
+
+scp -o ServerAliveInterval=30 -o ServerAliveCountMax=6 &quot;$($cpfServer):/data/xhw/experiments/trustcpf_state_v1_10ep_results.tar.gz.sha256&quot; $cpfHashFile
+if ($LASTEXITCODE -ne 0) { throw &quot;校验文件下载失败&quot; }
+
+$cpfExpected = ((Get-Content -LiteralPath $cpfHashFile -Raw).Trim() -split '\s+')[0].ToLowerInvariant()
+$cpfActual = (Get-FileHash -LiteralPath $cpfArchive -Algorithm SHA256).Hash.ToLowerInvariant()
+if ($cpfActual -ne $cpfExpected) { throw &quot;SHA256 不一致，请重新下载&quot; }
+
+$cpfExtract = Join-Path $cpfLocal (&quot;server_results_&quot; + (Get-Date -Format &quot;yyyyMMdd_HHmmss&quot;))
+New-Item -ItemType Directory -Path $cpfExtract | Out-Null
+tar -xzf $cpfArchive -C $cpfExtract
+if ($LASTEXITCODE -ne 0) { throw &quot;解压失败&quot; }
+
+Write-Host &quot;保存完成：$cpfExtract\trustcpf_state_v1_10ep\work&quot;
+</code></pre>
+<p>每次解压进入新时间目录，保留之前的结果。原始压缩包也留在 state_results 中。</p>
+<h2>7. 保存后重点查看的文件</h2>
+<table>
+<thead>
+<tr>
+<th>文件</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>work/status.json</td>
+<td>完整性和阶段数量</td>
+</tr>
+<tr>
+<td>work/summary.csv</td>
+<td>逐 seed、状态、策略、bank、split、world 的识别指标</td>
+</tr>
+<tr>
+<td>work/paired.csv</td>
+<td>相对 Uniform、五置换均值及独立／联合预测器的配对差值</td>
+</tr>
+<tr>
+<td>work/aggregates.json</td>
+<td>三 seed 汇总，以及先平均 bank 后的汇总</td>
+</tr>
+<tr>
+<td>work/q5_decisions.csv、q5_paired.csv</td>
+<td>Q5 实际效用决策与配对比较</td>
+</tr>
+<tr>
+<td>work/utility.csv、utility/selection.json</td>
+<td>效用预测指标与共同 λ 选择</td>
+</tr>
+<tr>
+<td>work/training_curves.csv</td>
+<td>三 seed 的 epoch 0–10 曲线</td>
+</tr>
+<tr>
+<td>work/response_repeats.csv、response_transfer.csv</td>
+<td>重复响应与跨状态排序诊断</td>
+</tr>
+<tr>
+<td>work/deployment.csv、costs.csv</td>
+<td>类型概率、节点覆盖、原型位移与耗时</td>
+</tr>
+<tr>
+<td>work/seed3351/runs/uniform/best.pt、last.pt</td>
+<td>seed3351 最佳／第 10 epoch 权重；另两个 seed 同结构</td>
+</tr>
+</tbody>
+</table>
+<p>论文主比较使用 uniform_best 状态，同 seed 的所有方法共享完全相同的识别权重。reference 状态、错配响应和简单读出用于解释收益来源。</p>

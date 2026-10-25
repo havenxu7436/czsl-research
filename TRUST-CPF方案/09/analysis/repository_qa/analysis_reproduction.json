@@ -1,0 +1,85 @@
+{
+  "stage": "09",
+  "passed": true,
+  "prepared": true,
+  "scripts": [
+    {
+      "script": "verify_predictions.py",
+      "sha256": "79103a42335999b0fd5f237d94efae251e90f6ad4be258d4203f699fb3f2ddca",
+      "log": "verify_predictions.py.log"
+    },
+    {
+      "script": "verify_mechanism.py",
+      "sha256": "04c1743f0089457c65b07552709dbedfeccafaa0d58ab7177d0ebaa5b42386d3",
+      "log": "verify_mechanism.py.log"
+    },
+    {
+      "script": "summarize.py",
+      "sha256": "2cc2871a737b835b544ad169bc5b051da75aabad45a16d800c42bd7c024cef80",
+      "log": "summarize.py.log"
+    },
+    {
+      "script": "check_tables.py",
+      "sha256": "b35b159a0569ecfdae77ebfc7180b9e1cc9c7bde797a79c83e3d79b9c65b0ece",
+      "log": "check_tables.py.log"
+    }
+  ],
+  "comparisons": [
+    {
+      "file": "verification.json",
+      "numerically_equal": true,
+      "absolute_tolerance": 1e-09,
+      "relative_tolerance": 1e-09,
+      "ignored_runtime_field": "seconds",
+      "relocated_path_fields": []
+    },
+    {
+      "file": "prediction_details.json",
+      "numerically_equal": true,
+      "absolute_tolerance": 1e-09,
+      "relative_tolerance": 1e-09,
+      "ignored_runtime_field": "seconds",
+      "relocated_path_fields": []
+    },
+    {
+      "file": "mechanism_verification.json",
+      "numerically_equal": true,
+      "absolute_tolerance": 1e-09,
+      "relative_tolerance": 1e-09,
+      "ignored_runtime_field": "seconds",
+      "relocated_path_fields": []
+    },
+    {
+      "file": "mechanism_details.json",
+      "numerically_equal": true,
+      "absolute_tolerance": 1e-09,
+      "relative_tolerance": 1e-09,
+      "ignored_runtime_field": "seconds",
+      "relocated_path_fields": []
+    },
+    {
+      "file": "summary_data.json",
+      "numerically_equal": true,
+      "absolute_tolerance": 1e-09,
+      "relative_tolerance": 1e-09,
+      "ignored_runtime_field": "seconds",
+      "relocated_path_fields": []
+    },
+    {
+      "file": "table_verification.json",
+      "numerically_equal": true,
+      "absolute_tolerance": 1e-09,
+      "relative_tolerance": 1e-09,
+      "ignored_runtime_field": "seconds",
+      "relocated_path_fields": []
+    }
+  ],
+  "additional_checks": [
+    {
+      "check": "selected_checkpoint_weights_match_embedded_best",
+      "teachers": 15,
+      "passed": true
+    }
+  ],
+  "training_started": false
+}

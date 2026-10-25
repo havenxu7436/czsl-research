@@ -1,0 +1,116 @@
+from common_analysis import *
+from trustcpf import state,compact,r5,align,competition as cmp
+from trustcpf.metrics import exact_curve,native_curve
+import time
+
+tic=time.time();cfg=read_json(ROOT/'configs/default.json');data={};error=0.;raw_count=0
+old=BASE/'trustcpf_r5_v1_10ep_results_20261024_210943/trustcpf_r5_v1_10ep/work'
+for seed in SEEDS:
+    w=WORK/('seed%d'%seed);ty=load_torch(w/'inputs/bank.pt')['types'].numpy();xx=[];yy=[]
+    for j in range(1,6):
+        cp=w/('teachers/%d/last.pt'%j);m=load_torch(w/('measurements/fold%d.pt'%j));h=load_torch(w/('responses/fold%d.pt'%j))
+        split=read_json(w/('splits/fold%d.json'%j));assert m['split']==split
+        assert m['teacher_sha256']==h['checkpoint_sha256']==sha(cp)
+        assert sha(cp)==sha(old/('seed%d/teachers/%d/last.pt'%(seed,j)))
+        assert set(h['support_indices'])<=set(split['train_ids'])
+        for name in ('seen','unseen'):assert not set(split['measure'][name])&set(split['train_ids'])
+        if j==5:
+            e=set(split['evaluate']['seen']+split['evaluate']['unseen'])
+            assert not e&set(split['train_ids']) and not e&set(split['measure']['seen']+split['measure']['unseen'])
+        raw_count+=len(m['blocks']);error=max(error,close(m['target'],np.asarray(m['blocks']).mean(0)))
+        error=max(error,close(m['se2'],np.asarray(m['blocks']).var(0,ddof=1)/len(m['blocks'])))
+        xx.append(h['features'].double().numpy());yy.append(np.asarray(m['target'])[:,0])
+    data[seed]=(xx,yy,ty)
+
+selections=read_json(WORK/'utility/selection.json');predsaved=load_torch(WORK/'utility/predictions.pt')
+fitted={};fitrows=[]
+for cell in state.CELLS:
+    trials=[]
+    for lam in cfg['teacher_lambdas']:
+        models={}
+        for seed in SEEDS:
+            ids=SEEDS if cell.startswith('pooled') else [seed]
+            xs=[x for s in ids for x in data[s][0][:3]];ys=[y for s in ids for y in data[s][1][:3]]
+            m=compact.fit_ridge(xs,ys,ty,len(xs)*lam)
+            if cell.endswith('relative'):m=r5.fit_relative(xs,ys,ty,len(xs)*lam,m)
+            models[seed]=m
+        errs=[float(np.mean([np.var((compact.predict(models[s],data[s][0][3],ty)[ty==t]-data[s][1][3][ty==t])/models[s]['scales'][t]) for t in range(3)])) for s in SEEDS]
+        trials.append((float(np.mean(errs)),lam,models))
+        saved=next(v for v in selections[cell]['trials'] if v['lam']==lam)
+        error=max(error,close(errs,saved['by_seed'],1e-8))
+    choice=min(trials,key=lambda x:(x[0],-x[1]));assert choice[1]==selections[cell]['selected_lambda']
+    for s,m in choice[2].items():
+        stored=state.predictor(WORK,cell,s)
+        for k in ('beta','center','spread','scales'):error=max(error,close(m[k],stored[k],1e-9))
+        pred=compact.predict(m,data[s][0][4],ty);error=max(error,close(pred,predsaved['predictions'][s][cell]))
+        fitted[(s,cell)]=m
+        fitrows.append(dict(seed=s,cell=cell,**compact.point_metrics(pred,data[s][1][4]),r2=r5.centered_metrics(pred,data[s][1][4],ty)['r2']))
+print('RIDGE_AND_INPUTS_VERIFIED',raw_count,flush=True)
+
+repeat_scores=[];noise=[];shift=[];similarity=[];decisions=0;singlegraphs=0
+for seed in SEEDS:
+    w=WORK/('seed%d'%seed);pol=load_torch(w/'policies.pt')
+    for a,b in [('reference','uniform_best'),('reference_repeat','uniform_best_repeat')]:
+        aa,bb=[load_torch(w/('responses/'+n+'.pt')) for n in (a,b)]
+        assert aa['support_indices']==bb['support_indices'] and aa['seed']==bb['seed']
+        assert torch.equal(aa['weights'],bb['weights'])
+    qrep=load_torch(w/'responses/fold5_repeat.pt');sp=read_json(w/'splits/fold5.json')
+    assert set(qrep['support_indices'])<=set(sp['train_ids'])
+    for name in ('reference','uniform_best','fold5'):
+        a,b=[load_torch(w/('responses/'+name+suffix+'.pt')) for suffix in ('','_repeat')]
+        cp=w/('teachers/5/last.pt' if name=='fold5' else 'reference/last.pt' if name=='reference' else 'runs/uniform/best.pt')
+        assert a['checkpoint_sha256']==b['checkpoint_sha256']==sha(cp)
+        x0,x1=a['features'].double().numpy(),b['features'].double().numpy()
+        for method in METHODS:
+            m=fitted[(seed,method)];p0=compact.predict(m,x0,ty);p1=compact.predict(m,x1,ty);avg=compact.predict(m,(x0+x1)/2,ty)
+            close(avg,(p0+p1)/2,1e-12)
+            pi0,_=align.policy(p0,ty,1.);pi1,_=align.policy(p1,ty,1.)
+            for t in range(3):
+                ix=ty==t
+                signal=.5*(np.var(p0[ix])+np.var(p1[ix]));nv=np.var(p1[ix]-p0[ix])/2
+                noise.append(dict(seed=seed,state=name,method=method,type=t,rho=compact.point_metrics(p0[ix],p1[ix])['spearman'],
+                    probability_rmse=float(torch.sqrt((pi1[ix]-pi0[ix]).square().mean())),noise_to_observed_variance=nv/signal if signal>0 else 0.,
+                    n_edges=int(ix.sum())))
+            if name=='fold5':
+                y=data[seed][1][4]
+                for label,p in [('primary',p0),('repeat',p1),('average',avg)]:
+                    pi,_=align.policy(p,ty,1.)
+                    repeat_scores.append(dict(seed=seed,method=method,measurement=label,**compact.point_metrics(p,y),
+                        centered_r2=r5.centered_metrics(p,y,ty)['r2'],type_rho=float(np.mean([compact.point_metrics(p[ty==t],y[ty==t])['spearman'] for t in range(3)])),
+                        linear_gain=float(y@(pi.numpy()-.5))))
+            else:
+                saved=pol['states'][name][method]
+                close(saved['mu'],p0);close(saved['pi'].numpy(),pi0.numpy(),1e-12)
+            shift.append(dict(seed=seed,state=name,method=method,standardized_rms=float(np.sqrt(np.mean(((x0-m['center'])/m['spread'])**2)))))
+    for st in ('reference','uniform_best'):
+        ps=pol['states'][st]
+        for t in range(3):
+            a,b=[ps[m]['pi'].numpy()[ty==t] for m in ('pooled_absolute','pooled_relative')]
+            similarity.append(dict(seed=seed,state=st,type=t,rho=compact.point_metrics(a,b)['spearman'],mae=float(np.mean(np.abs(a-b)))))
+        other='uniform_best' if st=='reference' else 'reference'
+        close(ps['pooled_absolute_cross_response']['pi'],pol['states'][other]['pooled_absolute']['pi'],0)
+    audit=read_json(w/'decision/audit.json');rows={(r['bank'],r['policy']):r for r in audit['rows']}
+    for bank in cfg['audit_eval_seeds']:
+        gen=torch.Generator().manual_seed(bank);uniforms=torch.rand(16,96,generator=gen).double()
+        for policy in state.q5_keys(cfg):
+            path=w/'decision'/('bank%d'%bank)/(policy+'.pt');v=load_torch(path)
+            assert v['checkpoint_sha256']==sha(w/'teachers/5/last.pt')
+            close(v['pi'],pol['q5'][policy]['pi'],0)
+            assert torch.equal((uniforms<v['pi'][None]).float(),v['masks'])
+            sm=v['seen'][v['truth']]
+            sufficient=cmp.sufficient(v['mixture_logprobs'],v['truth'],v['seen'])
+            mix=cmp.diagnostics(sufficient,sm)
+            per=[cmp.diagnostics(x,sm) for x in v['single_statistics']]
+            single={k:float(np.mean([p[k] for p in per])) for k in per[0]}
+            mix['AUC_native']=native_curve(v['mixture_logprobs'].numpy(),v['truth'].numpy(),v['seen'].numpy())['AUC']
+            error=max(error,close(exact_curve(v['mixture_logprobs'].numpy(),v['truth'].numpy(),v['seen'].numpy())['AUC'],mix['AUC_exact']))
+            for mode,vals in [('single',single),('mixture',mix)]:
+                for k,num in vals.items():
+                    error=max(error,close(num,v[mode][k],3e-5 if k=='AUC_native' else 1e-8),close(num,rows[(bank,policy)][mode+'_'+k],3e-5 if k=='AUC_native' else 1e-8))
+            decisions+=1;singlegraphs+=len(per)
+        print('Q5_RECOMPUTED',seed,bank,'total',decisions,flush=True)
+write('mechanism_verification.json',dict(passed=True,teachers=15,measurement_blocks=raw_count,ridge_cells=4,models=8,
+    q5_policy_banks=decisions,single_graph_statistics=singlegraphs,independent_evaluation_images=True,
+    response_state_matched=True,common_random_graphs=True,max_error=error,seconds=time.time()-tic))
+write('mechanism_details.json',dict(fit=fitrows,repeat_q5=repeat_scores,repeat_noise=noise,input_shift=shift,absolute_relative_policy=similarity))
+print('MECHANISM_COMPLETE',decisions,error,flush=True)

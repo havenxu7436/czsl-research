@@ -1,0 +1,42 @@
+
+from pathlib import Path
+import json,numpy as np,pandas as pd
+OUT=Path(__file__).resolve().parent
+W=OUT.parent/'output/stage_results/server_results_20261025_183634/trustcpf_stage_v1_10ep/work'
+s=pd.read_csv(W/'summary.csv');p=pd.read_csv(W/'paired.csv');q=pd.read_csv(W/'q5_decisions.csv');qp=pd.read_csv(W/'q5_paired.csv')
+si=s.set_index(['seed','policy','bank','phase','world']);qi=q.set_index(['seed','policy','bank']);err=0.
+def check(a,b):
+ global err
+ e=abs(float(a)-float(b));err=max(err,e);assert e<1e-10,(a,b,e)
+def controls(method,control):
+ if control=='permutation_mean':return [method+'_perm%d'%j for j in range(7101,7106)]
+ if control=='cross_response':return ['matched_cross' if method=='matched_single' else 'matched_average_cross']
+ if control=='single':return [method.replace('average','single')]
+ return [control]
+for row in p.itertuples():
+ method,control=row.comparison.split('-minus-');names=controls(method,control)
+ own=si.loc[(row.seed,method,row.bank,row.phase,row.world)]
+ refs=pd.DataFrame([si.loc[(row.seed,n,row.bank,row.phase,row.world)] for n in names])
+ for k in ['AUC_native','AUC_exact','HM']:check(getattr(row,k),own[k]-refs[k].mean())
+ check(row.raw_NLL_gain,refs.raw_NLL.mean()-own.raw_NLL)
+for row in qp.itertuples():
+ method,control=row.comparison.split('-minus-');names=controls(method,control)
+ own=qi.loc[(row.seed,method,row.bank)];refs=pd.DataFrame([qi.loc[(row.seed,n,row.bank)] for n in names])
+ for k in ('AUC_exact','AUC_native'):check(getattr(row,k),own['mixture_'+k]-refs['mixture_'+k].mean())
+ check(row.NLL_gain,refs.mixture_unll.mean()-own.mixture_unll)
+agg=json.loads((W/'aggregates.json').read_text())
+for a in agg:
+ name=a['table']
+ table=s if name.startswith('recognition') else p if name.startswith('paired') else qp if name.startswith('q5_paired') else q
+ keys=['policy' if name.startswith('recognition') else 'comparison','phase','world'] if not name.startswith('q5') else ['comparison' if name.startswith('q5_paired') else 'policy']
+ if not name.endswith('bankmean'):keys+=['bank']
+ subset=table
+ for k in keys:subset=subset[subset[k]==a[k]]
+ for k in a:
+  if not k.endswith('_mean'):continue
+  metric=k[:-5];v=subset.groupby('seed')[metric].mean();assert len(v)==3
+  check(a[k],v.mean());check(a[metric+'_sd'],v.std(ddof=1))
+  for x,y in zip(a[metric+'_by_seed'],v):check(x,y)
+result=dict(passed=True,recognition_rows=len(s),paired_rows=len(p),q5_rows=len(q),q5_paired_rows=len(qp),aggregate_records=len(agg),max_error=err)
+(OUT/'table_verification.json').write_text(json.dumps(result,indent=2),encoding='utf8')
+print(json.dumps(result))

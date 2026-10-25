@@ -1,0 +1,46 @@
+{
+  "passed": true,
+  "tests": 40,
+  "passed_tests": 39,
+  "skipped_tests": 1,
+  "seconds": 396.472,
+  "skip_reason": "Unchanged native CLIP extraction; experiment consumes existing verified features",
+  "new_batch_smoke": {
+    "teachers": 15,
+    "epochs": 10,
+    "complete_stages": 26,
+    "recognition_rows": 264,
+    "q5_rows": 66,
+    "teacher_curve_rows": 165,
+    "small_fixture_graphs": 2,
+    "small_fixture_formal_banks": 2,
+    "small_fixture_q5_banks": 2,
+    "small_fixture_permutations": 1
+  },
+  "production_expected": {
+    "teachers": 15,
+    "epochs": 10,
+    "complete_stages": 26,
+    "recognition_rows": 972,
+    "q5_rows": 744,
+    "teacher_curve_rows": 165
+  },
+  "local_runtime": "Python 3.11.16 / PyTorch 2.11.0+cu128 CPU; no server GPU training launched",
+  "checks": [
+    "epoch3 resume equals uninterrupted epoch10 exactly",
+    "old predictor formal scores equal State batch one",
+    "source input files unchanged",
+    "backbone unchanged",
+    "on/off utility labels recomputed",
+    "all result file hashes preserved after packing"
+  ],
+  "shell_scope": "PowerShell scripts and document blocks parsed; Bash scripts inspected and LF checked; no local Bash runtime",
+  "device_fix_regression": {
+    "tests": 2,
+    "passed": 2,
+    "seconds": 12.743,
+    "actual_cuda": true,
+    "log": "device_fix_tests.log",
+    "note": "Run after the one-line device comparison repair; earlier 40-test suite retained as baseline"
+  }
+}

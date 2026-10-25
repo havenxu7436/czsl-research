@@ -1,0 +1,100 @@
+
+from common_analysis import *
+from trustcpf.metrics import native_curve,exact_curve
+from trustcpf.engine import calibration_metrics
+from trustcpf import matched
+import time
+tic=time.time();checked=0;files={};stages=[]
+archive=BASE/'output/stage_results/trustcpf_stage_v1_10ep_results.tar.gz'
+expected=Path(str(archive)+'.sha256').read_text().split()[0]
+assert sha(archive)==expected
+release=read_json(ROOT/'MANIFEST.json')
+for name,h in release.items():assert sha(ROOT/name)==h,name
+for marker in sorted((WORK/'progress').glob('*/*.json')):
+    v=read_json(marker)
+    if 'outputs' not in v:continue
+    r=WORK if marker.parent.name=='global' else WORK/marker.parent.name
+    for name,h in v['outputs'].items():
+        p=r/name
+        if str(p) not in files:files[str(p)]=sha(p)
+        assert files[str(p)]==h,p
+        checked+=1
+    stages.append(str(marker.relative_to(WORK)))
+assert len(stages)==26
+print('ARCHIVE_MANIFEST_AND_STAGES_VERIFIED',checked,flush=True)
+cfg=read_json(ROOT/'configs/default.json')
+summary=csvrows(WORK/'summary.csv')
+index={(int(r['seed']),r['policy'],int(r['bank']),r['phase'],r['world']):r for r in summary}
+assert len(index)==972
+max_error=0.;count=0;records=[];training=[];old_metrics_checked=0
+old=BASE/'output/state_results/server_results_20261025_113118/trustcpf_state_v1_10ep/work'
+for seed in SEEDS:
+    w=WORK/('seed%d'%seed);pol=load_torch(w/'policies.pt');ty=pol['types']
+    cp=w/'runs/uniform/best.pt';h=sha(cp);assert h==sha(old/('seed%d/runs/uniform/best.pt'%seed))
+    best=load_torch(cp);ref=load_torch(w/'reference/last.pt')
+    assert all(torch.equal(v,best['model'][k]) for k,v in ref['model'].items() if k.startswith('backbone.'))
+    for j in range(1,6):
+        t=w/('teachers/%d'%j);last=load_torch(t/'last.pt');tb=load_torch(t/'best.pt');initial=load_torch(w/('old/teachers/%d/last.pt'%j))
+        hist=read_json(t/'history.json');contract=read_json(t/'contract.json')
+        assert last['epoch']==10 and [v['epoch'] for v in hist]==list(range(11))
+        assert hist==last['history']
+        chosen=max(hist,key=lambda x:(x['stop']['AUC_native'],-x['epoch']))['epoch']
+        assert tb['epoch']==chosen==contract['selected_epoch']==last['best_epoch']
+        for k,v in initial['model'].items():
+            if k.startswith('backbone.'):assert torch.equal(v,last['model'][k]) and torch.equal(v,tb['model'][k])
+        assert contract['initial_sha256']==sha(w/('old/teachers/%d/last.pt'%j))
+        assert contract['best_sha256']==sha(t/'best.pt') and contract['last_sha256']==sha(t/'last.pt')
+        if chosen==0:assert all(torch.equal(v,tb['model'][k]) for k,v in initial['model'].items())
+        training.append(dict(seed=seed,fold=j,epoch=chosen,stop0=hist[0]['stop']['AUC_native'],stopbest=hist[chosen]['stop']['AUC_native'],
+            stop10=hist[10]['stop']['AUC_native'],loss1=hist[1]['loss'],loss10=hist[-1]['loss'],
+            seconds=sum(r.get('seconds',0) for r in hist),stop_best_gain=hist[chosen]['stop']['AUC_native']-hist[0]['stop']['AUC_native'],
+            stop_last_gain=hist[10]['stop']['AUC_native']-hist[0]['stop']['AUC_native']))
+    for name in matched.formal_keys(cfg):
+        p=pol['states']['uniform_best'][name]['pi'].numpy()
+        for t in range(3):close(p[ty==t].sum(),(ty==t).sum()/2,1e-10)
+        if '_perm' in name:
+            original=pol['states']['uniform_best'][pol['states']['uniform_best'][name]['method']]['pi'].numpy()
+            for t in range(3):close(np.sort(p[ty==t]),np.sort(original[ty==t]),0)
+        for bank in cfg['eval_graph_seeds']:
+            d=w/'recognition/uniform_best'/name/('bank%d'%bank);m=read_json(d/'metrics.json')
+            assert m['checkpoint_sha256']==h
+            if name=='uniform' or name.startswith('old_single'):
+                prev='uniform' if name=='uniform' else name.replace('old_single','pooled_absolute')
+                pm=read_json(old/('seed%d/recognition/uniform_best'%seed)/prev/('bank%d/metrics.json'%bank))
+                assert m['val']==pm['val'] and m['test']==pm['test']
+                old_metrics_checked+=1
+            for phase in ('val','test'):
+                with np.load(d/(phase+'_predictions.npz')) as z:
+                    close(z['graph_pi'],p.astype(np.float32),0)
+                    masks=z['graph_masks'];assert masks.shape==(16,96) and np.isin(masks,[0,1]).all()
+                    if phase=='val':valmasks=masks.copy()
+                    else:assert np.array_equal(valmasks,masks)
+                    for world in ('cw','ow'):
+                        x,y,seen=z[world+'_logprob'],z[world+'_truth'],z[world+'_seen']
+                        assert np.isfinite(x).all()
+                        close(np.exp(x.astype(float)).sum(1),np.ones(len(x)),2e-6)
+                        mm=m[phase][world];native=native_curve(x,y,seen);exact=exact_curve(x,y,seen)
+                        max_error=max(max_error,close(native['AUC'],mm['AUC_native'],3e-5),close(exact['AUC'],mm['AUC_exact'],1e-9))
+                        for c in ('unbiased','at_val_bias','calibrated'):
+                            cm=mm[c];re=calibration_metrics(x,y,seen,cm['bias'],cm['temperature'])
+                            for k in ('NLL','NLL_seen','NLL_unseen','HM','seen','unseen','ECE'):max_error=max(max_error,close(re[k],cm[k],1e-9))
+                        for c in ('at_val_bias','calibrated'):
+                            for k in ('bias','temperature'):close(mm[c][k],m['val'][world][c][k],0)
+                        row=index[(seed,name,bank,phase,world)]
+                        for key,v in [('AUC_native',mm['AUC_native']),('AUC_exact',mm['AUC_exact']),('HM',mm['at_val_bias']['HM']),('NLL',mm['calibrated']['NLL']),('ECE',mm['calibrated']['ECE']),('raw_NLL',mm['unbiased']['NLL'])]:
+                            close(v,float(row[key]),1e-12)
+                        si,ui=np.flatnonzero(seen),np.flatnonzero(~seen);sm=seen[y]
+                        gs=float((si[x[:,si].argmax(1)][sm]==y[sm]).mean());gu=float((ui[x[:,ui].argmax(1)][~sm]==y[~sm]).mean())
+                        records.append(dict(seed=seed,policy=name,bank=bank,phase=phase,world=world,
+                            native=native['AUC'],exact=exact['AUC'],gate_seen=100*gs,gate_unseen=100*gu,
+                            crossing=exact['AUC']/100/(gs*gu),raw_nll_seen=mm['unbiased']['NLL_seen'],raw_nll_unseen=mm['unbiased']['NLL_unseen'],
+                            gt_attr_unseen=mm['gt_object_attr_acc_unseen'],graph_variance=mm['graph_variance'],images=len(x),candidates=x.shape[1]))
+                count+=1
+            if count%54==0:print('CHECKED',count,'prediction files',round(time.time()-tic,1),'seconds',flush=True)
+assert count==486
+result=dict(passed=True,archive_sha256=expected,archive_bytes=archive.stat().st_size,release_files=len(release),stages=len(stages),stage_hash_checks=checked,
+    unique_checked_stage_files=len(files),prediction_files=count,rows=len(records),max_metric_error=max_error,training=training,
+    all_backbones_frozen=True,all_strategies_share_checkpoints=True,probability_budgets_and_permutations=True,
+    val_calibration_transfers_to_test=True,old_metrics_exact_matches=old_metrics_checked,seconds=time.time()-tic)
+write('verification.json',result);write('prediction_details.json',records)
+print('PREDICTIONS_COMPLETE',count,max_error,flush=True)

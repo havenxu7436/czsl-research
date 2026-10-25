@@ -1,0 +1,27 @@
+import csv, json, sys, hashlib
+from pathlib import Path
+import numpy as np
+import torch
+OUT=Path(__file__).resolve().parent
+BASE=OUT.parent
+ROOT=BASE/'output/state_results/server_results_20261025_113118/trustcpf_state_v1_10ep'
+WORK=ROOT/'work'
+sys.path.insert(0,str(ROOT))
+from trustcpf.common import load_torch,read_json,sha
+SEEDS=(3351,3352,3353)
+METHODS=('independent_absolute','pooled_absolute','pooled_relative')
+torch.set_num_threads(2)
+def write(name,data):
+    def convert(x):
+        if isinstance(x,np.ndarray):return x.tolist()
+        if isinstance(x,np.generic):return x.item()
+        if isinstance(x,Path):return str(x)
+        raise TypeError(type(x))
+    (OUT/name).write_text(json.dumps(data,ensure_ascii=False,indent=2,default=convert,allow_nan=False)+'\n',encoding='utf8')
+def close(a,b,tol=1e-9):
+    a=np.asarray(a);b=np.asarray(b)
+    e=float(np.max(np.abs(a-b)))
+    assert np.isfinite(e) and e<=tol,(e,tol)
+    return e
+def csvrows(path):
+    with Path(path).open(encoding='utf-8-sig',newline='') as f:return list(csv.DictReader(f))

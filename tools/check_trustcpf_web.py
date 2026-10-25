@@ -23,7 +23,7 @@ def audit(path,ref,out):
             with opener.open(Request(url,headers={'User-Agent':'CZSL-Repository-Markdown-QA'}),timeout=35) as response:
                 document=response.read().decode('utf8')
             break
-        except (HTTPError, URLError, TimeoutError) as exc:
+        except (HTTPError, URLError, TimeoutError, ConnectionError) as exc:
             if isinstance(exc,HTTPError) and exc.code not in (429,500,502,503,504):raise
             if attempt==3:raise RuntimeError('GitHub page unavailable after retries: '+relative) from exc
             time.sleep(min(5,attempt+1))
@@ -57,7 +57,7 @@ def audit(path,ref,out):
         display_formulas=len(actual_display),inline_formulas=len(actual_inline),exact_math_payloads_verified=True)
 
 def main():
-    ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('--ref',default='main');ap.add_argument('--stages',nargs='+',default=['02','03','04','05','06','07']);ap.add_argument('--out',type=Path,default=ROOT/'tmp/trustcpf_web_qa')
+    ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('--ref',default='main');ap.add_argument('--stages',nargs='+',default=['02','03','04','05','06','07','08','09']);ap.add_argument('--out',type=Path,default=ROOT/'tmp/trustcpf_web_qa')
     args=ap.parse_args();args.out.mkdir(parents=True,exist_ok=True)
     docs=[p for n in args.stages for p in (ROOT/'TRUST-CPF方案'/n).rglob('*.md')]
     docs += [ROOT/'README.md',ROOT/'TRUST-CPF方案/README.md']

@@ -1,0 +1,29 @@
+
+from pathlib import Path
+import json
+import pandas as pd
+OUT=Path(__file__).resolve().parent;BASE=OUT.parent
+ROOT=BASE/'output/stage_results/server_results_20261025_183634/trustcpf_stage_v1_10ep';WORK=ROOT/'work'
+MAIN=['uniform','old_single','matched_single','old_average','matched_average']
+S=pd.read_csv(WORK/'summary.csv');P=pd.read_csv(WORK/'paired.csv');Q=pd.read_csv(WORK/'q5_decisions.csv');QP=pd.read_csv(WORK/'q5_paired.csv')
+U=pd.read_csv(WORK/'utility.csv');T=pd.read_csv(WORK/'teacher_curves.csv');R=pd.read_csv(WORK/'response_repeats.csv');D=pd.read_csv(WORK/'deployment.csv');C=pd.read_csv(WORK/'teacher_change.csv')
+rows={}
+def save(name,f):
+    f=f.reset_index();rows[name]=json.loads(f.to_json(orient='records'));print('\n'+name+'\n'+f.to_string(index=False),flush=True)
+save('main_bank1701',S.query('phase=="test" and bank==1701 and policy in @MAIN').groupby(['policy','world'])[['AUC_native','AUC_exact','HM','NLL','raw_NLL','ECE']].agg(['mean','std']))
+save('main_seed_bank1701',S.query('phase=="test" and bank==1701 and policy in @MAIN').pivot(index=['seed','policy'],columns='world',values='AUC_native'))
+save('main_bankmean',S.query('phase=="test" and policy in @MAIN').groupby(['seed','policy','world'])[['AUC_native','AUC_exact','HM','NLL','raw_NLL','ECE']].mean().groupby(['policy','world']).agg(['mean','std']))
+save('paired',P.groupby(['comparison','phase','world'])[['AUC_native','AUC_exact','HM','raw_NLL_gain']].mean())
+save('paired_seed',P.query('phase=="test"').groupby(['seed','comparison','world'])[['AUC_native','AUC_exact']].mean())
+save('q5',Q.query('permutation_seed.isna()',engine='python').groupby('policy')[['mixture_AUC_exact','mixture_AUC_gain','mixture_NLL_gain','single_AUC_gain']].mean())
+save('q5_pairs',QP.groupby('comparison')[['AUC_exact','NLL_gain']].mean())
+save('q5_seed',QP.groupby(['seed','comparison'])[['AUC_exact','NLL_gain']].mean())
+save('utility',U.query('type=="all"').groupby('method')[['linear_gain','centered_r2','spearman','pearson','rmse']].mean())
+save('utility_type',U.query('type!="all"').groupby(['method','type'])[['spearman','pearson','rmse']].mean())
+save('repeats',R.groupby(['state','model'])[['rho','prediction_rmse','probability_mse']].mean())
+save('curves',T)
+save('teacher_change',C.groupby(['type'])[['spearman','pearson','rmse','old_mean','new_mean','old_sd','new_sd']].mean())
+save('deployment',D.query('bank==1701 and policy in @MAIN').groupby(['policy','type'])[['expected_edges','probability_std','kl','expected_covered_nodes','prototype_displacement']].mean())
+save('costs',pd.read_csv(WORK/'costs.csv'))
+rows['selection']=json.loads((WORK/'utility/selection.json').read_text());rows['status']=json.loads((WORK/'status.json').read_text())
+(OUT/'summary_data.json').write_text(json.dumps(rows,ensure_ascii=False,indent=2)+'\n',encoding='utf8')

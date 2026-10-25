@@ -1,0 +1,91 @@
+from common_analysis import *
+from trustcpf.metrics import native_curve,exact_curve
+from trustcpf.engine import calibration_metrics
+from trustcpf import state,align,compact
+import time
+
+tic=time.time();checked=0;files={};stages=[]
+archive=BASE/'output/state_results/trustcpf_state_v1_10ep_results.tar.gz'
+expected=Path(str(archive)+'.sha256').read_text().split()[0]
+assert sha(archive)==expected
+release=read_json(ROOT/'MANIFEST.json')
+for name,h in release.items():assert sha(ROOT/name)==h,name
+for marker in sorted((WORK/'progress').glob('*/*.json')):
+    v=read_json(marker)
+    if 'outputs' not in v:continue
+    r=WORK if marker.parent.name=='global' else WORK/marker.parent.name
+    for name,h in v['outputs'].items():
+        p=r/name
+        if str(p) not in files:files[str(p)]=sha(p)
+        assert files[str(p)]==h,p
+        checked+=1
+    stages.append(str(marker.relative_to(WORK)))
+assert len(stages)==17
+cfg=read_json(ROOT/'configs/default.json')
+summary=csvrows(WORK/'summary.csv')
+index={(int(r['seed']),r['state'],r['policy'],int(r['bank']),r['phase'],r['world']):r for r in summary}
+assert len(index)==1512
+max_error=0.;count=0;records=[];training=[]
+old=BASE/'trustcpf_r5_v1_10ep_results_20261024_210943/trustcpf_r5_v1_10ep/work'
+for seed in SEEDS:
+    w=WORK/('seed%d'%seed);pol=load_torch(w/'policies.pt');ty=pol['types']
+    last=load_torch(w/'runs/uniform/last.pt');best=load_torch(w/'runs/uniform/best.pt');ref=load_torch(w/'reference/last.pt')
+    hist=[read_json(w/'runs/uniform/epoch0.json')]+read_json(w/'runs/uniform/history.json')
+    assert last['epoch']==10 and len(hist)==11 and [h['epoch'] for h in hist]==list(range(11))
+    chosen=max(hist,key=lambda h:(h['val']['cw']['AUC_native'],-h['epoch']))['epoch']
+    assert best['epoch']==chosen
+    assert all(torch.equal(v,last['model'][k]) and torch.equal(v,best['model'][k]) for k,v in ref['model'].items() if k.startswith('backbone.'))
+    oldbest=load_torch(old/('seed%d/runs/uniform/best.pt'%seed))
+    same=all(torch.equal(v,oldbest['model'][k]) for k,v in best['model'].items())
+    training.append(dict(seed=seed,selected_epoch=chosen,epochs_completed=10,same_as_previous_uniform_weights=same,
+        val0=hist[0]['val']['cw']['AUC_native'],valbest=hist[chosen]['val']['cw']['AUC_native'],val10=hist[10]['val']['cw']['AUC_native']))
+    for st in state.STATES:
+        cp=w/('reference/last.pt' if st=='reference' else 'runs/uniform/best.pt')
+        h=sha(cp)
+        for name in state.recognition_keys(st,cfg):
+            p=pol['states'][st][name]['pi'].numpy()
+            for t in range(3):close(p[ty==t].sum(),(ty==t).sum()/2,1e-10)
+            if '_perm' in name:
+                original=pol['states'][st][pol['states'][st][name]['method']]['pi'].numpy()
+                for t in range(3):close(np.sort(p[ty==t]),np.sort(original[ty==t]),0)
+            for bank in cfg['eval_graph_seeds']:
+                d=w/'recognition'/st/name/('bank%d'%bank);m=read_json(d/'metrics.json')
+                assert m['checkpoint_sha256']==h
+                for phase in ('val','test'):
+                    with np.load(d/(phase+'_predictions.npz')) as z:
+                        close(z['graph_pi'],p.astype(np.float32),0)
+                        masks=z['graph_masks'];assert masks.shape==(16,96) and np.isin(masks,[0,1]).all()
+                        maskpath=OUT/'mask_reference.npy'
+                        # VAL and TEST must use precisely the same sampled graph bank.
+                        if phase=='val':valmasks=masks.copy()
+                        else:assert np.array_equal(valmasks,masks)
+                        for world in ('cw','ow'):
+                            x,y,seen=z[world+'_logprob'],z[world+'_truth'],z[world+'_seen']
+                            assert np.isfinite(x).all()
+                            close(np.exp(x.astype(float)).sum(1),np.ones(len(x)),2e-6)
+                            mm=m[phase][world];native=native_curve(x,y,seen);exact=exact_curve(x,y,seen)
+                            max_error=max(max_error,close(native['AUC'],mm['AUC_native'],3e-5),close(exact['AUC'],mm['AUC_exact'],1e-9))
+                            for c in ('unbiased','at_val_bias','calibrated'):
+                                cm=mm[c];re=calibration_metrics(x,y,seen,cm['bias'],cm['temperature'])
+                                for k in ('NLL','NLL_seen','NLL_unseen','HM','seen','unseen','ECE'):max_error=max(max_error,close(re[k],cm[k],1e-9))
+                            for c in ('at_val_bias','calibrated'):
+                                for k in ('bias','temperature'):close(mm[c][k],m['val'][world][c][k],0)
+                            row=index[(seed,st,name,bank,phase,world)]
+                            for key,v in [('AUC_native',mm['AUC_native']),('AUC_exact',mm['AUC_exact']),('HM',mm['at_val_bias']['HM']),('NLL',mm['calibrated']['NLL']),('ECE',mm['calibrated']['ECE']),('raw_NLL',mm['unbiased']['NLL'])]:
+                                close(v,float(row[key]),1e-12)
+                            si,ui=np.flatnonzero(seen),np.flatnonzero(~seen);sm=seen[y]
+                            gs=float((si[x[:,si].argmax(1)][sm]==y[sm]).mean());gu=float((ui[x[:,ui].argmax(1)][~sm]==y[~sm]).mean())
+                            records.append(dict(seed=seed,state=st,policy=name,bank=bank,phase=phase,world=world,
+                                native=native['AUC'],exact=exact['AUC'],gate_seen=100*gs,gate_unseen=100*gu,
+                                crossing=exact['AUC']/100/(gs*gu),raw_nll_seen=mm['unbiased']['NLL_seen'],raw_nll_unseen=mm['unbiased']['NLL_unseen'],
+                                gt_attr_unseen=mm['gt_object_attr_acc_unseen'],graph_variance=mm['graph_variance'],images=len(x),candidates=x.shape[1]))
+                    count+=1
+                if count%36==0:print('CHECKED',count,'prediction files',round(time.time()-tic,1),'seconds',flush=True)
+    print('SEED_VERIFIED',seed,flush=True)
+assert count==756
+result=dict(passed=True,archive_sha256=expected,archive_bytes=archive.stat().st_size,release_files=len(release),stages=len(stages),stage_hash_checks=checked,
+    unique_checked_stage_files=len(files),prediction_files=count,rows=len(records),max_metric_error=max_error,training=training,
+    all_backbones_frozen=True,all_strategies_share_checkpoints=True,probability_budgets_and_permutations=True,
+    val_calibration_transfers_to_test=True,seconds=time.time()-tic)
+write('verification.json',result);write('prediction_details.json',records)
+print(json.dumps(result,ensure_ascii=False),flush=True)

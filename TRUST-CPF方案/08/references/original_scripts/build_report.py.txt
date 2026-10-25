@@ -1,0 +1,193 @@
+from pathlib import Path
+import json,re
+import numpy as np
+import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+OUT=Path(__file__).resolve().parent;BASE=OUT.parent
+ROOT=BASE/'output/state_results/server_results_20261025_113118/trustcpf_state_v1_10ep';W=ROOT/'work'
+S=pd.read_csv(W/'summary.csv');P=pd.read_csv(W/'paired.csv');Q=pd.read_csv(W/'q5_decisions.csv');QP=pd.read_csv(W/'q5_paired.csv')
+U=pd.read_csv(W/'utility.csv');T=pd.read_csv(W/'training_curves.csv');R=pd.read_csv(W/'response_repeats.csv');D=pd.read_csv(W/'deployment.csv');C=pd.read_csv(W/'costs.csv')
+V=json.loads((OUT/'verification.json').read_text());M=json.loads((OUT/'mechanism_details.json').read_text())
+MV=json.loads((OUT/'mechanism_verification.json').read_text());TV=json.loads((OUT/'table_verification.json').read_text())
+NAMES={'uniform':'Uniform-0.5','independent_absolute':'Independent-Absolute','pooled_absolute':'Pooled-Absolute','pooled_relative':'Pooled-Relative',
+       'measured':'测量效用','historical_edge_mean':'历史同边均值','direct_support_nll':'支持集 NLL 直接读出','pooled_absolute_cross_response':'Pooled-Absolute＋reference 响应'}
+METHODS=['independent_absolute','pooled_absolute','pooled_relative'];MAIN=['uniform']+METHODS
+def f(x,n=3):return f'{float(x):.{n}f}'
+def sign(x,n=3):return f'{float(x):+.{n}f}'
+def table(headers,rows):
+    return '\n'.join(['| '+' | '.join(headers)+' |','| '+' | '.join(['---']*len(headers))+' |']+['| '+' | '.join(map(str,r))+' |' for r in rows])
+def val(method,world,metric='AUC_native',state='uniform_best',bank=1701,phase='test'):
+    a=S[(S.policy==method)&(S.world==world)&(S.state==state)&(S.phase==phase)]
+    if bank is not None:a=a[a.bank==bank]
+    return a.groupby('seed')[metric].mean()
+def paired(method,control,world,state='uniform_best',bank=None,phase='test',metric='AUC_native'):
+    a=P[(P.comparison==method+'-minus-'+control)&(P.world==world)&(P.state==state)&(P.phase==phase)]
+    if bank is not None:a=a[a.bank==bank]
+    return a.groupby('seed')[metric].mean()
+def qgain(method,control,metric='AUC_exact'):
+    return QP[QP.comparison==method+'-minus-'+control].groupby('seed')[metric].mean()
+def link(p,label):return '['+label+'](<'+Path(p).resolve().as_posix()+'>)'
+
+# Four views of the actual experimental evidence, one figure.
+fig,axes=plt.subplots(2,2,figsize=(13.4,8.7),constrained_layout=True)
+colors=['#2864a0','#d1842e','#488567'];labels=['Independent','Pooled Abs','Pooled Rel']
+ax=axes[0,0];x=np.arange(3)
+for wi,w in enumerate(['cw','ow']):
+    values=[paired(m,'uniform',w) for m in METHODS];offset=(-.18 if wi==0 else .18)
+    ax.bar(x+offset,[v.mean() for v in values],width=.32,color=['#365f91','#9db1ca'][wi],label=w.upper(),alpha=.88)
+    for i,v in enumerate(values):ax.scatter(np.full(3,i+offset)+np.linspace(-.065,.065,3),v.values,color='#222222',s=16,zorder=4)
+ax.axhline(0,color='#444',lw=.8);ax.set_xticks(x,labels);ax.set_ylabel('AUC difference (points)');ax.set_title('A. TEST gain over Uniform (3-bank mean)');ax.legend(frameon=False)
+ax=axes[0,1];methods=METHODS+['measured'];labels2=labels+['Measured']
+for i,m in enumerate(methods):
+    a=qgain(m,'uniform');ax.bar(i,a.mean(),color=(colors+['#8f6b9c'])[i],width=.55,alpha=.88)
+    ax.scatter(np.full(3,i)+np.linspace(-.09,.09,3),a.values,c='#222222',s=20,zorder=4)
+ax.axhline(0,color='#444',lw=.8);ax.set_xticks(range(4),labels2);ax.set_ylabel('Exact AUC gain (points)');ax.set_title('B. Q5 decision gain (8-bank mean)')
+ax=axes[1,0]
+for seed,col in zip([3351,3352,3353],colors):
+    a=T[T.seed==seed];ax.plot(a.epoch,a.VAL_CW_AUC,'o-',color=col,label=str(seed),ms=3.5)
+    b=a[a.selected];ax.scatter(b.epoch,b.VAL_CW_AUC,marker='*',s=135,color=col,edgecolors='white',zorder=4)
+ax.set_xlabel('Epoch');ax.set_ylabel('VAL CW native AUC');ax.set_xticks(range(0,11,2));ax.set_title('C. Three complete 10-epoch trajectories');ax.legend(frameon=False)
+ax=axes[1,1]
+for i,(m,col) in enumerate(zip(METHODS,colors)):
+    vals=[R[(R.method==m)&(R.state==st)].rho.mean() for st in ['q5','reference','uniform_best']]
+    ax.bar(np.arange(3)+(i-1)*.24,vals,.23,label=labels[i],color=col)
+ax.set_ylim(0,.65);ax.set_xticks(range(3),['Q5','Reference','Uniform-best']);ax.set_ylabel('Mean within-type Spearman');ax.set_title('D. Repeat-probe prediction agreement');ax.legend(frameon=False,ncol=3,fontsize=8)
+for ax in axes.flat:
+    ax.spines[['top','right']].set_visible(False);ax.grid(axis='y',alpha=.15);ax.set_axisbelow(True)
+figure=OUT/'state_results_overview.png';fig.savefig(figure,dpi=180);plt.close(fig)
+
+parts=['# TRUST-CPF State v1：第一批 10 epoch 完整结果分析',
+'日期：2026-10-25。数据：`output/state_results/server_results_20261025_113118/trustcpf_state_v1_10ep`。平台为 UT-Zappos、CLIP ViT-L/14 缓存、强 CPF 基底。',
+'**本轮结论：联合拟合提高了 Q5 上的实际关系决策收益，但“旧教师效用预测器＋训练后响应＋冻结部署”没有提高正式 TEST 识别。对第一批具体配方，这是负向结果；对效用监督的可学习性，仍有明确正向证据。**',
+'主 bank 上，Uniform 为 **35.934 CW／26.532 OW**，Pooled-Absolute 为 **35.812／26.503**，Pooled-Relative 为 **35.822／26.516**。Q5 上，Independent-Absolute、Pooled-Absolute、Pooled-Relative 的实际 AUC 增益分别为 **+1.056、+1.339、+1.281 点**，且三者在三个 seed 上均超过各自五次概率置换的均值。',
+'本次已拿到 State 新结果。它与此前重新下载的 Competition 包不同；以下所有主结果均来自此次 State 归档。',
+'## 1. 完整性与训练执行',
+table(['核对项','结果'],[
+['归档校验','4,510,696,372 字节；SHA256 与随包校验文件一致'],
+['执行阶段','17 / 17：全局导入、全局拟合，三个 seed 各五阶段'],
+['识别结果','1512 / 1512 行；756 份 VAL／TEST 预测文件'],
+['Q5 决策','600 / 600 组策略—bank 结果；9600 组单图充分统计量'],
+['训练曲线','33 / 33 行，三个 seed 均保存 epoch 0–10'],
+['原始效用与拟合','15 个既有教师、144 个背景块、4 个拟合配置、8 个不同岭回归模型'],
+['文件完整性','78 个发布文件、2999 个阶段输出哈希全部通过'],
+['表格计算','792 行正式配对、192 行 Q5 配对、1049 条聚合记录重新核算'],
+['GPU','3351→1；3352→2；3353→3']]),
+f'从保存的逐图像预测复算 native／exact AUC、NLL、ECE、HM，以及 VAL 校准参数向 TEST 的迁移，最大数值差为 **{V["max_metric_error"]:.2e}**。重算 Q5 混合风险、单图风险、600 组决策和岭回归，最大差为 **{MV["max_error"]:.2e}**。结果中未发现能够解释当前收益方向的汇总错误、错误权重复用或概率分配失效。',
+'三个 seed 都执行了新的 10 epoch Uniform 训练，最佳 epoch 为 **2／2／6**；所有策略共享对应 seed 的同一最佳权重，CPF backbone 与 reference 一致。此次训练确定性重现了上一轮 R5 的 Uniform 最佳权重，逐张量相同，因此旧基线与本次基线一致是预期现象。新增证据来自当前响应、联合预测器和冻结策略比较，不把重现的基线当作新的独立训练重复。',
+'## 2. 正式识别：总体没有超过 Uniform',
+'主表固定 bank1701、TEST、uniform_best；AUC 为工程 0–100 尺度，差值单位为点。± 为三个 seed 的样本标准差。联合预测器由九个教师共享拟合，三个 seed 描述的是三套识别权重下的结果。',
+table(['方法','CW AUC','OW AUC','相对 Uniform：CW／OW','CW HM／OW HM'],[
+    [NAMES[m],f(val(m,'cw').mean())+' ± '+f(val(m,'cw').std()),f(val(m,'ow').mean())+' ± '+f(val(m,'ow').std()),
+     sign((val(m,'cw')-val('uniform','cw')).mean())+' / '+sign((val(m,'ow')-val('uniform','ow')).mean()),
+     f(val(m,'cw','HM').mean())+' / '+f(val(m,'ow','HM').mean())] for m in MAIN]),
+'Pooled-Absolute 的 OW HM 比 Uniform 略高约 0.067 点，但 CW／OW AUC 都较低。HM 是 VAL 偏置迁移后的一个工作点，与整个 seen／unseen 权衡曲线的 AUC 含义不同。',
+'### 2.1 三个图 bank 与置换对照',
+'先在每个 seed 内平均三个图 bank，再平均三个 seed。五次置换只改变同类型关系与概率的对应，保留类型内概率多重集和期望边数。',
+table(['方法','相对 Uniform CW／OW','相对五置换均值 CW／OW','exact AUC：相对 Uniform CW／OW'],[
+ [NAMES[m],sign(paired(m,'uniform','cw').mean())+' / '+sign(paired(m,'uniform','ow').mean()),
+ sign(paired(m,'permutation_mean','cw').mean())+' / '+sign(paired(m,'permutation_mean','ow').mean()),
+ sign(paired(m,'uniform','cw',metric='AUC_exact').mean())+' / '+sign(paired(m,'uniform','ow',metric='AUC_exact').mean())] for m in METHODS]),
+'三个 bank 的平均结果没有改变判断。Pooled-Absolute 和 Pooled-Relative 的 OW 接近 Uniform，也接近各自置换均值；CW 仍低于两类对照。exact AUC 复算给出相同方向。',
+table(['seed','Independent：CW／OW 增益','Pooled-Absolute：CW／OW 增益','Pooled-Relative：CW／OW 增益'],[
+ [s]+[sign(paired(m,'uniform','cw').loc[s])+' / '+sign(paired(m,'uniform','ow').loc[s]) for m in METHODS] for s in [3351,3352,3353]]),
+'联合拟合在正式识别端主要改善 seed3352：Pooled-Absolute 为 **+0.073 CW／+0.358 OW**。seed3351 与 3353 为负，其中 3353 为 **−0.282／−0.267**。独立模型在 3353 略有收益，却在另两个 seed 上下降。收益转移到不同 seed，尚未形成共同提升。',
+'### 2.2 VAL 与 TEST 的方向不同',
+table(['三 bank 平均','VAL CW 增益','TEST CW 增益','VAL OW 增益','TEST OW 增益'],[
+ [NAMES[m],sign(paired(m,'uniform','cw',phase='val').mean()),sign(paired(m,'uniform','cw').mean()),
+ sign(paired(m,'uniform','ow',phase='val').mean()),sign(paired(m,'uniform','ow').mean())] for m in METHODS]),
+'Pooled-Absolute 在 VAL 上约 +0.162 CW，但 TEST 为 −0.112；Pooled-Relative 也出现同样变化。联合拟合改善验证集表现的事实存在，但这部分改善没有迁移到测试组合。因而后续应检验教师与使用阶段、组合覆盖和响应估计，而不是继续依赖在当前 VAL 上细调分配强度。',
+f'![本轮结果总览]({figure.as_posix()})',
+'图中黑点分别表示三个 seed。A 图先在 seed 内平均三个正式图 bank，B 图先平均八个 Q5 图 bank；图 bank 不是新增训练 seed。',
+'## 3. Q5：效用监督和联合拟合保留了实际价值',
+'Q5 每组使用 16 图概率混合，八个图 bank。对应教师的训练图像、效用测量图像和实际决策评价图像分开；Q5 教师未进入 Q1–Q3 拟合或 Q4 选参。评价仍属于既有开发组合上的留出教师审计。测量效用策略使用独立测量图像的标签，作为有标签决策参照，不属于正式 TEST 方法。',
+table(['效用来源','实际 AUC 增益','相对五置换均值','U-NLL 收益（nat）','单图平均 AUC 增益'],[
+ [NAMES[m],sign(qgain(m,'uniform').mean()),sign(qgain(m,'permutation_mean').mean()),
+ f(qgain(m,'uniform','NLL_gain').mean(),6),sign(Q[Q.policy==m].single_AUC_gain.mean())] for m in METHODS+['measured']]),
+table(['方法','3351 AUC 增益','3352 AUC 增益','3353 AUC 增益'],[
+ [NAMES[m]]+[sign(qgain(m,'uniform').loc[s]) for s in [3351,3352,3353]] for m in METHODS+['measured']]),
+'**Pooled-Absolute 比 Independent-Absolute 平均多获得 0.284 点 Q5 AUC，且三 seed 均高于 Uniform 与五置换均值。** 改进主要来自 3353：该 seed 由 +0.437 提高到 +1.775；3351、3352 的收益略降。这比只看效用相关更直接地支持“联合教师信息能够改善某些留出状态的关系决策”。',
+'测量效用仍能获得 **+2.773 点**，高于联合预测的 +1.339 点。该差距说明预测器只利用了部分可用效用。测量策略在三个 seed 上都超过五次置换均值，也支持具体关系与效用之间的对应具有价值。',
+'联合模型的单图平均 AUC 收益为 +0.588，略低于独立模型的 +0.631；其优势主要体现于本实验正式采用的 16 图概率混合读出。这两种读出应分别报告。',
+'### 3.1 四种拟合配置的预测质量',
+table(['配置','λ／α','Q5 整体 Spearman','类型中心化 R²','一阶代理收益'],[
+ [m.replace('_','-'),f(g.lam.mean(),5)+' / '+f(g.alpha.mean(),3),f(g.spearman.mean(),4),f(g.centered_r2.mean(),4),f(g.linear_gain.mean(),5)]
+ for m,g in U[U.type=='all'].groupby('cell')]),
+'Independent 使用每 seed 的 Q1–Q3 三教师；Pooled 使用全部九教师。正则按 α=Jλ 匹配，三个 Q4 共同选择 λ。全局四种拟合均复算一致。',
+'Pooled-Relative 的整体 Spearman 高于 Pooled-Absolute，但实际 Q5 AUC 低约 0.058 点，正式 TEST 也没有形成实质优势。两个联合方法在 uniform_best 的类型内概率排序平均相关为 **0.988**，平均绝对概率差约 **0.0131**；它们实际生成的分配非常接近。**下一批继续以 Pooled-Absolute 为主方法即可。**',
+'类型内 Q5 排序也不均衡。Pooled-Absolute 的 OI／OE／AE 平均 Spearman 为 **0.000／0.405／0.210**。信息主要体现在 OE 和 AE，当前结果尚未给出 OI 分配带来独立贡献的证据。',
+'## 4. 模型状态：训练后更新响应没有带来预期增益',
+'本实验已经消除了“先预测效用，再改变正式权重”的过程：每个策略都在同一冻结权重下提取响应并推理。仍需判断旧教师学习到的映射是否适用于该状态。',
+table(['Pooled-Absolute，三 bank 平均','CW 相对 Uniform','OW 相对 Uniform','CW 相对错配响应','OW 相对错配响应'],[
+ [st,sign(paired('pooled_absolute','uniform','cw',state=st).mean()),sign(paired('pooled_absolute','uniform','ow',state=st).mean()),
+ sign(paired('pooled_absolute','cross_response','cw',state=st).mean()),sign(paired('pooled_absolute','cross_response','ow',state=st).mean())] for st in ['reference','uniform_best']]),
+'reference 状态的联合分配有约 **+0.067 CW／+0.069 OW** 的平均 TEST 收益；到了 uniform_best，变为 **−0.112／−0.008**。两个状态的比较均使用各自 Uniform 对照，避免把训练本身的收益混进分配收益。',
+'在 uniform_best 上，使用旧 reference 响应反而比使用当前响应高 **0.115 CW／0.022 OW**。主 bank 中，旧响应策略甚至略高于 Uniform（+0.035／+0.016），三个 bank 平均后缩小为 +0.003／+0.014。**本轮没有支持“只要改用当前状态响应，就能解决迁移问题”这一具体假设。**',
+'固定联合预测器，从 Q5 输入换到 reference／uniform_best 输入时，类型内预测排序相关分别约 −0.012／−0.001。状态改变允许真实效用排序变化，这个相关不能直接判定谁对谁错；实际 TEST 和交叉响应结果表明，旧教师映射的正式使用质量仍然不足。',
+'## 5. 重复响应：探针波动已经足以明显改变策略',
+'每次响应使用每组合两张支持图像和四个背景图；正式模型共 83 个训练组合、166 张支持图像。两次测量改变支持图像抽样和背景 seed。下表先在每个 seed、每个关系类型内计算排序相关，再对九项等权平均。',
+table(['预测器','Q5 两次响应 ρ','reference 两次响应 ρ','uniform_best 两次响应 ρ','uniform_best 概率 RMS 差'],[
+ [NAMES[m]]+[f(R[(R.method==m)&(R.state==st)].rho.mean()) for st in ['q5','reference','uniform_best']]+[
+ f(pd.DataFrame(M['repeat_noise']).query('method==@m and state=="uniform_best"').probability_rmse.mean())] for m in METHODS]),
+'Pooled-Absolute 的训练后响应重复相关仅 **0.361**，概率平均 RMS 差约 **0.201**。它在三个类型的原有概率标准差约为 **0.209／0.192／0.183**，两次探针引起的概率变化与非均匀分配本身的幅度相近。这是当前最直接的新诊断：探针不稳定会影响关系排序，类型内标准化又会把这些排序变化变成明显概率差异。',
+'### 5.1 使用已保存响应的新增 CPU 复算',
+'本次分析额外计算了两次预测的平均，再重新做一次类型预算分配。没有新增训练，也没有把它混入已经评分的正式主结果。对线性预测器，先平均响应再预测与先预测再平均完全等价；平均后的概率需要重新求解，不能直接平均两组概率。',
+table(['Pooled-Absolute 的 Q5 输入','整体 Spearman','类型内 Spearman 均值','类型中心化 R²','一阶代理收益'],[
+ [label,f(g.spearman.mean(),4),f(g.type_rho.mean(),4),f(g.centered_r2.mean(),4),f(g.linear_gain.mean(),5)]
+ for label in ['primary','repeat','average'] for g in [pd.DataFrame(M['repeat_q5']).query('method=="pooled_absolute" and measurement==@label')]]),
+'两次平均使联合模型的类型内相关由 **0.205 提高到 0.250**，一阶代理由 **0.03851 提高到 0.04405**，约增加 **14.4%**。3351 和 3353 的代理提高，3352 基本持平。这里的代理是测量效用与概率改变量的内积，**不是实际 AUC**；当前归档尚未包含平均响应策略的 Q5／TEST 图像评分。',
+'这使“提高响应估计稳定性”成为有数据依据的低成本改进，优先级高于继续设计新的效用损失或扩大预测网络。',
+'## 6. 训练曲线、简单读出与成本',
+table(['seed','最佳 epoch','epoch0 VAL CW','最佳 VAL CW','epoch10 VAL CW','末轮相对最佳'],[
+ [r['seed'],r['selected_epoch'],f(r['val0']),f(r['valbest']),f(r['val10']),sign(r['val10']-r['valbest'])] for r in V['training']]),
+'三条轨迹均完成 10 epoch，训练 loss 整体下降，但第 10 轮 VAL 比最佳值低 **1.441／0.643／1.227 点**。本批权重来自完整训练和 VAL 选模，当前负增益不能归因为只训练了 3 epoch。继续延长这三条既有轨迹不是下一步的主要工作。',
+table(['uniform_best 的其他读出','三 bank 平均 CW 增益','三 bank 平均 OW 增益'],[
+ [NAMES[m],sign(paired(m,'uniform','cw').mean()),sign(paired(m,'uniform','ow').mean())]
+ for m in ['historical_edge_mean','direct_support_nll','pooled_absolute_cross_response']]),
+'直接使用某条边的历史效用均值表现较差；只用支持集 NLL 响应也接近或略低于 Uniform。已有结果不支持把共享边 ID 当成主要价值来源。历史同边均值在 VAL CW 上反而平均提高约 +0.423 点，却在 TEST 下降 −0.177 点，进一步说明当前验证组合上的收益存在迁移差异。',
+'所有方法的 OI／OE／AE 期望边数均为 **6／18／24**，五次置换完整保留类型内概率分布。非均匀分配已实际生效。Uniform 的 OE／AE 预期节点覆盖为 10.500／14.000，Pooled-Absolute 为 10.178／13.566；当前分配略集中于少数目标。该表记录结构变化，不把覆盖下降单独解释为 AUC 下降的原因。',
+'概率校准方面，主 bank 的 Pooled-Absolute OW ECE 由 Uniform 的 **5.601 降至 4.556**，校准 NLL 由 **1.9803 降至 1.9754**。这部分正向变化没有转成 AUC 优势，应作为辅助结果。',
+'主 bank 的组内判别进一步说明了变化位置：Pooled-Absolute 的已见组内正确率由 **62.333% 降至 62.105%**，CW 未见组内正确率由 **65.521% 降至 65.433%**；通过两侧组内判别后的条件交叉排序面积几乎不变。OW 未见组内正确率由 **50.925% 升至 51.049%**，部分抵消了已见端下降，因此 OW 更接近持平。未校准的未见 NLL 略降、已见 NLL 略升，与这种权衡一致。',
+table(['seed','Uniform 训练','响应测量','Q5 评价','正式冻结评分','总阶段时间'],[
+ [s]+[f(C[(C.seed==str(s))&(C.stage==st)].seconds.sum()/60,2)+' 分钟' for st in ['uniform10','responses','q5','recognition']]+[f(C[C.seed==str(s)].seconds.sum()/60,2)+' 分钟'] for s in [3351,3352,3353]]),
+'三卡并行最长队列约 **14.13 分钟**，其中正式冻结评分约 10.4–10.8 分钟，是主要成本。峰值 PyTorch 张量分配约 **257.86 MiB**；该值不含 CUDA 上下文和其他进程占用，也不是 nvidia-smi 的总显存。CLIP 特征已缓存，以上不含图像编码、打包和传输。',
+'## 7. 对 TRUST 研究路线的判断与下一步',
+table(['研究点','本轮证据','当前判断'],[
+['关系具有任务效用','测量效用 Q5 +2.773，三 seed 均超过置换均值','保留'],
+['效用可以学习','独立／联合预测的 Q5 决策都提高实际 AUC','保留'],
+['多教师联合拟合','Pooled-Absolute 的 Q5 比 Independent 多 +0.284；正式 TEST 不一致','作为效用学习模块继续使用'],
+['训练后当前响应直接修复部署','正式 CW 下降，旧响应交叉对照反而更好','第一批假设未成立'],
+['Relative 比 Absolute 更适合最终决策','两者策略接近，Relative 的 Q5 略差','保持 Absolute 主目标'],
+['更稳定的响应估计','重复排序较低；两次平均改善 Q5 预测与一阶代理','下一批纳入验证']]),
+'**下一步仍建议完成原计划的第二批“教师阶段匹配”，把正式 Uniform-best 权重固定为本次权重。** 第一批已经检验了只改部署顺序的效果；第二批直接检验学习映射是否需要来自对应训练阶段。主方法保持 U-NLL、九教师联合 Absolute 岭回归、κ=1 和半密度预算。',
+'一批完成五组主比较：Uniform；旧教师预测器；阶段匹配预测器；阶段匹配预测器的五次类型内概率置换；同一新预测器输入 reference 响应。15 个折内教师各追加一条 10 epoch Uniform 轨迹，按原方案的独立停止集选状态，再同步重测该状态的响应和 U-NLL 标签。正式识别器不再重训。',
+'重复响应平均作为同一批的附加读出处理：对旧／新预测器各评分一次两次响应平均，不新增识别训练、不扩展损失函数网格。主表保留单次响应以单独识别阶段匹配的贡献，平均响应结果说明探针稳定化还能增加多少收益。新教师也保存第二次响应，避免只在正式使用端改变测量精度。',
+'新的判断依据集中在两个问题：新教师映射能否在相同正式权重上超过旧映射、Uniform 和置换；响应平均能否把已有的代理改善转成真实识别改善。当前还不值得扩大噪声实验或继续长训正式识别器。',
+'对论文目标而言，本轮加强了“可学习的关系效用在留出教师决策中有效”的机制证据，同时削弱了“当前紧凑效用映射已经能稳定改善最终 CZSL”的性能主张。后续研究重点应收敛到**跨模型状态的效用迁移与稳定估计**，而不是把这一轮微小正负差值包装成已完成的方法收益。',
+'## 8. 文件与复算口径',
+'主报告没有合并新的训练 seed。三个图 bank 先在 seed 内平均；五个置换先在相同 seed／状态／bank 内平均；Q5 八个 bank 也是先在教师内部平均。Q5 exact AUC 与正式 native AUC 分开标注。',
+'本次从预测文件复算的是评分与汇总，不是重新执行 CLIP 或 GPU 图像前向。响应重复平均部分仅为 CPU 诊断，未报告未执行的识别成绩。',
+'归档 SHA256：`'+V['archive_sha256']+'`。',
+'\n'.join('- '+link(W/name,label) for name,label in [
+ ('status.json','本轮完成状态'),('summary.csv','1512 行正式识别结果'),('paired.csv','792 行正式配对比较'),
+ ('q5_decisions.csv','600 行 Q5 决策'),('q5_paired.csv','192 行 Q5 配对'),('utility.csv','效用预测指标'),
+ ('training_curves.csv','epoch 0–10 曲线'),('response_repeats.csv','重复响应诊断'),('response_transfer.csv','跨状态排序'),
+ ('deployment.csv','概率与覆盖'),('costs.csv','阶段耗时')]),
+'\n'.join('- '+link(OUT/name,label) for name,label in [('verification.json','预测与完整性复算'),('mechanism_verification.json','效用和 Q5 复算'),('table_verification.json','配对及聚合表复算')])]
+text='\n\n'.join(parts)+'\n'
+# Table and source-link checks, including every native numeric claim generated above.
+assert '\ufffd' not in text
+width=None;tables=0
+for line in text.splitlines()+['']:
+    if line.startswith('| '):
+        n=line.count('|')-1
+        if width is None:width=n;tables+=1
+        else:assert width==n,(width,n,line)
+    else:width=None
+for path in re.findall(r'\]\(<?(C:/[^\n>]*?)>?\)',text):assert Path(path).exists(),path
+report=BASE/'output/TRUST-CPF_State_第一批10epoch_完整结果分析_20261025.md'
+report.write_text(text,encoding='utf8',newline='\n');(OUT/'report.md').write_text(text,encoding='utf8',newline='\n')
+(OUT/'report_checks.json').write_text(json.dumps(dict(passed=True,tables=tables,characters=len(text),report=str(report)),ensure_ascii=False,indent=2),encoding='utf8')
+print(report);print('tables',tables,'characters',len(text))

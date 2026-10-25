@@ -1,0 +1,31 @@
+# TRUST-CPF 第二批 GPU 检查修复
+
+## 8. 已启动旧包：修复 CPU / CUDA 权重比较并续跑
+
+如果日志在教师 epoch10 后出现 `Expected all tensors to be on the same device ... cpu and cuda:0 ... equal`，使用以下补丁。它修复冻结权重检查，并只迁移对应源码文件的版本摘要；已保存 checkpoint 保留。
+
+本机 PowerShell：
+
+```powershell
+scp "C:\Users\llenovo\Documents\ChatGPT\USG\output\trustcpf_stage_device_fix.py" xhw@211.87.232.122:/data/xhw/experiments/trustcpf_stage_v1_10ep/scripts/fix_device_check.py
+```
+
+服务器执行：
+
+```bash
+cd /data/xhw/experiments/trustcpf_stage_v1_10ep
+source scripts/env.sh
+"$CPF_PY" scripts/fix_device_check.py --project "$PWD" --work "$CPF_WORK"
+```
+
+看到 `DEVICE_FIX_COMPLETE` 后，继续使用 1／2／3 卡：
+
+```bash
+nohup bash scripts/run_all.sh 1 2 3 >> logs/queue.log 2>&1 &
+echo $! > logs/queue.pid
+tail -f logs/seed3351.log
+```
+
+已完成 epoch10 的教师直接进入响应提取和效用测量，其余教师继续十轮训练。无需重新 setup 或删除 work。新版 ZIP 已包含此修复；已有旧 work 的运行使用此补丁完成版本迁移。
+
+本机 GPU 回归验证通过：真实 CUDA 上新增教师训练 10 epoch、epoch3 断点恢复与连续训练逐项相同、epoch10 checkpoint 恢复不重复训练、版本迁移不改 checkpoint。

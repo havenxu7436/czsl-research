@@ -1,0 +1,38 @@
+import json
+from pathlib import Path
+import numpy as np
+import pandas as pd
+
+OUT=Path(__file__).resolve().parent
+BASE=OUT.parent
+ROOT=BASE/'output/state_results/server_results_20261025_113118/trustcpf_state_v1_10ep'
+WORK=ROOT/'work'
+MAIN=['uniform','independent_absolute','pooled_absolute','pooled_relative']
+CONTROLS=['pooled_absolute_cross_response','historical_edge_mean','direct_support_nll']
+S=pd.read_csv(WORK/'summary.csv');P=pd.read_csv(WORK/'paired.csv');Q=pd.read_csv(WORK/'q5_decisions.csv')
+QP=pd.read_csv(WORK/'q5_paired.csv');U=pd.read_csv(WORK/'utility.csv');T=pd.read_csv(WORK/'training_curves.csv')
+R=pd.read_csv(WORK/'response_repeats.csv');F=pd.read_csv(WORK/'response_transfer.csv');D=pd.read_csv(WORK/'deployment.csv')
+rows={}
+def save(name,frame):
+    frame=frame.reset_index();rows[name]=json.loads(frame.to_json(orient='records'))
+    print('\n'+name+'\n'+frame.to_string(index=False),flush=True)
+    return frame
+
+sub=S.query("state=='uniform_best' and phase=='test' and bank==1701 and policy in @MAIN")
+save('main',sub.groupby(['policy','world'])[['AUC_native','AUC_exact','HM','NLL','raw_NLL','ECE']].agg(['mean','std']))
+save('main_seed',sub.pivot(index=['seed','policy','epoch'],columns='world',values='AUC_native'))
+save('main_banks',S.query("state=='uniform_best' and phase=='test' and policy in @MAIN").groupby(['policy','bank','world'])[['AUC_native']].mean())
+save('paired_state',P.query("phase=='test'").groupby(['state','comparison','world'])[['AUC_native','AUC_exact','HM','raw_NLL_gain']].mean())
+save('paired_seed',P.query("state=='uniform_best' and phase=='test'").groupby(['seed','comparison','world'])[['AUC_native']].mean())
+save('paired_validation',P.query("phase=='val'").groupby(['state','comparison','world'])[['AUC_native','AUC_exact']].mean())
+save('q5',Q.query('permutation_seed.isna()',engine='python').groupby('policy')[['mixture_AUC_exact','mixture_AUC_gain','mixture_NLL_gain','single_AUC_gain']].mean())
+save('q5_seed',QP.groupby(['seed','comparison'])[['AUC_exact','NLL_gain']].mean())
+save('utility',U.query("type=='all'").groupby('cell')[['lam','alpha','linear_gain','centered_r2','spearman','pearson']].mean())
+save('utility_type',U.query("type!='all'").groupby(['cell','type'])[['spearman']].mean())
+save('repeats',R.groupby(['state','method'])[['rho','probability_mse']].mean())
+save('transfers',F.groupby(['state','method'])[['input_change_rho']].mean())
+save('training',T)
+save('controls',S.query("state=='uniform_best' and phase=='test' and policy in @CONTROLS").groupby(['policy','world'])[['AUC_native','AUC_exact','HM','NLL']].mean())
+save('deployment',D.query("state=='uniform_best' and bank==1701 and policy in @MAIN").groupby(['policy','type'])[['expected_edges','probability_std','kl','expected_covered_nodes','prototype_displacement']].mean())
+rows['data_root']=str(ROOT)
+(OUT/'summary_data.json').write_text(json.dumps(rows,ensure_ascii=False,indent=2)+'\n',encoding='utf8')

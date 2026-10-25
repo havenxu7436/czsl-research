@@ -1,0 +1,22 @@
+{
+  "archive_data_verified": true,
+  "package_files_verified": 93,
+  "cpu_suite": {
+    "tests": 42,
+    "passed": 40,
+    "skipped": 2,
+    "cuda_visible_devices": "-1"
+  },
+  "initial_full_suite": {
+    "tests": 42,
+    "passed": 40,
+    "failed": 1,
+    "skipped": 1,
+    "failure": "test_cuda_ten_epochs_resume_and_completed_checkpoint: resumed/direct tensors not bitwise equal"
+  },
+  "isolated_cuda_recheck": {
+    "tests": 2,
+    "passed": 2
+  },
+  "conclusion": "CPU suite and isolated CUDA checks passed. Initial full-suite CUDA mismatch did not reproduce in isolation; its cause is not established. Scientific source bytes were not modified."
+}
