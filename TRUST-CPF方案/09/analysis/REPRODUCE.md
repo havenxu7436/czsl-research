@@ -16,3 +16,5 @@ python tools/analyze_trustcpf_state_stage.py --stage 09 --dest "$HOME/analysis/t
 发布包还原核对 93 个清单文件；服务器快照的原始清单为 89 个文件，两套来源均保存。CPU 套件 42 项中 40 项通过、2 项按设计跳过；CUDA 检查单独重跑 2/2 通过。首次全套运行出现一次 CUDA 续训逐位比较差异，独立重跑未复现，原因尚未定位。原始代码保持原字节，首次日志与重跑日志同时保留。六份分析数据及 15 个选中教师权重与确认版本一致。
 
 记录见 [还原清单](repository_qa/materialization.json)、[分析复算](repository_qa/analysis_reproduction.json)、[命令语法](repository_qa/command_checks.json)、[验证汇总](repository_qa/validation_summary.json) 和 [首次完整测试日志](repository_qa/restored_tests_initial.log)、[CPU 测试日志](repository_qa/restored_tests_cpu.log)、[CUDA 独立重跑](repository_qa/cuda_recheck.log)。
+
+[仓库文件与历史引用校验](repository_qa/repository_checks.json) 覆盖本次 5,836 个原始服务器成员及仓库索引；历史大文件按 Git LFS 指针的 SHA256 与大小核对，本次新增文件核对实际字节。

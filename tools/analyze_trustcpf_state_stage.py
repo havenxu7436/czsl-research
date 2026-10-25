@@ -15,7 +15,8 @@ COMPARE = ['verification.json','prediction_details.json','mechanism_verification
 
 def same(a,b,path='root'):
     if path=='summary_data.json.data_root':
-        assert Path(a).parts[-4:]==Path(b).parts[-4:],(path,a,b)
+        tail=lambda value:tuple(str(value).replace('\\','/').rstrip('/').split('/')[-4:])
+        assert tail(a)==tail(b),(path,a,b)
         return
     if isinstance(a,dict):
         assert isinstance(b,dict) and set(a)==set(b),(path,'keys')

@@ -16,3 +16,5 @@ python tools/analyze_trustcpf_state_stage.py --stage 08 --dest "$HOME/analysis/t
 发布包还原核对 78 个清单文件。38 项测试中 37 项通过，原生 CLIP 提取按原设计跳过；六份分析数据与确认版本一致。
 
 记录见 [还原清单](repository_qa/materialization.json)、[分析复算](repository_qa/analysis_reproduction.json)、[命令语法](repository_qa/command_checks.json)、[验证汇总](repository_qa/validation_summary.json) 和 [测试日志](repository_qa/restored_tests.log)。
+
+[仓库文件与历史引用校验](repository_qa/repository_checks.json) 覆盖本次 5,836 个原始服务器成员及仓库索引；历史大文件按 Git LFS 指针的 SHA256 与大小核对，本次新增文件核对实际字节。
