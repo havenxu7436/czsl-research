@@ -1,0 +1,195 @@
+<article class="markdown-body entry-content container-lg" itemprop="text"><p dir="auto">原始个人部署命令如下。从仓库恢复同一执行包的入口见 <a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/08/SERVER_COMMANDS.md">SERVER_COMMANDS.md</a>。</p>
+<div class="markdown-heading" dir="auto"><h1 tabindex="-1" class="heading-element" dir="auto">TRUST-CPF 第一批：上传、10 epoch 训练、结果下载</h1><a id="user-content-trust-cpf-第一批上传10-epoch-训练结果下载" class="anchor" aria-label="Permalink: TRUST-CPF 第一批：上传、10 epoch 训练、结果下载" href="#trust-cpf-第一批上传10-epoch-训练结果下载"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">服务器：xhw@211.87.232.122。默认使用 <strong>0／1／2 卡</strong>，分别运行 seed 3351／3352／3353。</p>
+<p dir="auto">本版每个 seed 先从旧 reference 重新训练 10 epoch Uniform，随后冻结共同最佳权重完成所有策略比较。效用岭回归为闭式求解，不另设 epoch。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">1. 在本机 PowerShell 上传</h2><a id="user-content-1-在本机-powershell-上传" class="anchor" aria-label="Permalink: 1. 在本机 PowerShell 上传" href="#1-在本机-powershell-上传"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">直接复制以下整段。压缩包与校验文件已在同一个本地目录。</p>
+<div class="highlight highlight-source-powershell notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="$cpfServer = &quot;xhw@211.87.232.122&quot;
+$cpfZip = &quot;C:\Users\llenovo\Documents\ChatGPT\USG\output\trustcpf_state_v1_10ep.zip&quot;
+
+ssh -o ServerAliveInterval=30 -o ServerAliveCountMax=6 $cpfServer &quot;mkdir -p /data/xhw/experiments&quot;
+if ($LASTEXITCODE -ne 0) { throw &quot;服务器目录创建失败&quot; }
+
+scp -o ServerAliveInterval=30 -o ServerAliveCountMax=6 $cpfZip &quot;$cpfZip.sha256&quot; &quot;$($cpfServer):/data/xhw/experiments/&quot;
+if ($LASTEXITCODE -ne 0) { throw &quot;上传未完成，重新执行上传命令&quot; }
+
+ssh -o ServerAliveInterval=30 -o ServerAliveCountMax=6 $cpfServer"><pre><span class="pl-smi">$cpfServer</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>xhw@211.87.232.122<span class="pl-pds">"</span></span>
+<span class="pl-smi">$cpfZip</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>C:\Users\llenovo\Documents\ChatGPT\USG\output\trustcpf_state_v1_10ep.zip<span class="pl-pds">"</span></span>
+
+ssh <span class="pl-k">-</span>o ServerAliveInterval<span class="pl-k">=</span><span class="pl-c1">30</span> <span class="pl-k">-</span>o ServerAliveCountMax<span class="pl-k">=</span><span class="pl-c1">6</span> <span class="pl-smi">$cpfServer</span> <span class="pl-s"><span class="pl-pds">"</span>mkdir -p /data/xhw/experiments<span class="pl-pds">"</span></span>
+<span class="pl-k">if</span> (<span class="pl-c1">$LASTEXITCODE</span> <span class="pl-k">-ne</span> <span class="pl-c1">0</span>) { <span class="pl-k">throw</span> <span class="pl-s"><span class="pl-pds">"</span>服务器目录创建失败<span class="pl-pds">"</span></span> }
+
+scp <span class="pl-k">-</span>o ServerAliveInterval<span class="pl-k">=</span><span class="pl-c1">30</span> <span class="pl-k">-</span>o ServerAliveCountMax<span class="pl-k">=</span><span class="pl-c1">6</span> <span class="pl-smi">$cpfZip</span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$cpfZip</span>.sha256<span class="pl-pds">"</span></span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-k"><span class="pl-pse">$</span></span><span class="pl-pse">(</span><span class="pl-smi">$cpfServer</span><span class="pl-pse">)</span>:/data/xhw/experiments/<span class="pl-pds">"</span></span>
+<span class="pl-k">if</span> (<span class="pl-c1">$LASTEXITCODE</span> <span class="pl-k">-ne</span> <span class="pl-c1">0</span>) { <span class="pl-k">throw</span> <span class="pl-s"><span class="pl-pds">"</span>上传未完成，重新执行上传命令<span class="pl-pds">"</span></span> }
+
+ssh <span class="pl-k">-</span>o ServerAliveInterval<span class="pl-k">=</span><span class="pl-c1">30</span> <span class="pl-k">-</span>o ServerAliveCountMax<span class="pl-k">=</span><span class="pl-c1">6</span> <span class="pl-smi">$cpfServer</span></pre></div>
+<p dir="auto">输入密码时终端不显示字符。最后一条命令登录服务器。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">2. 在服务器解压并准备</h2><a id="user-content-2-在服务器解压并准备" class="anchor" aria-label="Permalink: 2. 在服务器解压并准备" href="#2-在服务器解压并准备"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<div class="highlight highlight-source-shell notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="cd /data/xhw/experiments
+sha256sum -c trustcpf_state_v1_10ep.zip.sha256
+unzip -o trustcpf_state_v1_10ep.zip -d /data/xhw/experiments
+
+cd /data/xhw/experiments/trustcpf_state_v1_10ep
+conda activate vgcpod_v1
+python -c &quot;import torch; print('PyTorch:', torch.__version__, 'CUDA:', torch.cuda.is_available())&quot;
+python -m pip install -r requirements.txt
+
+python run.py setup \
+  --source /data/xhw/experiments/trustcpf_r5_v1_10ep \
+  --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14 \
+  --work /data/xhw/experiments/trustcpf_state_v1_10ep/work"><pre><span class="pl-c1">cd</span> /data/xhw/experiments
+sha256sum -c trustcpf_state_v1_10ep.zip.sha256
+unzip -o trustcpf_state_v1_10ep.zip -d /data/xhw/experiments
+
+<span class="pl-c1">cd</span> /data/xhw/experiments/trustcpf_state_v1_10ep
+conda activate vgcpod_v1
+python -c <span class="pl-s"><span class="pl-pds">"</span>import torch; print('PyTorch:', torch.__version__, 'CUDA:', torch.cuda.is_available())<span class="pl-pds">"</span></span>
+python -m pip install -r requirements.txt
+
+python run.py setup \
+  --source /data/xhw/experiments/trustcpf_r5_v1_10ep \
+  --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14 \
+  --work /data/xhw/experiments/trustcpf_state_v1_10ep/work</pre></div>
+<p dir="auto">setup 导入已有 15 个教师、响应、U-NLL 标签和 reference，并统一完成四种岭回归拟合。正式 GPU 评分使用其中三个预测器。完成时显示 SETUP_COMPLETE，后续脚本会自动读取本次 Python 和路径。</p>
+<p dir="auto">代码包不重复打包原始图像与 CLIP 特征缓存；使用上一轮 R5 已运行成功的缓存。R5 的旧实验文件保持原样。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">3. 在服务器用 0／1／2 卡运行完整队列</h2><a id="user-content-3-在服务器用-012-卡运行完整队列" class="anchor" aria-label="Permalink: 3. 在服务器用 0／1／2 卡运行完整队列" href="#3-在服务器用-012-卡运行完整队列"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<div class="highlight highlight-source-shell notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="cd /data/xhw/experiments/trustcpf_state_v1_10ep
+mkdir -p logs
+nohup bash scripts/run_all.sh 0 1 2 &gt; logs/queue.log 2&gt;&amp;1 &amp;
+tail -f logs/queue.log"><pre><span class="pl-c1">cd</span> /data/xhw/experiments/trustcpf_state_v1_10ep
+mkdir -p logs
+nohup bash scripts/run_all.sh 0 1 2 <span class="pl-k">&gt;</span> logs/queue.log <span class="pl-k">2&gt;&amp;1</span> <span class="pl-k">&amp;</span>
+tail -f logs/queue.log</pre></div>
+<p dir="auto">三卡各一条完整队列；10 epoch 训练结束后，会自动继续提取响应、生成策略、执行 Q5 审计和冻结识别。</p>
+<p dir="auto">查看具体训练进度，另开一个服务器终端执行：</p>
+<div class="highlight highlight-source-shell notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="cd /data/xhw/experiments/trustcpf_state_v1_10ep
+tail -f logs/seed3351.log"><pre><span class="pl-c1">cd</span> /data/xhw/experiments/trustcpf_state_v1_10ep
+tail -f logs/seed3351.log</pre></div>
+<p dir="auto">其余两条日志为 logs/seed3352.log、logs/seed3353.log。按 Ctrl+C 退出 tail，不会停止 nohup 任务。</p>
+<p dir="auto">若使用 1／2／3 卡，只把启动命令改成：</p>
+<div class="highlight highlight-source-shell notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="nohup bash scripts/run_all.sh 1 2 3 &gt; logs/queue.log 2&gt;&amp;1 &amp;"><pre>nohup bash scripts/run_all.sh 1 2 3 <span class="pl-k">&gt;</span> logs/queue.log <span class="pl-k">2&gt;&amp;1</span> <span class="pl-k">&amp;</span></pre></div>
+<p dir="auto">一次只启动一条队列。中断后在同一目录重新运行原启动命令，程序继续未完成 epoch 或阶段。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">4. 检查三 seed 是否全部完成</h2><a id="user-content-4-检查三-seed-是否全部完成" class="anchor" aria-label="Permalink: 4. 检查三 seed 是否全部完成" href="#4-检查三-seed-是否全部完成"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<div class="highlight highlight-source-shell notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="cd /data/xhw/experiments/trustcpf_state_v1_10ep
+bash scripts/status.sh"><pre><span class="pl-c1">cd</span> /data/xhw/experiments/trustcpf_state_v1_10ep
+bash scripts/status.sh</pre></div>
+<p dir="auto">正式配置最终应显示：</p>
+<div class="snippet-clipboard-content notranslate position-relative overflow-auto" data-snippet-clipboard-copy-content="STATUS 17 /17 recognition 1512 / 1512 Q5 600 / 600 curves 33 /33 complete True"><pre lang="text" class="notranslate"><code>STATUS 17 /17 recognition 1512 / 1512 Q5 600 / 600 curves 33 /33 complete True
+</code></pre></div>
+<p dir="auto">队列日志还会显示 QUEUE_COMPLETE。最佳 epoch 可能小于 10；实际训练到达第 10 epoch，由 training_contract.json 和 last.pt 记录。</p>
+<p dir="auto">查看卡占用：</p>
+<div class="highlight highlight-source-shell notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="nvidia-smi"><pre>nvidia-smi</pre></div>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">5. 在服务器打包完整结果</h2><a id="user-content-5-在服务器打包完整结果" class="anchor" aria-label="Permalink: 5. 在服务器打包完整结果" href="#5-在服务器打包完整结果"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">确认 complete True 后运行：</p>
+<div class="highlight highlight-source-shell notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="cd /data/xhw/experiments/trustcpf_state_v1_10ep
+bash scripts/pack_results.sh"><pre><span class="pl-c1">cd</span> /data/xhw/experiments/trustcpf_state_v1_10ep
+bash scripts/pack_results.sh</pre></div>
+<p dir="auto">打包会持续输出 PACK_PROGRESS，最后输出 PACK_COMPLETE。结果固定保存在：</p>
+<div class="snippet-clipboard-content notranslate position-relative overflow-auto" data-snippet-clipboard-copy-content="/data/xhw/experiments/trustcpf_state_v1_10ep_results.tar.gz
+/data/xhw/experiments/trustcpf_state_v1_10ep_results.tar.gz.sha256"><pre lang="text" class="notranslate"><code>/data/xhw/experiments/trustcpf_state_v1_10ep_results.tar.gz
+/data/xhw/experiments/trustcpf_state_v1_10ep_results.tar.gz.sha256
+</code></pre></div>
+<p dir="auto">包内包含预测、效用模型、教师、Uniform 权重、标签、配置和日志。文件名采用英文，校验文件采用 LF 换行。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">6. 回到本机 PowerShell 下载、校验、解压</h2><a id="user-content-6-回到本机-powershell-下载校验解压" class="anchor" aria-label="Permalink: 6. 回到本机 PowerShell 下载、校验、解压" href="#6-回到本机-powershell-下载校验解压"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">以下整段独立可运行，不依赖前面会话中的变量：</p>
+<div class="highlight highlight-source-powershell notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="$ErrorActionPreference = &quot;Stop&quot;
+$cpfServer = &quot;xhw@211.87.232.122&quot;
+$cpfLocal = &quot;C:\Users\llenovo\Documents\ChatGPT\USG\output\state_results&quot;
+New-Item -ItemType Directory -Force -Path $cpfLocal | Out-Null
+
+$cpfArchive = Join-Path $cpfLocal &quot;trustcpf_state_v1_10ep_results.tar.gz&quot;
+$cpfHashFile = &quot;$cpfArchive.sha256&quot;
+
+scp -o ServerAliveInterval=30 -o ServerAliveCountMax=6 &quot;$($cpfServer):/data/xhw/experiments/trustcpf_state_v1_10ep_results.tar.gz&quot; $cpfArchive
+if ($LASTEXITCODE -ne 0) { throw &quot;结果下载未完成，重新执行下载命令&quot; }
+
+scp -o ServerAliveInterval=30 -o ServerAliveCountMax=6 &quot;$($cpfServer):/data/xhw/experiments/trustcpf_state_v1_10ep_results.tar.gz.sha256&quot; $cpfHashFile
+if ($LASTEXITCODE -ne 0) { throw &quot;校验文件下载失败&quot; }
+
+$cpfExpected = ((Get-Content -LiteralPath $cpfHashFile -Raw).Trim() -split '\s+')[0].ToLowerInvariant()
+$cpfActual = (Get-FileHash -LiteralPath $cpfArchive -Algorithm SHA256).Hash.ToLowerInvariant()
+if ($cpfActual -ne $cpfExpected) { throw &quot;SHA256 不一致，请重新下载&quot; }
+
+$cpfExtract = Join-Path $cpfLocal (&quot;server_results_&quot; + (Get-Date -Format &quot;yyyyMMdd_HHmmss&quot;))
+New-Item -ItemType Directory -Path $cpfExtract | Out-Null
+tar -xzf $cpfArchive -C $cpfExtract
+if ($LASTEXITCODE -ne 0) { throw &quot;解压失败&quot; }
+
+Write-Host &quot;保存完成：$cpfExtract\trustcpf_state_v1_10ep\work&quot;"><pre><span class="pl-c1">$ErrorActionPreference</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>Stop<span class="pl-pds">"</span></span>
+<span class="pl-smi">$cpfServer</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>xhw@211.87.232.122<span class="pl-pds">"</span></span>
+<span class="pl-smi">$cpfLocal</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>C:\Users\llenovo\Documents\ChatGPT\USG\output\state_results<span class="pl-pds">"</span></span>
+<span class="pl-c1">New-Item</span> <span class="pl-k">-</span>ItemType Directory <span class="pl-k">-</span>Force <span class="pl-k">-</span>Path <span class="pl-smi">$cpfLocal</span> <span class="pl-k">|</span> <span class="pl-c1">Out-Null</span>
+
+<span class="pl-smi">$cpfArchive</span> <span class="pl-k">=</span> <span class="pl-c1">Join-Path</span> <span class="pl-smi">$cpfLocal</span> <span class="pl-s"><span class="pl-pds">"</span>trustcpf_state_v1_10ep_results.tar.gz<span class="pl-pds">"</span></span>
+<span class="pl-smi">$cpfHashFile</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$cpfArchive</span>.sha256<span class="pl-pds">"</span></span>
+
+scp <span class="pl-k">-</span>o ServerAliveInterval<span class="pl-k">=</span><span class="pl-c1">30</span> <span class="pl-k">-</span>o ServerAliveCountMax<span class="pl-k">=</span><span class="pl-c1">6</span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-k"><span class="pl-pse">$</span></span><span class="pl-pse">(</span><span class="pl-smi">$cpfServer</span><span class="pl-pse">)</span>:/data/xhw/experiments/trustcpf_state_v1_10ep_results.tar.gz<span class="pl-pds">"</span></span> <span class="pl-smi">$cpfArchive</span>
+<span class="pl-k">if</span> (<span class="pl-c1">$LASTEXITCODE</span> <span class="pl-k">-ne</span> <span class="pl-c1">0</span>) { <span class="pl-k">throw</span> <span class="pl-s"><span class="pl-pds">"</span>结果下载未完成，重新执行下载命令<span class="pl-pds">"</span></span> }
+
+scp <span class="pl-k">-</span>o ServerAliveInterval<span class="pl-k">=</span><span class="pl-c1">30</span> <span class="pl-k">-</span>o ServerAliveCountMax<span class="pl-k">=</span><span class="pl-c1">6</span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-k"><span class="pl-pse">$</span></span><span class="pl-pse">(</span><span class="pl-smi">$cpfServer</span><span class="pl-pse">)</span>:/data/xhw/experiments/trustcpf_state_v1_10ep_results.tar.gz.sha256<span class="pl-pds">"</span></span> <span class="pl-smi">$cpfHashFile</span>
+<span class="pl-k">if</span> (<span class="pl-c1">$LASTEXITCODE</span> <span class="pl-k">-ne</span> <span class="pl-c1">0</span>) { <span class="pl-k">throw</span> <span class="pl-s"><span class="pl-pds">"</span>校验文件下载失败<span class="pl-pds">"</span></span> }
+
+<span class="pl-smi">$cpfExpected</span> <span class="pl-k">=</span> ((<span class="pl-c1">Get-Content</span> <span class="pl-k">-</span>LiteralPath <span class="pl-smi">$cpfHashFile</span> <span class="pl-k">-</span>Raw).Trim() <span class="pl-k">-split</span> <span class="pl-s"><span class="pl-pds">'</span>\s+<span class="pl-pds">'</span></span>)[<span class="pl-c1">0</span>].ToLowerInvariant()
+<span class="pl-smi">$cpfActual</span> <span class="pl-k">=</span> (<span class="pl-c1">Get-FileHash</span> <span class="pl-k">-</span>LiteralPath <span class="pl-smi">$cpfArchive</span> <span class="pl-k">-</span>Algorithm SHA256).Hash.ToLowerInvariant()
+<span class="pl-k">if</span> (<span class="pl-smi">$cpfActual</span> <span class="pl-k">-ne</span> <span class="pl-smi">$cpfExpected</span>) { <span class="pl-k">throw</span> <span class="pl-s"><span class="pl-pds">"</span>SHA256 不一致，请重新下载<span class="pl-pds">"</span></span> }
+
+<span class="pl-smi">$cpfExtract</span> <span class="pl-k">=</span> <span class="pl-c1">Join-Path</span> <span class="pl-smi">$cpfLocal</span> (<span class="pl-s"><span class="pl-pds">"</span>server_results_<span class="pl-pds">"</span></span> <span class="pl-k">+</span> (<span class="pl-c1">Get-Date</span> <span class="pl-k">-</span>Format <span class="pl-s"><span class="pl-pds">"</span>yyyyMMdd_HHmmss<span class="pl-pds">"</span></span>))
+<span class="pl-c1">New-Item</span> <span class="pl-k">-</span>ItemType Directory <span class="pl-k">-</span>Path <span class="pl-smi">$cpfExtract</span> <span class="pl-k">|</span> <span class="pl-c1">Out-Null</span>
+tar <span class="pl-k">-</span>xzf <span class="pl-smi">$cpfArchive</span> <span class="pl-k">-</span>C <span class="pl-smi">$cpfExtract</span>
+<span class="pl-k">if</span> (<span class="pl-c1">$LASTEXITCODE</span> <span class="pl-k">-ne</span> <span class="pl-c1">0</span>) { <span class="pl-k">throw</span> <span class="pl-s"><span class="pl-pds">"</span>解压失败<span class="pl-pds">"</span></span> }
+
+<span class="pl-c1">Write-Host</span> <span class="pl-s"><span class="pl-pds">"</span>保存完成：<span class="pl-smi">$cpfExtract</span>\trustcpf_state_v1_10ep\work<span class="pl-pds">"</span></span></pre></div>
+<p dir="auto">每次解压进入新时间目录，保留之前的结果。原始压缩包也留在 state_results 中。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">7. 保存后重点查看的文件</h2><a id="user-content-7-保存后重点查看的文件" class="anchor" aria-label="Permalink: 7. 保存后重点查看的文件" href="#7-保存后重点查看的文件"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>文件</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>work/status.json</td>
+<td>完整性和阶段数量</td>
+</tr>
+<tr>
+<td>work/summary.csv</td>
+<td>逐 seed、状态、策略、bank、split、world 的识别指标</td>
+</tr>
+<tr>
+<td>work/paired.csv</td>
+<td>相对 Uniform、五置换均值及独立／联合预测器的配对差值</td>
+</tr>
+<tr>
+<td>work/aggregates.json</td>
+<td>三 seed 汇总，以及先平均 bank 后的汇总</td>
+</tr>
+<tr>
+<td>work/q5_decisions.csv、q5_paired.csv</td>
+<td>Q5 实际效用决策与配对比较</td>
+</tr>
+<tr>
+<td>work/utility.csv、utility/selection.json</td>
+<td>效用预测指标与共同 λ 选择</td>
+</tr>
+<tr>
+<td>work/training_curves.csv</td>
+<td>三 seed 的 epoch 0–10 曲线</td>
+</tr>
+<tr>
+<td>work/response_repeats.csv、response_transfer.csv</td>
+<td>重复响应与跨状态排序诊断</td>
+</tr>
+<tr>
+<td>work/deployment.csv、costs.csv</td>
+<td>类型概率、节点覆盖、原型位移与耗时</td>
+</tr>
+<tr>
+<td>work/seed3351/runs/uniform/best.pt、last.pt</td>
+<td>seed3351 最佳／第 10 epoch 权重；另两个 seed 同结构</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">论文主比较使用 uniform_best 状态，同 seed 的所有方法共享完全相同的识别权重。reference 状态、错配响应和简单读出用于解释收益来源。</p>
+</article>

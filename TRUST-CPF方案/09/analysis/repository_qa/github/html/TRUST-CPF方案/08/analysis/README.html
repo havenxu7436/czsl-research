@@ -1,0 +1,640 @@
+<article class="markdown-body entry-content container-lg" itemprop="text"><p dir="auto">本报告对应已完成的第一批 State。后续教师阶段匹配已完成，见 <a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/09/analysis/README.md">09 完整分析</a>。</p>
+<div class="markdown-heading" dir="auto"><h1 tabindex="-1" class="heading-element" dir="auto">TRUST-CPF State v1：第一批 10 epoch 完整结果分析</h1><a id="user-content-trust-cpf-state-v1第一批-10-epoch-完整结果分析" class="anchor" aria-label="Permalink: TRUST-CPF State v1：第一批 10 epoch 完整结果分析" href="#trust-cpf-state-v1第一批-10-epoch-完整结果分析"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">日期：2026-10-25。数据：<code>output/state_results/server_results_20261025_113118/trustcpf_state_v1_10ep</code>。平台为 UT-Zappos、CLIP ViT-L/14 缓存、强 CPF 基底。</p>
+<p dir="auto"><strong>本轮结论：联合拟合提高了 Q5 上的实际关系决策收益，但“旧教师效用预测器＋训练后响应＋冻结部署”没有提高正式 TEST 识别。对第一批具体配方，这是负向结果；对效用监督的可学习性，仍有明确正向证据。</strong></p>
+<p dir="auto">主 bank 上，Uniform 为 <strong>35.934 CW／26.532 OW</strong>，Pooled-Absolute 为 <strong>35.812／26.503</strong>，Pooled-Relative 为 <strong>35.822／26.516</strong>。Q5 上，Independent-Absolute、Pooled-Absolute、Pooled-Relative 的实际 AUC 增益分别为 <strong>+1.056、+1.339、+1.281 点</strong>，且三者在三个 seed 上均超过各自五次概率置换的均值。</p>
+<p dir="auto">本次已拿到 State 新结果。它与此前重新下载的 Competition 包不同；以下所有主结果均来自此次 State 归档。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">1. 完整性与训练执行</h2><a id="user-content-1-完整性与训练执行" class="anchor" aria-label="Permalink: 1. 完整性与训练执行" href="#1-完整性与训练执行"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>核对项</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>归档校验</td>
+<td>4,510,696,372 字节；SHA256 与随包校验文件一致</td>
+</tr>
+<tr>
+<td>执行阶段</td>
+<td>17 / 17：全局导入、全局拟合，三个 seed 各五阶段</td>
+</tr>
+<tr>
+<td>识别结果</td>
+<td>1512 / 1512 行；756 份 VAL／TEST 预测文件</td>
+</tr>
+<tr>
+<td>Q5 决策</td>
+<td>600 / 600 组策略—bank 结果；9600 组单图充分统计量</td>
+</tr>
+<tr>
+<td>训练曲线</td>
+<td>33 / 33 行，三个 seed 均保存 epoch 0–10</td>
+</tr>
+<tr>
+<td>原始效用与拟合</td>
+<td>15 个既有教师、144 个背景块、4 个拟合配置、8 个不同岭回归模型</td>
+</tr>
+<tr>
+<td>文件完整性</td>
+<td>78 个发布文件、2999 个阶段输出哈希全部通过</td>
+</tr>
+<tr>
+<td>表格计算</td>
+<td>792 行正式配对、192 行 Q5 配对、1049 条聚合记录重新核算</td>
+</tr>
+<tr>
+<td>GPU</td>
+<td>3351→1；3352→2；3353→3</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">从保存的逐图像预测复算 native／exact AUC、NLL、ECE、HM，以及 VAL 校准参数向 TEST 的迁移，最大数值差为 <strong>1.07e-14</strong>。重算 Q5 混合风险、单图风险、600 组决策和岭回归，最大差为 <strong>7.27e-13</strong>。结果中未发现能够解释当前收益方向的汇总错误、错误权重复用或概率分配失效。</p>
+<p dir="auto">三个 seed 都执行了新的 10 epoch Uniform 训练，最佳 epoch 为 <strong>2／2／6</strong>；所有策略共享对应 seed 的同一最佳权重，CPF backbone 与 reference 一致。此次训练确定性重现了上一轮 R5 的 Uniform 最佳权重，逐张量相同，因此旧基线与本次基线一致是预期现象。新增证据来自当前响应、联合预测器和冻结策略比较，不把重现的基线当作新的独立训练重复。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">2. 正式识别：总体没有超过 Uniform</h2><a id="user-content-2-正式识别总体没有超过-uniform" class="anchor" aria-label="Permalink: 2. 正式识别：总体没有超过 Uniform" href="#2-正式识别总体没有超过-uniform"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">主表固定 bank1701、TEST、uniform_best；AUC 为工程 0–100 尺度，差值单位为点。± 为三个 seed 的样本标准差。联合预测器由九个教师共享拟合，三个 seed 描述的是三套识别权重下的结果。</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>CW AUC</th>
+<th>OW AUC</th>
+<th>相对 Uniform：CW／OW</th>
+<th>CW HM／OW HM</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Uniform-0.5</td>
+<td>35.934 ± 0.771</td>
+<td>26.532 ± 1.366</td>
+<td>+0.000 / +0.000</td>
+<td>50.793 / 42.069</td>
+</tr>
+<tr>
+<td>Independent-Absolute</td>
+<td>35.838 ± 0.777</td>
+<td>26.460 ± 1.229</td>
+<td>-0.096 / -0.072</td>
+<td>51.143 / 41.500</td>
+</tr>
+<tr>
+<td>Pooled-Absolute</td>
+<td>35.812 ± 0.975</td>
+<td>26.503 ± 1.284</td>
+<td>-0.123 / -0.028</td>
+<td>50.570 / 42.135</td>
+</tr>
+<tr>
+<td>Pooled-Relative</td>
+<td>35.822 ± 1.042</td>
+<td>26.516 ± 1.304</td>
+<td>-0.113 / -0.016</td>
+<td>50.506 / 42.121</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">Pooled-Absolute 的 OW HM 比 Uniform 略高约 0.067 点，但 CW／OW AUC 都较低。HM 是 VAL 偏置迁移后的一个工作点，与整个 seen／unseen 权衡曲线的 AUC 含义不同。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">2.1 三个图 bank 与置换对照</h3><a id="user-content-21-三个图-bank-与置换对照" class="anchor" aria-label="Permalink: 2.1 三个图 bank 与置换对照" href="#21-三个图-bank-与置换对照"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">先在每个 seed 内平均三个图 bank，再平均三个 seed。五次置换只改变同类型关系与概率的对应，保留类型内概率多重集和期望边数。</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>相对 Uniform CW／OW</th>
+<th>相对五置换均值 CW／OW</th>
+<th>exact AUC：相对 Uniform CW／OW</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Independent-Absolute</td>
+<td>-0.122 / -0.107</td>
+<td>-0.089 / -0.097</td>
+<td>-0.148 / -0.110</td>
+</tr>
+<tr>
+<td>Pooled-Absolute</td>
+<td>-0.112 / -0.008</td>
+<td>-0.085 / +0.001</td>
+<td>-0.140 / -0.018</td>
+</tr>
+<tr>
+<td>Pooled-Relative</td>
+<td>-0.103 / -0.008</td>
+<td>-0.074 / +0.002</td>
+<td>-0.121 / -0.006</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">三个 bank 的平均结果没有改变判断。Pooled-Absolute 和 Pooled-Relative 的 OW 接近 Uniform，也接近各自置换均值；CW 仍低于两类对照。exact AUC 复算给出相同方向。</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>seed</th>
+<th>Independent：CW／OW 增益</th>
+<th>Pooled-Absolute：CW／OW 增益</th>
+<th>Pooled-Relative：CW／OW 增益</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3351</td>
+<td>-0.201 / -0.129</td>
+<td>-0.128 / -0.114</td>
+<td>-0.120 / -0.107</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>-0.241 / -0.265</td>
+<td>+0.073 / +0.358</td>
+<td>+0.070 / +0.330</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>+0.075 / +0.072</td>
+<td>-0.282 / -0.267</td>
+<td>-0.259 / -0.246</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">联合拟合在正式识别端主要改善 seed3352：Pooled-Absolute 为 <strong>+0.073 CW／+0.358 OW</strong>。seed3351 与 3353 为负，其中 3353 为 <strong>−0.282／−0.267</strong>。独立模型在 3353 略有收益，却在另两个 seed 上下降。收益转移到不同 seed，尚未形成共同提升。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">2.2 VAL 与 TEST 的方向不同</h3><a id="user-content-22-val-与-test-的方向不同" class="anchor" aria-label="Permalink: 2.2 VAL 与 TEST 的方向不同" href="#22-val-与-test-的方向不同"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>三 bank 平均</th>
+<th>VAL CW 增益</th>
+<th>TEST CW 增益</th>
+<th>VAL OW 增益</th>
+<th>TEST OW 增益</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Independent-Absolute</td>
+<td>-0.238</td>
+<td>-0.122</td>
+<td>-0.218</td>
+<td>-0.107</td>
+</tr>
+<tr>
+<td>Pooled-Absolute</td>
+<td>+0.162</td>
+<td>-0.112</td>
+<td>+0.030</td>
+<td>-0.008</td>
+</tr>
+<tr>
+<td>Pooled-Relative</td>
+<td>+0.150</td>
+<td>-0.103</td>
+<td>+0.014</td>
+<td>-0.008</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">Pooled-Absolute 在 VAL 上约 +0.162 CW，但 TEST 为 −0.112；Pooled-Relative 也出现同样变化。联合拟合改善验证集表现的事实存在，但这部分改善没有迁移到测试组合。因而后续应检验教师与使用阶段、组合覆盖和响应估计，而不是继续依赖在当前 VAL 上细调分配强度。</p>
+<p dir="auto"><a target="_blank" rel="noopener noreferrer" href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/08/analysis/figures/state_results_overview.png"><img src="/havenxu7436/czsl-research/raw/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/08/analysis/figures/state_results_overview.png" alt="本轮结果总览" style="max-width: 100%;"></a></p>
+<p dir="auto">图中黑点分别表示三个 seed。A 图先在 seed 内平均三个正式图 bank，B 图先平均八个 Q5 图 bank；图 bank 不是新增训练 seed。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">3. Q5：效用监督和联合拟合保留了实际价值</h2><a id="user-content-3-q5效用监督和联合拟合保留了实际价值" class="anchor" aria-label="Permalink: 3. Q5：效用监督和联合拟合保留了实际价值" href="#3-q5效用监督和联合拟合保留了实际价值"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">Q5 每组使用 16 图概率混合，八个图 bank。对应教师的训练图像、效用测量图像和实际决策评价图像分开；Q5 教师未进入 Q1–Q3 拟合或 Q4 选参。评价仍属于既有开发组合上的留出教师审计。测量效用策略使用独立测量图像的标签，作为有标签决策参照，不属于正式 TEST 方法。</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>效用来源</th>
+<th>实际 AUC 增益</th>
+<th>相对五置换均值</th>
+<th>U-NLL 收益（nat）</th>
+<th>单图平均 AUC 增益</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Independent-Absolute</td>
+<td>+1.056</td>
+<td>+0.822</td>
+<td>0.055529</td>
+<td>+0.631</td>
+</tr>
+<tr>
+<td>Pooled-Absolute</td>
+<td>+1.339</td>
+<td>+1.179</td>
+<td>0.069985</td>
+<td>+0.588</td>
+</tr>
+<tr>
+<td>Pooled-Relative</td>
+<td>+1.281</td>
+<td>+1.135</td>
+<td>0.074039</td>
+<td>+0.608</td>
+</tr>
+<tr>
+<td>测量效用</td>
+<td>+2.773</td>
+<td>+2.680</td>
+<td>0.194506</td>
+<td>+2.624</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>3351 AUC 增益</th>
+<th>3352 AUC 增益</th>
+<th>3353 AUC 增益</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Independent-Absolute</td>
+<td>+1.418</td>
+<td>+1.312</td>
+<td>+0.437</td>
+</tr>
+<tr>
+<td>Pooled-Absolute</td>
+<td>+1.088</td>
+<td>+1.155</td>
+<td>+1.775</td>
+</tr>
+<tr>
+<td>Pooled-Relative</td>
+<td>+1.118</td>
+<td>+1.113</td>
+<td>+1.612</td>
+</tr>
+<tr>
+<td>测量效用</td>
+<td>+1.780</td>
+<td>+4.252</td>
+<td>+2.288</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto"><strong>Pooled-Absolute 比 Independent-Absolute 平均多获得 0.284 点 Q5 AUC，且三 seed 均高于 Uniform 与五置换均值。</strong> 改进主要来自 3353：该 seed 由 +0.437 提高到 +1.775；3351、3352 的收益略降。这比只看效用相关更直接地支持“联合教师信息能够改善某些留出状态的关系决策”。</p>
+<p dir="auto">测量效用仍能获得 <strong>+2.773 点</strong>，高于联合预测的 +1.339 点。该差距说明预测器只利用了部分可用效用。测量策略在三个 seed 上都超过五次置换均值，也支持具体关系与效用之间的对应具有价值。</p>
+<p dir="auto">联合模型的单图平均 AUC 收益为 +0.588，略低于独立模型的 +0.631；其优势主要体现于本实验正式采用的 16 图概率混合读出。这两种读出应分别报告。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">3.1 四种拟合配置的预测质量</h3><a id="user-content-31-四种拟合配置的预测质量" class="anchor" aria-label="Permalink: 3.1 四种拟合配置的预测质量" href="#31-四种拟合配置的预测质量"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>配置</th>
+<th>λ／α</th>
+<th>Q5 整体 Spearman</th>
+<th>类型中心化 R²</th>
+<th>一阶代理收益</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>independent-absolute</td>
+<td>0.03333 / 0.100</td>
+<td>0.1987</td>
+<td>0.0103</td>
+<td>0.03806</td>
+</tr>
+<tr>
+<td>independent-relative</td>
+<td>0.03333 / 0.100</td>
+<td>0.1743</td>
+<td>0.0109</td>
+<td>0.03505</td>
+</tr>
+<tr>
+<td>pooled-absolute</td>
+<td>3.33333 / 30.000</td>
+<td>0.1950</td>
+<td>0.0252</td>
+<td>0.03851</td>
+</tr>
+<tr>
+<td>pooled-relative</td>
+<td>3.33333 / 30.000</td>
+<td>0.2493</td>
+<td>0.0260</td>
+<td>0.03989</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">Independent 使用每 seed 的 Q1–Q3 三教师；Pooled 使用全部九教师。正则按 α=Jλ 匹配，三个 Q4 共同选择 λ。全局四种拟合均复算一致。</p>
+<p dir="auto">Pooled-Relative 的整体 Spearman 高于 Pooled-Absolute，但实际 Q5 AUC 低约 0.058 点，正式 TEST 也没有形成实质优势。两个联合方法在 uniform_best 的类型内概率排序平均相关为 <strong>0.988</strong>，平均绝对概率差约 <strong>0.0131</strong>；它们实际生成的分配非常接近。<strong>下一批继续以 Pooled-Absolute 为主方法即可。</strong></p>
+<p dir="auto">类型内 Q5 排序也不均衡。Pooled-Absolute 的 OI／OE／AE 平均 Spearman 为 <strong>0.000／0.405／0.210</strong>。信息主要体现在 OE 和 AE，当前结果尚未给出 OI 分配带来独立贡献的证据。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">4. 模型状态：训练后更新响应没有带来预期增益</h2><a id="user-content-4-模型状态训练后更新响应没有带来预期增益" class="anchor" aria-label="Permalink: 4. 模型状态：训练后更新响应没有带来预期增益" href="#4-模型状态训练后更新响应没有带来预期增益"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">本实验已经消除了“先预测效用，再改变正式权重”的过程：每个策略都在同一冻结权重下提取响应并推理。仍需判断旧教师学习到的映射是否适用于该状态。</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>Pooled-Absolute，三 bank 平均</th>
+<th>CW 相对 Uniform</th>
+<th>OW 相对 Uniform</th>
+<th>CW 相对错配响应</th>
+<th>OW 相对错配响应</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>reference</td>
+<td>+0.067</td>
+<td>+0.069</td>
+<td>+0.095</td>
+<td>+0.023</td>
+</tr>
+<tr>
+<td>uniform_best</td>
+<td>-0.112</td>
+<td>-0.008</td>
+<td>-0.115</td>
+<td>-0.022</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">reference 状态的联合分配有约 <strong>+0.067 CW／+0.069 OW</strong> 的平均 TEST 收益；到了 uniform_best，变为 <strong>−0.112／−0.008</strong>。两个状态的比较均使用各自 Uniform 对照，避免把训练本身的收益混进分配收益。</p>
+<p dir="auto">在 uniform_best 上，使用旧 reference 响应反而比使用当前响应高 <strong>0.115 CW／0.022 OW</strong>。主 bank 中，旧响应策略甚至略高于 Uniform（+0.035／+0.016），三个 bank 平均后缩小为 +0.003／+0.014。<strong>本轮没有支持“只要改用当前状态响应，就能解决迁移问题”这一具体假设。</strong></p>
+<p dir="auto">固定联合预测器，从 Q5 输入换到 reference／uniform_best 输入时，类型内预测排序相关分别约 −0.012／−0.001。状态改变允许真实效用排序变化，这个相关不能直接判定谁对谁错；实际 TEST 和交叉响应结果表明，旧教师映射的正式使用质量仍然不足。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">5. 重复响应：探针波动已经足以明显改变策略</h2><a id="user-content-5-重复响应探针波动已经足以明显改变策略" class="anchor" aria-label="Permalink: 5. 重复响应：探针波动已经足以明显改变策略" href="#5-重复响应探针波动已经足以明显改变策略"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">每次响应使用每组合两张支持图像和四个背景图；正式模型共 83 个训练组合、166 张支持图像。两次测量改变支持图像抽样和背景 seed。下表先在每个 seed、每个关系类型内计算排序相关，再对九项等权平均。</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>预测器</th>
+<th>Q5 两次响应 ρ</th>
+<th>reference 两次响应 ρ</th>
+<th>uniform_best 两次响应 ρ</th>
+<th>uniform_best 概率 RMS 差</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Independent-Absolute</td>
+<td>0.469</td>
+<td>0.493</td>
+<td>0.496</td>
+<td>0.177</td>
+</tr>
+<tr>
+<td>Pooled-Absolute</td>
+<td>0.487</td>
+<td>0.488</td>
+<td>0.361</td>
+<td>0.201</td>
+</tr>
+<tr>
+<td>Pooled-Relative</td>
+<td>0.478</td>
+<td>0.475</td>
+<td>0.321</td>
+<td>0.201</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">Pooled-Absolute 的训练后响应重复相关仅 <strong>0.361</strong>，概率平均 RMS 差约 <strong>0.201</strong>。它在三个类型的原有概率标准差约为 <strong>0.209／0.192／0.183</strong>，两次探针引起的概率变化与非均匀分配本身的幅度相近。这是当前最直接的新诊断：探针不稳定会影响关系排序，类型内标准化又会把这些排序变化变成明显概率差异。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">5.1 使用已保存响应的新增 CPU 复算</h3><a id="user-content-51-使用已保存响应的新增-cpu-复算" class="anchor" aria-label="Permalink: 5.1 使用已保存响应的新增 CPU 复算" href="#51-使用已保存响应的新增-cpu-复算"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">本次分析额外计算了两次预测的平均，再重新做一次类型预算分配。没有新增训练，也没有把它混入已经评分的正式主结果。对线性预测器，先平均响应再预测与先预测再平均完全等价；平均后的概率需要重新求解，不能直接平均两组概率。</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>Pooled-Absolute 的 Q5 输入</th>
+<th>整体 Spearman</th>
+<th>类型内 Spearman 均值</th>
+<th>类型中心化 R²</th>
+<th>一阶代理收益</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>primary</td>
+<td>0.1950</td>
+<td>0.2051</td>
+<td>0.0252</td>
+<td>0.03851</td>
+</tr>
+<tr>
+<td>repeat</td>
+<td>0.1971</td>
+<td>0.1985</td>
+<td>0.0281</td>
+<td>0.03752</td>
+</tr>
+<tr>
+<td>average</td>
+<td>0.2332</td>
+<td>0.2504</td>
+<td>0.0285</td>
+<td>0.04405</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">两次平均使联合模型的类型内相关由 <strong>0.205 提高到 0.250</strong>，一阶代理由 <strong>0.03851 提高到 0.04405</strong>，约增加 <strong>14.4%</strong>。3351 和 3353 的代理提高，3352 基本持平。这里的代理是测量效用与概率改变量的内积，<strong>不是实际 AUC</strong>；当前归档尚未包含平均响应策略的 Q5／TEST 图像评分。</p>
+<p dir="auto">这使“提高响应估计稳定性”成为有数据依据的低成本改进，优先级高于继续设计新的效用损失或扩大预测网络。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">6. 训练曲线、简单读出与成本</h2><a id="user-content-6-训练曲线简单读出与成本" class="anchor" aria-label="Permalink: 6. 训练曲线、简单读出与成本" href="#6-训练曲线简单读出与成本"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>seed</th>
+<th>最佳 epoch</th>
+<th>epoch0 VAL CW</th>
+<th>最佳 VAL CW</th>
+<th>epoch10 VAL CW</th>
+<th>末轮相对最佳</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3351</td>
+<td>2</td>
+<td>43.577</td>
+<td>44.254</td>
+<td>42.813</td>
+<td>-1.441</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>2</td>
+<td>41.253</td>
+<td>41.741</td>
+<td>41.098</td>
+<td>-0.643</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>6</td>
+<td>44.017</td>
+<td>44.890</td>
+<td>43.663</td>
+<td>-1.227</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">三条轨迹均完成 10 epoch，训练 loss 整体下降，但第 10 轮 VAL 比最佳值低 <strong>1.441／0.643／1.227 点</strong>。本批权重来自完整训练和 VAL 选模，当前负增益不能归因为只训练了 3 epoch。继续延长这三条既有轨迹不是下一步的主要工作。</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>uniform_best 的其他读出</th>
+<th>三 bank 平均 CW 增益</th>
+<th>三 bank 平均 OW 增益</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>历史同边均值</td>
+<td>-0.177</td>
+<td>-0.131</td>
+</tr>
+<tr>
+<td>支持集 NLL 直接读出</td>
+<td>-0.032</td>
+<td>+0.004</td>
+</tr>
+<tr>
+<td>Pooled-Absolute＋reference 响应</td>
+<td>+0.003</td>
+<td>+0.014</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">直接使用某条边的历史效用均值表现较差；只用支持集 NLL 响应也接近或略低于 Uniform。已有结果不支持把共享边 ID 当成主要价值来源。历史同边均值在 VAL CW 上反而平均提高约 +0.423 点，却在 TEST 下降 −0.177 点，进一步说明当前验证组合上的收益存在迁移差异。</p>
+<p dir="auto">所有方法的 OI／OE／AE 期望边数均为 <strong>6／18／24</strong>，五次置换完整保留类型内概率分布。非均匀分配已实际生效。Uniform 的 OE／AE 预期节点覆盖为 10.500／14.000，Pooled-Absolute 为 10.178／13.566；当前分配略集中于少数目标。该表记录结构变化，不把覆盖下降单独解释为 AUC 下降的原因。</p>
+<p dir="auto">概率校准方面，主 bank 的 Pooled-Absolute OW ECE 由 Uniform 的 <strong>5.601 降至 4.556</strong>，校准 NLL 由 <strong>1.9803 降至 1.9754</strong>。这部分正向变化没有转成 AUC 优势，应作为辅助结果。</p>
+<p dir="auto">主 bank 的组内判别进一步说明了变化位置：Pooled-Absolute 的已见组内正确率由 <strong>62.333% 降至 62.105%</strong>，CW 未见组内正确率由 <strong>65.521% 降至 65.433%</strong>；通过两侧组内判别后的条件交叉排序面积几乎不变。OW 未见组内正确率由 <strong>50.925% 升至 51.049%</strong>，部分抵消了已见端下降，因此 OW 更接近持平。未校准的未见 NLL 略降、已见 NLL 略升，与这种权衡一致。</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>seed</th>
+<th>Uniform 训练</th>
+<th>响应测量</th>
+<th>Q5 评价</th>
+<th>正式冻结评分</th>
+<th>总阶段时间</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3351</td>
+<td>2.45 分钟</td>
+<td>0.17 分钟</td>
+<td>0.70 分钟</td>
+<td>10.67 分钟</td>
+<td>14.00 分钟</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>2.49 分钟</td>
+<td>0.17 分钟</td>
+<td>0.71 分钟</td>
+<td>10.76 分钟</td>
+<td>14.13 分钟</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>2.49 分钟</td>
+<td>0.17 分钟</td>
+<td>0.70 分钟</td>
+<td>10.41 分钟</td>
+<td>13.77 分钟</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">三卡并行最长队列约 <strong>14.13 分钟</strong>，其中正式冻结评分约 10.4–10.8 分钟，是主要成本。峰值 PyTorch 张量分配约 <strong>257.86 MiB</strong>；该值不含 CUDA 上下文和其他进程占用，也不是 nvidia-smi 的总显存。CLIP 特征已缓存，以上不含图像编码、打包和传输。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">7. 对 TRUST 研究路线的判断与下一步</h2><a id="user-content-7-对-trust-研究路线的判断与下一步" class="anchor" aria-label="Permalink: 7. 对 TRUST 研究路线的判断与下一步" href="#7-对-trust-研究路线的判断与下一步"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>研究点</th>
+<th>本轮证据</th>
+<th>当前判断</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>关系具有任务效用</td>
+<td>测量效用 Q5 +2.773，三 seed 均超过置换均值</td>
+<td>保留</td>
+</tr>
+<tr>
+<td>效用可以学习</td>
+<td>独立／联合预测的 Q5 决策都提高实际 AUC</td>
+<td>保留</td>
+</tr>
+<tr>
+<td>多教师联合拟合</td>
+<td>Pooled-Absolute 的 Q5 比 Independent 多 +0.284；正式 TEST 不一致</td>
+<td>作为效用学习模块继续使用</td>
+</tr>
+<tr>
+<td>训练后当前响应直接修复部署</td>
+<td>正式 CW 下降，旧响应交叉对照反而更好</td>
+<td>第一批假设未成立</td>
+</tr>
+<tr>
+<td>Relative 比 Absolute 更适合最终决策</td>
+<td>两者策略接近，Relative 的 Q5 略差</td>
+<td>保持 Absolute 主目标</td>
+</tr>
+<tr>
+<td>更稳定的响应估计</td>
+<td>重复排序较低；两次平均改善 Q5 预测与一阶代理</td>
+<td>下一批纳入验证</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto"><strong>下一步仍建议完成原计划的第二批“教师阶段匹配”，把正式 Uniform-best 权重固定为本次权重。</strong> 第一批已经检验了只改部署顺序的效果；第二批直接检验学习映射是否需要来自对应训练阶段。主方法保持 U-NLL、九教师联合 Absolute 岭回归、κ=1 和半密度预算。</p>
+<p dir="auto">一批完成五组主比较：Uniform；旧教师预测器；阶段匹配预测器；阶段匹配预测器的五次类型内概率置换；同一新预测器输入 reference 响应。15 个折内教师各追加一条 10 epoch Uniform 轨迹，按原方案的独立停止集选状态，再同步重测该状态的响应和 U-NLL 标签。正式识别器不再重训。</p>
+<p dir="auto">重复响应平均作为同一批的附加读出处理：对旧／新预测器各评分一次两次响应平均，不新增识别训练、不扩展损失函数网格。主表保留单次响应以单独识别阶段匹配的贡献，平均响应结果说明探针稳定化还能增加多少收益。新教师也保存第二次响应，避免只在正式使用端改变测量精度。</p>
+<p dir="auto">新的判断依据集中在两个问题：新教师映射能否在相同正式权重上超过旧映射、Uniform 和置换；响应平均能否把已有的代理改善转成真实识别改善。当前还不值得扩大噪声实验或继续长训正式识别器。</p>
+<p dir="auto">对论文目标而言，本轮加强了“可学习的关系效用在留出教师决策中有效”的机制证据，同时削弱了“当前紧凑效用映射已经能稳定改善最终 CZSL”的性能主张。后续研究重点应收敛到<strong>跨模型状态的效用迁移与稳定估计</strong>，而不是把这一轮微小正负差值包装成已完成的方法收益。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">8. 文件与复算口径</h2><a id="user-content-8-文件与复算口径" class="anchor" aria-label="Permalink: 8. 文件与复算口径" href="#8-文件与复算口径"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">主报告没有合并新的训练 seed。三个图 bank 先在 seed 内平均；五个置换先在相同 seed／状态／bank 内平均；Q5 八个 bank 也是先在教师内部平均。Q5 exact AUC 与正式 native AUC 分开标注。</p>
+<p dir="auto">本次从预测文件复算的是评分与汇总，不是重新执行 CLIP 或 GPU 图像前向。响应重复平均部分仅为 CPU 诊断，未报告未执行的识别成绩。</p>
+<p dir="auto">归档 SHA256：<code>6a6d7be0d14c2a7f94fe538e54792d742285fe7f253ac757f41749b00313c9aa</code>。</p>
+<ul dir="auto">
+<li>
+<p dir="auto"><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/08/results/raw_export/trustcpf_state_v1_10ep/work/status.json">本轮完成状态</a></p>
+</li>
+<li>
+<p dir="auto"><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/08/results/raw_export/trustcpf_state_v1_10ep/work/summary.csv">1512 行正式识别结果</a></p>
+</li>
+<li>
+<p dir="auto"><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/08/results/raw_export/trustcpf_state_v1_10ep/work/paired.csv">792 行正式配对比较</a></p>
+</li>
+<li>
+<p dir="auto"><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/08/results/raw_export/trustcpf_state_v1_10ep/work/q5_decisions.csv">600 行 Q5 决策</a></p>
+</li>
+<li>
+<p dir="auto"><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/08/results/raw_export/trustcpf_state_v1_10ep/work/q5_paired.csv">192 行 Q5 配对</a></p>
+</li>
+<li>
+<p dir="auto"><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/08/results/raw_export/trustcpf_state_v1_10ep/work/utility.csv">效用预测指标</a></p>
+</li>
+<li>
+<p dir="auto"><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/08/results/raw_export/trustcpf_state_v1_10ep/work/training_curves.csv">epoch 0–10 曲线</a></p>
+</li>
+<li>
+<p dir="auto"><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/08/results/raw_export/trustcpf_state_v1_10ep/work/response_repeats.csv">重复响应诊断</a></p>
+</li>
+<li>
+<p dir="auto"><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/08/results/raw_export/trustcpf_state_v1_10ep/work/response_transfer.csv">跨状态排序</a></p>
+</li>
+<li>
+<p dir="auto"><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/08/results/raw_export/trustcpf_state_v1_10ep/work/deployment.csv">概率与覆盖</a></p>
+</li>
+<li>
+<p dir="auto"><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/08/results/raw_export/trustcpf_state_v1_10ep/work/costs.csv">阶段耗时</a></p>
+</li>
+<li>
+<p dir="auto"><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/08/analysis/confirmed/verification.json">预测与完整性复算</a></p>
+</li>
+<li>
+<p dir="auto"><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/08/analysis/confirmed/mechanism_verification.json">效用和 Q5 复算</a></p>
+</li>
+<li>
+<p dir="auto"><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/08/analysis/confirmed/table_verification.json">配对及聚合表复算</a></p>
+</li>
+</ul>
+</article>

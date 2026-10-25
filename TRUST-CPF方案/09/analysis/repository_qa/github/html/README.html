@@ -1,0 +1,71 @@
+<article class="markdown-body entry-content container-lg" itemprop="text"><div class="markdown-heading" dir="auto"><h1 tabindex="-1" class="heading-element" dir="auto">CZSL 研究：实验记录与复现</h1><a id="user-content-czsl-研究实验记录与复现" class="anchor" aria-label="Permalink: CZSL 研究：实验记录与复现" href="#czsl-研究实验记录与复现"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">目录</h2><a id="user-content-目录" class="anchor" aria-label="Permalink: 目录" href="#目录"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<div class="snippet-clipboard-content notranslate position-relative overflow-auto" data-snippet-clipboard-copy-content="前期实验/      01–15 阶段的说明、代码、配置与结果
+0601方案/      01–03 与 v2 的评分实现、配置与结果
+VG-CPOD方案/   独立CLIP路线；v1方案、公式、代码、配置与验证
+TRUST-CPF方案/ 第四条路线；CLIP关系效用、风险预算、公式与完整实验代码
+src/           CPF / LogiCZSL 基础源码快照
+knowledge/     按数据集、类型和版本组织的知识资产
+environment/   环境版本、外部输入与路径配置
+tools/         文件校验与运行目录恢复
+provenance/    文件来源、路径映射与 SHA256"><pre lang="text" class="notranslate"><code>前期实验/      01–15 阶段的说明、代码、配置与结果
+0601方案/      01–03 与 v2 的评分实现、配置与结果
+VG-CPOD方案/   独立CLIP路线；v1方案、公式、代码、配置与验证
+TRUST-CPF方案/ 第四条路线；CLIP关系效用、风险预算、公式与完整实验代码
+src/           CPF / LogiCZSL 基础源码快照
+knowledge/     按数据集、类型和版本组织的知识资产
+environment/   环境版本、外部输入与路径配置
+tools/         文件校验与运行目录恢复
+provenance/    文件来源、路径映射与 SHA256
+</code></pre></div>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">实验路线</h2><a id="user-content-实验路线" class="anchor" aria-label="Permalink: 实验路线" href="#实验路线"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>实验路线</th>
+<th>实验编号</th>
+<th>入口</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>前期实验</td>
+<td>01–15</td>
+<td><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/%E5%89%8D%E6%9C%9F%E5%AE%9E%E9%AA%8C/README.md">实验索引</a></td>
+</tr>
+<tr>
+<td>0601方案</td>
+<td>01–04</td>
+<td><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/0601%E6%96%B9%E6%A1%88/README.md">方案索引</a></td>
+</tr>
+<tr>
+<td>VG-CPOD</td>
+<td>01–13</td>
+<td><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/VG-CPOD%E6%96%B9%E6%A1%88/README.md">方案索引</a></td>
+</tr>
+<tr>
+<td>TRUST-CPF / CLIP</td>
+<td>01–09</td>
+<td><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/README.md">方案索引</a></td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">使用流程</h2><a id="user-content-使用流程" class="anchor" aria-label="Permalink: 使用流程" href="#使用流程"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<div class="highlight highlight-source-shell notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="git lfs install
+git clone -c core.longpaths=true https://github.com/havenxu7436/czsl-research.git
+cd czsl-research
+git lfs pull
+python tools/reproduce.py verify"><pre>git lfs install
+git clone -c core.longpaths=true https://github.com/havenxu7436/czsl-research.git
+<span class="pl-c1">cd</span> czsl-research
+git lfs pull
+python tools/reproduce.py verify</pre></div>
+<ol dir="auto">
+<li><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/environment/README.md">环境说明</a>定义软件版本、外部输入与命令变量。</li>
+<li><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/knowledge/README.md">知识说明</a>定义资产分区与版本。</li>
+<li>各阶段 README 提供实验设置、关键流程、入口和结果链接。</li>
+<li><code>inputs.json</code> 索引知识、配置和结果；<code>runbook.json</code> 保存该阶段的执行命令。</li>
+</ol>
+<p dir="auto">评价中的 CW/OW 分别表示 closed-world/open-world。训练组按对应 VAL 规则选模，选中权重用于结果评价。</p>
+<p dir="auto">文件来源与 SHA256 见 <code>provenance/</code>。</p>
+</article>

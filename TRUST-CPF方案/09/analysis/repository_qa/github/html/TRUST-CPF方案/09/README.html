@@ -1,0 +1,55 @@
+<article class="markdown-body entry-content container-lg" itemprop="text"><div class="markdown-heading" dir="auto"><h1 tabindex="-1" class="heading-element" dir="auto">09 · Stage 第二批：教师阶段匹配与响应平均</h1><a id="user-content-09--stage-第二批教师阶段匹配与响应平均" class="anchor" aria-label="Permalink: 09 · Stage 第二批：教师阶段匹配与响应平均" href="#09--stage-第二批教师阶段匹配与响应平均"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">完成与归档日期：2026-10-25。UT-Zappos natural split，CLIP ViT-L/14 特征与 CPF 强基底；seed 3351 / 3352 / 3353，实际物理 GPU 1 / 2 / 3。</p>
+<p dir="auto">26/26 阶段，15 个教师各追加 10 epoch，正式权重复用第一批 Uniform-best；81 个评分策略实例、972 行识别、744 行 Q5、486 份预测、165 行教师曲线。</p>
+<p dir="auto"><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/09/PLAN.md">方案</a> · <a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/09/FORMULAS_AND_CODE.md">公式与核心代码</a> · <a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/09/code/README.md">代码</a> · <a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/09/configs/README.md">配置</a> · <a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/09/results/README.md">完整结果</a> · <a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/09/analysis/README.md">完整分析</a> · <a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/09/analysis/REPRODUCE.md">分析复算</a> · <a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/09/SERVER_COMMANDS.md">上传、运行和下载</a></p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>TEST CW AUC</th>
+<th>TEST OW AUC</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>uniform</td>
+<td>35.9343 ± 0.7712</td>
+<td>26.5317 ± 1.3662</td>
+</tr>
+<tr>
+<td>old_single</td>
+<td>35.8118 ± 0.9746</td>
+<td>26.5034 ± 1.2842</td>
+</tr>
+<tr>
+<td>matched_single</td>
+<td>35.9645 ± 0.8630</td>
+<td>26.5362 ± 1.2052</td>
+</tr>
+<tr>
+<td>old_average</td>
+<td>35.9443 ± 0.8797</td>
+<td>26.5268 ± 1.2462</td>
+</tr>
+<tr>
+<td>matched_average</td>
+<td>35.9471 ± 0.8600</td>
+<td>26.4965 ± 1.2364</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">表格固定主 bank1701、Uniform-best，均值 ± 三 seed 样本标准差；AUC 为 0–100 尺度。三 bank 结果及五次置换比较见完整分析，多个 bank 不计作额外训练重复。</p>
+<p dir="auto">教师阶段匹配把旧预测器的正式识别下降基本修复到 Uniform 水平。三 bank 平均的 Matched-Average 为 35.936 CW / 26.483 OW，微小平均正值尚未形成稳定优势。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">还原发布包</h2><a id="user-content-还原发布包" class="anchor" aria-label="Permalink: 还原发布包" href="#还原发布包"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">在仓库根目录执行：</p>
+<div class="highlight highlight-source-shell notranslate position-relative overflow-auto" dir="auto" data-snippet-clipboard-copy-content="git lfs pull --include=&quot;TRUST-CPF方案/09/**&quot;
+python tools/register_trustcpf_state_stage.py --stage 09 --check
+python tools/reproduce.py materialize --line TRUST-CPF方案 --stage 09 --dest &quot;$HOME/experiments/trust-09-replay&quot;
+cd &quot;$HOME/experiments/trust-09-replay/trustcpf_stage_v1_10ep&quot;
+python -m unittest discover -s tests -v"><pre>git lfs pull --include=<span class="pl-s"><span class="pl-pds">"</span>TRUST-CPF方案/09/**<span class="pl-pds">"</span></span>
+python tools/register_trustcpf_state_stage.py --stage 09 --check
+python tools/reproduce.py materialize --line TRUST-CPF方案 --stage 09 --dest <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$HOME</span>/experiments/trust-09-replay<span class="pl-pds">"</span></span>
+<span class="pl-c1">cd</span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$HOME</span>/experiments/trust-09-replay/trustcpf_stage_v1_10ep<span class="pl-pds">"</span></span>
+python -m unittest discover -s tests -v</pre></div>
+<p dir="auto"><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/09/configs/experiment_inventory.json">执行与评分清单</a> · <a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/09/inputs.json">状态</a> · <a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/09/file_manifest.json">文件 SHA256</a> · <a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/09/package_members.json">发布包成员</a> · <a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/09/results/raw_export_members.json">服务器成员</a> · <a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/09/%E6%9D%A5%E6%BA%90%E4%B8%8E%E8%AE%B8%E5%8F%AF.md">来源与许可</a></p>
+</article>

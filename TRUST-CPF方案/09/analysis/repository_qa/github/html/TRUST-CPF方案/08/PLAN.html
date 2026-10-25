@@ -1,0 +1,802 @@
+<article class="markdown-body entry-content container-lg" itemprop="text"><p dir="auto">本页保留 v6 原研究安排。第一批 State 与第二批 Stage 均已完成，见 <a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/08/analysis/README.md">08 分析</a> 与 <a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/09/analysis/README.md">09 分析</a>。原始计划的后续分支按实际结果解释。</p>
+<div class="markdown-heading" dir="auto"><h1 tabindex="-1" class="heading-element" dir="auto">TRUST-CPF 公式修订与后续实验方案 v6</h1><a id="user-content-trust-cpf-公式修订与后续实验方案-v6" class="anchor" aria-label="Permalink: TRUST-CPF 公式修订与后续实验方案 v6" href="#trust-cpf-公式修订与后续实验方案-v6"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">日期：2026-10-25<br>
+依据：第五版诊断 PDF，以及弱基底、强基底、响应条件化、Compact、Align、Competition 10 epoch、R5 10 epoch 的已归档结果。<br>
+当前平台：UT-Zappos、CLIP ViT-L/14 缓存、工程内强 CPF 基底、96 条关系、seed 3351／3352／3353。</p>
+<p dir="auto"><strong>下一步主线确定为：U-NLL 配对效用监督 → 多教师联合拟合 → Uniform 完成训练 → 在同一冻结模型上提取响应、分配关系并识别。</strong></p>
+<p dir="auto">保留 TRUST 的效用监督、响应条件化和关系分配三个研究点。主要修改训练与部署的对应方式，以及多教师拟合的正则化尺度。Relative 保留为联合拟合中的对照；Competition 目标、大型效用网络和误差惩罚暂不进入主模型。</p>
+<p dir="auto">本轮首先完成一批复用现有权重的冻结实验，随后完成一批教师阶段匹配实验。两批都使用完整三 seed 队列，不拆成逐项审批的小实验。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">1. 全部结果把问题指向了哪里</h2><a id="user-content-1-全部结果把问题指向了哪里" class="anchor" aria-label="Permalink: 1. 全部结果把问题指向了哪里" href="#1-全部结果把问题指向了哪里"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">1.1 已经确定的实验事实</h3><a id="user-content-11-已经确定的实验事实" class="anchor" aria-label="Permalink: 1.1 已经确定的实验事实" href="#11-已经确定的实验事实"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">以下 AUC 均按工程的 0–100 尺度显示。各轮训练协议不同，跨轮数字用于追踪证据；方法增益使用同轮配对对照。</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>实验阶段</th>
+<th>主要结果</th>
+<th>对本方案的影响</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>弱基底 v1</td>
+<td>Robust 9.901／8.172，Capacity 13.902／11.240（CW／OW）</td>
+<td>后续以强 CPF 为共同基底</td>
+</tr>
+<tr>
+<td>强基底前置比较</td>
+<td>Base 34.438／25.140；Knowledge 35.056／25.740；Shuffle 35.307／25.915</td>
+<td>增加关系分支有收益，但收益不能全部归于正确知识附件</td>
+</tr>
+<tr>
+<td>强基底完整 TRUST</td>
+<td>CPF 34.512／25.184；Robust 35.201／26.149；Capacity 35.805／26.400；Dense 35.646／26.288</td>
+<td>整体扩展有效，效用分配仍需要超过同结构对照</td>
+</tr>
+<tr>
+<td>强基底机制与噪声</td>
+<td>Robust 相对 Drop 为 +0.213／+0.241；相对 Mean 为 −0.029／+0.079；相对知识打乱为 +0.168／+0.604</td>
+<td>真实关系有部分正向信号；原不确定性项和噪声鲁棒性没有稳定增量</td>
+</tr>
+<tr>
+<td>响应条件化 MLP</td>
+<td>34.916／25.958，低于原 Robust</td>
+<td>加入响应后扩大网络没有解决迁移问题</td>
+</tr>
+<tr>
+<td>Compact</td>
+<td>34.922／25.931；Q5 排序相关均值 0.293，打乱效用标签为 −0.022</td>
+<td>紧凑预测器已能学到部分效用信息，继续保留</td>
+</tr>
+<tr>
+<td>Align</td>
+<td>相对 Uniform 为 −0.088／+0.008；3352 的冻结分配在三个 bank 平均提高 +0.158／+0.211，适配后 CW 优势消失</td>
+<td>分配时点与随后改变的权重需要分开研究</td>
+</tr>
+<tr>
+<td>Competition 10 epoch</td>
+<td>Uniform 35.934／26.532；Competition 35.950／26.493；U-NLL 35.729／26.316</td>
+<td>10 epoch 提供了更合适的基线；Competition 未形成稳定最终优势</td>
+</tr>
+<tr>
+<td>R5 10 epoch</td>
+<td>Relative 三 seed 均选择 κ=0，精确等于 Uniform；Absolute 35.729／26.316</td>
+<td>类型内相对拟合没有单独解决正式部署问题</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">“知识打乱”和“效用标签打乱”是不同对照，后续继续分别记录。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">1.2 最有价值的正向证据来自效用测量与 Q5 决策</h3><a id="user-content-12-最有价值的正向证据来自效用测量与-q5-决策" class="anchor" aria-label="Permalink: 1.2 最有价值的正向证据来自效用测量与 Q5 决策" href="#12-最有价值的正向证据来自效用测量与-q5-决策"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">Competition 的独立 Q5 评价图像上，按测量效用分配关系，U-NLL／Balanced-NLL／Competition 分别提高实际 AUC <strong>2.773／2.789／2.688 点</strong>。按预测效用分配时，对应增益为 <strong>1.282／1.300／−0.059 点</strong>。</p>
+<p dir="auto">这支持两个判断：</p>
+<ol dir="auto">
+<li>关系分配确实有可利用的价值，U-NLL 标签能够指导实际组合识别。</li>
+<li>当前损失主要发生在“效用预测与跨状态使用”环节。直接把监督改成 Competition 没有提高这部分能力。</li>
+</ol>
+<p dir="auto">R5 又补充了关键证据：Relative 的 Q5 AUC 增益为 <strong>1.003 点</strong>，低于 Absolute 的 <strong>1.282 点</strong>，逐 seed 差值为 <strong>−0.060／−0.093／−0.683</strong>。两者在 reference 的 18 个非零强度配置，真实分配均低于对应五个类型内置换的均值。</p>
+<p dir="auto">因此，下一轮同时研究教师覆盖和使用状态；不再把“相对标签形式”当成主要突破口。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">1.3 训练轮数已经不是当前首要问题</h3><a id="user-content-13-训练轮数已经不是当前首要问题" class="anchor" aria-label="Permalink: 1.3 训练轮数已经不是当前首要问题" href="#13-训练轮数已经不是当前首要问题"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">Competition／R5 的正式适配已完成 10 epoch；Uniform 最佳 epoch 为 <strong>2／2／6</strong>，有效非均匀组的最佳 epoch 也在训练中段。继续延长当前适配轨迹，不如直接利用这些已训练好的权重研究效用分配。</p>
+<p dir="auto">原 R5 报告提出的“固定 κ=1，再做非均匀适配”，调整为本方案的<strong>固定 κ=1、冻结权重比较</strong>。这样直接检验关系对应；统一训练预算已经由已有 Uniform 10 epoch 轨迹提供。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">2. 对第五版 PDF 的采用与修改</h2><a id="user-content-2-对第五版-pdf-的采用与修改" class="anchor" aria-label="Permalink: 2. 对第五版 PDF 的采用与修改" href="#2-对第五版-pdf-的采用与修改"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">PDF 成稿早于 R5 结果；本方案据最新数据更新其优先级。</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>PDF 建议</th>
+<th>本次决定</th>
+<th>理由</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>跨 seed、多教师联合拟合</td>
+<td>进入第一批主实验</td>
+<td>几乎不增加训练成本，直接扩展教师状态覆盖</td>
+</tr>
+<tr>
+<td>绝对／相对拟合 2×2</td>
+<td>已完成本地拟合复算；GPU 保留 Independent-Absolute、Pooled-Absolute、Pooled-Relative 三个预测器</td>
+<td>R5 已完成相对拟合的独立教师检验，避免再重复完整适配</td>
+</tr>
+<tr>
+<td>Uniform 后冻结分配</td>
+<td>作为主要部署流程</td>
+<td>响应提取和关系使用共享同一权重，固定模型效用的定义更直接</td>
+</tr>
+<tr>
+<td>教师阶段匹配、重测标签</td>
+<td>第二批整体实施</td>
+<td>用任务内部的对应训练阶段学习“训练完成后如何用关系”</td>
+</tr>
+<tr>
+<td>两次独立响应测量</td>
+<td>第一批作为重复测量诊断</td>
+<td>主读数先保留旧单次探针定义，单独量化探针波动</td>
+</tr>
+<tr>
+<td>经验误差收缩</td>
+<td>保留公式，放到后续附加比较</td>
+<td>收缩改变幅度，无法修正错误排序；当前先解决方向与迁移</td>
+</tr>
+<tr>
+<td>大量阈值与逐级验证关口</td>
+<td>改为两批完整队列和统一比较表</td>
+<td>依据配对收益、跨 seed 一致性和计算成本作整体判断</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">第一批直接复用旧教师和 Uniform 权重；第二批只更新教师状态及其对应监督，正式识别器继续共享同一批 Uniform 权重。由此分别看到“部署顺序修改”和“教师阶段匹配”的贡献。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">3. 本次新增的本地数据复算</h2><a id="user-content-3-本次新增的本地数据复算" class="anchor" aria-label="Permalink: 3. 本次新增的本地数据复算" href="#3-本次新增的本地数据复算"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">3.1 已执行内容</h3><a id="user-content-31-已执行内容" class="anchor" aria-label="Permalink: 3.1 已执行内容" href="#31-已执行内容"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">已读取 R5 归档中三个 seed 的 15 份教师响应与 U-NLL 标签，完成以下 CPU 拟合：</p>
+<ul dir="auto">
+<li>Independent：每个 seed 使用其 Q1–Q3 三个教师。</li>
+<li>Pooled：合并三个 seed 的 Q1–Q3，共九个教师状态。</li>
+<li>两种教师配置分别拟合 Absolute 和 Relative。</li>
+<li>每个配置用三个 Q4 的平均归一化误差选择一个共同正则参数。</li>
+<li>Q5 不参与拟合和选参；本次保留三／九教师预测器直接用于 Q5 和 reference，不做五折再拟合。</li>
+</ul>
+<p dir="auto">这次计算得到的是预测指标和一阶效用代理；尚未新增识别预测或训练。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">3.2 结果与解释</h3><a id="user-content-32-结果与解释" class="anchor" aria-label="Permalink: 3.2 结果与解释" href="#32-结果与解释"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">一阶代理收益为 Q5 测量标签与概率改变量的内积，具体公式见第 4.2 节。表中均值以三个 Q5 教师为单位。</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>配置</th>
+<th>选中 λ</th>
+<th>Q5 整体 Spearman</th>
+<th>类型中心化 R²</th>
+<th>一阶代理收益均值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Independent-Absolute</td>
+<td>0.03333</td>
+<td>0.1987</td>
+<td>0.0103</td>
+<td>0.03806</td>
+</tr>
+<tr>
+<td>Independent-Relative</td>
+<td>0.03333</td>
+<td>0.1743</td>
+<td>0.0109</td>
+<td>0.03505</td>
+</tr>
+<tr>
+<td>Pooled-Absolute</td>
+<td>3.33333</td>
+<td>0.1950</td>
+<td>0.0252</td>
+<td>0.03851</td>
+</tr>
+<tr>
+<td>Pooled-Relative</td>
+<td>3.33333</td>
+<td>0.2493</td>
+<td>0.0260</td>
+<td>0.03989</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">三个 seed 的代理收益：</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>配置</th>
+<th>3351</th>
+<th>3352</th>
+<th>3353</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Independent-Absolute</td>
+<td>0.04867</td>
+<td>0.05085</td>
+<td>0.01468</td>
+</tr>
+<tr>
+<td>Pooled-Absolute</td>
+<td>0.04071</td>
+<td>0.02647</td>
+<td>0.04836</td>
+</tr>
+<tr>
+<td>Pooled-Relative</td>
+<td>0.04421</td>
+<td>0.02657</td>
+<td>0.04889</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">联合拟合改善了 3353，并降低了 3351／3352 的代理收益，整体变得更均衡。Pooled-Absolute 相对 Independent-Absolute 的均值只增加 <strong>0.00045</strong>；Pooled-Relative 增加 <strong>0.00183</strong>。这是值得实际评分的信号，尚不能据此称为识别提升。</p>
+<p dir="auto">类型中心化 Spearman 的均值依次为 <strong>0.2703／0.2600／0.2338／0.2665</strong>，表明“整体相关提高”和“类型内排序提高”并不相同。原始单位中心化 MSE 由 Independent-Absolute 的 <strong>1.17267×10⁻⁴</strong> 降至 Pooled-Absolute 的 <strong>1.16015×10⁻⁴</strong>，约降低 <strong>1.07%</strong>。</p>
+<p dir="auto">联合模型的 Q5→reference 类型内排序相关均值仍接近零：Absolute 为 <strong>−0.0124</strong>，Relative 为 <strong>−0.0083</strong>。两个状态的真实效用也可能不同，因此排序变化本身不等于预测错误；最终判断要看当前状态的实际分配收益。</p>
+<p dir="auto">同时计算了两个简单读出：</p>
+<ul dir="auto">
+<li>九教师的同一条边历史效用均值：Q5 代理收益为 <strong>−0.02229／+0.00235／−0.00684</strong>。</li>
+<li>直接使用支持集 NLL 响应均值：<strong>+0.00024／−0.01641／+0.01268</strong>。</li>
+</ul>
+<p dir="auto">它们没有表现出一致代理优势，仍保留为第一批的便宜参照，用于判断学习映射是否比直接使用输入更有价值。</p>
+<p dir="auto">这里的 Independent 使用三个 Q4 共同选择 λ，与旧 R5 每 seed 独立选择 α 的流程不同。因此本表和旧 R5 数值分别标注，不把差异全部归于新损失。不同教师配置各有自己的归一化参数，Q4 的归一化损失用于各自选参，跨配置比较使用原始单位误差和实际识别结果。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">4. 修订后的完整公式链条</h2><a id="user-content-4-修订后的完整公式链条" class="anchor" aria-label="Permalink: 4. 修订后的完整公式链条" href="#4-修订后的完整公式链条"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">4.1 模型、图分布和风险定义</h3><a id="user-content-41-模型图分布和风险定义" class="anchor" aria-label="Permalink: 4.1 模型、图分布和风险定义" href="#41-模型图分布和风险定义"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">记当前工程强 CPF 及关系分支的全部识别参数为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$\theta$</math-renderer>，候选组合为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$c=(a,o)$</math-renderer>，关系掩码为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$b\in\{0,1\}^{96}$</math-renderer>。关系消息、残差三元评分和 CPF 参数化沿用现有实现；本轮修改效用学习和部署流程。</p>
+<p dir="auto">对指定候选集合 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$\mathcal C$</math-renderer>，先计算每张图的候选概率：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$p_\theta^{\mathcal C}(c\mid x,b)
+=
+\frac{\exp s_\theta(x,c;b)}
+{\sum_{c'\in\mathcal C}\exp s_\theta(x,c';b)}.
+\tag{1}$$</math-renderer>
+<p dir="auto">三个类型的关系数分别为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$N_t=12,36,48$</math-renderer>；采样分布和期望预算为：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$q_\pi(b)=\prod_{e=1}^{96}\pi_e^{b_e}(1-\pi_e)^{1-b_e},
+\qquad
+\sum_{e\in E_t}\pi_e=B_t=\frac{N_t}{2}.
+\tag{2}$$</math-renderer>
+<p dir="auto">因此类型预算为 <strong>6／18／24</strong>。这是独立 Bernoulli 采样下的<strong>期望边数约束</strong>，每张实际采样图的边数可以变化。</p>
+<p dir="auto">折内教师 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$j$</math-renderer> 的伪未见测量图像集记为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$D_j^{u,m}$</math-renderer>，其标签属于留出的组合。沿用 Competition 的 U-NLL：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$R_j(\theta,b)
+=
+-\frac{1}{|D_j^{u,m}|}
+\sum_{(x_i,y_i)\in D_j^{u,m}}
+\log p_\theta^{\mathcal C_j}(y_i\mid x_i,b).
+\tag{3}$$</math-renderer>
+<p dir="auto">本轮折内风险候选集合为全部 83 个 TRAIN 组合；伪未见测量图像按图像等权。风险评价仍保存 seen 图像，用于 AUC、HM 和已见性能诊断。原有测量池、评价池及教师训练图像划分继续沿用。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">4.2 配对效用及其严格含义</h3><a id="user-content-42-配对效用及其严格含义" class="anchor" aria-label="Permalink: 4.2 配对效用及其严格含义" href="#42-配对效用及其严格含义"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">固定教师状态 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$\theta_j$</math-renderer>，背景分布取 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$\rho_e=0.5$</math-renderer>。第 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$e$</math-renderer> 条边的效用定义为：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$u_{j,e}
+=
+\mathbb E_{b_{-e}\sim q_{\rho,-e}}
+\left[
+R_j(\theta_j,b_{-e},0)
+-
+R_j(\theta_j,b_{-e},1)
+\right].
+\tag{4}$$</math-renderer>
+<p dir="auto">正值表示开边降低该教师、该风险集合下的 NLL。实现时同一背景、同一批图像、同一候选集配对计算：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$\widehat u_{j,e}
+=
+\frac{1}{K_j}\sum_{k=1}^{K_j}
+\left[
+R_j(\theta_j,b_{-e}^{(k)},0)
+-
+R_j(\theta_j,b_{-e}^{(k)},1)
+\right].
+\tag{5}$$</math-renderer>
+<p dir="auto">Q1–Q4 取 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$K_j=8$</math-renderer>，Q5 取 16。原标签已使用这种配对形式，继续保留。</p>
+<p dir="auto">令单图期望风险为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$F_j(\theta,\pi)=\mathbb E_{b\sim q_\pi}R_j(\theta,b)$</math-renderer>。对某一坐标展开：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$\begin{aligned}
+F_j(\theta,\pi)
+={}&amp;(1-\pi_e)\mathbb E_{b_{-e}}R_j(\theta,b_{-e},0)\\[4pt]
+&amp;+\pi_e\mathbb E_{b_{-e}}R_j(\theta,b_{-e},1).
+\end{aligned}
+\tag{6}$$</math-renderer>
+<p dir="auto">其余坐标固定时，右侧关于 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$\pi_e$</math-renderer> 为仿射函数，因此：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$\left.
+\frac{\partial F_j(\theta_j,\pi)}{\partial\pi_e}
+\right|_{\pi=\rho}
+=-u_{j,e}.
+\tag{7}$$</math-renderer>
+<p dir="auto">围绕均匀概率作局部展开，得到效用分配的依据：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$F_j(\theta_j,\rho+\Delta)
+=
+F_j(\theta_j,\rho)-u_j^\top\Delta
++O(\|\Delta\|_2^2).
+\tag{8}$$</math-renderer>
+<p dir="auto">本报告的“一阶代理收益”具体为：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$G_j^{\mathrm{lin}}(\pi)
+=
+\widehat u_j^\top(\pi-\rho).
+\tag{9}$$</math-renderer>
+<p dir="auto">其单位是 NLL 的一阶变化量，既不是 AUC 点，也不是已经实际测得的风险下降。实际混合 NLL 和 AUC 在冻结识别中另行计算。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">4.3 八维模型响应：保持信息定义，明确状态对应</h3><a id="user-content-43-八维模型响应保持信息定义明确状态对应" class="anchor" aria-label="Permalink: 4.3 八维模型响应：保持信息定义，明确状态对应" href="#43-八维模型响应保持信息定义明确状态对应"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">支持集 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$D_j^s$</math-renderer> 来自该教师的合法训练图像，每个组合最多抽取两张图，组合等权、组合内图像等权；每条边使用四个共享背景。对某支持图像和背景定义：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$\delta_i^{(k,e)}
+=
+\log p_{\theta_j}^{\mathcal C_j}(y_i\mid x_i,b_{+e}^{(k)})
+-
+\log p_{\theta_j}^{\mathcal C_j}(y_i\mid x_i,b_{-e}^{(k)}).
+\tag{10}$$</math-renderer>
+<p dir="auto">设开关边的候选评分差为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$d_{i,c}^{(k,e)}$</math-renderer>，其候选中心化结果为：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$\widetilde d_{i,c}^{(k,e)}
+=
+d_{i,c}^{(k,e)}
+-\frac{1}{|\mathcal C_j|}
+\sum_{c'\in\mathcal C_j}d_{i,c'}^{(k,e)}.
+\tag{11}$$</math-renderer>
+<p dir="auto">对于全部支持图像集合 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$A$</math-renderer> 或该边目标原语对应的支持子集 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$T_e$</math-renderer>，将权重在集合内部归一化，定义：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$\phi(S)
+=
+\begin{bmatrix}
+\mathbb E_S[\delta]\\[4pt]
+\sqrt{\mathbb E_S[(\delta-\mathbb E_S\delta)^2]}\\[4pt]
+\sqrt{\mathbb E_S\!\left[
+|\mathcal C_j|^{-1}\sum_c\widetilde d_c^2
+\right]}\\[4pt]
+\mathbb E_S[H(p_{\mathrm{on}})-H(p_{\mathrm{off}})]
+\end{bmatrix},
+\qquad
+h_{j,e}=
+\begin{bmatrix}
+\phi(A)\\[4pt]
+\phi(T_e)
+\end{bmatrix}\in\mathbb R^8.
+\tag{12}$$</math-renderer>
+<p dir="auto"><math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$\mathbb E_S$</math-renderer> 同时包含支持权重和四个背景的等权平均；熵为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$H(p)=-\sum_c p_c\log p_c$</math-renderer>。这对应代码的 all／target 八个输入，符号方向与旧实现一致。</p>
+<p dir="auto">训练样本必须明确是：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$(h_{j,e},\widehat u_{j,e})
+=
+\left(
+h_e(\theta_j,D_j^s),
+\widehat u_e(\theta_j,D_j^{u,m})
+\right).
+\tag{13}$$</math-renderer>
+<p dir="auto">两者使用同一个教师权重。正式部署也在同一个冻结权重上提取响应和使用策略。</p>
+<p dir="auto">第一批主实验保留一个响应 bank，与已有教师输入一致；另计算第二个独立 bank 诊断探针波动。若使用重复平均，则在线性模型下：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$\overline\mu_e
+=
+\frac1R\sum_{r=1}^R f_\beta(h_e^{(r)})
+=
+f_\beta\!\left(\frac1R\sum_{r=1}^R h_e^{(r)}\right).
+\tag{14}$$</math-renderer>
+<p dir="auto">应先平均预测，再求一次概率分配。非线性策略映射一般不满足“平均概率等于平均预测的概率”。第二个 bank 的结果单列，不与第一批主结果混在一起解释。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">4.4 按教师平均的联合岭回归</h3><a id="user-content-44-按教师平均的联合岭回归" class="anchor" aria-label="Permalink: 4.4 按教师平均的联合岭回归" href="#44-按教师平均的联合岭回归"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">设拟合教师数为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$J$</math-renderer>。由拟合教师计算输入均值 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$c_k$</math-renderer>、标准差 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$s_k$</math-renderer>，以及类型标签标准差 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$a_t$</math-renderer>。八维输入共享同一标准化规则，三个类型有独立系数块：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$x_{j,e}
+=
+\mathop{\mathrm{onehot}}\nolimits(t(e))
+\otimes
+\begin{bmatrix}
+1\\[4pt]
+(h_{j,e}-c)\oslash s
+\end{bmatrix},
+\qquad
+\mu_{j,e}=a_{t(e)}x_{j,e}^{\top}\beta.
+\tag{15}$$</math-renderer>
+<p dir="auto"><math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$\beta$</math-renderer> 共 27 维。<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$X_{jt}$</math-renderer> 表示教师 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$j$</math-renderer>、类型 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$t$</math-renderer> 的设计矩阵，<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$\widehat u_{jt}$</math-renderer> 是对应标签向量。</p>
+<p dir="auto">具体归一化使用拟合教师全部边，标准差取总体标准差，与现有实现一致：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$\begin{aligned}
+c_k&amp;=\frac1{96J}\sum_{j,e}h_{j,e,k},\\[4pt]
+s_k&amp;=\max\!\left\{
+\sqrt{\frac1{96J}\sum_{j,e}(h_{j,e,k}-c_k)^2},\,10^{-6}
+\right\},\\[4pt]
+m_t&amp;=\frac1{JN_t}\sum_j\sum_{e\in E_t}\widehat u_{j,e},\\[4pt]
+a_t&amp;=\max\!\left\{
+\sqrt{\frac1{JN_t}\sum_j\sum_{e\in E_t}
+(\widehat u_{j,e}-m_t)^2},\,10^{-12}
+\right\}.
+\end{aligned}
+\tag{15a}$$</math-renderer>
+<p dir="auto">Absolute 的标签只除以 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$a_t$</math-renderer>，不减去 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$m_t$</math-renderer>；类型均值由截距表达。Relative 才在每个教师、每个类型内部作投影。Absolute 的拟合目标为：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$\mathcal L_{\mathrm{abs}}(\beta)
+=
+\frac1J\sum_{j=1}^{J}\sum_{t=1}^{3}
+\left\|
+X_{jt}\beta-\frac{\widehat u_{jt}}{a_t}
+\right\|_2^2
++
+\lambda\|\beta\|_2^2.
+\tag{16}$$</math-renderer>
+<p dir="auto">对 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$\beta$</math-renderer> 求导并令其为零，得到：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$\left(
+\frac1J\sum_{j,t}X_{jt}^{\top}X_{jt}
++\lambda I
+\right)\widehat\beta
+=
+\frac1J\sum_{j,t}X_{jt}^{\top}
+\frac{\widehat u_{jt}}{a_t}.
+\tag{17}$$</math-renderer>
+<p dir="auto"><math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$\lambda\gt 0$</math-renderer> 保证矩阵正定。实现使用线性方程求解，不显式求逆。</p>
+<p dir="auto">若复用旧代码的“未平均误差和＋α 正则”求解器，两者准确对应为：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$\alpha=J\lambda.
+\tag{18}$$</math-renderer>
+<p dir="auto">本批统一 λ 网格取旧三教师 α 网格除以 3，即 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$\{0.1,1,10,100\}/3$</math-renderer>。九教师模型对应 α 网格为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$\{0.3,3,30,300\}$</math-renderer>。因此本次选出的 Independent α 为 <strong>0.1</strong>，Pooled α 为 <strong>30</strong>。</p>
+<p dir="auto">每个配置共同选取一个 λ。令 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$\mu_{s4,t}^{(\lambda)}$</math-renderer> 为 seed <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$s$</math-renderer> 的 Q4 预测，<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$a_{s,t}$</math-renderer> 为对应模型仅由拟合数据估计的标签尺度，则：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$E_4(\lambda)=
+\frac1{3}\sum_{s\in\{3351,3352,3353\}}
+\frac1{3}\sum_{t=1}^{3}
+\frac{\left\|
+P_t(\mu_{s4,t}^{(\lambda)}-\widehat u_{s4,t})/a_{s,t}
+\right\|_2^2}{N_t}.
+\tag{18a}$$</math-renderer>
+<p dir="auto">取使 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$E_4$</math-renderer> 最小的 λ，并列取较大 λ。Pooled 三个 seed 共享同一尺度；Independent 各自使用其三教师的尺度。该选参误差按类型等权，拟合目标仍沿用式 (16) 的逐边权重。</p>
+<p dir="auto">第一批不增加类型内 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$1/N_t$</math-renderer> 权重，保留原来 12／36／48 条边的行权重。每个教师配置的 Absolute／Relative 共享归一化参数；归一化只从 Q1–Q3 拟合数据计算。</p>
+<p dir="auto">为比较两个拟合设置真正学到的映射，同时输出原始特征单位下的截距和斜率：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$\begin{aligned}
+w_{tk}&amp;=\frac{a_t\beta_{tk}}{s_k},\\[4pt]
+b_t&amp;=a_t\left(\beta_{t0}-\sum_{k=1}^{8}\frac{\beta_{tk}c_k}{s_k}\right),\\[4pt]
+\mu_e&amp;=b_{t(e)}+w_{t(e)}^\top h_e.
+\end{aligned}
+\tag{19}$$</math-renderer>
+<p dir="auto">联合拟合增加教师数时，输入和标签尺度也会变化；原始单位系数可以把这种变化与实际映射变化联系起来。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">4.5 Relative 的定位与公式</h3><a id="user-content-45-relative-的定位与公式" class="anchor" aria-label="Permalink: 4.5 Relative 的定位与公式" href="#45-relative-的定位与公式"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">类型内预算固定，因此效用的类型共同偏移不改变分配：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$u_t^\top\pi_t
+=
+(P_tu_t)^\top\pi_t+\overline u_t B_t,
+\qquad
+P_t=I-\frac{\mathbf1\mathbf1^\top}{N_t}.
+\tag{20}$$</math-renderer>
+<p dir="auto">其中 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$\overline u_t=N_t^{-1}\sum_{e\in E_t}u_e$</math-renderer> 是当前效用向量的类型均值。这说明分配只需要类型内相对效用，但并不推出“相对回归一定比绝对回归更容易预测”。R5 已实际检验了后一个问题。</p>
+<p dir="auto">Relative 对照定义为：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$\mathcal L_{\mathrm{rel}}(\beta)
+=
+\frac1J\sum_{j,t}
+\left\|
+P_t\left(
+X_{jt}\beta-\frac{\widehat u_{jt}}{a_t}
+\right)
+\right\|_2^2
++\lambda\|\beta\|_2^2.
+\tag{21}$$</math-renderer>
+<p dir="auto">由 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$P_t^\top=P_t$</math-renderer>、<math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$P_t^2=P_t$</math-renderer>，正规方程为：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$\left(
+\frac1J\sum_{j,t}X_{jt}^{\top}P_tX_{jt}
++\lambda I
+\right)\widehat\beta_{\mathrm{rel}}
+=
+\frac1J\sum_{j,t}X_{jt}^{\top}P_t
+\frac{\widehat u_{jt}}{a_t}.
+\tag{22}$$</math-renderer>
+<p dir="auto">三个截距列经投影后为零，岭回归最优截距也为零，有效斜率为 24 个。对任意残差向量 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$v$</math-renderer>：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$\|P_tv\|_2^2
+=
+\frac{1}{2N_t}\sum_{e,e'\in E_t}(v_e-v_{e'})^2.
+\tag{23}$$</math-renderer>
+<p dir="auto">因此无需显式构造所有边对。该形式保留为 Pooled-Relative 对照，检验它是否与教师覆盖形成交互。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">4.6 分配公式：保留半密度，明确标准化与预算求解</h3><a id="user-content-46-分配公式保留半密度明确标准化与预算求解" class="anchor" aria-label="Permalink: 4.6 分配公式：保留半密度，明确标准化与预算求解" href="#46-分配公式保留半密度明确标准化与预算求解"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">对一个待识别的固定状态，先计算类型中心化预测：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$z_t=P_t\mu_t,\qquad
+v_t^2=\frac{\|z_t\|_2^2}{N_t},\qquad
+r_t=
+\begin{cases}
+z_t/v_t,&amp;v_t\gt 0,\\[4pt]
+0,&amp;v_t=0.
+\end{cases}
+\tag{24}$$</math-renderer>
+<p dir="auto">主实验取 κ=1，求解：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$\pi^\star
+=
+\arg\max_{\substack{0\leq\pi_e\leq1\\[4pt]
+\sum_{e\in E_t}\pi_e=N_t/2}}
+\left\{
+\kappa\sum_e r_e\pi_e
+-\sum_e
+\mathop{\mathrm{KL}}\nolimits\!\left[
+\mathop{\mathrm{Bern}}\nolimits(\pi_e)\,\|\,\mathop{\mathrm{Bern}}\nolimits(1/2)
+\right]
+\right\}.
+\tag{25}$$</math-renderer>
+<p dir="auto">KL 对单个坐标的导数为 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$\log(\pi_e/(1-\pi_e))$</math-renderer>。加入类型预算乘子后，一阶条件给出：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$\pi_e^\star=\sigma(\kappa r_e-\gamma_{t(e)}),
+\qquad
+\sum_{e\in E_t}\sigma(\kappa r_e-\gamma_t)=N_t/2.
+\tag{26}$$</math-renderer>
+<p dir="auto">目标严格凹，有限分数下最优解在开区间内。类型概率和关于 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$\gamma_t$</math-renderer> 连续、严格递减，从 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$N_t$</math-renderer> 降至 0，因此每个类型有唯一乘子，可用二分求解。类型分数均值为零并不意味着 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$\gamma_t=0$</math-renderer>。</p>
+<p dir="auto">这一公式优化的是类型标准化效用的正则化一阶代理；实际原始单位代理收益仍按式 (9) 计算。主批固定 κ=1，使每个 seed 都实际检验非均匀关系分配；κ=0 对应独立列出的 Uniform。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">4.7 冻结部署：把响应和使用状态对齐</h3><a id="user-content-47-冻结部署把响应和使用状态对齐" class="anchor" aria-label="Permalink: 4.7 冻结部署：把响应和使用状态对齐" href="#47-冻结部署把响应和使用状态对齐"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">Uniform 训练保持原 10 epoch 预算。从 epoch 0–10 中，按既定 VAL CW native AUC 选择共同权重，并列取较早 epoch：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$e_s^\star
+=
+\operatorname*{arg\,max}_{e\in\{0,\ldots,10\}}
+A_{\mathrm{VAL,CW}}\!\left(\theta_{s,e}^{U},\rho\right),
+\qquad
+\theta_s^\star=\theta_{s,e_s^\star}^{U}.
+\tag{27}$$</math-renderer>
+<p dir="auto">本轮直接复用归档的 runs/uniform/best.pt，三个 seed 对应 epoch 2／2／6。当前归档保存 best／last 和完整曲线，不要求恢复未保存的其他中间权重。</p>
+<p dir="auto">接下来：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$\begin{aligned}
+H_s^\star&amp;=\mathop{\mathrm{Response}}\nolimits(\theta_s^\star,D_s^{\mathrm{TRAIN}}),\\[4pt]
+\mu_s^\star&amp;=f_{\widehat\beta}(H_s^\star),\\[4pt]
+\pi_s^\star&amp;=\mathop{\mathrm{Policy}}\nolimits(\mu_s^\star).
+\end{aligned}
+\tag{28}$$</math-renderer>
+<p dir="auto">之后固定 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$\theta_s^\star$</math-renderer>。每个候选集合分别归一化各图概率，再平均 16 张图：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$\begin{aligned}
+\overline p_{\theta_s^\star,\pi_s^\star}^{\mathcal C}(c\mid x)
+&amp;=
+\frac1{16}\sum_{m=1}^{16}
+p_{\theta_s^\star}^{\mathcal C}(c\mid x,b^{(m)}),\\[4pt]
+b_e^{(m)}&amp;=\mathbf1\{U_{me}\lt \pi_{s,e}^\star\}.
+\end{aligned}
+\tag{29}$$</math-renderer>
+<p dir="auto">各方法共享同一组均匀随机数 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$U_{me}$</math-renderer>，减少配对比较的抽图波动。CW／OW 分别使用各自候选集合。</p>
+<p dir="auto">这一步消除了预测之后再适配造成的参数变化。折内教师和正式模型之间仍有组合范围、训练样本量和阶段差异，第二批专门研究其中的阶段因素。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">5. 第一批：联合拟合与冻结部署，一次运行完整比较</h2><a id="user-content-5-第一批联合拟合与冻结部署一次运行完整比较" class="anchor" aria-label="Permalink: 5. 第一批：联合拟合与冻结部署，一次运行完整比较" href="#5-第一批联合拟合与冻结部署一次运行完整比较"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">5.1 批次目标和方法组</h3><a id="user-content-51-批次目标和方法组" class="anchor" aria-label="Permalink: 5.1 批次目标和方法组" href="#51-批次目标和方法组"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">目标是直接回答：<strong>多教师效用预测，在已训练好的强 CPF＋关系分支上，能否给出优于均匀图与概率置换的关系分配？</strong></p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>效用来源</th>
+<th>主作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Uniform</td>
+<td>所有概率为 0.5</td>
+<td>共同识别权重下的基线</td>
+</tr>
+<tr>
+<td>Independent-Absolute</td>
+<td>每 seed 三教师，三个 Q4 共同选 λ</td>
+<td>单独教师配置的监督对照</td>
+</tr>
+<tr>
+<td>Pooled-Absolute</td>
+<td>九教师联合拟合</td>
+<td>主候选方案</td>
+</tr>
+<tr>
+<td>Pooled-Relative</td>
+<td>九教师联合、类型内相对拟合</td>
+<td>教师覆盖与 R5 的交互对照</td>
+</tr>
+<tr>
+<td>匹配概率置换</td>
+<td>分别置换上述三个预测器的概率</td>
+<td>检验关系对应的实际贡献</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">前三种预测策略固定 κ=1。每个预测器保存五个类型内概率置换，seed 为 7101–7105；它们属于同一控制族，不作为五个新方法挑选最优者。</p>
+<p dir="auto">两种简单读出——历史边均值、直接支持 NLL——只在主部署状态追加评分。它们共享同一冻结识别器，成本为额外推理。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">5.2 一个主状态、一个旧状态参照</h3><a id="user-content-52-一个主状态一个旧状态参照" class="anchor" aria-label="Permalink: 5.2 一个主状态、一个旧状态参照" href="#52-一个主状态一个旧状态参照"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto"><strong>主状态为 Uniform 的共同最佳权重 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$\theta_s^\star$</math-renderer>。</strong> 所有策略使用重新测得的 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$H_s^\star$</math-renderer>。</p>
+<p dir="auto">同时在旧 reference/last.pt 上运行同样的主要策略，形成一张“预测器 × 使用状态”比较表。该参照用来判断教师联合拟合本身是否有效，以及它的收益是否依赖识别状态。</p>
+<p dir="auto">对 Pooled-Absolute 额外完成一个紧凑的响应交叉表：</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>使用的权重</th>
+<th>输入 reference 响应</th>
+<th>输入 Uniform-best 响应</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>reference</td>
+<td>正常配对</td>
+<td>状态错配</td>
+</tr>
+<tr>
+<td>Uniform-best</td>
+<td>状态错配</td>
+<td>正常配对，主结果</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">这里固定预测器和 κ，只改变响应来自哪个权重。同步报告概率位移和节点覆盖，判断差异来自当前响应信息还是不同分配幅度。Q5→reference 排序变化单独记录，不直接用作“迁移失败率”。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">5.3 所有 seed 都执行的固定流程</h3><a id="user-content-53-所有-seed-都执行的固定流程" class="anchor" aria-label="Permalink: 5.3 所有 seed 都执行的固定流程" href="#53-所有-seed-都执行的固定流程"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<ol dir="auto">
+<li>导入 Competition／R5 的教师、响应、标签、reference 与 Uniform-best。使用现有 CLIP 缓存和同一关系库。</li>
+<li>按第 4.4–4.5 节拟合；Q1–Q3 用于拟合，三个 Q4 共同选 λ。保存固定三／九教师模型，直接用于后续所有状态。</li>
+<li>在 reference 和 Uniform-best 上分别提取当前 TRAIN 响应。第一响应 bank 为主；第二 bank 只用于探针重复性分析。</li>
+<li>在 Q5 的独立评价图像上，对新增预测器重算实际 16 图混合 NLL 和 AUC。沿用八个 Q5 评价 bank。</li>
+<li>对正式 VAL／TEST，完成主状态、reference 参照、匹配置换及简单读出，使用 1701／2701／3701 三个 16 图 bank。</li>
+<li>输出配对指标、逐 seed 结果和计算时间。原始预测保存后，可统一重算 native／exact AUC、HM、NLL、ECE。</li>
+</ol>
+<p dir="auto">本批<strong>新增识别训练为 0，新增教师训练为 0</strong>。需要 GPU 的工作是提取响应、Q5 决策和冻结推理。主 bank 固定为 1701，另两个 bank 反映采图变化。</p>
+<p dir="auto">不把 Q5 并入最终拟合，是为了让“Q5 使用的预测器”和“正式部署使用的预测器”完全相同。这不是永远只用三折；完整拟合范围的变化放在方法确定后的统一重训中处理。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">5.4 指标集中为三层</h3><a id="user-content-54-指标集中为三层" class="anchor" aria-label="Permalink: 5.4 指标集中为三层" href="#54-指标集中为三层"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>层次</th>
+<th>必须汇总的指标</th>
+<th>对应问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>最终识别</td>
+<td>CW／OW native AUC、exact AUC、VAL 工作点 HM；对 Uniform、五置换均值的配对差值</td>
+<td>分配是否提高实际识别</td>
+</tr>
+<tr>
+<td>效用监督</td>
+<td>Q5 原始单位中心化 MSE、R²、类型内 Spearman；一阶代理、实际混合 NLL 和实际 AUC</td>
+<td>拟合改善是否传递到决策</td>
+</tr>
+<tr>
+<td>模型状态</td>
+<td>正确／错配响应的识别差值；重复响应预测方差；类型概率标准差、KL、节点覆盖</td>
+<td>收益是否需要当前模型信息</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">AUC 按 0–100 汇报，NLL 使用自然对数；配对差值按 seed 计算，再报告三 seed 均值、标准差和逐 seed 方向。图 bank 和置换重复分别汇总，不扩充训练 seed 数。</p>
+<p dir="auto">概率置换保持类型内概率多重集合和预算，但可能改变每个节点接收的关系。因此同步保存每节点的期望入边数：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$d_v^\pi=\sum_{e:\mathop{\mathrm{target}}\nolimits(e)=v}\pi_e.
+\tag{30}$$</math-renderer>
+<p dir="auto">若后续论文需要把附件语义与节点覆盖进一步区分，再在同一目标节点内置换 OE／AE；OI 每目标只有一条边时，这类置换没有作用。本批不新增独立训练来处理这项诊断。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">6. 第二批：教师阶段匹配，完成方法形态</h2><a id="user-content-6-第二批教师阶段匹配完成方法形态" class="anchor" aria-label="Permalink: 6. 第二批：教师阶段匹配，完成方法形态" href="#6-第二批教师阶段匹配完成方法形态"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">第一批研究旧监督能否直接迁移到冻结使用。第二批将“训练完成后分配”的流程同步放进折内任务，在同一批正式 Uniform 权重上比较。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">6.1 教师训练与状态选择</h3><a id="user-content-61-教师训练与状态选择" class="anchor" aria-label="Permalink: 6.1 教师训练与状态选择" href="#61-教师训练与状态选择"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">现有 15 个教师已经包含折内 G0 训练和 10 epoch Uniform 关系训练。以各自 teachers/j/last.pt 为起点，再执行与正式 reference→Uniform 适配相同的 <strong>10 epoch Uniform 阶段</strong>：</p>
+<ul dir="auto">
+<li>冻结折内 CPF，只优化原关系分支；</li>
+<li>使用原 train_ids、原训练组合和原训练损失；</li>
+<li>AdamW、batch 64、基础学习率 3×10⁻⁴、weight decay 10⁻⁴；</li>
+<li>沿用原一 epoch warmup 与 10 epoch cosine 计划，梯度裁剪 1；</li>
+<li>保存 epoch 0–10 的指标，以及 best、last 权重。</li>
+</ul>
+<p dir="auto">增加这段训练是为了匹配正式流程的训练阶段与选模方式，不把它解释为“旧教师训练不足”的既定事实。</p>
+<p dir="auto">每折从<strong>原风险池中尚未用于测量或评价的图像</strong>，固定抽取 seen／unseen 各 256 张作为教师停止选择集。抽样 seed 固定为 9401＋fold，并在三个训练 seed 间共享图像 ID。该集合未进入折内 G0 和关系训练。</p>
+<p dir="auto">已检查旧划分余量：五折剩余 seen 图像至少 2992 张，unseen 至少 779 张，因此能够直接抽取这两个 256 图像集合，不需要更换原训练数据。</p>
+<p dir="auto">停止集按“inner 组合为 seen、query 组合为 unseen”计算 83 候选 AUC，从 epoch 0–10 选择共同最佳状态，并列取较早 epoch。query 标签在该批用于停止选择；用于效用测量、Q5 策略评价的图像保持独立。该协议评价的是图像独立的折内决策，不把 Q5 解释为未参与研究选择的新组合确认集。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">6.2 标签与响应在新状态一起重测</h3><a id="user-content-62-标签与响应在新状态一起重测" class="anchor" aria-label="Permalink: 6.2 标签与响应在新状态一起重测" href="#62-标签与响应在新状态一起重测"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">对选中的教师 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$\theta_j^\star$</math-renderer>：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$\begin{aligned}
+H_j^\star&amp;=\mathop{\mathrm{Response}}\nolimits(\theta_j^\star,D_j^s),\\[4pt]
+\widehat u_{j,e}^\star
+&amp;=
+\frac1{K_j}\sum_k
+\left[
+R_j(\theta_j^\star,b_{-e}^{(k)},0)
+-
+R_j(\theta_j^\star,b_{-e}^{(k)},1)
+\right].
+\end{aligned}
+\tag{31}$$</math-renderer>
+<p dir="auto">支持图像、测量图像和背景 seed 沿用原值，使前后差异主要对应教师状态。Q1–Q4 为 8 背景，Q5 为 16 背景；仅学习 U-NLL，继续保存 seen 风险用于评价。仍由三个 seed 的 Q1–Q3 九个教师联合拟合，三个 Q4 共同选 λ，Q5 用于决策评价；正式部署使用同一九教师模型。</p>
+<p dir="auto">旧测量标签保留为旧阶段对照。新状态的标签通过新的 on/off 前向计算获得，不能复用旧值。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">6.3 最终比较收敛到五行</h3><a id="user-content-63-最终比较收敛到五行" class="anchor" aria-label="Permalink: 6.3 最终比较收敛到五行" href="#63-最终比较收敛到五行"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">在三个完全相同的正式 Uniform-best 权重上，比较：</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>组别</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Uniform</td>
+<td>半密度均匀采样</td>
+</tr>
+<tr>
+<td>旧教师预测器</td>
+<td>第一批固定的联合效用模型，输入当前响应</td>
+</tr>
+<tr>
+<td>阶段匹配预测器</td>
+<td>使用新阶段教师的响应与标签拟合</td>
+</tr>
+<tr>
+<td>匹配置换</td>
+<td>阶段匹配预测器的五次类型内概率置换</td>
+</tr>
+<tr>
+<td>错配响应</td>
+<td>固定阶段匹配预测器，输入 reference 状态响应</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">该批新增 <strong>15 条教师适配轨迹</strong>，每条 10 epoch；正式识别器新增训练仍为 0。教师完成后集中拟合和统一推理，避免为每个策略重新训练一套识别器。</p>
+<p dir="auto">Absolute 为默认主目标。Pooled-Relative 只在第一批已经表现出清楚的 VAL 与 Q5 决策优势时替换它；选择依据写入配置后再执行第二批。已有 TEST 用于完整开发记录，最终确认采用新组合划分或第二数据集。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">7. 经验误差收缩：保留为可解释扩展</h2><a id="user-content-7-经验误差收缩保留为可解释扩展" class="anchor" aria-label="Permalink: 7. 经验误差收缩：保留为可解释扩展" href="#7-经验误差收缩保留为可解释扩展"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">第五版的收缩公式可以保留，但应解决“幅度过大”而不是承担“修正排序”的任务。</p>
+<p dir="auto">对每个外层留出的组合折，用其余组合折拟合和选择 λ，再预测该折三个 seed 的效用。相同组合折的三个 seed 一起留出；标准化和内层选参均在训练折中完成。</p>
+<p dir="auto">记原始 NLL 单位下的类型中心化残差为：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$e_{jt}=P_t(\mu_{jt}^{\mathrm{out}}-\widehat u_{jt}),
+\qquad
+\widehat\epsilon_t^2
+=
+\frac1{J_{\mathrm{out}}}\sum_j
+\frac{\|e_{jt}\|_2^2}{N_t}.
+\tag{32}$$</math-renderer>
+<p dir="auto">保留标签测量噪声在其中，把它解释为预测测量效用时的经验误差。正式需要独立 Q5 审计时，仅用 Q1–Q4 的嵌套外折估计，Q5 保持在外。</p>
+<p dir="auto">把式 (24) 的标准化分数替换为：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$\widetilde r_t
+=
+\frac{z_t}{\sqrt{v_t^2+\widehat\epsilon_t^2}}
+=
+g_t r_t,
+\qquad
+g_t=\frac{v_t}{\sqrt{v_t^2+\widehat\epsilon_t^2}}.
+\tag{33}$$</math-renderer>
+<p dir="auto">分母为零时定义为零。误差大、类型内预测差异小时，策略靠近均匀图。收缩必须作用在标准化之后的幅度，或者直接使用上述分母；若先乘一个类型常数再重新标准化，收缩会被抵消。</p>
+<p dir="auto">该策略还有可直接推导的位移界：</p>
+<math-renderer class="js-display-math" style="display: block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$$\|\pi_t^\star-\tfrac12\mathbf1\|_2
+\leq
+\frac{\kappa}{4}\|\widetilde r_t\|_2
+=
+\frac{\kappa\sqrt{N_t}}4\,g_t.
+\tag{34}$$</math-renderer>
+<p dir="auto">证明：令 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$\Delta=\pi_t^\star-\tfrac12\mathbf1$</math-renderer>。预算给出 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$\mathbf1^\top\Delta=0$</math-renderer>。将式 (26) 的 logit 条件与 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$\Delta$</math-renderer> 作内积，乘子项消失；又因为 logit 的导数 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$1/[p(1-p)]\geq4$</math-renderer>，有 <math-renderer class="js-inline-math" style="display: inline-block" data-run-id="885be27428e38395a7d9e8bde2b83b42">$4\|\Delta\|_2^2\leq\kappa\widetilde r_t^\top\Delta$</math-renderer>，再用 Cauchy–Schwarz 即得式 (34)。</p>
+<p dir="auto">这个界控制概率位移，不是 AUC 或风险改善保证。因此后续启用收缩时，只加一张冻结比较表：标准分配、经验误差收缩、按相近概率位移调节的普通全局 κ、匹配置换。只有优于简单缩小 κ，才把误差校准作为单独研究贡献。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">8. 下一轮结果怎样决定论文方向</h2><a id="user-content-8-下一轮结果怎样决定论文方向" class="anchor" aria-label="Permalink: 8. 下一轮结果怎样决定论文方向" href="#8-下一轮结果怎样决定论文方向"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<p dir="auto">论文主问题可以保留为：</p>
+<blockquote>
+<p dir="auto"><strong>能否利用训练内组合留出任务测得的关系效用，根据当前识别模型的响应，在给定关系预算下改善未见组合识别？</strong></p>
+</blockquote>
+<p dir="auto">其创新主体仍是效用监督与跨任务决策迁移；将分配移到训练结束后，并不会移除这两个核心。论文需由实际收益确定重点：</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>下一轮结果</th>
+<th>对应研究结论与后续动作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>联合拟合提高 Q5，且正式冻结识别超过 Uniform 与置换</td>
+<td>以多教师效用迁移为主体，完成阶段匹配及跨数据确认</td>
+</tr>
+<tr>
+<td>当前响应优于错配响应，阶段匹配进一步提高识别</td>
+<td>以模型状态条件化效用为主体，报告两项配对增量</td>
+</tr>
+<tr>
+<td>Q5 有收益，正式部署仍无收益</td>
+<td>集中解释教师任务到完整 CZSL 的迁移差异；不继续叠加更复杂损失、网络和惩罚</td>
+</tr>
+<tr>
+<td>真实分配与置换持平，Uniform／Capacity 更强</td>
+<td>关系分支或训练带来的收益占主导；效用选择转为机制发现，论文主方法重新取舍</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">当前证据最适合继续推进前两项的实验，而不是提前认定最终主结论。</p>
+<p dir="auto">方法和固定配置确定后，确认阶段整体完成三件事：用新的训练 seed 4351／4352／4353 重训整套教师与正式模型；在新的组合划分或第二 CZSL 数据集上复现；以相同 10 epoch 预算比较 CPF、Capacity、Uniform、TRUST 及一个匹配置换控制族。联合预测器若由三 seed 教师共同训练，识别表中的三个 seed 应说明为“共享效用模型下的三个识别重复”。</p>
+<p dir="auto">原 1800 行噪声实验和旧 ablation 继续作为已有证据。新主方法在干净识别中形成收益后，再统一补做其知识内容、噪声和计算成本比较；当前两批不重复铺开旧全队列。</p>
+<div class="markdown-heading" dir="auto"><h2 tabindex="-1" class="heading-element" dir="auto">9. 实现对应与交付依据</h2><a id="user-content-9-实现对应与交付依据" class="anchor" aria-label="Permalink: 9. 实现对应与交付依据" href="#9-实现对应与交付依据"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">9.1 后续代码修改范围</h3><a id="user-content-91-后续代码修改范围" class="anchor" aria-label="Permalink: 9.1 后续代码修改范围" href="#91-后续代码修改范围"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>现有模块</th>
+<th>需要修改的内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>compact.py／r5.py</td>
+<td>按教师平均目标；α=Jλ；联合教师输入；保存原始单位系数</td>
+</tr>
+<tr>
+<td>competition_training.py</td>
+<td>九教师拟合、共同 Q4 选参；教师新增 Uniform 阶段；新状态 on/off 测量</td>
+</tr>
+<tr>
+<td>response.py</td>
+<td>明确传入权重与支持图像 ID；可重复响应 bank；保持八维定义</td>
+</tr>
+<tr>
+<td>align.py</td>
+<td>沿用预算二分；默认固定 κ=1；统一记录类型概率与乘子</td>
+</tr>
+<tr>
+<td>workflow／report</td>
+<td>先复用 Uniform-best，再提取响应和冻结评分；合并三 seed 的教师与识别结果</td>
+</tr>
+<tr>
+<td>model.py／识别指标</td>
+<td>本批沿用现有数学实现，保持关系评分、候选归一化和 AUC 口径</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">每份效用模型保存系数、输入／标签尺度、特征顺序、关系类型和 edge ID；每份预测保存权重来源、图 bank 与候选顺序。这些字段用于把同一公式、同一权重和同一结果对应起来。</p>
+<p dir="auto">本次交付是公式与实验计划，以及用于支撑判断的本地拟合复算；尚未编写或运行上述新服务器实验。</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">9.2 来源与新增分析</h3><a id="user-content-92-来源与新增分析" class="anchor" aria-label="Permalink: 9.2 来源与新增分析" href="#92-来源与新增分析"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<ul dir="auto">
+<li><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/08/references/revision_v6/source_diagnosis_v5.pdf">第五版诊断 PDF</a>：重点参考其效用、拟合、状态与实验设计章节。</li>
+<li><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/v1/analysis/server-results-20261022/README.md">弱基底完整分析</a>。</li>
+<li><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/05/references/history/conditional_v2_analysis.md.txt">强基底前置比较</a>。</li>
+<li><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/02/analysis/README.md">强基底完整 TRUST</a>。</li>
+<li><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/03/analysis/README.md">响应条件化结果</a>。</li>
+<li><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/04/analysis/README.md">Compact 结果</a>。</li>
+<li><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/05/analysis/README.md">Align 结果</a>。</li>
+<li><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/06/analysis/README.md">Competition 10 epoch 结果</a>。</li>
+<li><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/07/analysis/README.md">R5 10 epoch 结果</a>。</li>
+<li><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/08/references/revision_v6/pooled_diagnostic.json">本次联合拟合复算</a>及<a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/08/references/revision_v6/pooled_diagnostic.py">复算脚本</a>。</li>
+<li><a href="/havenxu7436/czsl-research/blob/codex/trustcpf-state-stage-archive/TRUST-CPF%E6%96%B9%E6%A1%88/08/references/revision_v6/formula_checks.json">公式数值核验</a>：Bernoulli 偏导、教师平均正则、原始单位系数、重复响应平均、相对投影、预算求解和收缩界均通过。</li>
+</ul>
+<p dir="auto">本方案已检查公式解析、Markdown 表格及渲染布局。当前最直接的一批工作是：<strong>复用三个 Uniform-best，实际评分联合预测器与匹配置换；随后在相同正式权重上检验教师阶段匹配。</strong></p>
+</article>
