@@ -12,3 +12,5 @@ python tools/analyze_trustcpf_abc.py --dest "$HOME/analysis/trust-10-recompute"
 复算包括 936 行正式识别、7920 行 Q4/Q5/方向结果、所有正式及查询配对、144 个干预块的混合与条件标签、27/51 参数拟合、冻结主干与 best 权重一致性、AUC 四情境贡献。
 
 本次已从归档恢复并完整执行三个复算脚本，与确认值一致。见 [复算结果](repository_qa/analysis_reproduction.json)、[三轮文件核对](repository_qa/three_round_file_checks.json) 和 [公式、表格及链接核对](repository_qa/markdown_math_checks.json)。
+
+远端全部 8,705 个 LFS 对象已核对就绪（14,895,534,614 字节）；三轮发布包、最新权重、预测、两张结果图及一个完整 256 MiB 原始分片共 8 个样本，重新下载后的大小和 SHA256 与本地归档一致。见 [全部远端对象核对](repository_qa/remote_lfs_presence.json) 与 [远端下载 SHA256 记录](repository_qa/remote_lfs_download.json)。
