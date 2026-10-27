@@ -133,6 +133,9 @@ def verify():
       'changed_or_missing':failures,'broken_links':links,'formatting_errors':formatting,
       'python_syntax_errors':syntax,'vgcpod':route_check,'vgcpod_round_b':b_check,'vgcpod_round_c':c_check,'vgcpod_round_d':d_check,'vgcpod_round_e':e_check,'vgcpod_round_f':f_check,'vgcpod_round_g':g_check,'vgcpod_round_h':h_check,'vgcpod_round_i':i_check,'vgcpod_round_j':j_check,'vgcpod_round_k':k_check,'trustcpf':trust_check,'vgcpod_round_l':round_l_check,'training_started':False}
     result['trustcpf_state_stage']=state_stage_check
+    if (ROOT/'TRUST-CPF方案/10/inputs.json').is_file():
+        from register_trustcpf_abc import check as check_abc
+        result['trustcpf_abc']=check_abc()
     print(json.dumps(result,ensure_ascii=False))
     if not result['passed']: raise SystemExit(1)
 
@@ -147,6 +150,10 @@ def archive_stage(line,number):
     return matches[0]
 
 def materialize(stage,destination,line=None,number=None):
+    if stage=='42':
+        from register_trustcpf_abc import materialize as restore_abc
+        print(json.dumps(restore_abc('10',destination),ensure_ascii=False))
+        return
     if stage in ['40','41']:
         from register_trustcpf_state_stage import materialize as restore_state_stage
         print(json.dumps(restore_state_stage({'40':'08','41':'09'}[stage],destination),ensure_ascii=False))
@@ -278,6 +285,12 @@ def materialize(stage,destination,line=None,number=None):
       'note':'External inputs and frozen absolute paths still require setup; see environment/README.md'},ensure_ascii=False))
 
 def doctor(stage,project,line=None,number=None):
+    if stage=='42':
+        from register_trustcpf_abc import doctor as doctor_abc
+        result=doctor_abc('10',project)
+        print(json.dumps(result,ensure_ascii=False))
+        if not result['ready_for_package_preflight']:raise SystemExit(1)
+        return
     if stage in ['40','41']:
         from register_trustcpf_state_stage import doctor as doctor_state_stage
         result=doctor_state_stage({'40':'08','41':'09'}[stage],project)

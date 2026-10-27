@@ -1,0 +1,39 @@
+{
+  "name": "trustcpf_abc_v1_10ep",
+  "date": "2026-10-26",
+  "purpose": "A amplitude, B mixture utility, C context utility",
+  "adapt_epochs": 10,
+  "seeds": [
+    3351,
+    3352,
+    3353
+  ],
+  "physical_gpus_default": [
+    1,
+    2,
+    3
+  ],
+  "source": "trustcpf_stage_v1_10ep",
+  "trained_classifiers": 3,
+  "reused_teachers": 15,
+  "formal_policies_per_seed": 26,
+  "production_counts": {
+    "stages": 36,
+    "recognition": 936,
+    "q4": 3360,
+    "q5": 3504,
+    "directional": 1056,
+    "training": 33
+  },
+  "real_server_training_executed": false,
+  "local_validation": "CPU complete synthetic pipeline; CUDA resume and 16-graph routing; mocked transport; formula render",
+  "utility_lambda": 3.3333333333333335,
+  "utility_ridge_alpha": 30.0,
+  "graphs": 16,
+  "formula_render": {
+    "display": 31,
+    "inline": 49,
+    "errors": 0,
+    "overflow": 0
+  }
+}

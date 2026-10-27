@@ -1,0 +1,42 @@
+PRIOR                policy world  AUC_native  AUC_exact
+      matched_average    cw   35.935930  36.039256
+      matched_average    ow   26.483413  26.588942
+matched_average_cross    cw   35.962242  36.068417
+matched_average_cross    ow   26.518034  26.587627
+        matched_cross    cw   35.901003  36.026988
+        matched_cross    ow   26.476754  26.561688
+       matched_single    cw   35.902956  36.024397
+       matched_single    ow   26.463167  26.545951
+          old_average    cw   35.925864  36.045431
+          old_average    ow   26.512887  26.602308
+           old_single    cw   35.791500  35.899191
+           old_single    ow   26.452915  26.529282
+              uniform    cw   35.903817  36.039136
+              uniform    ow   26.460835  26.546881
+PAIR_DECOMPOSITION maxerr 2.1316282072803006e-14
+comparison                     world  seen_group  unseen_group
+context-minus-context_shuffle  cw     0           0               0.031866
+                                                  1               0.029344
+                                      1           0               0.059642
+                                                  1               0.046093
+                               ow     0           0               0.008231
+                                                  1               0.066621
+                                      1           0               0.045461
+                                                  1               0.041251
+context-minus-matched          cw     0           0               0.009385
+                                                  1               0.021335
+                                      1           0              -0.021033
+                                                  1              -0.015175
+                               ow     0           0               0.009173
+                                                  1               0.001654
+                                      1           0              -0.016071
+                                                  1              -0.012676
+context-minus-uniform          cw     0           0               0.063347
+                                                  1              -0.045725
+                                      1           0               0.054329
+                                                  1               0.033848
+                               ow     0           0               0.110750
+                                                  1              -0.050200
+                                      1           0               0.042699
+                                                  1               0.019574
+QPAIRED {'4': {'rows': 1656, 'max_error': 1.4116312285761268e-15}, '5': {'rows': 1728, 'max_error': 1.304512053934559e-15}}

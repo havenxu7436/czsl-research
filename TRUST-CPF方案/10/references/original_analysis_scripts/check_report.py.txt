@@ -1,0 +1,30 @@
+from pathlib import Path
+import json,re
+import markdown
+HERE=Path(__file__).resolve().parent
+DOC=HERE.parent/'output/TRUST-CPF_ABC整批10epoch_完整结果分析_20261027.md'
+s=DOC.read_text(encoding='utf8');math=[];errors=[];tables=0;cols=None
+for i,line in enumerate(s.splitlines(),1):
+    if line.startswith('|'):
+        n=line.count('|')-1
+        if cols is None:cols=n;tables+=1
+        elif n!=cols:errors.append(f'table width at line {i}')
+    else:cols=None
+for m in re.finditer(r'\]\((<[^>]+>|[^)\n]+)\)',s):
+    p=m.group(1).strip('<>')
+    if not p.startswith('http') and not Path(p).exists():errors.append('Missing link: '+p)
+if re.search(r'[\x00-\x08\x0b\x0c\x0e-\x1f\ufffd]',s):errors.append('Control or invalid Unicode character')
+def capture(m,display):
+    token=f'MATHPLACEHOLDER{len(math):04d}END'
+    math.append(dict(token=token,tex=m.group(1).strip(),display=display))
+    return '\n\n'+token+'\n\n' if display else token
+body=re.sub(r'\$\$([\s\S]*?)\$\$',lambda m:capture(m,True),s)
+body=re.sub(r'(?<!\\)\$([^\n$]+?)(?<!\\)\$',lambda m:capture(m,False),body)
+if '$' in body:errors.append('Unpaired math delimiter')
+body=markdown.markdown(body,extensions=['tables','fenced_code'])
+body=body.replace('src="C:/','src="file:///C:/')
+(HERE/'body.html').write_text(body,encoding='utf8')
+(HERE/'math.json').write_text(json.dumps(math,ensure_ascii=False),encoding='utf8')
+result=dict(passed=not errors,characters=len(s),tables=tables,formulas=len(math),errors=errors)
+(HERE/'markdown_checks.json').write_text(json.dumps(result,indent=2),encoding='utf8')
+print(json.dumps(result));assert result['passed']

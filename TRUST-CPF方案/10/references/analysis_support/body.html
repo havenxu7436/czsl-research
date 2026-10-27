@@ -1,0 +1,1389 @@
+<h1>TRUST-CPF A/B/C 整批 10 epoch 完整结果分析</h1>
+<p>日期：2026-10-27。实验：<code>trustcpf_abc_v1_10ep</code>；数据集：UT-Zappos50K；CLIP：ViT-L/14；强 CPF 基底；seed：3351、3352、3353。</p>
+<p><strong>本轮最值得保留的是 C：情境条件效用。它在三个 seed 的 CW、OW 上都超过 Uniform、关系置换均值和情境打乱，但平均 AUC 与原 Matched 基本持平。A 的幅度校准没有带来收益；B 的 16 图效用与原单图效用过于相似，没有形成增量。下一步应集中验证 C 的独立复现，并检验重复响应能否改善条件效用的迁移。</strong></p>
+<p>本轮把证据从“效用在教师查询任务上有价值”推进到了“正式识别中，正确的关系与情境对应具有方向一致的收益”。现阶段最准确的贡献表述是<strong>改善效用迁移的稳定性</strong>，而不是“情境模型已经提高平均识别性能”。</p>
+<h2>1. 数据完整性、复算及统计口径</h2>
+<p>数据目录：<a href="C:/Users/llenovo/Documents/ChatGPT/USG/output/abc_results/server_results_20261027_075618/trustcpf_abc_v1_10ep">本轮完整结果</a>。分析读取压缩包、发布代码、训练轨迹、效用标签和预测文件；没有改写原始实验结果。</p>
+<table>
+<thead>
+<tr>
+<th>产物</th>
+<th>实际 / 计划</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>流水线阶段</td>
+<td>36 / 36</td>
+<td>全部完成</td>
+</tr>
+<tr>
+<td>正式识别指标行</td>
+<td>936 / 936</td>
+<td>26 策略 × 3 seed × 3 图库 × VAL/TEST × CW/OW</td>
+</tr>
+<tr>
+<td>Q4 决策曲线</td>
+<td>3360 / 3360</td>
+<td>包括全部强度、置换和直接测量参照</td>
+</tr>
+<tr>
+<td>Q5 决策曲线</td>
+<td>3504 / 3504</td>
+<td>含 A 选定幅度及对应置换</td>
+</tr>
+<tr>
+<td>测量集方向曲线</td>
+<td>1056 / 1056</td>
+<td>单图 / 混合实际风险与线性代理</td>
+</tr>
+<tr>
+<td>正式适配训练轨迹</td>
+<td>33 / 33</td>
+<td>3 seed × epoch 0–10</td>
+</tr>
+<tr>
+<td>缺失阶段</td>
+<td>0</td>
+<td>队列及所有子任务退出码为 0</td>
+</tr>
+</tbody>
+</table>
+<p>结果包大小为 6,809,726,045 字节，SHA256 与随包校验文件一致。另验证了 93 个发布文件、36 个阶段标记及 9,878 条阶段输出哈希。</p>
+<p>对 234 份正式策略/图库结果的 468 个 VAL/TEST 预测文件重新计算 CW/OW AUC、HM、NLL、ECE，并核对 936 行汇总及 504 行配对结果；native/exact AUC 与保存结果的最大差均为 0。另复算 7,920 行 Q4/Q5/方向曲线对应的 7,776 份独立输出中的 exact AUC、混合未见 NLL、单图未见 NLL，以及 Q4/Q5 的 3,384 行配对差。</p>
+<p>144 个干预测量块的单图、16 图及情境标签可由逐图像概率重建；混合标签最大误差为 MATHPLACEHOLDER0001END。27/51 参数模型重拟合后的系数差小于 MATHPLACEHOLDER0002END。所有正式权重的冻结主干保持一致，epoch 10、best 权重及历史选模记录匹配。<strong>本轮结论来自完成且数值一致的实验，不是缺跑、汇总错位或混合公式实现错误造成的表象。</strong></p>
+<p>统计采用“先在同 seed 内平均图库，再汇总三个 seed”。表中 ± 为三个 seed 的样本标准差。正式三图库为 1701/2701/3701；Q4/Q5 为八图库。五个关系置换在同 seed、同图库内先求均值，再与真实策略配对。图库和置换次数不增加独立训练重复数。</p>
+<p>本轮三个识别 seed 共用一套由九个 Q1–Q3 教师拟合的效用预测器，因此它们反映的是<strong>固定效用预测器下的三个分类器重复</strong>。15 个阶段匹配教师沿用 Stage；Q5 的 evaluate 图像与 measure、STOP 分开，但 Stage 的 STOP 使用了同一查询组合的其他图像。旧 Q5 对照的复现用于连接历史结果，不计为新完整流水线复现。</p>
+<p>AUC、HM 均为 0–100 标度，差值单位为百分点。主表沿用 CPF native AUC，exact AUC 用于检查有限扫描对结论的影响。HM 使用 VAL 选出的 bias，在 TEST 固定应用；不是在 TEST 搜索出的最佳 HM。NLL 为自然对数损失，数值越低越好。</p>
+<h2>2. 正式识别：C 的优势在稳定性，均值尚未超过 Matched</h2>
+<table>
+<thead>
+<tr>
+<th>策略</th>
+<th>TEST CW native AUC</th>
+<th>TEST OW native AUC</th>
+<th>CW exact AUC</th>
+<th>OW exact AUC</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Uniform</td>
+<td>36.051 ± 0.722</td>
+<td>26.638 ± 1.527</td>
+<td>36.184</td>
+<td>26.684</td>
+</tr>
+<tr>
+<td>Matched</td>
+<td>36.148 ± 0.866</td>
+<td>26.744 ± 1.706</td>
+<td>36.296</td>
+<td>26.825</td>
+</tr>
+<tr>
+<td>A · Amplitude</td>
+<td>36.047 ± 0.710</td>
+<td>26.626 ± 1.511</td>
+<td>36.189</td>
+<td>26.674</td>
+</tr>
+<tr>
+<td>B · Mix16</td>
+<td>36.119 ± 0.892</td>
+<td>26.714 ± 1.735</td>
+<td>36.259</td>
+<td>26.796</td>
+</tr>
+<tr>
+<td>C · Context</td>
+<td>36.147 ± 0.708</td>
+<td>26.747 ± 1.519</td>
+<td>36.290</td>
+<td>26.807</td>
+</tr>
+<tr>
+<td>Context-Shuffle</td>
+<td>35.978 ± 0.770</td>
+<td>26.575 ± 1.545</td>
+<td>36.123</td>
+<td>26.646</td>
+</tr>
+</tbody>
+</table>
+<p>Matched 是原 27 参数、单图 NLL 效用监督的全局分配；A 使用训练标签尺度及 Q4 选出的 0.25 幅度；B 更换为 16 图混合效用；C 使用两个物体情境和 51 参数条件效用。四组与 Uniform 共享每个 seed 的同一份冻结 best 权重。</p>
+<table>
+<thead>
+<tr>
+<th>配对比较</th>
+<th>CW native AUC 差</th>
+<th>OW native AUC 差</th>
+<th>正向 seed 数：CW · OW</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Matched - Uniform</td>
+<td>0.097 ± 0.153</td>
+<td>0.106 ± 0.250</td>
+<td>2/3 · 2/3</td>
+</tr>
+<tr>
+<td>A - Uniform</td>
+<td>-0.003 ± 0.012</td>
+<td>-0.012 ± 0.018</td>
+<td>1/3 · 1/3</td>
+</tr>
+<tr>
+<td>B - Uniform</td>
+<td>0.069 ± 0.177</td>
+<td>0.076 ± 0.268</td>
+<td>2/3 · 2/3</td>
+</tr>
+<tr>
+<td>C - Uniform</td>
+<td>0.097 ± 0.029</td>
+<td>0.109 ± 0.025</td>
+<td>3/3 · 3/3</td>
+</tr>
+<tr>
+<td>C - relation permutations</td>
+<td>0.104 ± 0.081</td>
+<td>0.100 ± 0.024</td>
+<td>3/3 · 3/3</td>
+</tr>
+<tr>
+<td>C - Context-Shuffle</td>
+<td>0.169 ± 0.091</td>
+<td>0.172 ± 0.089</td>
+<td>3/3 · 3/3</td>
+</tr>
+<tr>
+<td>C - Matched</td>
+<td>-0.001 ± 0.176</td>
+<td>0.003 ± 0.239</td>
+<td>1/3 · 1/3</td>
+</tr>
+</tbody>
+</table>
+<p><img alt="正式识别配对增量及三个 seed" src="file:///C:/Users/llenovo/Documents/ChatGPT/USG/output/TRUST-CPF_ABC_20261027_figures/formal_paired_gains.png" /></p>
+<p>最重要的变化不是 Matched → C 的平均分数上升，而是它对 seed 3353 的改善。Matched 在前两个 seed 的收益更大，在第三个 seed 出现下降；C 的三次收益都保持正向。</p>
+<table>
+<thead>
+<tr>
+<th>seed</th>
+<th>比较</th>
+<th>CW 差</th>
+<th>OW 差</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3351</td>
+<td>Matched − Uniform</td>
+<td>+0.1875</td>
+<td>+0.2674</td>
+</tr>
+<tr>
+<td>3351</td>
+<td>C − Uniform</td>
+<td>+0.0644</td>
+<td>+0.0955</td>
+</tr>
+<tr>
+<td>3351</td>
+<td>C − 关系置换均值</td>
+<td>+0.0225</td>
+<td>+0.1201</td>
+</tr>
+<tr>
+<td>3351</td>
+<td>C − 情境打乱</td>
+<td>+0.0802</td>
+<td>+0.1293</td>
+</tr>
+<tr>
+<td>3351</td>
+<td>C − Matched</td>
+<td>-0.1231</td>
+<td>-0.1719</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>Matched − Uniform</td>
+<td>+0.1836</td>
+<td>+0.2319</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>C − Uniform</td>
+<td>+0.1031</td>
+<td>+0.1383</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>C − 关系置换均值</td>
+<td>+0.1042</td>
+<td>+0.0736</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>C − 情境打乱</td>
+<td>+0.1645</td>
+<td>+0.2743</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>C − Matched</td>
+<td>-0.0805</td>
+<td>-0.0936</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>Matched − Uniform</td>
+<td>-0.0795</td>
+<td>-0.1814</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>C − Uniform</td>
+<td>+0.1221</td>
+<td>+0.0941</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>C − 关系置换均值</td>
+<td>+0.1850</td>
+<td>+0.1068</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>C − 情境打乱</td>
+<td>+0.2614</td>
+<td>+0.1119</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>C − Matched</td>
+<td>+0.2017</td>
+<td>+0.2755</td>
+</tr>
+</tbody>
+</table>
+<p>C 相对 Uniform 的配对增量标准差从 Matched 的 CW 0.153、OW 0.250 降为 CW 0.029、OW 0.025。这里描述的是本轮三个 seed 的增量离散程度，尚不是对总体稳定性提升倍数的估计。</p>
+<p>C 与 Matched 的 native 差仅为 CW −0.0006、OW +0.0034；exact 差为 CW −0.0055、OW −0.0179。<strong>二者平均性能应判为接近，不能依据 OW 的 +0.0034 宣称 C 超过 Matched。</strong> C 相对 Uniform、关系置换、情境打乱的平均增量在 native 和 exact 下均为正，因而这一机制信号不依赖 native 扫描。</p>
+<p>五次关系置换也提供了更细的参照：C 在三个 seed 的 CW 上分别高于 4/5、4/5、5/5 个置换，OW 为 3/5、4/5、5/5。当前支持“超过置换均值且逐 seed 方向一致”，并非每次都高于所有置换。</p>
+<p>Context-Shuffle 保留相同 51 参数结构，在九个拟合教师中的五个交换条件输入与条件标签的对应，再重新拟合。正式真实 C 高于该对照，说明收益与条件对应有关；但 Q5 的排序相反，说明这一作用仍受任务影响。</p>
+<table>
+<thead>
+<tr>
+<th>策略</th>
+<th>CW HM</th>
+<th>OW HM</th>
+<th>CW 原始 NLL</th>
+<th>OW 原始 NLL</th>
+<th>CW 校准 NLL</th>
+<th>OW 校准 NLL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Uniform</td>
+<td>51.311</td>
+<td>42.038</td>
+<td>2.4358</td>
+<td>2.5449</td>
+<td>1.5058</td>
+<td>1.9815</td>
+</tr>
+<tr>
+<td>Matched</td>
+<td>51.309</td>
+<td>42.203</td>
+<td>2.4316</td>
+<td>2.5409</td>
+<td>1.5070</td>
+<td>1.9787</td>
+</tr>
+<tr>
+<td>A · Amplitude</td>
+<td>51.295</td>
+<td>42.143</td>
+<td>2.4358</td>
+<td>2.5449</td>
+<td>1.5065</td>
+<td>1.9813</td>
+</tr>
+<tr>
+<td>B · Mix16</td>
+<td>51.244</td>
+<td>42.176</td>
+<td>2.4319</td>
+<td>2.5412</td>
+<td>1.5076</td>
+<td>1.9794</td>
+</tr>
+<tr>
+<td>C · Context</td>
+<td>51.378</td>
+<td>42.039</td>
+<td>2.4345</td>
+<td>2.5437</td>
+<td>1.5078</td>
+<td>1.9807</td>
+</tr>
+<tr>
+<td>Context-Shuffle</td>
+<td>51.133</td>
+<td>41.718</td>
+<td>2.4340</td>
+<td>2.5433</td>
+<td>1.5067</td>
+<td>1.9818</td>
+</tr>
+</tbody>
+</table>
+<p>C 的 OW HM 为 42.039，与 Uniform 42.038 基本相同，也低于 Matched 42.203。C 的原始 NLL 优于 Uniform，但不如 Matched；校准后的 CW NLL 略差于 Uniform。正式证据集中在 <strong>AUC 的正向迁移及配对稳定性</strong>，并没有扩展为所有指标上的优势。</p>
+<table>
+<thead>
+<tr>
+<th>策略</th>
+<th>CW 已见 / 未见准确率</th>
+<th>OW 已见 / 未见准确率</th>
+<th>CW 校准 ECE</th>
+<th>OW 校准 ECE</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Uniform</td>
+<td>46.823 / 56.878</td>
+<td>43.641 / 40.696</td>
+<td>4.147</td>
+<td>5.464</td>
+</tr>
+<tr>
+<td>Matched</td>
+<td>46.943 / 56.748</td>
+<td>43.467 / 41.101</td>
+<td>4.131</td>
+<td>5.702</td>
+</tr>
+<tr>
+<td>A · Amplitude</td>
+<td>46.834 / 56.836</td>
+<td>43.945 / 40.584</td>
+<td>4.077</td>
+<td>5.453</td>
+</tr>
+<tr>
+<td>B · Mix16</td>
+<td>46.877 / 56.690</td>
+<td>43.576 / 40.966</td>
+<td>4.213</td>
+<td>5.738</td>
+</tr>
+<tr>
+<td>C · Context</td>
+<td>47.062 / 56.731</td>
+<td>42.848 / 41.430</td>
+<td>4.309</td>
+<td>5.650</td>
+</tr>
+<tr>
+<td>Context-Shuffle</td>
+<td>46.519 / 56.913</td>
+<td>42.022 / 41.683</td>
+<td>4.244</td>
+<td>5.668</td>
+</tr>
+</tbody>
+</table>
+<p>准确率使用 VAL bias；ECE 使用 VAL 选择的 bias 和温度。两者都在 TEST 固定应用，按三个 seed 及图库平均；平均已见/未见准确率再求 HM 不必等于逐结果 HM 的均值。</p>
+<h2>3. A/B/C 各自回答了什么</h2>
+<p><strong>A：固定训练尺度加幅度收缩，在本轮不成立为性能改进。</strong> Q4 的 pooled exact AUC 选择了 0.25，但优势只有 0.0057 个百分点，且三个 seed 中只有一个改善。</p>
+<table>
+<thead>
+<tr>
+<th>A 幅度</th>
+<th>Q4 exact AUC</th>
+<th>相对 Uniform</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>41.848119</td>
+<td>+0.000000</td>
+</tr>
+<tr>
+<td>0.25</td>
+<td>41.853778</td>
+<td>+0.005658</td>
+</tr>
+<tr>
+<td>0.5</td>
+<td>41.670545</td>
+<td>-0.177574</td>
+</tr>
+<tr>
+<td>1</td>
+<td>41.709137</td>
+<td>-0.138982</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>关系类型</th>
+<th>Matched 概率标准差</th>
+<th>A 概率标准差</th>
+<th>C 概率标准差</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OI</td>
+<td>0.207123</td>
+<td>0.018919</td>
+<td>0.203605</td>
+</tr>
+<tr>
+<td>OE</td>
+<td>0.200189</td>
+<td>0.009256</td>
+<td>0.189845</td>
+</tr>
+<tr>
+<td>AE</td>
+<td>0.189437</td>
+<td>0.005913</td>
+<td>0.182989</td>
+</tr>
+</tbody>
+</table>
+<p>在正式识别器上，原 Matched 预测的类型内标准差只有训练标签尺度的约 0.312/0.149/0.095；再乘 0.25 插值后，A 的分配非常接近 Uniform。对应 TEST CW −0.0032、OW −0.0118，并且相对关系置换也接近零。结论是<strong>A 把动作压小了，但没有提高识别效果</strong>。下一轮保留原标准化，不再扩展 A 的幅度搜索。</p>
+<p><strong>B：公式与实现正确，但改变的主要是效用尺度，而不是关系排序。</strong> 144 个测量块的独立复算确认了 16 图干预中的外部系数 16，以及 15 张辅助图与原 on/off 图的概率组合。全体 15 个教师上，单图标签与混合标签的类型内相关如下。</p>
+<table>
+<thead>
+<tr>
+<th>关系类型</th>
+<th>单图 / Mix16 标签 Spearman</th>
+<th>标签符号变化比例</th>
+<th>两预测器输出 Spearman</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OI</td>
+<td>0.994406</td>
+<td>0.56%</td>
+<td>0.992541</td>
+</tr>
+<tr>
+<td>OE</td>
+<td>0.994663</td>
+<td>0.93%</td>
+<td>0.991849</td>
+</tr>
+<tr>
+<td>AE</td>
+<td>0.992314</td>
+<td>2.36%</td>
+<td>0.999580</td>
+</tr>
+</tbody>
+</table>
+<p>相关系数约 0.99，部署前又分别进行类型内标准差归一化，进一步消除了尺度变化。B 正式相对 Matched 为 CW −0.0285、OW −0.0301；Q5 AUC 也略低。<strong>“单图监督与 16 图部署不同”在数学上成立，但这次修正没有提供新的有效排序。</strong> 不建议将 B 自动并入 C，也不再把 Context-Mix16 作为默认下一步。</p>
+<p><strong>C：正式迁移方向更一致，但条件预测精度尚未普遍提高。</strong> 两个情境由冻结 CLIP 物体文本形成的六物体分组定义；图像路由使用冻结 CPF 物体概率，而不是标签。第 0 组包含靴类、船鞋、牛津鞋和运动鞋；第 1 组包含凉鞋、木屐/穆勒鞋、平底鞋、高跟鞋、乐福鞋和拖鞋。</p>
+<p>VAL 的第 0 组比例约为 38%，TEST 约为 65%；路由与真值物体所属组的一致率分别约为 92.5% 和 96.3%。组内物体数均为六个，不代表图像数相等。路由在所有比较策略中一致，不是 C 额外改变分类器的结果。</p>
+<table>
+<thead>
+<tr>
+<th>seed</th>
+<th>分区</th>
+<th>第 0 / 第 1 情境图像数</th>
+<th>与真值物体组一致率</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3351</td>
+<td>VAL</td>
+<td>1208 / 2006</td>
+<td>92.41%</td>
+</tr>
+<tr>
+<td>3351</td>
+<td>TEST</td>
+<td>1903 / 1011</td>
+<td>96.29%</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>VAL</td>
+<td>1212 / 2002</td>
+<td>92.53%</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>TEST</td>
+<td>1899 / 1015</td>
+<td>96.36%</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>VAL</td>
+<td>1226 / 1988</td>
+<td>92.66%</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>TEST</td>
+<td>1908 / 1006</td>
+<td>96.19%</td>
+</tr>
+</tbody>
+</table>
+<p>在同一 Q5 条件单图标签上，用情境样本比例加权计算 RMSE，才能直接比较全局与条件预测：</p>
+<table>
+<thead>
+<tr>
+<th>预测器</th>
+<th>OI 条件 RMSE</th>
+<th>OE 条件 RMSE</th>
+<th>AE 条件 RMSE</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Matched</td>
+<td>0.019053</td>
+<td>0.010504</td>
+<td>0.002526</td>
+</tr>
+<tr>
+<td>C · Context</td>
+<td>0.018906</td>
+<td>0.010536</td>
+<td>0.002599</td>
+</tr>
+<tr>
+<td>Context-Shuffle</td>
+<td>0.018945</td>
+<td>0.010523</td>
+<td>0.002621</td>
+</tr>
+</tbody>
+</table>
+<p>C 只在 OI 上略好，OE/AE 并未改善。这说明当前条件响应中存在可利用的信息，但 51 参数预测器没有全面学好条件效用。不能把正式 AUC 的方向改善等同于条件效用估计已经充分准确。后续有价值的改动是提升条件响应的可重复性，并检验这种提升是否进入正式分配。</p>
+<h2>4. Q4/Q5：效用降低风险，并不保证改善组合排序</h2>
+<p>Q4 是新增的独立 evaluate 图像：已见和伪未见各 256 张，排除原 train、measure、STOP。Q5 沿用原独立 evaluate。下表为 16 图概率混合读出；除 A 使用选定 0.25 外，其他策略强度为 1。NLL 下降定义为 Uniform NLL 减去策略 NLL，正值表示改善。</p>
+<table>
+<thead>
+<tr>
+<th>策略</th>
+<th>Q4 AUC 增量</th>
+<th>Q4 未见 NLL 下降</th>
+<th>Q5 AUC 增量</th>
+<th>Q5 未见 NLL 下降</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Uniform</td>
+<td>+0.0000</td>
+<td>+0.00000</td>
+<td>+0.0000</td>
+<td>+0.00000</td>
+</tr>
+<tr>
+<td>Matched</td>
+<td>-0.0601</td>
+<td>+0.01677</td>
+<td>+1.4627</td>
+<td>+0.09190</td>
+</tr>
+<tr>
+<td>A · 0.25</td>
+<td>+0.0057</td>
+<td>+0.00113</td>
+<td>+0.0290</td>
+<td>+0.00121</td>
+</tr>
+<tr>
+<td>B · Mix16</td>
+<td>-0.1148</td>
+<td>+0.01894</td>
+<td>+1.4265</td>
+<td>+0.08921</td>
+</tr>
+<tr>
+<td>C · Context</td>
+<td>-0.0252</td>
+<td>+0.01148</td>
+<td>+1.0040</td>
+<td>+0.06447</td>
+</tr>
+<tr>
+<td>Context-Shuffle</td>
+<td>-0.6911</td>
+<td>+0.02388</td>
+<td>+1.1806</td>
+<td>+0.06654</td>
+</tr>
+<tr>
+<td>Average-Readout</td>
+<td>+1.4101</td>
+<td>+0.03614</td>
+<td>+1.2077</td>
+<td>+0.08935</td>
+</tr>
+<tr>
+<td>Average-Refit</td>
+<td>+1.7307</td>
+<td>+0.05189</td>
+<td>+1.4544</td>
+<td>+0.10786</td>
+</tr>
+<tr>
+<td>Measured-1</td>
+<td>-1.3343</td>
+<td>+0.04286</td>
+<td>+2.1144</td>
+<td>+0.17635</td>
+</tr>
+<tr>
+<td>Measured-16</td>
+<td>-1.3730</td>
+<td>+0.04134</td>
+<td>+2.1065</td>
+<td>+0.17285</td>
+</tr>
+<tr>
+<td>Measured-Context</td>
+<td>-1.2594</td>
+<td>+0.05935</td>
+<td>+2.1277</td>
+<td>+0.17703</td>
+</tr>
+</tbody>
+</table>
+<p>Uniform exact AUC：Q4 41.848119；Q5 42.263667。Measured 系列使用本教师 measure 图像上的直接测量值，再在 evaluate 图像上评价；它们是有限样本测量参照，不是知道真实总体效用的上界。</p>
+<p><img alt="Q4 与 Q5 的风险和 AUC 变化" src="file:///C:/Users/llenovo/Documents/ChatGPT/USG/output/TRUST-CPF_ABC_20261027_figures/q4_q5_risk_and_auc.png" /></p>
+<p>这张表给出三个直接判断。</p>
+<ol>
+<li><strong>目标问题仍然存在。</strong> Q4 的 Measured-1 把未见 NLL 降低 0.04286，却令 AUC 下降 1.3343；Measured-Context 降低 NLL 0.05935，AUC 仍下降 1.2594。直接测量也出现相同分离，因此不能把全部问题归因于效用预测器误差。</li>
+<li><strong>情境信息的价值受任务影响。</strong> Q5 上 C 高于关系置换均值 0.7718，但低于 Matched 0.4587，也低于 Context-Shuffle 0.1766。直接条件测量比直接全局测量仅高 0.0134 AUC。正式识别中 C 的优势不能反推为所有教师留出任务上都存在较大的条件增量。</li>
+<li><strong>重复响应是当前最值得与 C 共同检验的改动。</strong> Average-Refit 在 Q4 上比 Uniform 高 1.7307，比 Matched 高 1.7908；在 Q5 上比 Uniform 高 1.4544，与 Matched 相差 −0.0083，同时进一步改善未见 NLL。它在拟合和部署两端都平均两份独立背景图响应，然后重新拟合 27 参数模型。Average-Readout 只在部署平均输入，没有相同的两端拟合。两者本轮都没有正式 TEST 结果，下一步需要补齐这一步迁移证据。</li>
+</ol>
+<p>进一步查看 Q4 的类内竞争，Measured-1 令未见类平滑正确性指标从 0.66214 降到 0.65481，已见 NLL 从 1.14382 升到 1.15479；Q5 上同一策略的未见平滑正确性则从 0.61399 升到 0.63503。该指标是类内 margin 经 sigmoid 后的均值，不是准确率。这与 AUC 的任务差异一致：<strong>真类概率改善与真类超过竞争组合，不是同一个优化结果。</strong></p>
+<p>这些结果不支持简单重跑更长训练，也不支持直接返回旧 Competition 配方。更集中的方向是保留原干预效用监督，验证条件响应与任务覆盖能否把这种价值稳定带到正式识别。</p>
+<h2>5. 动作幅度、条件收益分布和训练过程</h2>
+<p>测量集方向曲线可以检验“原动作太大，导致线性预测收益被非线性损失抵消”这一解释。以下为强度 1 的混合 NLL 下降，使用直接测量效用形成线性代理；它与独立 evaluate 的泛化结果是两个不同问题。</p>
+<table>
+<thead>
+<tr>
+<th>策略</th>
+<th>Q4 线性代理</th>
+<th>Q4 实际下降</th>
+<th>Q5 线性代理</th>
+<th>Q5 实际下降</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>matched</td>
+<td>0.01154</td>
+<td>0.01787</td>
+<td>0.06161</td>
+<td>0.10049</td>
+</tr>
+<tr>
+<td>mix16</td>
+<td>0.01301</td>
+<td>0.02074</td>
+<td>0.06067</td>
+<td>0.09774</td>
+</tr>
+<tr>
+<td>context</td>
+<td>0.00634</td>
+<td>0.01222</td>
+<td>0.04893</td>
+<td>0.07111</td>
+</tr>
+<tr>
+<td>measured1</td>
+<td>0.05714</td>
+<td>0.05997</td>
+<td>0.10648</td>
+<td>0.19078</td>
+</tr>
+<tr>
+<td>measured16</td>
+<td>0.05577</td>
+<td>0.05816</td>
+<td>0.10569</td>
+<td>0.18711</td>
+</tr>
+<tr>
+<td>measured_context</td>
+<td>0.06731</td>
+<td>0.07802</td>
+<td>0.10985</td>
+<td>0.19410</td>
+</tr>
+</tbody>
+</table>
+<p>这些主策略的实际 NLL 改善均大于线性代理，Q5 尤其明显。当前曲线没有呈现“预测为正、执行后普遍变负”的幅度失控模式；A 压小动作也就没有修复一个已经被数据证实的主要问题。由于两者含 Monte Carlo 测量与图库采样差异，这张表用于识别方向模式，不把差值全部解释为确定性的曲率。</p>
+<p>为看清 C 的平均收益如何组成，我将正式 TEST exact AUC 分解为四类已见/未见图像配对贡献。令每张图像的最佳已见与最佳未见分数差为 MATHPLACEHOLDER0003END，MATHPLACEHOLDER0004END 表示真类在自身已见/未见候选分区内是否排名第一，则：</p>
+<p>MATHPLACEHOLDER0000END</p>
+<p>这是总体 AUC 的贡献分解，不是对每个子群重新计算并等权平均 AUC。重建误差小于 MATHPLACEHOLDER0005END。</p>
+<table>
+<thead>
+<tr>
+<th>配对情境</th>
+<th>C−Uniform CW</th>
+<th>C−Uniform OW</th>
+<th>C−Matched CW</th>
+<th>C−Matched OW</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>已见 0 → 未见 0</td>
+<td>+0.06335</td>
+<td>+0.11075</td>
+<td>+0.00939</td>
+<td>+0.00917</td>
+</tr>
+<tr>
+<td>已见 0 → 未见 1</td>
+<td>-0.04573</td>
+<td>-0.05020</td>
+<td>+0.02133</td>
+<td>+0.00165</td>
+</tr>
+<tr>
+<td>已见 1 → 未见 0</td>
+<td>+0.05433</td>
+<td>+0.04270</td>
+<td>-0.02103</td>
+<td>-0.01607</td>
+</tr>
+<tr>
+<td>已见 1 → 未见 1</td>
+<td>+0.03385</td>
+<td>+0.01957</td>
+<td>-0.01517</td>
+<td>-0.01268</td>
+</tr>
+</tbody>
+</table>
+<p>C 相对 Uniform 在三类配对中有正贡献，但“已见情境 0 → 未见情境 1”仍下降。相对 Matched，已见情境 0 的配对略有收益，已见情境 1 的配对下降，最终互相抵消。条件模型已经改变了关系价值的分配方式，但尚未让所有竞争方向同时改善。这是下一步评估条件响应时最有用的分解，而不是继续增加情境个数的直接理由。</p>
+<table>
+<thead>
+<tr>
+<th>seed</th>
+<th>选中 epoch</th>
+<th>epoch 0 VAL CW</th>
+<th>最佳 VAL CW</th>
+<th>epoch 10 VAL CW</th>
+<th>首/末训练 loss</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3351</td>
+<td>5</td>
+<td>43.577</td>
+<td>43.848</td>
+<td>42.805</td>
+<td>1.6763 / 1.6453</td>
+</tr>
+<tr>
+<td>3352</td>
+<td>2</td>
+<td>41.253</td>
+<td>42.352</td>
+<td>40.907</td>
+<td>1.6821 / 1.6482</td>
+</tr>
+<tr>
+<td>3353</td>
+<td>2</td>
+<td>44.017</td>
+<td>45.342</td>
+<td>43.964</td>
+<td>1.6807 / 1.6537</td>
+</tr>
+</tbody>
+</table>
+<p>三个 seed 都完整训练了 10 epoch，随后按 VAL CW 选择 5/2/2。loss 继续下降，但 epoch 10 的 VAL 都低于已保存的 best。当前结果不是“只训练了 3 epoch”造成的；继续增加 epoch 不是优先方向。所有策略共享同一 best，因此选模不会造成 C 与 Matched 的训练预算差异。</p>
+<p>本次新训练三条 Uniform 轨迹，教师沿用 Stage；岭回归用闭式求解，不存在 27/51 参数预测器再训练 10 epoch 的步骤。每条正式 Uniform 适配约 134–136 秒，每个 seed 的已记录阶段执行时间合计约 18.1–18.5 分钟；三张 GPU 并行，不将三份合计当作墙钟时间。该成本不包含之前已经完成的教师训练和特征缓存。峰值记录为 PyTorch allocated 约 267.6 MiB，不等同于显卡进程总显存。C 每图像仍用 16 张图，两组路由按图像所属情境执行，不是每张图像同时计算 32 张图。</p>
+<h2>6. 与 State/Stage 以及原 TRUST 目标的关系</h2>
+<table>
+<thead>
+<tr>
+<th>轮次 / 方法</th>
+<th>TEST CW native AUC</th>
+<th>TEST OW native AUC</th>
+<th>该轮相对 Uniform：CW / OW</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Stage · Uniform</td>
+<td>35.903817</td>
+<td>26.460835</td>
+<td>0 / 0</td>
+</tr>
+<tr>
+<td>Stage · Matched-Single</td>
+<td>35.902956</td>
+<td>26.463167</td>
+<td>−0.000861 / +0.002332</td>
+</tr>
+<tr>
+<td>Stage · Matched-Average</td>
+<td>35.935930</td>
+<td>26.483413</td>
+<td>+0.032113 / +0.022578</td>
+</tr>
+<tr>
+<td>本轮 · Uniform</td>
+<td>36.050646</td>
+<td>26.637743</td>
+<td>0 / 0</td>
+</tr>
+<tr>
+<td>本轮 · Matched</td>
+<td>36.147829</td>
+<td>26.743700</td>
+<td>+0.097183 / +0.105957</td>
+</tr>
+<tr>
+<td>本轮 · C</td>
+<td>36.147186</td>
+<td>26.747051</td>
+<td>+0.096540 / +0.109308</td>
+</tr>
+</tbody>
+</table>
+<p>本轮 Uniform 比 Stage 高约 CW 0.147、OW 0.177，源于本轮新的训练轨迹和选中权重。不能把这部分提升记到 A/B/C 机制上。正式策略的贡献应看同轮、同权重的配对差。</p>
+<p>Matched 的 Q5 +1.462682、原直接单图测量的 +2.114360 与 Stage 对应结果一致，因为教师、测量和相关读出被复用。它们证明了新实现能衔接旧结果；本轮新增的证据主要来自 A/B/C 变体、新 Q4 evaluate、16 图标签、情境输入，以及在新 Uniform 权重上的正式识别。</p>
+<p>TRUST 的核心链条仍然完整保留：<strong>TRAIN 留出组合上的关系干预 → 效用监督 → 小型共享预测器 → 固定预算关系概率 → 强 CPF 的未见组合识别</strong>。C 在这条链条中引入可观测情境，效用监督仍是主要研究对象。Bernoulli、岭回归或两组路由本身不应被单列为已经证明的新贡献。</p>
+<p>目前已经支持的主张是：干预效用确实能降低查询风险；正确的关系对应具有决策价值；条件信息在本轮正式识别中提供了更一致的正增量。目前尚未得到的主张是：条件效用平均性能超过全局效用，以及该收益可在独立完整流水线与第二数据集上复现。论文主线可以继续向“情境条件的可迁移关系效用”收敛，平均性能优势仍是下一批要回答的核心问题。</p>
+<h2>7. 下一步只做一批：条件效用复现与响应稳定化</h2>
+<p>建议继续 TRUST，并把下一批集中在 <strong>C 与重复响应</strong>。A 和 B 作为已完成的机制比较保留，不再扩展参数搜索，不默认合并 Context-Mix16。</p>
+<p>一次执行五个主对照，统一正式适配 10 epoch，并共享每次重复内部的同一份 Uniform best：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>相对原配置的变化</th>
+<th>回答的问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Uniform</td>
+<td>无效用分配，类型内 0.5</td>
+<td>共同识别基线</td>
+</tr>
+<tr>
+<td>Matched</td>
+<td>原单次全局响应 + 27 参数</td>
+<td>原效用监督基线</td>
+</tr>
+<tr>
+<td>Matched-Average</td>
+<td>拟合与部署两端平均两次响应，重新拟合 27 参数</td>
+<td>全局响应的测量稳定性是否解释增量</td>
+</tr>
+<tr>
+<td>Context</td>
+<td>本轮 C，原单次条件响应 + 51 参数</td>
+<td>本轮 C 的收益是否复现</td>
+</tr>
+<tr>
+<td>Context-Average</td>
+<td>两次全局及条件响应均平均，再拟合原 51 参数</td>
+<td>稳定的条件输入是否带来超过全局平均模型的收益</td>
+</tr>
+</tbody>
+</table>
+<p>两次响应使用同一支持图像协议、独立背景图随机数；每次都同时计算全局和条件统计，再分别取均值。训练归一化和条件差分尺度只从该重复的拟合教师重算。单图干预标签、两个情境、固定正则、预算 50% 和 16 图读出保持本轮定义。这样能将“情境信息”和“重复测量”分开检验，仍然是一批完整比较。</p>
+<p>继续保留同类型关系置换和同结构情境打乱，并随主方法一次生成结果。主要看 Context-Average 是否超过 Matched-Average、原 Context 和相应置换，同时报告 CW/OW、native/exact、配对 seed 方向、HM 与 NLL。若只获得更低的 NLL，结论写成概率质量改善，不把它记为识别 AUC 的提升。</p>
+<p>按 v8 的完整重复口径组织三个新的 TRAIN 组合划分与随机种子：每次重复含三个教师初始化 × Q1–Q5，九个教师拟合一份独立预测器；三次重复共 45 个教师、三份独立预测器与三份正式识别器。教师阶段匹配固定追加 10 epoch，用预定 epoch 10；正式识别器完整适配 10 epoch，仍按 VAL CW 从 epoch 0–10 选择。查询组合用于效用测量与评价，不再参与教师阶段匹配的 STOP 选模。这样下一轮同时回答独立流水线复现和响应改进，无需拆成多个小批次。</p>
+<p>本轮结果不要求立刻重做全部历史噪声实验，也没有依据增加更多情境或更大预测网络。先把这五组的完整识别对比做出来；保留的机制再进入第二数据集和完整基线表。新增的平均响应开销单独记录，部署仍为每图像 16 图。</p>
+<h2>附录 A. 正式 26 个策略的全量汇总</h2>
+<p>下表包括 VAL/TEST、CW/OW 的 native AUC；均为三 seed、各三图库的均值。正式主结论只使用预定的 TEST 同预算配对比较。</p>
+<table>
+<thead>
+<tr>
+<th>策略</th>
+<th>VAL CW</th>
+<th>VAL OW</th>
+<th>TEST CW</th>
+<th>TEST OW</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>uniform</td>
+<td>43.7453</td>
+<td>31.9503</td>
+<td>36.0506</td>
+<td>26.6377</td>
+</tr>
+<tr>
+<td>matched</td>
+<td>43.4844</td>
+<td>31.8015</td>
+<td>36.1478</td>
+<td>26.7437</td>
+</tr>
+<tr>
+<td>matched_perm7101</td>
+<td>43.5643</td>
+<td>31.9898</td>
+<td>36.0539</td>
+<td>26.6332</td>
+</tr>
+<tr>
+<td>matched_perm7102</td>
+<td>43.7648</td>
+<td>32.0771</td>
+<td>36.0649</td>
+<td>26.6423</td>
+</tr>
+<tr>
+<td>matched_perm7103</td>
+<td>43.6666</td>
+<td>32.0640</td>
+<td>36.1246</td>
+<td>26.7916</td>
+</tr>
+<tr>
+<td>matched_perm7104</td>
+<td>43.6118</td>
+<td>31.9914</td>
+<td>36.1225</td>
+<td>26.6781</td>
+</tr>
+<tr>
+<td>matched_perm7105</td>
+<td>43.7392</td>
+<td>31.9849</td>
+<td>35.7866</td>
+<td>26.3822</td>
+</tr>
+<tr>
+<td>amplitude</td>
+<td>43.7401</td>
+<td>31.9737</td>
+<td>36.0475</td>
+<td>26.6260</td>
+</tr>
+<tr>
+<td>amplitude_perm7101</td>
+<td>43.7137</td>
+<td>31.9402</td>
+<td>36.0439</td>
+<td>26.6133</td>
+</tr>
+<tr>
+<td>amplitude_perm7102</td>
+<td>43.7886</td>
+<td>31.9714</td>
+<td>36.0655</td>
+<td>26.6428</td>
+</tr>
+<tr>
+<td>amplitude_perm7103</td>
+<td>43.7481</td>
+<td>31.9601</td>
+<td>36.0431</td>
+<td>26.6118</td>
+</tr>
+<tr>
+<td>amplitude_perm7104</td>
+<td>43.7373</td>
+<td>31.9690</td>
+<td>36.0580</td>
+<td>26.6549</td>
+</tr>
+<tr>
+<td>amplitude_perm7105</td>
+<td>43.7772</td>
+<td>31.9681</td>
+<td>36.0494</td>
+<td>26.6021</td>
+</tr>
+<tr>
+<td>mix16</td>
+<td>43.4816</td>
+<td>31.8054</td>
+<td>36.1193</td>
+<td>26.7136</td>
+</tr>
+<tr>
+<td>mix16_perm7101</td>
+<td>43.5431</td>
+<td>32.0079</td>
+<td>36.0588</td>
+<td>26.6520</td>
+</tr>
+<tr>
+<td>mix16_perm7102</td>
+<td>43.7527</td>
+<td>32.0769</td>
+<td>36.0623</td>
+<td>26.6147</td>
+</tr>
+<tr>
+<td>mix16_perm7103</td>
+<td>43.5996</td>
+<td>32.0774</td>
+<td>36.1370</td>
+<td>26.7748</td>
+</tr>
+<tr>
+<td>mix16_perm7104</td>
+<td>43.6230</td>
+<td>32.0056</td>
+<td>36.1467</td>
+<td>26.6769</td>
+</tr>
+<tr>
+<td>mix16_perm7105</td>
+<td>43.7342</td>
+<td>31.9696</td>
+<td>35.7973</td>
+<td>26.3875</td>
+</tr>
+<tr>
+<td>context</td>
+<td>43.6073</td>
+<td>31.8955</td>
+<td>36.1472</td>
+<td>26.7471</td>
+</tr>
+<tr>
+<td>context_perm7101</td>
+<td>43.6510</td>
+<td>32.0347</td>
+<td>36.0612</td>
+<td>26.6507</td>
+</tr>
+<tr>
+<td>context_perm7102</td>
+<td>43.8027</td>
+<td>32.0864</td>
+<td>36.0732</td>
+<td>26.6363</td>
+</tr>
+<tr>
+<td>context_perm7103</td>
+<td>43.6669</td>
+<td>32.0376</td>
+<td>36.0920</td>
+<td>26.7653</td>
+</tr>
+<tr>
+<td>context_perm7104</td>
+<td>43.6427</td>
+<td>31.9130</td>
+<td>36.1077</td>
+<td>26.7087</td>
+</tr>
+<tr>
+<td>context_perm7105</td>
+<td>43.8448</td>
+<td>32.0210</td>
+<td>35.8823</td>
+<td>26.4734</td>
+</tr>
+<tr>
+<td>context_shuffle</td>
+<td>43.5923</td>
+<td>31.8416</td>
+<td>35.9785</td>
+<td>26.5752</td>
+</tr>
+</tbody>
+</table>
+<h2>附录 B. Q4/Q5 全部非置换强度点</h2>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>强度</th>
+<th>Q4 AUC 差</th>
+<th>Q4 未见 NLL 下降</th>
+<th>Q5 AUC 差</th>
+<th>Q5 未见 NLL 下降</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>matched</td>
+<td>0.25</td>
+<td>-0.1827</td>
+<td>+0.00134</td>
+<td>+0.2119</td>
+<td>+0.01095</td>
+</tr>
+<tr>
+<td>matched</td>
+<td>0.5</td>
+<td>-0.1690</td>
+<td>+0.00525</td>
+<td>+0.6179</td>
+<td>+0.03250</td>
+</tr>
+<tr>
+<td>matched</td>
+<td>1</td>
+<td>-0.0601</td>
+<td>+0.01677</td>
+<td>+1.4627</td>
+<td>+0.09190</td>
+</tr>
+<tr>
+<td>amplitude</td>
+<td>0.25</td>
+<td>+0.0057</td>
+<td>+0.00113</td>
+<td>+0.0290</td>
+<td>+0.00121</td>
+</tr>
+<tr>
+<td>amplitude</td>
+<td>0.5</td>
+<td>-0.1776</td>
+<td>+0.00053</td>
+<td>+0.0276</td>
+<td>+0.00205</td>
+</tr>
+<tr>
+<td>amplitude</td>
+<td>1</td>
+<td>-0.1390</td>
+<td>+0.00328</td>
+<td>+0.2481</td>
+<td>+0.01432</td>
+</tr>
+<tr>
+<td>mix16</td>
+<td>0.25</td>
+<td>-0.1969</td>
+<td>+0.00134</td>
+<td>+0.2201</td>
+<td>+0.01009</td>
+</tr>
+<tr>
+<td>mix16</td>
+<td>0.5</td>
+<td>-0.2080</td>
+<td>+0.00593</td>
+<td>+0.5100</td>
+<td>+0.02970</td>
+</tr>
+<tr>
+<td>mix16</td>
+<td>1</td>
+<td>-0.1148</td>
+<td>+0.01894</td>
+<td>+1.4265</td>
+<td>+0.08921</td>
+</tr>
+<tr>
+<td>context</td>
+<td>0.25</td>
+<td>-0.0488</td>
+<td>+0.00102</td>
+<td>-0.0043</td>
+<td>+0.00420</td>
+</tr>
+<tr>
+<td>context</td>
+<td>0.5</td>
+<td>-0.0957</td>
+<td>+0.00498</td>
+<td>+0.4485</td>
+<td>+0.02444</td>
+</tr>
+<tr>
+<td>context</td>
+<td>1</td>
+<td>-0.0252</td>
+<td>+0.01148</td>
+<td>+1.0040</td>
+<td>+0.06447</td>
+</tr>
+<tr>
+<td>measured1</td>
+<td>0.25</td>
+<td>-0.1050</td>
+<td>+0.00984</td>
+<td>+0.4656</td>
+<td>+0.02479</td>
+</tr>
+<tr>
+<td>measured1</td>
+<td>0.5</td>
+<td>-0.5190</td>
+<td>+0.02214</td>
+<td>+1.1188</td>
+<td>+0.06650</td>
+</tr>
+<tr>
+<td>measured1</td>
+<td>1</td>
+<td>-1.3343</td>
+<td>+0.04286</td>
+<td>+2.1144</td>
+<td>+0.17635</td>
+</tr>
+<tr>
+<td>measured16</td>
+<td>0.25</td>
+<td>-0.0739</td>
+<td>+0.00967</td>
+<td>+0.4529</td>
+<td>+0.02452</td>
+</tr>
+<tr>
+<td>measured16</td>
+<td>0.5</td>
+<td>-0.5829</td>
+<td>+0.02155</td>
+<td>+1.1288</td>
+<td>+0.06629</td>
+</tr>
+<tr>
+<td>measured16</td>
+<td>1</td>
+<td>-1.3730</td>
+<td>+0.04134</td>
+<td>+2.1065</td>
+<td>+0.17285</td>
+</tr>
+<tr>
+<td>measured_context</td>
+<td>0.25</td>
+<td>-0.0785</td>
+<td>+0.01251</td>
+<td>+0.4304</td>
+<td>+0.02476</td>
+</tr>
+<tr>
+<td>measured_context</td>
+<td>0.5</td>
+<td>-0.5024</td>
+<td>+0.02836</td>
+<td>+1.1033</td>
+<td>+0.06667</td>
+</tr>
+<tr>
+<td>measured_context</td>
+<td>1</td>
+<td>-1.2594</td>
+<td>+0.05935</td>
+<td>+2.1277</td>
+<td>+0.17703</td>
+</tr>
+</tbody>
+</table>
+<p>所有强度的五次关系置换已纳入全量复算。各方法强度 1 的关系对应收益如下；A 另列选定强度 0.25。</p>
+<table>
+<thead>
+<tr>
+<th>真实策略 − 五次关系置换均值</th>
+<th>Q4 exact AUC 差</th>
+<th>Q5 exact AUC 差</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Matched</td>
+<td>-0.1702</td>
+<td>+1.3187</td>
+</tr>
+<tr>
+<td>A · 0.25</td>
+<td>-0.0654</td>
+<td>+0.0908</td>
+</tr>
+<tr>
+<td>B</td>
+<td>-0.1991</td>
+<td>+1.2885</td>
+</tr>
+<tr>
+<td>C</td>
+<td>-0.3095</td>
+<td>+0.7718</td>
+</tr>
+<tr>
+<td>Average-Readout</td>
+<td>+1.4564</td>
+<td>+1.0596</td>
+</tr>
+<tr>
+<td>Average-Refit</td>
+<td>+1.9395</td>
+<td>+1.4396</td>
+</tr>
+<tr>
+<td>Measured-1</td>
+<td>-1.1703</td>
+<td>+2.2076</td>
+</tr>
+<tr>
+<td>Measured-16</td>
+<td>-1.1913</td>
+<td>+2.2237</td>
+</tr>
+<tr>
+<td>Measured-Context</td>
+<td>-1.2266</td>
+<td>+2.2222</td>
+</tr>
+</tbody>
+</table>
+<h2>附录 C. 文件与复核入口</h2>
+<ul>
+<li><a href="C:/Users/llenovo/Documents/ChatGPT/USG/output/abc_results/server_results_20261027_075618/trustcpf_abc_v1_10ep/work/summary.csv">正式识别全部指标</a></li>
+<li><a href="C:/Users/llenovo/Documents/ChatGPT/USG/output/abc_results/server_results_20261027_075618/trustcpf_abc_v1_10ep/work/paired.csv">正式配对增量</a></li>
+<li><a href="C:/Users/llenovo/Documents/ChatGPT/USG/output/abc_results/server_results_20261027_075618/trustcpf_abc_v1_10ep/work/q4_curves.csv">Q4 全部曲线</a></li>
+<li><a href="C:/Users/llenovo/Documents/ChatGPT/USG/output/abc_results/server_results_20261027_075618/trustcpf_abc_v1_10ep/work/q5_curves.csv">Q5 全部曲线</a></li>
+<li><a href="C:/Users/llenovo/Documents/ChatGPT/USG/output/abc_results/server_results_20261027_075618/trustcpf_abc_v1_10ep/work/q4_paired.csv">Q4 全部配对</a></li>
+<li><a href="C:/Users/llenovo/Documents/ChatGPT/USG/output/abc_results/server_results_20261027_075618/trustcpf_abc_v1_10ep/work/q5_paired.csv">Q5 全部配对</a></li>
+<li><a href="C:/Users/llenovo/Documents/ChatGPT/USG/output/abc_results/server_results_20261027_075618/trustcpf_abc_v1_10ep/work/directional_curves.csv">方向曲线</a></li>
+<li><a href="C:/Users/llenovo/Documents/ChatGPT/USG/output/abc_results/server_results_20261027_075618/trustcpf_abc_v1_10ep/work/utility.csv">效用预测误差与相关</a></li>
+<li><a href="C:/Users/llenovo/Documents/ChatGPT/USG/output/abc_results/server_results_20261027_075618/trustcpf_abc_v1_10ep/work/label_diagnostics.csv">标签诊断</a></li>
+<li><a href="C:/Users/llenovo/Documents/ChatGPT/USG/output/abc_results/server_results_20261027_075618/trustcpf_abc_v1_10ep/work/training_curves.csv">完整训练曲线</a></li>
+<li><a href="C:/Users/llenovo/Documents/ChatGPT/USG/output/abc_results/server_results_20261027_075618/trustcpf_abc_v1_10ep/work/costs.csv">阶段成本</a></li>
+<li><a href="C:/Users/llenovo/Documents/ChatGPT/USG/output/abc_results/server_results_20261027_075618/trustcpf_abc_v1_10ep/work/utility/selection.json">幅度选择</a></li>
+<li><a href="C:/Users/llenovo/Documents/ChatGPT/USG/output/abc_results/server_results_20261027_075618/trustcpf_abc_v1_10ep/work/utility/fit.json">拟合维度及情境交换记录</a></li>
+<li>
+<p><a href="C:/Users/llenovo/Documents/ChatGPT/USG/output/abc_results/server_results_20261027_075618/trustcpf_abc_v1_10ep/work/status.json">运行完成状态</a></p>
+</li>
+<li>
+<p><a href="C:/Users/llenovo/Documents/ChatGPT/USG/output/abc_results/server_results_20261027_075618/trustcpf_abc_v1_10ep/FORMULAS.md">本轮公式与实现</a></p>
+</li>
+<li><a href="C:/Users/llenovo/Documents/ChatGPT/USG/analysis_TRUST_CPF_abc_v1_20261027/audit.json">本次数值核验</a></li>
+<li><a href="C:/Users/llenovo/Documents/ChatGPT/USG/analysis_TRUST_CPF_abc_v1_20261027/analysis.json">独立汇总与逐 seed 结果</a></li>
+<li><a href="C:/Users/llenovo/Documents/ChatGPT/USG/analysis_TRUST_CPF_abc_v1_20261027/supplement.json">AUC 情境贡献与 Q4/Q5 配对复核</a></li>
+<li><a href="C:/Users/llenovo/Documents/ChatGPT/USG/analysis_TRUST_CPF_abc_v1_20261027/analyze.py">完整分析复算脚本</a></li>
+<li><a href="C:/Users/llenovo/Documents/ChatGPT/USG/analysis_TRUST_CPF_abc_v1_20261027/audit.py">逐文件预测与标签复算脚本</a></li>
+<li><a href="C:/Users/llenovo/Documents/ChatGPT/USG/analysis_TRUST_CPF_abc_v1_20261027/supplement.py">AUC 贡献分解脚本</a></li>
+<li><a href="C:/Users/llenovo/Documents/ChatGPT/USG/output/TRUST-CPF_Stage_第二批10epoch_完整结果分析_20261025.md">Stage 第二批完整分析</a></li>
+<li><a href="C:/Users/llenovo/Documents/ChatGPT/USG/output/TRUST-CPF_部署效用与情境迁移_公式修订及实验方案_v8_20261026.md">v8 公式修订与实验方案</a></li>
+</ul>

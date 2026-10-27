@@ -1,0 +1,104 @@
+from pathlib import Path
+import sys,json
+import numpy as np
+import pandas as pd
+sys.dont_write_bytecode=True
+OUT=Path(__file__).resolve().parent
+BASE=OUT.parent/'output/abc_results/server_results_20261027_075618/trustcpf_abc_v1_10ep'
+W=BASE/'work';sys.path.insert(0,str(BASE))
+import torch
+from trustcpf.common import load_torch,read_json
+from trustcpf import abc,compact
+torch.set_num_threads(2)
+
+def dump(name,data):
+    (OUT/name).write_text(json.dumps(data,ensure_ascii=False,indent=2,allow_nan=False)+'\n',encoding='utf8')
+def records(x):return json.loads(x.to_json(orient='records'))
+def aggregate(x,keys,metrics):
+    by=x.groupby(['seed']+keys,dropna=False)[metrics].mean().reset_index()
+    summary=by.groupby(keys,dropna=False)[metrics].agg(['mean','std']).reset_index()
+    summary.columns=['_'.join(v).rstrip('_') for v in summary.columns]
+    return records(by),records(summary)
+
+s=pd.read_csv(W/'summary.csv');pairs=pd.read_csv(W/'paired.csv')
+core=s[s.permutation_seed.isna()]
+formal_by,formal=aggregate(core,['policy','phase','world'],['AUC_native','AUC_exact','HM','raw_NLL','NLL','ECE'])
+paired_by,paired=aggregate(pairs,['comparison','phase','world'],['AUC_native','AUC_exact','HM','raw_NLL','NLL'])
+all_by,all_formal=aggregate(s,['policy','phase','world'],['AUC_native','AUC_exact','HM'])
+qdata={}
+for fold in (4,5):
+    q=pd.read_csv(W/('q%d_curves.csv'%fold));qp=pd.read_csv(W/('q%d_paired.csv'%fold))
+    by,mean=aggregate(q[q.permutation_seed.isna()],['policy','eta'],['mixture_AUC_exact','mixture_AUC_gain','mixture_NLL_gain','single_NLL_gain','single_AUC_gain'])
+    pby,pm=aggregate(qp,['comparison'],['mixture_AUC_exact','mixture_unll','single_unll'])
+    qdata[str(fold)]=dict(by_seed=by,summary=mean,paired_by_seed=pby,paired=pm)
+direction=pd.read_csv(W/'directional_curves.csv')
+db,dm=aggregate(direction,['fold','policy','eta'],['single_NLL_gain','single_linear_gain','single_proxy_minus_actual',
+        'mixture_NLL_gain','mixture_linear_gain','mixture_proxy_minus_actual','mixture_AUC_gain'])
+models=load_torch(W/'utility/models.pt');types=models['types']
+policy_stats=[];route_stats=[];input_stats=[];label_stats=[]
+for seed in abc.SEEDS:
+    w=W/('seed%d'%seed);ps=load_torch(w/'policies.pt')
+    for key,p in ps.items():
+        if p['permutation_seed'] is not None:continue
+        for g,pi in enumerate(p['pi'].numpy()):
+            for t in range(3):
+                q=pi[types==t];mu=p['mu'][g,types==t]
+                policy_stats.append(dict(seed=seed,policy=key,group=g,type=t,expected_edges=float(q.sum()),
+                    std=float(q.std()),max_distance=float(np.abs(q-.5).max()),mean_distance=float(np.abs(q-.5).mean()),
+                    predicted_std=float(mu.std()),train_scale=float(models['amplitude_scale'][t]),
+                    predicted_to_train_scale=float(mu.std()/models['amplitude_scale'][t])))
+    for j in range(1,6):
+        e=load_torch(w/('effects/fold%d.pt'%j));r=load_torch(w/('context/fold%d.pt'%j))
+        counts=torch.bincount(e['routes'][~e['sample_seen']],minlength=2)
+        route_stats.append(dict(seed=seed,fold=j,unseen_counts=counts.tolist(),weights=e['single']['weights'].tolist(),
+            support_counts=torch.bincount(r['routes'],minlength=2).tolist(),empty=float(r['empty_blocks'].float().mean())))
+        means=abc.means(models,r,load_torch(w/('responses/fold%d_repeat.pt'%j)))
+        for t in range(3):
+            ix=types==t;u1=e['single']['target'].numpy()[ix];um=e['mixture']['target'].numpy()[ix]
+            c=e['single']['context'].numpy()[:,ix];wt=e['single']['weights']
+            rawvar=float(np.sum(wt[:,None]*(c-u1)**2)/len(u1));centered=float(np.var(u1))
+            label_stats.append(dict(seed=seed,fold=j,type=t,label_rho=compact.point_metrics(u1,um)['spearman'],
+                label_sign_change=float(np.mean(np.sign(u1)!=np.sign(um))),
+                mix_rms_to_single=float(np.sqrt(np.mean(um*um)/np.mean(u1*u1))),
+                context_var=rawvar,global_var=centered,context_to_global_var=rawvar/centered,
+                predicted_mix_rho=compact.point_metrics(means['matched'][ix],means['mix16'][ix])['spearman']))
+            for method in ('matched','mix16','context','context_shuffle'):
+                target=e['mixture' if method=='mix16' else 'single'];pred=means[method]
+                if np.asarray(pred).ndim==1:pred=np.repeat(pred[None],2,axis=0)
+                y=target['context'].numpy();weights=target['weights']
+                wrmse=float(np.sqrt(np.sum(weights[:,None]*(pred[:,ix]-y[:,ix])**2)/int(ix.sum())))
+                input_stats.append(dict(seed=seed,fold=j,type=t,method=method,weighted_context_rmse=wrmse))
+    # Read each phase's unique route once; routing is classifier-based and policy-independent.
+    for phase in ('val','test'):
+        record=read_json(w/'recognition/bank1701/policies/context.json')
+        with np.load(w/record['result_directory']/(phase+'_predictions.npz')) as z:
+            rc=z['routes'];obj=z['objs'];groups=read_json(W/'groups.json')['groups']
+            truegroup=np.isin(obj,groups[1]).astype(int)
+            route_stats.append(dict(seed=seed,fold=phase,images=len(rc),route_counts=np.bincount(rc,minlength=2).tolist(),
+                object_group_agreement=float(np.mean(rc==truegroup)),
+                routing_counts_by_true_group=[[int(((rc==g)&(truegroup==t)).sum()) for g in (0,1)] for t in (0,1)]))
+training=pd.read_csv(W/'training_curves.csv');costs=pd.read_csv(W/'costs.csv')
+train=[]
+for seed in abc.SEEDS:
+    q=training[training.seed.eq(seed)];sel=q[q.selected].iloc[0];last=q.iloc[-1]
+    train.append(dict(seed=seed,best_epoch=int(sel.epoch),best_val=float(sel.VAL_CW_AUC),epoch0_val=float(q.iloc[0].VAL_CW_AUC),
+        epoch10_val=float(last.VAL_CW_AUC),first_loss=float(q.iloc[1].loss),last_loss=float(last.loss)))
+perms=[]
+for seed in abc.SEEDS:
+    for world in ('cw','ow'):
+        table=s[s.seed.eq(seed)&s.phase.eq('test')&s.world.eq(world)].groupby('policy')[['AUC_native','AUC_exact']].mean()
+        for method in abc.BASE_METHODS:
+            for metric in ('AUC_native','AUC_exact'):
+                v=float(table.loc[method,metric]);p=table.loc[[method+'_perm%d'%i for i in (7101,7102,7103,7104,7105)],metric]
+                perms.append(dict(seed=seed,world=world,method=method,metric=metric,real=v,perm_mean=float(p.mean()),
+                    perm_min=float(p.min()),perm_max=float(p.max()),beats=int((v>p).sum())))
+data=dict(source=str(BASE.resolve()),formal=formal,formal_by_seed=formal_by,paired=paired,paired_by_seed=paired_by,
+    all_formal=all_formal,all_formal_by_seed=all_by,q=qdata,directional=dm,directional_by_seed=db,
+    policies=policy_stats,routes=route_stats,labels=label_stats,weighted_context_error=input_stats,
+    training=train,costs=records(costs),permutation_ranks=perms,selection=read_json(W/'utility/selection.json'))
+dump('analysis.json',data)
+print('SAVED analysis.json')
+for key in ('formal','paired'):
+    df=pd.DataFrame(data[key]);print(key);print(df[df.phase.eq('test')].to_string(index=False))
+print('POLICY STD');print(pd.DataFrame(policy_stats).groupby(['policy','type'])[['std','mean_distance','predicted_to_train_scale']].mean().round(6).to_string())
+print('ROUTES',route_stats[-2:])

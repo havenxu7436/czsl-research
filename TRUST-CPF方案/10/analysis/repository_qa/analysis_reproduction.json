@@ -1,0 +1,43 @@
+{
+  "passed": true,
+  "stage": "10",
+  "prepared": true,
+  "scripts": [
+    {
+      "script": "analyze.py",
+      "sha256": "f12d3b014622e7368a44371efb90577cabb1bb58caf203376103407fb1539228",
+      "log": "analyze.py.log"
+    },
+    {
+      "script": "audit.py",
+      "sha256": "49276ce3961808091668e3caf2bf815fdbdd0385331e882dc8d9671b1a478e74",
+      "log": "audit.py.log"
+    },
+    {
+      "script": "supplement.py",
+      "sha256": "7d08b7a61d30ecbf9d002c9a527bc9a946ce6833f5bdea798e5acb1ffc1d5e92",
+      "log": "supplement.py.log"
+    }
+  ],
+  "comparisons": [
+    {
+      "file": "analysis.json",
+      "numerically_equal": true,
+      "atol": 1e-09,
+      "rtol": 1e-09
+    },
+    {
+      "file": "audit.json",
+      "numerically_equal": true,
+      "atol": 1e-09,
+      "rtol": 1e-09
+    },
+    {
+      "file": "supplement.json",
+      "numerically_equal": true,
+      "atol": 1e-09,
+      "rtol": 1e-09
+    }
+  ],
+  "training_started": false
+}

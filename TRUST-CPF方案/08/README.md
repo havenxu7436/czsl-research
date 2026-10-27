@@ -30,3 +30,5 @@ python -m unittest discover -s tests -v
 ```
 
 [执行与评分清单](configs/experiment_inventory.json) · [状态](inputs.json) · [文件 SHA256](file_manifest.json) · [发布包成员](package_members.json) · [服务器成员](results/raw_export_members.json) · [来源与许可](来源与许可.md)
+
+后续 A/B/C 幅度、混合与情境机制实验已完成，完整方案、实现与结果见 [10 阶段](../10/README.md)。

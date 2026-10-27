@@ -1,0 +1,164 @@
+# TRUST-CPF A/B/C 整批实验：10 epoch 实践命令
+
+版本：2026-10-26。代码包：`trustcpf_abc_v1_10ep.zip`。
+
+本批一次完成 A 幅度校准、B 16 图混合效用、C 两情境效用。每个 seed 从已有 reference 新训练 Uniform 10 epoch，再冻结同一份 best 权重进行策略比较。复用 Stage 已完成的 15 个教师；教师不重新训练。A 只为自己的策略选择幅度，B、C 固定强度 1，因此可以一起排队运行。
+
+默认使用物理卡 **1、2、3**，对应 seed **3351、3352、3353**。换成 0、1、2 只需替换启动命令末尾的卡号。
+
+## 1. 在本机 Windows PowerShell 上传
+
+直接执行这一整段。路径均已写全，脚本先校验本机 ZIP，再上传 ZIP 和校验文件。
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\llenovo\Documents\ChatGPT\USG\trustcpf_abc_v1_10ep\scripts\upload.ps1" -Server "xhw@211.87.232.122" -LocalZip "C:\Users\llenovo\Documents\ChatGPT\USG\output\trustcpf_abc_v1_10ep.zip"
+```
+
+随后登录服务器：
+
+```powershell
+ssh -o ServerAliveInterval=30 -o ServerAliveCountMax=6 xhw@211.87.232.122
+```
+
+## 2. 在服务器解压、连接已有实验
+
+以下全部在服务器 Bash 执行。先进入已有的 `vgcpod_v1` 环境。
+
+```bash
+conda activate vgcpod_v1
+cd /data/xhw/experiments
+sha256sum -c trustcpf_abc_v1_10ep.zip.sha256
+unzip -q -o trustcpf_abc_v1_10ep.zip
+cd /data/xhw/experiments/trustcpf_abc_v1_10ep
+
+python -c 'import sys, torch, numpy; print("Python:", sys.executable); print("Torch:", torch.__version__); print("NumPy:", numpy.__version__); print("CUDA:", torch.cuda.is_available()); print("GPUs:", torch.cuda.device_count())'
+
+python run.py setup \
+  --source /data/xhw/experiments/trustcpf_stage_v1_10ep \
+  --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14 \
+  --work /data/xhw/experiments/trustcpf_abc_v1_10ep/work
+```
+
+ZIP 内已经包含顶层 `trustcpf_abc_v1_10ep/`，直接在 `experiments` 下解压。校验文件使用 ASCII 和 LF 换行。`setup` 完成时会显示 `SETUP_COMPLETE`，并将本次 Python、cache、source 和 work 的绝对路径写入 `server_env.sh`。后面的 shell 脚本会自动加载这些路径，不依赖以前终端里的 `$CPF_PY` 等变量。
+
+已有 `vgcpod_v1` 环境沿用原来的 PyTorch/CUDA。新代码使用 NumPy 和 PyTorch，没有新增第三方包。源目录是已经完成的 **Stage** 实验目录，不是 State、Competition 或 Strong 目录。
+
+## 3. 三张卡启动整批 A/B/C
+
+```bash
+cd /data/xhw/experiments/trustcpf_abc_v1_10ep
+mkdir -p logs
+nohup bash scripts/run_all.sh 1 2 3 > logs/queue.log 2>&1 &
+echo $! > logs/queue.pid
+tail -f logs/queue.log
+```
+
+若使用 **0、1、2** 卡，只替换启动行，不同时再启动另一套队列：
+
+```bash
+nohup bash scripts/run_all.sh 0 1 2 > logs/queue.log 2>&1 &
+echo $! > logs/queue.pid
+```
+
+队列依次执行：三个 seed 的 Uniform 10 epoch 和教师补充测量 → 汇总九个 Q1–Q3 教师拟合效用 → 三个 seed 的 Q4 → 汇总选择 A 的幅度 → 三个 seed 的 Q5 和正式 VAL/TEST。每个并行阶段都是三个独立单卡进程。
+
+`tail -f` 显示的是日志。按 `Ctrl+C` 退出日志查看，后台队列继续运行。查看一个 seed 的详细进度：
+
+```bash
+tail -f logs/seed3351.log
+```
+
+查看进程与物理卡：
+
+```bash
+nvidia-smi
+ps -u "$USER" -o pid,etime,args | grep -E 'run_queue.py|run.py' | grep -v grep
+```
+
+Uniform 日志出现 `UNIFORM_EPOCH 3351 10 ...` 表示该 seed 的 10 epoch 已训练完。之后还会继续测量和评估。`best_epoch` 可以是 0–10：代码完整训练 10 epoch，依据 VAL CW native AUC 选择这一范围内最早达到最高值的权重。
+
+## 4. 查看进度与完成状态
+
+在另一个服务器终端执行：
+
+```bash
+cd /data/xhw/experiments/trustcpf_abc_v1_10ep
+bash scripts/status.sh
+```
+
+生产配置全部完成时，预期为：
+
+```text
+STATUS 36 / 36 recognition 936 / 936 Q4 3360 / 3360 Q5 3504 / 3504 directional 1056 / 1056 curves 33 /33 complete True
+```
+
+主队列最后显示：
+
+```text
+ALL_ABC_EXPERIMENTS_COMPLETE
+```
+
+这里 936 是 26 种正式策略 × 3 seed × 3 图库 × VAL/TEST × CW/OW 的表格行数。33 条训练曲线是 3 seed × epoch 0–10。A/B/C 没有另外训练 26 份分类器；它们共享每个 seed 的同一份 10 epoch 基底。
+
+需要恢复中断任务时，确认原队列已退出，再执行同一启动命令即可。已完成阶段、辅助图块和策略概率文件会复用；训练从 `last.pt` 保存的模型、优化器和随机数状态恢复。
+
+```bash
+cd /data/xhw/experiments/trustcpf_abc_v1_10ep
+nohup bash scripts/run_all.sh 1 2 3 >> logs/queue.log 2>&1 &
+echo $! > logs/queue.pid
+```
+
+## 5. 在服务器打包完整结果
+
+确认 `complete True` 后执行：
+
+```bash
+cd /data/xhw/experiments/trustcpf_abc_v1_10ep
+bash scripts/pack_results.sh
+```
+
+打包时会显示 `PACKING`、每 50 个文件一次的 `PACK_PROGRESS`、`HASHING_ARCHIVE`，最后显示 `PACK_COMPLETE`。看到 `PACK_COMPLETE` 并回到命令提示符后再下载。
+
+输出固定为：
+
+```text
+/data/xhw/experiments/trustcpf_abc_v1_10ep_results.tar.gz
+/data/xhw/experiments/trustcpf_abc_v1_10ep_results.tar.gz.sha256
+```
+
+包内包含 work 的全部权重、辅助测量、逐策略概率、日志、汇总表和代码；共用图像特征 cache 不重复打包。压缩包内使用英文路径。固定文件名避免通过 SSH 输出拼接远程路径。
+
+## 6. 在本机下载、校验、解压
+
+回到本机 **Windows PowerShell**，执行：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\llenovo\Documents\ChatGPT\USG\trustcpf_abc_v1_10ep\scripts\download.ps1" -Server "xhw@211.87.232.122" -Destination "C:\Users\llenovo\Documents\ChatGPT\USG\output\abc_results"
+```
+
+脚本依次下载压缩包、下载 SHA256、校验、解压到新的时间戳目录。最后会打印完整 `SAVED:` 路径，例如：
+
+```text
+C:\Users\llenovo\Documents\ChatGPT\USG\output\abc_results\server_results_YYYYMMDD_HHMMSS\trustcpf_abc_v1_10ep\work
+```
+
+不用重新设置以前的 `$cpfReply`、`$cpfRemoteArchive`、`$cpfLocalArchive`。若传输中断，重新执行这一条下载命令即可。
+
+## 7. 本轮结果从哪里看
+
+| 文件 | 内容 |
+|---|---|
+| `work/aggregates.json` | 各策略三 seed 均值、标准差、逐 seed 数值；图库先在 seed 内平均 |
+| `work/summary.csv` | 936 行正式 VAL/TEST、CW/OW 结果 |
+| `work/paired.csv` | 同 seed、同图库下，相对 Uniform、Matched、关系置换和情境打乱的差值 |
+| `work/q4_curves.csv`、`work/q5_curves.csv` | 独立 evaluate 图像上的幅度、测量策略与预测策略曲线 |
+| `work/q4_paired.csv`、`work/q5_paired.csv` | Q4/Q5 对应的配对对照 |
+| `work/directional_curves.csv` | measure 图像上实际 NLL 改善与一阶效用近似的偏差 |
+| `work/utility/selection.json` | A 的共同幅度、Q4 候选结果；B/C 强度固定为 1 |
+| `work/utility.csv`、`work/label_diagnostics.csv` | 效用预测、M=1/16 标签变化、情境差异和支持覆盖 |
+| `work/training_curves.csv`、`work/costs.csv` | 10 epoch 曲线、选中 epoch、各阶段耗时与峰值显存 |
+| `work/status.json` | 全部输出数量和完成状态 |
+
+AUC、HM、准确率均按百分数记录；配对 AUC 差值是百分点。`*_NLL_gain` 为 Uniform NLL 减去当前策略 NLL，正值表示改善。`paired.csv` 的 NLL 差值是当前策略减对照，负值表示改善。
+
+本批的主要判断是：A 是否通过幅度修正改善部署，B 是否通过目标与 16 图部署的一致性改善部署，C 是否通过情境分配改善部署。Q5、正式 TEST 的同 seed 配对结果，以及真实关系对应相对置换的贡献，一起决定后续合并哪些机制。

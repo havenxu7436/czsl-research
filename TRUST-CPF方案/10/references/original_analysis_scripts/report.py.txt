@@ -1,0 +1,262 @@
+from pathlib import Path
+import json
+import numpy as np
+import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+HERE=Path(__file__).resolve().parent
+ROOT=HERE.parent
+D=json.loads((HERE/'analysis.json').read_text(encoding='utf8'))
+AUD=json.loads((HERE/'audit.json').read_text(encoding='utf8'))
+SUP=json.loads((HERE/'supplement.json').read_text(encoding='utf8'))
+BASE=Path(D['source']);W=BASE/'work'
+OUT=ROOT/'output'
+ASSET=OUT/'TRUST-CPF_ABC_20261027_figures';ASSET.mkdir(exist_ok=True)
+DOC=OUT/'TRUST-CPF_ABC整批10epoch_完整结果分析_20261027.md'
+names={'uniform':'Uniform','matched':'Matched','amplitude':'A · Amplitude','mix16':'B · Mix16','context':'C · Context','context_shuffle':'Context-Shuffle'}
+order=list(names)
+F=pd.DataFrame(D['formal']).set_index(['policy','phase','world'])
+FB=pd.DataFrame(D['formal_by_seed']).set_index(['seed','policy','phase','world'])
+P=pd.DataFrame(D['paired']).set_index(['comparison','phase','world'])
+PB=pd.DataFrame(D['paired_by_seed']).set_index(['seed','comparison','phase','world'])
+Q={i:pd.DataFrame(D['q'][str(i)]['summary']).set_index('policy') for i in (4,5)}
+def fmt(v,n=3,sign=False):return f'{float(v):+.{n}f}' if sign else f'{float(v):.{n}f}'
+def mu_sd(row,metric,n=3):return fmt(row[metric+'_mean'],n)+' ± '+fmt(row[metric+'_std'],n)
+def mdtable(headers,rows):
+    return '\n'.join(['| '+' | '.join(headers)+' |','| '+' | '.join(['---']*len(headers))+' |']+['| '+' | '.join(map(str,r))+' |' for r in rows])
+def link(label,path):return f'[{label}](<{Path(path).as_posix()}>)'
+
+plt.rcParams.update({'font.family':'DejaVu Sans','font.size':11,'axes.spines.top':False,'axes.spines.right':False,'savefig.facecolor':'white'})
+comparisons=['matched-minus-uniform','amplitude-minus-uniform','mix16-minus-uniform','context-minus-uniform','context-minus-permutation_mean','context-minus-context_shuffle','context-minus-matched']
+labels=['Matched - Uniform','A - Uniform','B - Uniform','C - Uniform','C - relation permutations','C - Context-Shuffle','C - Matched']
+fig,axs=plt.subplots(1,2,figsize=(13.7,6.8),sharey=True)
+for ax,world in zip(axs,('cw','ow')):
+    ax.axvline(0,color='#8c939b',lw=1)
+    for j,cmp in enumerate(comparisons):
+        color='#087f8c' if cmp.startswith('context') else '#596575'
+        row=P.loc[(cmp,'test',world)]
+        ax.errorbar(row.AUC_native_mean,j,xerr=row.AUC_native_std,fmt='D',color=color,capsize=4,ms=6,lw=1.5,zorder=3)
+        for off,seed,marker in zip((-.14,0,.14),(3351,3352,3353),('o','s','^')):
+            ax.scatter(PB.loc[(seed,cmp,'test',world)].AUC_native,j+off,marker=marker,s=30,color=color,alpha=.62,zorder=4)
+    ax.set_title('Closed world' if world=='cw' else 'Open world',loc='left',fontweight='bold')
+    ax.set_yticks(range(len(labels)),labels);ax.set_xlabel('Paired TEST native AUC gain (percentage points)')
+    ax.grid(axis='x',alpha=.18);ax.set_xlim(-.33,.44)
+axs[0].invert_yaxis()
+fig.suptitle('TRUST-CPF ABC: Context improves the direction of seed-level gains',fontsize=15,fontweight='bold',y=.98)
+fig.text(.5,.02,'Dots: three classifier seeds (3351 / 3352 / 3353). Diamonds and bars: mean and sample SD.\nEach seed averages 3 graph banks; all seeds share one fitted utility predictor.',ha='center',fontsize=10,color='#596575')
+fig.tight_layout(rect=(0,.085,1,.94));fig.savefig(ASSET/'formal_paired_gains.png',dpi=180);plt.close(fig)
+
+qmethods=['matched_e100','A_selected','mix16_e100','context_e100','average_readout','average_refit','measured1_e100','measured16_e100','measured_context_e100']
+qlabels=['Matched','A: selected','B: Mix16','C: Context','Avg readout','Avg refit','Measured 1','Measured 16','Measured C']
+fig,axs=plt.subplots(1,2,figsize=(13.7,6.8),sharey=True)
+y=np.arange(len(qmethods))
+for ax,metric,title in zip(axs,('mixture_AUC_gain_mean','mixture_NLL_gain_mean'),('Exact AUC gain (percentage points)','Unseen NLL reduction')):
+    for i,fold in enumerate((4,5)):
+        vals=[float(Q[fold].loc['amplitude_e025' if m=='A_selected' and fold==4 else m,metric]) for m in qmethods]
+        ax.barh(y+(i-.5)*.34,vals,height=.30,label=f'Q{fold} independent evaluate images',color=('#c48242','#087f8c')[i])
+    ax.axvline(0,color='#8c939b',lw=1);ax.set_yticks(y,qlabels);ax.set_xlabel(title);ax.grid(axis='x',alpha=.18)
+axs[0].invert_yaxis();fig.legend(*axs[0].get_legend_handles_labels(),loc='upper center',bbox_to_anchor=(.5,.925),ncol=2,frameon=False,fontsize=10)
+fig.suptitle('Unseen NLL improves on Q4 and Q5; AUC gains depend on the held-out task',fontsize=15,fontweight='bold',y=.98)
+fig.text(.5,.02,'All gains are relative to Uniform. Matched / B / C / measured policies use strength 1; A uses 0.25.\nEight graph banks per seed. Average-response policies are Q4/Q5 diagnostics, without formal TEST results in this batch.',ha='center',fontsize=10,color='#596575')
+fig.tight_layout(rect=(0,.085,1,.89));fig.savefig(ASSET/'q4_q5_risk_and_auc.png',dpi=180);plt.close(fig)
+
+parts=[]
+def add(s):parts.append(s.strip())
+add('''# TRUST-CPF A/B/C 整批 10 epoch 完整结果分析
+
+日期：2026-10-27。实验：`trustcpf_abc_v1_10ep`；数据集：UT-Zappos50K；CLIP：ViT-L/14；强 CPF 基底；seed：3351、3352、3353。
+
+**本轮最值得保留的是 C：情境条件效用。它在三个 seed 的 CW、OW 上都超过 Uniform、关系置换均值和情境打乱，但平均 AUC 与原 Matched 基本持平。A 的幅度校准没有带来收益；B 的 16 图效用与原单图效用过于相似，没有形成增量。下一步应集中验证 C 的独立复现，并检验重复响应能否改善条件效用的迁移。**
+
+本轮把证据从“效用在教师查询任务上有价值”推进到了“正式识别中，正确的关系与情境对应具有方向一致的收益”。现阶段最准确的贡献表述是**改善效用迁移的稳定性**，而不是“情境模型已经提高平均识别性能”。''')
+add('## 1. 数据完整性、复算及统计口径')
+add('数据目录：'+link('本轮完整结果',BASE)+'。分析读取压缩包、发布代码、训练轨迹、效用标签和预测文件；没有改写原始实验结果。')
+status=json.loads((W/'status.json').read_text())
+add(mdtable(['产物','实际 / 计划','结果'],[
+['流水线阶段','36 / 36','全部完成'],['正式识别指标行','936 / 936','26 策略 × 3 seed × 3 图库 × VAL/TEST × CW/OW'],
+['Q4 决策曲线','3360 / 3360','包括全部强度、置换和直接测量参照'],['Q5 决策曲线','3504 / 3504','含 A 选定幅度及对应置换'],
+['测量集方向曲线','1056 / 1056','单图 / 混合实际风险与线性代理'],['正式适配训练轨迹','33 / 33','3 seed × epoch 0–10'],
+['缺失阶段','0','队列及所有子任务退出码为 0']]))
+add(f'''结果包大小为 {AUD['archive']['bytes']:,} 字节，SHA256 与随包校验文件一致。另验证了 {AUD['release_files']} 个发布文件、{AUD['verified_stages']} 个阶段标记及 {AUD['stage_output_hashes']:,} 条阶段输出哈希。
+
+对 234 份正式策略/图库结果的 468 个 VAL/TEST 预测文件重新计算 CW/OW AUC、HM、NLL、ECE，并核对 936 行汇总及 504 行配对结果；native/exact AUC 与保存结果的最大差均为 0。另复算 7,920 行 Q4/Q5/方向曲线对应的 7,776 份独立输出中的 exact AUC、混合未见 NLL、单图未见 NLL，以及 Q4/Q5 的 3,384 行配对差。
+
+144 个干预测量块的单图、16 图及情境标签可由逐图像概率重建；混合标签最大误差为 $2.85\\times10^{{-14}}$。27/51 参数模型重拟合后的系数差小于 $1.34\\times10^{{-15}}$。所有正式权重的冻结主干保持一致，epoch 10、best 权重及历史选模记录匹配。**本轮结论来自完成且数值一致的实验，不是缺跑、汇总错位或混合公式实现错误造成的表象。**''')
+add('''统计采用“先在同 seed 内平均图库，再汇总三个 seed”。表中 ± 为三个 seed 的样本标准差。正式三图库为 1701/2701/3701；Q4/Q5 为八图库。五个关系置换在同 seed、同图库内先求均值，再与真实策略配对。图库和置换次数不增加独立训练重复数。
+
+本轮三个识别 seed 共用一套由九个 Q1–Q3 教师拟合的效用预测器，因此它们反映的是**固定效用预测器下的三个分类器重复**。15 个阶段匹配教师沿用 Stage；Q5 的 evaluate 图像与 measure、STOP 分开，但 Stage 的 STOP 使用了同一查询组合的其他图像。旧 Q5 对照的复现用于连接历史结果，不计为新完整流水线复现。
+
+AUC、HM 均为 0–100 标度，差值单位为百分点。主表沿用 CPF native AUC，exact AUC 用于检查有限扫描对结论的影响。HM 使用 VAL 选出的 bias，在 TEST 固定应用；不是在 TEST 搜索出的最佳 HM。NLL 为自然对数损失，数值越低越好。''')
+
+add('## 2. 正式识别：C 的优势在稳定性，均值尚未超过 Matched')
+rows=[]
+for m in order:
+    cw,ow=F.loc[(m,'test','cw')],F.loc[(m,'test','ow')]
+    rows.append([names[m],mu_sd(cw,'AUC_native'),mu_sd(ow,'AUC_native'),fmt(cw.AUC_exact_mean),fmt(ow.AUC_exact_mean)])
+add(mdtable(['策略','TEST CW native AUC','TEST OW native AUC','CW exact AUC','OW exact AUC'],rows))
+add('Matched 是原 27 参数、单图 NLL 效用监督的全局分配；A 使用训练标签尺度及 Q4 选出的 0.25 幅度；B 更换为 16 图混合效用；C 使用两个物体情境和 51 参数条件效用。四组与 Uniform 共享每个 seed 的同一份冻结 best 权重。')
+rows=[]
+for cmp,label in zip(comparisons,labels):
+    cw,ow=P.loc[(cmp,'test','cw')],P.loc[(cmp,'test','ow')]
+    n=[sum(PB.loc[(seed,cmp,'test',world)].AUC_native>0 for seed in (3351,3352,3353)) for world in ('cw','ow')]
+    rows.append([label,mu_sd(cw,'AUC_native'),mu_sd(ow,'AUC_native'),f'{n[0]}/3 · {n[1]}/3'])
+add(mdtable(['配对比较','CW native AUC 差','OW native AUC 差','正向 seed 数：CW · OW'],rows))
+add('!['+'正式识别配对增量及三个 seed'+']('+ (ASSET/'formal_paired_gains.png').as_posix()+')')
+add('''最重要的变化不是 Matched → C 的平均分数上升，而是它对 seed 3353 的改善。Matched 在前两个 seed 的收益更大，在第三个 seed 出现下降；C 的三次收益都保持正向。''')
+rows=[]
+for seed in (3351,3352,3353):
+    for cmp,lab in [('matched-minus-uniform','Matched − Uniform'),('context-minus-uniform','C − Uniform'),('context-minus-permutation_mean','C − 关系置换均值'),('context-minus-context_shuffle','C − 情境打乱'),('context-minus-matched','C − Matched')]:
+        rows.append([seed,lab,fmt(PB.loc[(seed,cmp,'test','cw')].AUC_native,4,True),fmt(PB.loc[(seed,cmp,'test','ow')].AUC_native,4,True)])
+add(mdtable(['seed','比较','CW 差','OW 差'],rows))
+add('''C 相对 Uniform 的配对增量标准差从 Matched 的 CW 0.153、OW 0.250 降为 CW 0.029、OW 0.025。这里描述的是本轮三个 seed 的增量离散程度，尚不是对总体稳定性提升倍数的估计。
+
+C 与 Matched 的 native 差仅为 CW −0.0006、OW +0.0034；exact 差为 CW −0.0055、OW −0.0179。**二者平均性能应判为接近，不能依据 OW 的 +0.0034 宣称 C 超过 Matched。** C 相对 Uniform、关系置换、情境打乱的平均增量在 native 和 exact 下均为正，因而这一机制信号不依赖 native 扫描。
+
+五次关系置换也提供了更细的参照：C 在三个 seed 的 CW 上分别高于 4/5、4/5、5/5 个置换，OW 为 3/5、4/5、5/5。当前支持“超过置换均值且逐 seed 方向一致”，并非每次都高于所有置换。
+
+Context-Shuffle 保留相同 51 参数结构，在九个拟合教师中的五个交换条件输入与条件标签的对应，再重新拟合。正式真实 C 高于该对照，说明收益与条件对应有关；但 Q5 的排序相反，说明这一作用仍受任务影响。''')
+rows=[]
+for m in order:
+    cw,ow=F.loc[(m,'test','cw')],F.loc[(m,'test','ow')]
+    rows.append([names[m],fmt(cw.HM_mean),fmt(ow.HM_mean),fmt(cw.raw_NLL_mean,4),fmt(ow.raw_NLL_mean,4),fmt(cw.NLL_mean,4),fmt(ow.NLL_mean,4)])
+add(mdtable(['策略','CW HM','OW HM','CW 原始 NLL','OW 原始 NLL','CW 校准 NLL','OW 校准 NLL'],rows))
+add('''C 的 OW HM 为 42.039，与 Uniform 42.038 基本相同，也低于 Matched 42.203。C 的原始 NLL 优于 Uniform，但不如 Matched；校准后的 CW NLL 略差于 Uniform。正式证据集中在 **AUC 的正向迁移及配对稳定性**，并没有扩展为所有指标上的优势。''')
+raw_summary=pd.read_csv(W/'summary.csv')
+acc=raw_summary[raw_summary.permutation_seed.isna()&raw_summary.phase.eq('test')].groupby(['policy','world'])[['seen','unseen','ECE']].mean()
+add(mdtable(['策略','CW 已见 / 未见准确率','OW 已见 / 未见准确率','CW 校准 ECE','OW 校准 ECE'],[[names[m]]+[fmt(acc.loc[(m,w),'seen'])+' / '+fmt(acc.loc[(m,w),'unseen']) for w in ('cw','ow')]+[fmt(acc.loc[(m,w),'ECE']) for w in ('cw','ow')] for m in order]))
+add('准确率使用 VAL bias；ECE 使用 VAL 选择的 bias 和温度。两者都在 TEST 固定应用，按三个 seed 及图库平均；平均已见/未见准确率再求 HM 不必等于逐结果 HM 的均值。')
+
+add('## 3. A/B/C 各自回答了什么')
+add('''**A：固定训练尺度加幅度收缩，在本轮不成立为性能改进。** Q4 的 pooled exact AUC 选择了 0.25，但优势只有 0.0057 个百分点，且三个 seed 中只有一个改善。''')
+sel=D['selection']
+add(mdtable(['A 幅度','Q4 exact AUC','相对 Uniform'],[[str(e),fmt(Q[4].loc['uniform' if e==0 else f'amplitude_e{round(e*100):03d}','mixture_AUC_exact_mean'],6),fmt(Q[4].loc['uniform' if e==0 else f'amplitude_e{round(e*100):03d}','mixture_AUC_gain_mean'],6,True)] for e in (0,.25,.5,1)]))
+pol=pd.DataFrame(D['policies']).groupby(['policy','type'])[['std','predicted_to_train_scale']].mean()
+add(mdtable(['关系类型','Matched 概率标准差','A 概率标准差','C 概率标准差'],[[t]+[fmt(pol.loc[(m,i),'std'],6) for m in ('matched','amplitude','context')] for i,t in enumerate(('OI','OE','AE'))]))
+add('''在正式识别器上，原 Matched 预测的类型内标准差只有训练标签尺度的约 0.312/0.149/0.095；再乘 0.25 插值后，A 的分配非常接近 Uniform。对应 TEST CW −0.0032、OW −0.0118，并且相对关系置换也接近零。结论是**A 把动作压小了，但没有提高识别效果**。下一轮保留原标准化，不再扩展 A 的幅度搜索。''')
+add('''**B：公式与实现正确，但改变的主要是效用尺度，而不是关系排序。** 144 个测量块的独立复算确认了 16 图干预中的外部系数 16，以及 15 张辅助图与原 on/off 图的概率组合。全体 15 个教师上，单图标签与混合标签的类型内相关如下。''')
+lab=pd.DataFrame(D['labels']).groupby('type').mean(numeric_only=True)
+add(mdtable(['关系类型','单图 / Mix16 标签 Spearman','标签符号变化比例','两预测器输出 Spearman'],[[t,fmt(lab.loc[i,'label_rho'],6),fmt(lab.loc[i,'label_sign_change']*100,2)+'%',fmt(lab.loc[i,'predicted_mix_rho'],6)] for i,t in enumerate(('OI','OE','AE'))]))
+add('''相关系数约 0.99，部署前又分别进行类型内标准差归一化，进一步消除了尺度变化。B 正式相对 Matched 为 CW −0.0285、OW −0.0301；Q5 AUC 也略低。**“单图监督与 16 图部署不同”在数学上成立，但这次修正没有提供新的有效排序。** 不建议将 B 自动并入 C，也不再把 Context-Mix16 作为默认下一步。''')
+add('''**C：正式迁移方向更一致，但条件预测精度尚未普遍提高。** 两个情境由冻结 CLIP 物体文本形成的六物体分组定义；图像路由使用冻结 CPF 物体概率，而不是标签。第 0 组包含靴类、船鞋、牛津鞋和运动鞋；第 1 组包含凉鞋、木屐/穆勒鞋、平底鞋、高跟鞋、乐福鞋和拖鞋。
+
+VAL 的第 0 组比例约为 38%，TEST 约为 65%；路由与真值物体所属组的一致率分别约为 92.5% 和 96.3%。组内物体数均为六个，不代表图像数相等。路由在所有比较策略中一致，不是 C 额外改变分类器的结果。''')
+routes=[r for r in D['routes'] if isinstance(r['fold'],str)]
+add(mdtable(['seed','分区','第 0 / 第 1 情境图像数','与真值物体组一致率'],[[r['seed'],r['fold'].upper(),f'{r["route_counts"][0]} / {r["route_counts"][1]}',fmt(100*r['object_group_agreement'],2)+'%'] for r in routes]))
+err=pd.DataFrame(D['weighted_context_error']);err=err[(err.fold==5)&err.method.isin(['matched','context','context_shuffle'])].groupby(['method','type']).weighted_context_rmse.mean()
+add('在同一 Q5 条件单图标签上，用情境样本比例加权计算 RMSE，才能直接比较全局与条件预测：')
+add(mdtable(['预测器','OI 条件 RMSE','OE 条件 RMSE','AE 条件 RMSE'],[[names[m]]+[fmt(err.loc[(m,t)],6) for t in range(3)] for m in ('matched','context','context_shuffle')]))
+add('''C 只在 OI 上略好，OE/AE 并未改善。这说明当前条件响应中存在可利用的信息，但 51 参数预测器没有全面学好条件效用。不能把正式 AUC 的方向改善等同于条件效用估计已经充分准确。后续有价值的改动是提升条件响应的可重复性，并检验这种提升是否进入正式分配。''')
+
+add('## 4. Q4/Q5：效用降低风险，并不保证改善组合排序')
+add('''Q4 是新增的独立 evaluate 图像：已见和伪未见各 256 张，排除原 train、measure、STOP。Q5 沿用原独立 evaluate。下表为 16 图概率混合读出；除 A 使用选定 0.25 外，其他策略强度为 1。NLL 下降定义为 Uniform NLL 减去策略 NLL，正值表示改善。''')
+qdisplay=[('uniform','Uniform'),('matched_e100','Matched'),('A_selected','A · 0.25'),('mix16_e100','B · Mix16'),('context_e100','C · Context'),('context_shuffle','Context-Shuffle'),('average_readout','Average-Readout'),('average_refit','Average-Refit'),('measured1_e100','Measured-1'),('measured16_e100','Measured-16'),('measured_context_e100','Measured-Context')]
+rows=[]
+for key,label in qdisplay:
+    a=Q[4].loc['amplitude_e025' if key=='A_selected' else key];b=Q[5].loc[key]
+    rows.append([label,fmt(a.mixture_AUC_gain_mean,4,True),fmt(a.mixture_NLL_gain_mean,5,True),fmt(b.mixture_AUC_gain_mean,4,True),fmt(b.mixture_NLL_gain_mean,5,True)])
+add(mdtable(['策略','Q4 AUC 增量','Q4 未见 NLL 下降','Q5 AUC 增量','Q5 未见 NLL 下降'],rows))
+add(f'Uniform exact AUC：Q4 {fmt(Q[4].loc["uniform","mixture_AUC_exact_mean"],6)}；Q5 {fmt(Q[5].loc["uniform","mixture_AUC_exact_mean"],6)}。Measured 系列使用本教师 measure 图像上的直接测量值，再在 evaluate 图像上评价；它们是有限样本测量参照，不是知道真实总体效用的上界。')
+add('![Q4 与 Q5 的风险和 AUC 变化]('+ (ASSET/'q4_q5_risk_and_auc.png').as_posix()+')')
+add('''这张表给出三个直接判断。
+
+1. **目标问题仍然存在。** Q4 的 Measured-1 把未见 NLL 降低 0.04286，却令 AUC 下降 1.3343；Measured-Context 降低 NLL 0.05935，AUC 仍下降 1.2594。直接测量也出现相同分离，因此不能把全部问题归因于效用预测器误差。
+2. **情境信息的价值受任务影响。** Q5 上 C 高于关系置换均值 0.7718，但低于 Matched 0.4587，也低于 Context-Shuffle 0.1766。直接条件测量比直接全局测量仅高 0.0134 AUC。正式识别中 C 的优势不能反推为所有教师留出任务上都存在较大的条件增量。
+3. **重复响应是当前最值得与 C 共同检验的改动。** Average-Refit 在 Q4 上比 Uniform 高 1.7307，比 Matched 高 1.7908；在 Q5 上比 Uniform 高 1.4544，与 Matched 相差 −0.0083，同时进一步改善未见 NLL。它在拟合和部署两端都平均两份独立背景图响应，然后重新拟合 27 参数模型。Average-Readout 只在部署平均输入，没有相同的两端拟合。两者本轮都没有正式 TEST 结果，下一步需要补齐这一步迁移证据。
+
+进一步查看 Q4 的类内竞争，Measured-1 令未见类平滑正确性指标从 0.66214 降到 0.65481，已见 NLL 从 1.14382 升到 1.15479；Q5 上同一策略的未见平滑正确性则从 0.61399 升到 0.63503。该指标是类内 margin 经 sigmoid 后的均值，不是准确率。这与 AUC 的任务差异一致：**真类概率改善与真类超过竞争组合，不是同一个优化结果。**
+
+这些结果不支持简单重跑更长训练，也不支持直接返回旧 Competition 配方。更集中的方向是保留原干预效用监督，验证条件响应与任务覆盖能否把这种价值稳定带到正式识别。''')
+
+add('## 5. 动作幅度、条件收益分布和训练过程')
+add('''测量集方向曲线可以检验“原动作太大，导致线性预测收益被非线性损失抵消”这一解释。以下为强度 1 的混合 NLL 下降，使用直接测量效用形成线性代理；它与独立 evaluate 的泛化结果是两个不同问题。''')
+dr=pd.DataFrame(D['directional']);dr=dr[dr.eta==1].set_index(['fold','policy'])
+rows=[]
+for m in ('matched','mix16','context','measured1','measured16','measured_context'):
+    key=m+'_e100'
+    a,b=dr.loc[(4,key)],dr.loc[(5,key)]
+    rows.append([m,fmt(a.mixture_linear_gain_mean,5),fmt(a.mixture_NLL_gain_mean,5),fmt(b.mixture_linear_gain_mean,5),fmt(b.mixture_NLL_gain_mean,5)])
+add(mdtable(['策略','Q4 线性代理','Q4 实际下降','Q5 线性代理','Q5 实际下降'],rows))
+add(r'''这些主策略的实际 NLL 改善均大于线性代理，Q5 尤其明显。当前曲线没有呈现“预测为正、执行后普遍变负”的幅度失控模式；A 压小动作也就没有修复一个已经被数据证实的主要问题。由于两者含 Monte Carlo 测量与图库采样差异，这张表用于识别方向模式，不把差值全部解释为确定性的曲率。
+
+为看清 C 的平均收益如何组成，我将正式 TEST exact AUC 分解为四类已见/未见图像配对贡献。令每张图像的最佳已见与最佳未见分数差为 $d_i$，$c_i$ 表示真类在自身已见/未见候选分区内是否排名第一，则：
+
+$$
+A_{gh}=\frac{100}{N_S N_U}\sum_{i\in S_g}\sum_{j\in U_h}
+c_i c_j\left[\mathbf{1}(d_i>d_j)+\frac12\mathbf{1}(d_i=d_j)\right],
+\qquad A_{\rm exact}=\sum_{g,h\in\{0,1\}} A_{gh}.
+$$
+
+这是总体 AUC 的贡献分解，不是对每个子群重新计算并等权平均 AUC。重建误差小于 $2.14\times10^{-14}$。''')
+cg=pd.DataFrame(SUP['contribution_gains']).groupby(['comparison','world','seen_group','unseen_group']).gain.mean()
+rows=[]
+for g in (0,1):
+    for h in (0,1):
+        rows.append([f'已见 {g} → 未见 {h}']+[fmt(cg.loc[(c,w,g,h)],5,True) for c in ('context-minus-uniform','context-minus-matched') for w in ('cw','ow')])
+add(mdtable(['配对情境','C−Uniform CW','C−Uniform OW','C−Matched CW','C−Matched OW'],rows))
+add('''C 相对 Uniform 在三类配对中有正贡献，但“已见情境 0 → 未见情境 1”仍下降。相对 Matched，已见情境 0 的配对略有收益，已见情境 1 的配对下降，最终互相抵消。条件模型已经改变了关系价值的分配方式，但尚未让所有竞争方向同时改善。这是下一步评估条件响应时最有用的分解，而不是继续增加情境个数的直接理由。''')
+add(mdtable(['seed','选中 epoch','epoch 0 VAL CW','最佳 VAL CW','epoch 10 VAL CW','首/末训练 loss'],[[r['seed'],r['best_epoch'],fmt(r['epoch0_val']),fmt(r['best_val']),fmt(r['epoch10_val']),fmt(r['first_loss'],4)+' / '+fmt(r['last_loss'],4)] for r in D['training']]))
+add('''三个 seed 都完整训练了 10 epoch，随后按 VAL CW 选择 5/2/2。loss 继续下降，但 epoch 10 的 VAL 都低于已保存的 best。当前结果不是“只训练了 3 epoch”造成的；继续增加 epoch 不是优先方向。所有策略共享同一 best，因此选模不会造成 C 与 Matched 的训练预算差异。
+
+本次新训练三条 Uniform 轨迹，教师沿用 Stage；岭回归用闭式求解，不存在 27/51 参数预测器再训练 10 epoch 的步骤。每条正式 Uniform 适配约 134–136 秒，每个 seed 的已记录阶段执行时间合计约 18.1–18.5 分钟；三张 GPU 并行，不将三份合计当作墙钟时间。该成本不包含之前已经完成的教师训练和特征缓存。峰值记录为 PyTorch allocated 约 267.6 MiB，不等同于显卡进程总显存。C 每图像仍用 16 张图，两组路由按图像所属情境执行，不是每张图像同时计算 32 张图。''')
+
+add('## 6. 与 State/Stage 以及原 TRUST 目标的关系')
+add(mdtable(['轮次 / 方法','TEST CW native AUC','TEST OW native AUC','该轮相对 Uniform：CW / OW'],[
+['Stage · Uniform','35.903817','26.460835','0 / 0'],['Stage · Matched-Single','35.902956','26.463167','−0.000861 / +0.002332'],['Stage · Matched-Average','35.935930','26.483413','+0.032113 / +0.022578'],
+['本轮 · Uniform','36.050646','26.637743','0 / 0'],['本轮 · Matched','36.147829','26.743700','+0.097183 / +0.105957'],['本轮 · C','36.147186','26.747051','+0.096540 / +0.109308']]))
+add('''本轮 Uniform 比 Stage 高约 CW 0.147、OW 0.177，源于本轮新的训练轨迹和选中权重。不能把这部分提升记到 A/B/C 机制上。正式策略的贡献应看同轮、同权重的配对差。
+
+Matched 的 Q5 +1.462682、原直接单图测量的 +2.114360 与 Stage 对应结果一致，因为教师、测量和相关读出被复用。它们证明了新实现能衔接旧结果；本轮新增的证据主要来自 A/B/C 变体、新 Q4 evaluate、16 图标签、情境输入，以及在新 Uniform 权重上的正式识别。
+
+TRUST 的核心链条仍然完整保留：**TRAIN 留出组合上的关系干预 → 效用监督 → 小型共享预测器 → 固定预算关系概率 → 强 CPF 的未见组合识别**。C 在这条链条中引入可观测情境，效用监督仍是主要研究对象。Bernoulli、岭回归或两组路由本身不应被单列为已经证明的新贡献。
+
+目前已经支持的主张是：干预效用确实能降低查询风险；正确的关系对应具有决策价值；条件信息在本轮正式识别中提供了更一致的正增量。目前尚未得到的主张是：条件效用平均性能超过全局效用，以及该收益可在独立完整流水线与第二数据集上复现。论文主线可以继续向“情境条件的可迁移关系效用”收敛，平均性能优势仍是下一批要回答的核心问题。''')
+
+add('## 7. 下一步只做一批：条件效用复现与响应稳定化')
+add('''建议继续 TRUST，并把下一批集中在 **C 与重复响应**。A 和 B 作为已完成的机制比较保留，不再扩展参数搜索，不默认合并 Context-Mix16。
+
+一次执行五个主对照，统一正式适配 10 epoch，并共享每次重复内部的同一份 Uniform best：''')
+add(mdtable(['方法','相对原配置的变化','回答的问题'],[
+['Uniform','无效用分配，类型内 0.5','共同识别基线'],['Matched','原单次全局响应 + 27 参数','原效用监督基线'],['Matched-Average','拟合与部署两端平均两次响应，重新拟合 27 参数','全局响应的测量稳定性是否解释增量'],['Context','本轮 C，原单次条件响应 + 51 参数','本轮 C 的收益是否复现'],['Context-Average','两次全局及条件响应均平均，再拟合原 51 参数','稳定的条件输入是否带来超过全局平均模型的收益']]))
+add('''两次响应使用同一支持图像协议、独立背景图随机数；每次都同时计算全局和条件统计，再分别取均值。训练归一化和条件差分尺度只从该重复的拟合教师重算。单图干预标签、两个情境、固定正则、预算 50% 和 16 图读出保持本轮定义。这样能将“情境信息”和“重复测量”分开检验，仍然是一批完整比较。
+
+继续保留同类型关系置换和同结构情境打乱，并随主方法一次生成结果。主要看 Context-Average 是否超过 Matched-Average、原 Context 和相应置换，同时报告 CW/OW、native/exact、配对 seed 方向、HM 与 NLL。若只获得更低的 NLL，结论写成概率质量改善，不把它记为识别 AUC 的提升。
+
+按 v8 的完整重复口径组织三个新的 TRAIN 组合划分与随机种子：每次重复含三个教师初始化 × Q1–Q5，九个教师拟合一份独立预测器；三次重复共 45 个教师、三份独立预测器与三份正式识别器。教师阶段匹配固定追加 10 epoch，用预定 epoch 10；正式识别器完整适配 10 epoch，仍按 VAL CW 从 epoch 0–10 选择。查询组合用于效用测量与评价，不再参与教师阶段匹配的 STOP 选模。这样下一轮同时回答独立流水线复现和响应改进，无需拆成多个小批次。
+
+本轮结果不要求立刻重做全部历史噪声实验，也没有依据增加更多情境或更大预测网络。先把这五组的完整识别对比做出来；保留的机制再进入第二数据集和完整基线表。新增的平均响应开销单独记录，部署仍为每图像 16 图。''')
+
+add('## 附录 A. 正式 26 个策略的全量汇总')
+add('下表包括 VAL/TEST、CW/OW 的 native AUC；均为三 seed、各三图库的均值。正式主结论只使用预定的 TEST 同预算配对比较。')
+af=pd.DataFrame(D['all_formal']).set_index(['policy','phase','world'])
+allnames=['uniform']+[m+suf for m in ('matched','amplitude','mix16','context') for suf in ['']+[f'_perm{k}' for k in (7101,7102,7103,7104,7105)]]+['context_shuffle']
+rows=[]
+for m in allnames:
+    rows.append([m]+[fmt(af.loc[(m,phase,world)].AUC_native_mean,4) for phase in ('val','test') for world in ('cw','ow')])
+add(mdtable(['策略','VAL CW','VAL OW','TEST CW','TEST OW'],rows))
+add('## 附录 B. Q4/Q5 全部非置换强度点')
+rows=[]
+for m in ('matched','amplitude','mix16','context','measured1','measured16','measured_context'):
+    for eta in (.25,.5,1):
+        key=f'{m}_e{round(eta*100):03d}'
+        a,b=Q[4].loc[key],Q[5].loc[key]
+        rows.append([m,eta,fmt(a.mixture_AUC_gain_mean,4,True),fmt(a.mixture_NLL_gain_mean,5,True),fmt(b.mixture_AUC_gain_mean,4,True),fmt(b.mixture_NLL_gain_mean,5,True)])
+add(mdtable(['方法','强度','Q4 AUC 差','Q4 未见 NLL 下降','Q5 AUC 差','Q5 未见 NLL 下降'],rows))
+add('所有强度的五次关系置换已纳入全量复算。各方法强度 1 的关系对应收益如下；A 另列选定强度 0.25。')
+rows=[]
+for m,key in [('Matched','matched_e100'),('A · 0.25','amplitude_e025'),('B','mix16_e100'),('C','context_e100'),('Average-Readout','average_readout'),('Average-Refit','average_refit'),('Measured-1','measured1_e100'),('Measured-16','measured16_e100'),('Measured-Context','measured_context_e100')]:
+    rr=[]
+    for fold in (4,5):
+        qp=pd.DataFrame(D['q'][str(fold)]['paired']).set_index('comparison')
+        row=qp.loc[key+'-minus-permutation_mean'];rr.append(fmt(row.mixture_AUC_exact_mean,4,True))
+    rows.append([m]+rr)
+add(mdtable(['真实策略 − 五次关系置换均值','Q4 exact AUC 差','Q5 exact AUC 差'],rows))
+
+add('## 附录 C. 文件与复核入口')
+sources=[('正式识别全部指标','summary.csv'),('正式配对增量','paired.csv'),('Q4 全部曲线','q4_curves.csv'),('Q5 全部曲线','q5_curves.csv'),('Q4 全部配对','q4_paired.csv'),('Q5 全部配对','q5_paired.csv'),('方向曲线','directional_curves.csv'),('效用预测误差与相关','utility.csv'),('标签诊断','label_diagnostics.csv'),('完整训练曲线','training_curves.csv'),('阶段成本','costs.csv'),('幅度选择','utility/selection.json'),('拟合维度及情境交换记录','utility/fit.json'),('运行完成状态','status.json')]
+add('\n'.join('- '+link(title,W/path) for title,path in sources))
+add('\n'.join('- '+link(title,path) for title,path in [('本轮公式与实现',BASE/'FORMULAS.md'),('本次数值核验',HERE/'audit.json'),('独立汇总与逐 seed 结果',HERE/'analysis.json'),('AUC 情境贡献与 Q4/Q5 配对复核',HERE/'supplement.json'),('完整分析复算脚本',HERE/'analyze.py'),('逐文件预测与标签复算脚本',HERE/'audit.py'),('AUC 贡献分解脚本',HERE/'supplement.py'),('Stage 第二批完整分析',OUT/'TRUST-CPF_Stage_第二批10epoch_完整结果分析_20261025.md'),('v8 公式修订与实验方案',OUT/'TRUST-CPF_部署效用与情境迁移_公式修订及实验方案_v8_20261026.md')] ))
+DOC.write_text('\n\n'.join(parts)+'\n',encoding='utf8')
+print(DOC)
+print('characters',len(DOC.read_text(encoding='utf8')))

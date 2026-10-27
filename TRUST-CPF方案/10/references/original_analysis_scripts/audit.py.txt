@@ -1,0 +1,140 @@
+from pathlib import Path
+import sys,json,hashlib,time
+import numpy as np
+import pandas as pd
+sys.dont_write_bytecode=True
+OUT=Path(__file__).resolve().parent
+BASE=OUT.parent/'output/abc_results/server_results_20261027_075618/trustcpf_abc_v1_10ep'
+W=BASE/'work';sys.path.insert(0,str(BASE))
+import torch
+from trustcpf.common import read_json,load_torch,sha
+from trustcpf.state_workflow import check_marker
+from trustcpf.metrics import native_curve,exact_curve
+from trustcpf.engine import calibration_metrics
+from trustcpf import abc,compact
+torch.set_num_threads(2)
+tic=time.perf_counter();out={};maxerr={};counts={}
+def err(name,a,b,tol=1e-8):
+    v=float(np.max(np.abs(np.asarray(a)-np.asarray(b))))
+    maxerr[name]=max(maxerr.get(name,0.),v)
+    if v>tol:raise AssertionError((name,v))
+archive=BASE.parents[1]/'trustcpf_abc_v1_10ep_results.tar.gz'
+expected=Path(str(archive)+'.sha256').read_text().split()[0];actual=sha(archive)
+assert expected==actual
+out['archive']=dict(bytes=archive.stat().st_size,sha256=actual,verified=True)
+manifest=read_json(BASE/'MANIFEST.json')
+for path,value in manifest.items():assert sha(BASE/path)==value,path
+out['release_files']=len(manifest)
+markers=list((W/'progress').rglob('*.json'));outputs=0;stagecount=0
+for mark in markers:
+    if mark.name=='identity.json':continue
+    r=read_json(mark)
+    if 'outputs' not in r:continue
+    seed=mark.parent.name;base=W if seed=='global' else W/seed
+    check_marker(base,mark);outputs+=len(r['outputs']);stagecount+=1
+out['verified_stages']=stagecount;out['stage_output_hashes']=outputs
+print('INTEGRITY',stagecount,outputs,flush=True)
+s=pd.read_csv(W/'summary.csv');skey=['seed','bank','policy','phase','world']
+assert not s.duplicated(skey).any();assert len(s)==936
+indexed=s.set_index(skey);unique={};route_sets={};norm_error=0.
+for seed in abc.SEEDS:
+    w=W/('seed%d'%seed)
+    for file in sorted((w/'recognition').glob('bank*/policies/*.json')):
+        r=read_json(file);dest=w/r['result_directory'];key=str(dest)
+        if key not in unique:
+            metrics=read_json(dest/'metrics.json')
+            assert metrics['checkpoint_sha256']==sha(w/'runs/uniform/best.pt')
+            for phase in ('val','test'):
+                with np.load(dest/(phase+'_predictions.npz')) as z:
+                    for world in ('cw','ow'):
+                        lp,y,seen=z[world+'_logprob'],z[world+'_truth'],z[world+'_seen']
+                        m=metrics[phase][world];n=native_curve(lp,y,seen);e=exact_curve(lp,y,seen)
+                        for name,val in [('AUC_native',n['AUC']),('AUC_exact',e['AUC']),('HM_oracle_native',n['best_hm']),('HM_oracle_exact',e['best_hm'])]:err('formal_'+name,val,m[name])
+                        if phase=='val':err('VAL_selected_bias',m['calibrated']['bias'],e['best_bias'])
+                        for mode,b,t in [('unbiased',0,1),('at_val_bias',m['calibrated']['bias'],1),('calibrated',m['calibrated']['bias'],m['calibrated']['temperature'])]:
+                            calc=calibration_metrics(lp,y,seen,b,t)
+                            for k,v in calc.items():err('formal_'+mode+'_'+k,v,m[mode][k])
+                        if phase=='test':
+                            for k in ('bias','temperature'):err('VAL_TEST_'+k,m['calibrated'][k],metrics['val'][world]['calibrated'][k])
+                        norm_error=max(norm_error,float(np.abs(np.exp(lp.astype(np.float64)).sum(-1)-1).max()))
+                        counts['prediction_worlds']=counts.get('prediction_worlds',0)+1
+                    routekey=(seed,phase)
+                    if routekey in route_sets:assert np.array_equal(route_sets[routekey],z['routes'])
+                    else:route_sets[routekey]=z['routes'].copy()
+            unique[key]=metrics
+        metrics=unique[key]
+        for phase in ('val','test'):
+            for world in ('cw','ow'):
+                row=indexed.loc[(seed,r['bank'],r['policy'],phase,world)];m=metrics[phase][world]
+                for col,v in [('AUC_native',m['AUC_native']),('AUC_exact',m['AUC_exact']),('HM',m['at_val_bias']['HM']),
+                    ('raw_NLL',m['unbiased']['NLL']),('NLL',m['calibrated']['NLL']),('ECE',m['calibrated']['ECE'])]:err('formal_summary',row[col],v)
+    print('FORMAL_REPLAY',seed,len(unique),flush=True)
+out['formal_unique_objects']=len(unique);out['formal_prediction_npz']=len(unique)*2
+out['probability_normalization_max_error']=norm_error
+# All paired formal comparisons, independently recomputed from raw summary rows.
+pairs=pd.read_csv(W/'paired.csv')
+for r in pairs.to_dict('records'):
+    method,control=r['comparison'].split('-minus-');base=s[s.seed.eq(r['seed'])&s.bank.eq(r['bank'])&s.phase.eq(r['phase'])&s.world.eq(r['world'])]
+    row=base[base.policy.eq(method)].iloc[0]
+    reference=base[base.policy.str.startswith(method+'_perm')] if control=='permutation_mean' else base[base.policy.eq(control)]
+    for m in ('AUC_native','AUC_exact','HM','raw_NLL','NLL'):err('paired_csv',r[m],row[m]-reference[m].mean())
+out['paired_rows']=len(pairs)
+loaded={};query_rows=0
+for name in ('q4_curves.csv','q5_curves.csv','directional_curves.csv'):
+    table=pd.read_csv(W/name)
+    for r in table.to_dict('records'):
+        file=W/('seed%d'%r['seed'])/r['result_file'];key=str(file)
+        if key not in loaded:
+            d=load_torch(file);logs=d['mixture_logprobs'].numpy();y=d['truth'].numpy();seen=d['seen'].numpy();sm=seen[y]
+            e=exact_curve(logs,y,seen)['AUC'];nll=-logs[np.arange(len(y)),y][~sm].mean()
+            single=-d['single_statistics'][:,:,0][:,~torch.tensor(sm)].mean().item()
+            err('query_exact_auc',e,d['mixture']['AUC_exact']);err('query_mixture_nll',nll,d['mixture']['unll']);err('query_single_nll',single,d['single']['unll'])
+            loaded[key]=(e,nll,single)
+        e,nll,single=loaded[key]
+        err('query_csv_auc',r['mixture_AUC_exact'],e);err('query_csv_nll',r['mixture_unll'],nll);err('query_csv_single',r['single_unll'],single)
+        query_rows+=1
+    print('QUERY_REPLAY',name,len(loaded),query_rows,flush=True)
+out['query_rows']=query_rows;out['query_unique_outputs']=len(loaded)
+xs=[];ys=[];yms=[];hgs=[];yc=[];weights=[];hs2=[];empty=0;blocks=0
+for seed in abc.SEEDS:
+    w=W/('seed%d'%seed);original=load_torch(w/'reference/last.pt')['model'];st=load_torch(w/'runs/uniform/last.pt');best=load_torch(w/'runs/uniform/best.pt')
+    assert st['epoch']==10 and len(st['history'])==11
+    selected=max(st['history'],key=lambda h:(h['val']['cw']['AUC_native'],-h['epoch']))['epoch'];assert best['epoch']==selected
+    for k,v in original.items():
+        if k.startswith('backbone.'):assert torch.equal(v,st['model'][k]) and torch.equal(v,best['model'][k])
+    for k,v in best['model'].items():assert torch.equal(v,st['best_model'][k])
+    for j in range(1,6):
+        value=load_torch(w/('effects/fold%d.pt'%j));r=load_torch(w/('context/fold%d.pt'%j));single=[];mix=[]
+        for p in sorted((w/('measurements/fold%d'%j)).glob('block*.pt')):
+            raw=load_torch(p);aux=load_torch(w/('auxiliary/fold%d'%j)/p.name)
+            off,on=raw['off'][:,:,0].double(),raw['on'][:,:,0].double();logs=aux['logprob'].double()
+            # Direct probabilities are safe for these observed finite logs and provide an independent expression.
+            sums=logs.exp().sum(0)[None]
+            finite=16*((sums+on.exp()).log()-(sums+off.exp()).log())
+            single.append(on-off);mix.append(finite);blocks+=1
+        one,mixture=torch.stack(single),torch.stack(mix)
+        err('single_labels_per_image',one,value['single_per_image']);err('mixture_labels_per_image',mixture,value['mixture_per_image'],1e-10)
+        for v,target in [(one,'single'),(mixture,'mixture')]:
+            mask=~value['sample_seen'];b=v[:,:,mask].mean(-1)
+            err('global_label',b.mean(0),value[target]['target']);err('label_se2',b.var(0,unbiased=True)/len(b),value[target]['se2'])
+            for g in range(2):
+                use=mask&(value['routes']==g)
+                calc=v[:,:,use].mean((0,2)) if use.any() else torch.zeros(v.shape[1],dtype=torch.double)
+                err('conditional_label',calc,value[target]['context'][g])
+        for g,e,k in torch.nonzero(r['empty_blocks']).tolist():
+            err('empty_context_delta',r['context'][g,e,4*k:4*k+4],r['features'][e,4*k:4*k+4],1e-12);empty+=1
+        if j<4:
+            xs.append(r['features'].double().numpy());hgs.append(r['context'].double().numpy());ys.append(value['single']['target'].numpy())
+            yms.append(value['mixture']['target'].numpy());yc.append(value['single']['context'].numpy());weights.append(value['single']['weights'])
+            hs2.append(load_torch(w/('responses/fold%d_repeat.pt'%j))['features'].double().numpy())
+    print('LABEL_REPLAY',seed,blocks,flush=True)
+model=load_torch(W/'utility/models.pt');ty=model['types'];norm=model['matched']
+for key,target,features in [('matched',ys,xs),('mix16',yms,xs),('average_refit',ys,[(a+b)/2 for a,b in zip(xs,hs2)])]:
+    fitted=compact.fit_ridge(features,target,ty,30.,norm);err('ridge_'+key,fitted['beta'],model[key]['beta'])
+for key in ('context','context_shuffle'):
+    f=abc.fit_context(xs,hgs,yc,weights,ty,norm,30.,model[key]['swapped_teachers'])
+    err('ridge_'+key,f['beta'],model[key]['beta']);err('context_scale',f['delta_scale'],model[key]['delta_scale'])
+out['measurement_blocks']=blocks;out['checked_empty_context_blocks']=empty
+out['counts']=counts;out['max_errors']=maxerr;out['seconds']=time.perf_counter()-tic;out['passed']=True
+(OUT/'audit.json').write_text(json.dumps(out,indent=2)+'\n',encoding='utf8')
+print(json.dumps(out,indent=2))

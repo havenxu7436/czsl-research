@@ -1,0 +1,15 @@
+{
+    "passed":  true,
+    "syntax_passed":  true,
+    "mock_upload":  true,
+    "mock_download":  true,
+    "sha256_verified":  true,
+    "native_tar_extracted":  true,
+    "network_calls_executed":  false,
+    "commands":  [
+                     "ssh -o ServerAliveInterval=30 -o ServerAliveCountMax=6 xhw@211.87.232.122 mkdir -p /data/xhw/experiments",
+                     "scp -o ServerAliveInterval=30 -o ServerAliveCountMax=6 C:\\Users\\llenovo\\Documents\\ChatGPT\\USG\\tmp\\abc_validation\\mock.zip C:\\Users\\llenovo\\Documents\\ChatGPT\\USG\\tmp\\abc_validation\\mock.zip.sha256 xhw@211.87.232.122:/data/xhw/experiments/",
+                     "scp -o ServerAliveInterval=30 -o ServerAliveCountMax=6 xhw@211.87.232.122:/data/xhw/experiments/trustcpf_abc_v1_10ep_results.tar.gz C:\\Users\\llenovo\\Documents\\ChatGPT\\USG\\tmp\\abc_validation\\downloads\\trustcpf_abc_v1_10ep_results.tar.gz",
+                     "scp -o ServerAliveInterval=30 -o ServerAliveCountMax=6 xhw@211.87.232.122:/data/xhw/experiments/trustcpf_abc_v1_10ep_results.tar.gz.sha256 C:\\Users\\llenovo\\Documents\\ChatGPT\\USG\\tmp\\abc_validation\\downloads\\trustcpf_abc_v1_10ep_results.tar.gz.sha256"
+                 ]
+}

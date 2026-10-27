@@ -1,0 +1,451 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><style>body{max-width:1120px;margin:36px auto;padding:0 28px;font:16px/1.8 "Microsoft YaHei",sans-serif;color:#203348;background:white}h1{font-size:30px}h2{font-size:24px;margin-top:36px}h3{font-size:19px;margin-top:28px}table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14px}th,td{padding:9px 11px;vertical-align:top;border-bottom:1px solid #ced9e2;text-align:left}th{background:#edf3f8}code{font:14px Consolas,monospace;overflow-wrap:anywhere;background:#f0f4f7}a{color:#1e5a8a;overflow-wrap:anywhere}.mathblock{font-family:"Cambria Math",serif;font-size:18px;padding:18px 0;margin:14px 0;background:#f7fafc}.inline-math{font-family:"Cambria Math",serif}math{max-width:100%}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f0f4f7;padding:16px;font:13px/1.5 Consolas,monospace}pre code{font-size:13px;background:transparent}</style><article><h1>TRUST-CPF A/B/C：部署效用与情境迁移的公式及实现</h1>
+<p>日期：2026-10-26。对应代码：<code>trustcpf_abc_v1_10ep</code>。</p>
+<p>本版落实 v8 的 A、B、C 三条机制，并将共同识别基底的适配训练设为完整 10 epoch。实验仍然围绕 TRUST 的“关系干预效用监督 → 跨教师预测 → 预算内分配关系概率 → 强 CPF 上部署”展开。</p>
+<h2>1. 一批实验回答三个问题</h2>
+<table>
+<thead>
+<tr>
+<th>路线</th>
+<th>改动</th>
+<th>要回答的问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A：幅度校准</td>
+<td>用训练教师的效用尺度归一化预测，再选择共同幅度</td>
+<td>原策略是否把微弱的预测差异放大了？</td>
+</tr>
+<tr>
+<td>B：混合效用</td>
+<td>用与 16 图概率混合一致的单槽干预效用替换单图标签</td>
+<td>监督目标与部署读出的一致性是否改善分配？</td>
+</tr>
+<tr>
+<td>C：情境效用</td>
+<td>基于冻结 CPF 物体预测，建立两个情境并预测条件效用</td>
+<td>同一条关系是否应随图像情境改变采样概率？</td>
+</tr>
+</tbody>
+</table>
+<p>三条路线都使用每个 seed 的同一份 Uniform best 权重。A 在 Q4 选择的幅度只用于 A；B、C 固定强度 1。队列中的 Q4 屏障是为了完成后统一汇总，不构成 B/C 对 A 结果的研究依赖。</p>
+<p>本批比较策略与读出机制。每个 seed 新训练一次分类器，共三次 × 10 epoch。27 参数和 51 参数的效用预测器用闭式岭回归求解，没有迭代训练 epoch。</p>
+<h2>2. 数据、教师和共同 10 epoch 轨迹</h2>
+<p>使用已有 UT-Zappos50K、CLIP ViT-L/14 特征缓存、强 CPF reference、96 条知识关系和 Stage 的 15 个教师。关系分为 OI 12 条、OE 36 条、AE 48 条。每类期望预算分别为 6、18、24。</p>
+<p>seed 为 3351、3352、3353。三个 seed 的 Q1–Q3 共九个教师用于拟合；Q4 用于 A 的幅度选择和开发诊断；Q5 用于保留组合上的独立图像机制评估，沿用 Stage 已完成的 STOP 选模。Stage 的 STOP 使用查询组合的其他图像选择教师权重。本批 Q5 evaluate 与 measure、STOP 图像分开；新的完整教师划分与 seed 确认属于后续方法确认批次。所有教师查询标签来自原 TRAIN 的伪未见组合。正式 VAL 负责识别权重选择及校准，正式 TEST 用于最终结果。</p>
+<p>原 Stage 的 Q4 evaluate 为空。本版从原 Q4 的 seen/unseen 图像池中，排除 train、measure、STOP 和已有 evaluate 后，分别固定抽取 256 张。随机种子为 26012604。Q5 沿用原 measure/evaluate 划分。所有划分均落盘。</p>
+<p>令冻结 CPF 主干为 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mi>ϕ</mi></msub></mrow><annotation encoding="application/x-tex">f_\phi</annotation></semantics></math></span></span>，待适配的关系模块为 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi></mrow><annotation encoding="application/x-tex">\theta</annotation></semantics></math></span></span>。每个 batch 采样一次全局关系图：</p>
+<div class="mathblock" data-index="0"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>b</mi><mi>e</mi></msub><mo>∼</mo><mi mathvariant="normal">Bernoulli</mi><mo>⁡</mo><mo stretchy="false">(</mo><mn>1</mn><mi mathvariant="normal">/</mi><mn>2</mn><mo stretchy="false">)</mo><mo separator="true">,</mo><mspace width="2em"/><mi>e</mi><mo>=</mo><mn>1</mn><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><mn>96.</mn></mrow><annotation encoding="application/x-tex">b_e\sim\operatorname{Bernoulli}(1/2),\qquad e=1,\ldots,96.</annotation></semantics></math></span></div>
+<p>沿用既有 CPF/TRUST 训练损失。记 TRAIN 候选上的组合 NLL 为 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="script">L</mi><mrow><mi mathvariant="normal">p</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">r</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\mathcal L_{\rm pair}</annotation></semantics></math></span></span>，物体 NLL 为 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="script">L</mi><mi>o</mi></msub></mrow><annotation encoding="application/x-tex">\mathcal L_o</annotation></semantics></math></span></span>，真值物体条件下的属性 NLL 为 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="script">L</mi><mrow><mi>a</mi><mo>∣</mo><mi>o</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\mathcal L_{a\mid o}</annotation></semantics></math></span></span>：</p>
+<div class="mathblock" data-index="1"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi mathvariant="script">L</mi><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow></msub><mo>=</mo><mfrac><mn>1.5</mn><mn>1.075</mn></mfrac><mrow><mo fence="true">[</mo><msub><mi mathvariant="script">L</mi><mrow><mi mathvariant="normal">p</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">r</mi></mrow></msub><mo>+</mo><mn>0.075</mn><mrow><mo fence="true">(</mo><msub><mi mathvariant="script">L</mi><mi>o</mi></msub><mo>+</mo><msub><mi mathvariant="script">L</mi><mrow><mi>a</mi><mo>∣</mo><mi>o</mi></mrow></msub><mo fence="true">)</mo></mrow><mo fence="true">]</mo></mrow><mo>+</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>3</mn></mrow></msup><msub><mi mathvariant="script">R</mi><mrow><mi mathvariant="normal">g</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">p</mi><mi mathvariant="normal">h</mi></mrow></msub><mo stretchy="false">(</mo><mi>θ</mi><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\mathcal L_{\rm train}
+=\frac{1.5}{1.075}
+\left[\mathcal L_{\rm pair}
++0.075\left(\mathcal L_o+\mathcal L_{a\mid o}\right)\right]
++10^{-3}\mathcal R_{\rm graph}(\theta).</annotation></semantics></math></span></div>
+<p>使用 AdamW，学习率 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>3</mn><mo>×</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>4</mn></mrow></msup></mrow><annotation encoding="application/x-tex">3\times10^{-4}</annotation></semantics></math></span></span>，weight decay <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>10</mn><mrow><mo>−</mo><mn>4</mn></mrow></msup></mrow><annotation encoding="application/x-tex">10^{-4}</annotation></semantics></math></span></span>，batch size 64，梯度范数裁剪 1，第一 epoch warmup、之后 cosine。设每 epoch 有 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi></mrow><annotation encoding="application/x-tex">L</annotation></semantics></math></span></span> 个 batch、总步数 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo>=</mo><mn>10</mn><mi>L</mi></mrow><annotation encoding="application/x-tex">T=10L</annotation></semantics></math></span></span>、从 0 开始的步数为 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span></span>：</p>
+<div class="mathblock" data-index="2"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mrow><mi mathvariant="normal">lr</mi><mo>⁡</mo></mrow><mi>t</mi></msub><mo>=</mo><mn>3</mn><mo>×</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>4</mn></mrow></msup><mi>min</mi><mo>⁡</mo><mrow><mo fence="true">(</mo><mfrac><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow><mi>L</mi></mfrac><mo separator="true">,</mo><mn>1</mn><mo fence="true">)</mo></mrow><mfrac><mrow><mn>1</mn><mo>+</mo><mi>cos</mi><mo>⁡</mo><mrow><mo fence="true">(</mo><mi>π</mi><mfrac><mrow><mi>max</mi><mo>⁡</mo><mo stretchy="false">(</mo><mn>0</mn><mo separator="true">,</mo><mi>t</mi><mo>−</mo><mi>L</mi><mo stretchy="false">)</mo></mrow><mrow><mi>T</mi><mo>−</mo><mi>L</mi></mrow></mfrac><mo fence="true">)</mo></mrow></mrow><mn>2</mn></mfrac><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\operatorname{lr}_t
+=3\times10^{-4}
+\min\left(\frac{t+1}{L},1\right)
+\frac{1+\cos\left(\pi\frac{\max(0,t-L)}{T-L}\right)}{2}.</annotation></semantics></math></span></div>
+<p>保存 epoch 0 和完整 1–10 epoch 的 VAL 曲线。选择 VAL CW native AUC 最高的 epoch，相同时取较早 epoch。后续全部 A/B/C 策略使用这一份冻结权重。新训练器在 <code>last.pt</code> 同时保存当前模型、best 模型、优化器及 CPU/CUDA 随机数状态，使中断恢复完整继承已选出的 best。</p>
+<p>入口：<code>abc_train.uniform</code>。CPF 分类器、图传播、原评估公式保持与 Stage 相同。新轨迹使用缓存 VAL 基底的评估实现；本轮三个策略比较共享这一新轨迹，不要求它与旧 State/Stage 的训练轨迹逐位相同。</p>
+<h2>3. 单图和 16 图部署风险</h2>
+<p>固定分类器和图像 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">x_i</annotation></semantics></math></span></span>。在当前候选集合 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">C</mi></mrow><annotation encoding="application/x-tex">\mathcal C</annotation></semantics></math></span></span> 内，每张图先做候选归一化：</p>
+<div class="mathblock" data-index="3"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>p</mi><mrow><mi>i</mi><mo separator="true">,</mo><mi>b</mi></mrow></msub><mo stretchy="false">(</mo><mi>c</mi><mo stretchy="false">)</mo><mo>=</mo><mfrac><mrow><mi>exp</mi><mo>⁡</mo><msub><mi>z</mi><mi>θ</mi></msub><mo stretchy="false">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo separator="true">,</mo><mi>b</mi><mo separator="true">,</mo><mi>c</mi><mo stretchy="false">)</mo></mrow><mrow><munder><mo>∑</mo><mrow><msup><mi>c</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo>∈</mo><mi mathvariant="script">C</mi></mrow></munder><mi>exp</mi><mo>⁡</mo><msub><mi>z</mi><mi>θ</mi></msub><mo stretchy="false">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo separator="true">,</mo><mi>b</mi><mo separator="true">,</mo><msup><mi>c</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo stretchy="false">)</mo></mrow></mfrac><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">p_{i,b}(c)
+=\frac{\exp z_\theta(x_i,b,c)}
+{\sum_{c&#x27;\in\mathcal C}\exp z_\theta(x_i,b,c&#x27;)}.</annotation></semantics></math></span></div>
+<p>部署时采样 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><mn>16</mn></mrow><annotation encoding="application/x-tex">M=16</annotation></semantics></math></span></span> 张图，然后混合概率：</p>
+<div class="mathblock" data-index="4"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mover accent="true"><mi>p</mi><mo>ˉ</mo></mover><mi>i</mi></msub><mo stretchy="false">(</mo><mi>c</mi><mo separator="true">;</mo><mi>B</mi><mo stretchy="false">)</mo><mo>=</mo><mfrac><mn>1</mn><mi>M</mi></mfrac><munderover><mo>∑</mo><mrow><mi>m</mi><mo>=</mo><mn>1</mn></mrow><mi>M</mi></munderover><msub><mi>p</mi><mrow><mi>i</mi><mo separator="true">,</mo><msup><mi>b</mi><mrow><mo stretchy="false">(</mo><mi>m</mi><mo stretchy="false">)</mo></mrow></msup></mrow></msub><mo stretchy="false">(</mo><mi>c</mi><mo stretchy="false">)</mo><mo separator="true">,</mo><mspace width="2em"/><mi>B</mi><mo>=</mo><mo stretchy="false">(</mo><msup><mi>b</mi><mrow><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></msup><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msup><mi>b</mi><mrow><mo stretchy="false">(</mo><mi>M</mi><mo stretchy="false">)</mo></mrow></msup><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\bar p_i(c;B)=\frac1M\sum_{m=1}^{M}p_{i,b^{(m)}}(c),
+\qquad B=(b^{(1)},\ldots,b^{(M)}).</annotation></semantics></math></span></div>
+<p>CW 和 OW 分别在各自候选集合内完成上面的归一化。对伪未见查询图像集合 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">U</mi></mrow><annotation encoding="application/x-tex">\mathcal U</annotation></semantics></math></span></span>，效用所对应的风险为：</p>
+<div class="mathblock" data-index="5"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>R</mi><mi>M</mi></msub><mo stretchy="false">(</mo><mi>π</mi><mo stretchy="false">)</mo><mo>=</mo><mo>−</mo><mfrac><mn>1</mn><mrow><mi mathvariant="normal">∣</mi><mi mathvariant="script">U</mi><mi mathvariant="normal">∣</mi></mrow></mfrac><munder><mo>∑</mo><mrow><mi>i</mi><mo>∈</mo><mi mathvariant="script">U</mi></mrow></munder><msub><mi mathvariant="double-struck">E</mi><mrow><mi>B</mi><mo>∼</mo><msubsup><mi>P</mi><mi>π</mi><mrow><mo>⊗</mo><mi>M</mi></mrow></msubsup></mrow></msub><mi>log</mi><mo>⁡</mo><msub><mover accent="true"><mi>p</mi><mo>ˉ</mo></mover><mi>i</mi></msub><mo stretchy="false">(</mo><msub><mi>y</mi><mi>i</mi></msub><mo separator="true">;</mo><mi>B</mi><mo stretchy="false">)</mo><mo separator="true">,</mo><mspace width="1em"/><msub><mi>P</mi><mi>π</mi></msub><mo stretchy="false">(</mo><mi>b</mi><mo stretchy="false">)</mo><mo>=</mo><munder><mo>∏</mo><mi>e</mi></munder><msubsup><mi>π</mi><mi>e</mi><msub><mi>b</mi><mi>e</mi></msub></msubsup><mo stretchy="false">(</mo><mn>1</mn><mo>−</mo><msub><mi>π</mi><mi>e</mi></msub><msup><mo stretchy="false">)</mo><mrow><mn>1</mn><mo>−</mo><msub><mi>b</mi><mi>e</mi></msub></mrow></msup><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">R_M(\pi)
+=-\frac1{|\mathcal U|}\sum_{i\in\mathcal U}
+\mathbb E_{B\sim P_\pi^{\otimes M}}
+\log\bar p_i(y_i;B),
+\quad
+P_\pi(b)=\prod_e\pi_e^{b_e}(1-\pi_e)^{1-b_e}.</annotation></semantics></math></span></div>
+<p>效用是在基准概率 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>π</mi><mn>0</mn></msub><mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mn mathvariant="bold">1</mn></mrow><annotation encoding="application/x-tex">\pi_0=\tfrac12\mathbf1</annotation></semantics></math></span></span> 上的负梯度。对于 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">M=1</annotation></semantics></math></span></span>：</p>
+<div class="mathblock" data-index="6"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msubsup><mi>u</mi><mi>e</mi><mrow><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></msubsup><mo>=</mo><mfrac><mn>1</mn><mrow><mi mathvariant="normal">∣</mi><mi mathvariant="script">U</mi><mi mathvariant="normal">∣</mi></mrow></mfrac><munder><mo>∑</mo><mrow><mi>i</mi><mo>∈</mo><mi mathvariant="script">U</mi></mrow></munder><msub><mi mathvariant="double-struck">E</mi><msub><mi>b</mi><mrow><mo>−</mo><mi>e</mi></mrow></msub></msub><mrow><mo fence="true">[</mo><mi>log</mi><mo>⁡</mo><msub><mi>p</mi><mrow><mi>i</mi><mo separator="true">,</mo><mo stretchy="false">(</mo><msub><mi>b</mi><mrow><mo>−</mo><mi>e</mi></mrow></msub><mo separator="true">,</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></msub><mo stretchy="false">(</mo><msub><mi>y</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>−</mo><mi>log</mi><mo>⁡</mo><msub><mi>p</mi><mrow><mi>i</mi><mo separator="true">,</mo><mo stretchy="false">(</mo><msub><mi>b</mi><mrow><mo>−</mo><mi>e</mi></mrow></msub><mo separator="true">,</mo><mn>0</mn><mo stretchy="false">)</mo></mrow></msub><mo stretchy="false">(</mo><msub><mi>y</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo fence="true">]</mo></mrow><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">u_e^{(1)}
+=\frac1{|\mathcal U|}\sum_{i\in\mathcal U}
+\mathbb E_{b_{-e}}
+\left[\log p_{i,(b_{-e},1)}(y_i)
+-\log p_{i,(b_{-e},0)}(y_i)\right].</annotation></semantics></math></span></div>
+<p>现有 Stage 文件已保存每个 edge、每个背景块、每张查询图像的开/关真值 log probability。A、C 直接复用这些统计量；B 在这些统计量旁新增独立辅助图。</p>
+<h2>4. B：16 图效用的推导与测量</h2>
+<p>对 Bernoulli 变量，固定其余变量后有：</p>
+<div class="mathblock" data-index="7"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mfrac><mi mathvariant="normal">∂</mi><mrow><mi mathvariant="normal">∂</mi><msub><mi>π</mi><mi>e</mi></msub></mrow></mfrac><msub><mi mathvariant="double-struck">E</mi><mrow><mi>b</mi><mo>∼</mo><msub><mi>P</mi><mi>π</mi></msub></mrow></msub><mi>F</mi><mo stretchy="false">(</mo><mi>b</mi><mo stretchy="false">)</mo><mo>=</mo><msub><mi mathvariant="double-struck">E</mi><msub><mi>b</mi><mrow><mo>−</mo><mi>e</mi></mrow></msub></msub><mrow><mo fence="true">[</mo><mi>F</mi><mo stretchy="false">(</mo><msub><mi>b</mi><mrow><mo>−</mo><mi>e</mi></mrow></msub><mo separator="true">,</mo><mn>1</mn><mo stretchy="false">)</mo><mo>−</mo><mi>F</mi><mo stretchy="false">(</mo><msub><mi>b</mi><mrow><mo>−</mo><mi>e</mi></mrow></msub><mo separator="true">,</mo><mn>0</mn><mo stretchy="false">)</mo><mo fence="true">]</mo></mrow><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\frac{\partial}{\partial\pi_e}\mathbb E_{b\sim P_\pi}F(b)
+=\mathbb E_{b_{-e}}\left[F(b_{-e},1)-F(b_{-e},0)\right].</annotation></semantics></math></span></div>
+<p>在 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi></mrow><annotation encoding="application/x-tex">M</annotation></semantics></math></span></span> 张图上，对 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>π</mi><mi>e</mi></msub></mrow><annotation encoding="application/x-tex">\pi_e</annotation></semantics></math></span></span> 求导会得到 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi></mrow><annotation encoding="application/x-tex">M</annotation></semantics></math></span></span> 个图槽的贡献；它们同分布，故可固定第一槽干预并乘 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi></mrow><annotation encoding="application/x-tex">M</annotation></semantics></math></span></span>。令其余 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">M-1</annotation></semantics></math></span></span> 张独立辅助图的真值概率和为：</p>
+<div class="mathblock" data-index="8"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>S</mi><mrow><mi>i</mi><mo separator="true">,</mo><mi>M</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>=</mo><munderover><mo>∑</mo><mrow><mi>m</mi><mo>=</mo><mn>2</mn></mrow><mi>M</mi></munderover><msub><mi>p</mi><mrow><mi>i</mi><mo separator="true">,</mo><msup><mi>b</mi><mrow><mo stretchy="false">(</mo><mi>m</mi><mo stretchy="false">)</mo></mrow></msup></mrow></msub><mo stretchy="false">(</mo><msub><mi>y</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">S_{i,M-1}=\sum_{m=2}^{M}p_{i,b^{(m)}}(y_i).</annotation></semantics></math></span></div>
+<p>于是精确的一阶目标为：</p>
+<div class="mathblock" data-index="9"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.25em" columnalign="right left" columnspacing="0em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msubsup><mi>u</mi><mi>e</mi><mrow><mo stretchy="false">(</mo><mi>M</mi><mo stretchy="false">)</mo></mrow></msubsup></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mo>−</mo><msub><mrow><mfrac><mrow><mi mathvariant="normal">∂</mi><msub><mi>R</mi><mi>M</mi></msub></mrow><mrow><mi mathvariant="normal">∂</mi><msub><mi>π</mi><mi>e</mi></msub></mrow></mfrac><mo fence="true">∣</mo></mrow><msub><mi>π</mi><mn>0</mn></msub></msub></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mfrac><mi>M</mi><mrow><mi mathvariant="normal">∣</mi><mi mathvariant="script">U</mi><mi mathvariant="normal">∣</mi></mrow></mfrac><munder><mo>∑</mo><mrow><mi>i</mi><mo>∈</mo><mi mathvariant="script">U</mi></mrow></munder><mi mathvariant="double-struck">E</mi><mrow><mo fence="true">[</mo><mi>log</mi><mo>⁡</mo><mo fence="true" stretchy="true" minsize="1.2em" maxsize="1.2em">(</mo><msub><mi>S</mi><mrow><mi>i</mi><mo separator="true">,</mo><mi>M</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>+</mo><msubsup><mi>p</mi><mrow><mi>i</mi><mo separator="true">,</mo><mi>e</mi></mrow><mo>+</mo></msubsup><mo fence="true" stretchy="true" minsize="1.2em" maxsize="1.2em">)</mo><mo>−</mo><mi>log</mi><mo>⁡</mo><mo fence="true" stretchy="true" minsize="1.2em" maxsize="1.2em">(</mo><msub><mi>S</mi><mrow><mi>i</mi><mo separator="true">,</mo><mi>M</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>+</mo><msubsup><mi>p</mi><mrow><mi>i</mi><mo separator="true">,</mo><mi>e</mi></mrow><mo>−</mo></msubsup><mo fence="true" stretchy="true" minsize="1.2em" maxsize="1.2em">)</mo><mo fence="true">]</mo></mrow><mi mathvariant="normal">.</mi></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+u_e^{(M)}
+&amp;=-\left.\frac{\partial R_M}{\partial\pi_e}\right|_{\pi_0}\\
+&amp;=\frac{M}{|\mathcal U|}\sum_{i\in\mathcal U}
+\mathbb E\left[
+\log\bigl(S_{i,M-1}+p^+_{i,e}\bigr)
+-\log\bigl(S_{i,M-1}+p^-_{i,e}\bigr)
+\right].
+\end{aligned}</annotation></semantics></math></span></div>
+<p>开/关两项使用相同的其余边与辅助图，辅助图独立于被干预的第一图槽。混合分母 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi></mrow><annotation encoding="application/x-tex">M</annotation></semantics></math></span></span> 在 log 差中抵消，外面的导数系数 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi></mrow><annotation encoding="application/x-tex">M</annotation></semantics></math></span></span> 保留。<span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">M=1</annotation></semantics></math></span></span> 时回到原单图效用。</p>
+<p>若原开/关日志分别为 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi mathvariant="normal">ℓ</mi><mrow><mi>i</mi><mo separator="true">,</mo><mi>e</mi></mrow><mo>−</mo></msubsup><mo separator="true">,</mo><msubsup><mi mathvariant="normal">ℓ</mi><mrow><mi>i</mi><mo separator="true">,</mo><mi>e</mi></mrow><mo>+</mo></msubsup></mrow><annotation encoding="application/x-tex">\ell^-_{i,e},\ell^+_{i,e}</annotation></semantics></math></span></span>，辅助图日志为 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>a</mi><mrow><mi>i</mi><mo separator="true">,</mo><mi>m</mi></mrow></msub></mrow><annotation encoding="application/x-tex">a_{i,m}</annotation></semantics></math></span></span>，使用稳定计算：</p>
+<div class="mathblock" data-index="10"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.25em" columnalign="right left" columnspacing="0em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msub><mi>A</mi><mi>i</mi></msub></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><msubsup><mrow><mi mathvariant="normal">LSE</mi><mo>⁡</mo></mrow><mrow><mi>m</mi><mo>=</mo><mn>2</mn></mrow><mi>M</mi></msubsup><msub><mi>a</mi><mrow><mi>i</mi><mo separator="true">,</mo><mi>m</mi></mrow></msub><mo separator="true">,</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msubsup><mi mathvariant="normal">Δ</mi><mrow><mi>i</mi><mo separator="true">,</mo><mi>e</mi></mrow><mrow><mo stretchy="false">(</mo><mi>M</mi><mo stretchy="false">)</mo></mrow></msubsup></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mi>M</mi><mrow><mo fence="true">[</mo><mi mathvariant="normal">logaddexp</mi><mo>⁡</mo><mo stretchy="false">(</mo><msub><mi>A</mi><mi>i</mi></msub><mo separator="true">,</mo><msubsup><mi mathvariant="normal">ℓ</mi><mrow><mi>i</mi><mo separator="true">,</mo><mi>e</mi></mrow><mo>+</mo></msubsup><mo stretchy="false">)</mo><mo>−</mo><mi mathvariant="normal">logaddexp</mi><mo>⁡</mo><mo stretchy="false">(</mo><msub><mi>A</mi><mi>i</mi></msub><mo separator="true">,</mo><msubsup><mi mathvariant="normal">ℓ</mi><mrow><mi>i</mi><mo separator="true">,</mo><mi>e</mi></mrow><mo>−</mo></msubsup><mo stretchy="false">)</mo><mo fence="true">]</mo></mrow><mi mathvariant="normal">.</mi></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+A_i&amp;=\operatorname{LSE}_{m=2}^{M}a_{i,m},\\
+\Delta_{i,e}^{(M)}
+&amp;=M\left[
+\operatorname{logaddexp}(A_i,\ell^+_{i,e})
+-\operatorname{logaddexp}(A_i,\ell^-_{i,e})
+\right].
+\end{aligned}</annotation></semantics></math></span></div>
+<p>每个原测量块补充 15 张辅助图，同一块内所有边可共用这组图。Q1–Q4 各 8 块，Q5 16 块；三 seed 共 144 块，新增 2160 个辅助图配置。先在伪未见图像上平均，再对块取平均。保存块方差除以块数作为 Monte Carlo 均值方差估计。</p>
+<p>实现：<code>abc.mixture_effect</code>、<code>abc_measure.teacher</code>。B 使用原八维响应输入、原归一化和相同岭惩罚，只替换标签为 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>u</mi><mrow><mo stretchy="false">(</mo><mn>16</mn><mo stretchy="false">)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">u^{(16)}</annotation></semantics></math></span></span>；部署仍使用每类预测标准差归一化、强度 1。</p>
+<h2>5. 27 参数全局效用回归</h2>
+<p>每条边的输入 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mrow><mi>j</mi><mo separator="true">,</mo><mi>e</mi></mrow></msub><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><mn>8</mn></msup></mrow><annotation encoding="application/x-tex">h_{j,e}\in\mathbb R^8</annotation></semantics></math></span></span> 为教师支持集的干预响应。分别对“全部支持图像”和“目标原语支持图像”计算四项：真值 log probability 增量均值、增量标准差、候选中心化 logit 变化 RMS、预测熵变化均值。</p>
+<p>支持集先按组合均衡取样；四个背景图共用既有 seed。响应只从教师 train/support 图像得到。标签来自教师的 query/measure 图像。</p>
+<p>从 Stage 保存的训练归一化读取 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover accent="true"><mi>h</mi><mo>ˉ</mo></mover><mo separator="true">,</mo><msub><mi>s</mi><mi>h</mi></msub><mo separator="true">,</mo><msub><mi>s</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">\bar h,s_h,s_t</annotation></semantics></math></span></span>。其中 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">s_t</annotation></semantics></math></span></span> 为九个拟合教师在关系类型 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span></span> 上的单图标签标准差。对边类型 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo stretchy="false">(</mo><mi>e</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">t(e)</annotation></semantics></math></span></span> 构造分块设计：</p>
+<div class="mathblock" data-index="11"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>ϕ</mi><mo stretchy="false">(</mo><mi>h</mi><mo separator="true">,</mo><mi>e</mi><mo stretchy="false">)</mo><mo>=</mo><msub><mrow><mi mathvariant="normal">block</mi><mo>⁡</mo></mrow><mrow><mi>t</mi><mo stretchy="false">(</mo><mi>e</mi><mo stretchy="false">)</mo></mrow></msub><mrow><mo fence="true">[</mo><mn>1</mn><mo separator="true">,</mo><mfrac><mrow><mi>h</mi><mo>−</mo><mover accent="true"><mi>h</mi><mo>ˉ</mo></mover></mrow><msub><mi>s</mi><mi>h</mi></msub></mfrac><mo fence="true">]</mo></mrow><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><mn>27</mn></msup><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\phi(h,e)
+=\operatorname{block}_{t(e)}
+\left[1,\frac{h-\bar h}{s_h}\right]
+\in\mathbb R^{27}.</annotation></semantics></math></span></div>
+<p>对单图或混合标签分别求解：</p>
+<div class="mathblock" data-index="12"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mover accent="true"><mi>β</mi><mo stretchy="true">^</mo></mover><mo>=</mo><mi>arg</mi><mo>⁡</mo><munder><mrow><mi>min</mi><mo>⁡</mo></mrow><mi>β</mi></munder><mrow><mo fence="true">{</mo><mfrac><mn>1</mn><mi>J</mi></mfrac><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>J</mi></munderover><munder><mo>∑</mo><mi>e</mi></munder><msup><mrow><mo fence="true">[</mo><mi>ϕ</mi><mo stretchy="false">(</mo><msub><mi>h</mi><mrow><mi>j</mi><mo separator="true">,</mo><mi>e</mi></mrow></msub><mo separator="true">,</mo><mi>e</mi><msup><mo stretchy="false">)</mo><mi mathvariant="normal">⊤</mi></msup><mi>β</mi><mo>−</mo><mfrac><msub><mi>u</mi><mrow><mi>j</mi><mo separator="true">,</mo><mi>e</mi></mrow></msub><msub><mi>s</mi><mrow><mi>t</mi><mo stretchy="false">(</mo><mi>e</mi><mo stretchy="false">)</mo></mrow></msub></mfrac><mo fence="true">]</mo></mrow><mn>2</mn></msup><mo>+</mo><mi>λ</mi><mi mathvariant="normal">∥</mi><mi>β</mi><msubsup><mi mathvariant="normal">∥</mi><mn>2</mn><mn>2</mn></msubsup><mo fence="true">}</mo></mrow><mo separator="true">,</mo><mspace width="1em"/><mi>J</mi><mo>=</mo><mn>9</mn><mo separator="true">,</mo><mspace width="1em"/><mi>λ</mi><mo>=</mo><mfrac><mn>10</mn><mn>3</mn></mfrac><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\widehat\beta
+=\arg\min_\beta
+\left\{
+\frac1J\sum_{j=1}^{J}\sum_e
+\left[\phi(h_{j,e},e)^\top\beta
+-\frac{u_{j,e}}{s_{t(e)}}\right]^2
++\lambda\|\beta\|_2^2
+\right\},
+\quad J=9,\quad\lambda=\frac{10}{3}.</annotation></semantics></math></span></div>
+<div class="mathblock" data-index="13"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mover accent="true"><mi>β</mi><mo stretchy="true">^</mo></mover><mo>=</mo><mo stretchy="false">(</mo><msup><mi>X</mi><mi mathvariant="normal">⊤</mi></msup><mi>X</mi><mo>+</mo><mn>30</mn><mi>I</mi><msup><mo stretchy="false">)</mo><mrow><mo>−</mo><mn>1</mn></mrow></msup><msup><mi>X</mi><mi mathvariant="normal">⊤</mi></msup><mover accent="true"><mi>u</mi><mo stretchy="true">~</mo></mover><mo separator="true">,</mo><mspace width="2em"/><msub><mover accent="true"><mi>u</mi><mo stretchy="true">^</mo></mover><mi>e</mi></msub><mo>=</mo><msub><mi>s</mi><mrow><mi>t</mi><mo stretchy="false">(</mo><mi>e</mi><mo stretchy="false">)</mo></mrow></msub><mi>ϕ</mi><mo stretchy="false">(</mo><msub><mi>h</mi><mi>e</mi></msub><mo separator="true">,</mo><mi>e</mi><msup><mo stretchy="false">)</mo><mi mathvariant="normal">⊤</mi></msup><mover accent="true"><mi>β</mi><mo stretchy="true">^</mo></mover><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\widehat\beta
+=(X^\top X+30I)^{-1}X^\top\widetilde u,
+\qquad
+\widehat u_e=s_{t(e)}\phi(h_e,e)^\top\widehat\beta.</annotation></semantics></math></span></div>
+<p>代码使用 <code>numpy.linalg.solve</code>，不显式计算矩阵逆。截距也参与惩罚。Matched 用原单图标签，B 用混合标签，二者共享 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover accent="true"><mi>h</mi><mo>ˉ</mo></mover><mo separator="true">,</mo><msub><mi>s</mi><mi>h</mi></msub><mo separator="true">,</mo><msub><mi>s</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">\bar h,s_h,s_t</annotation></semantics></math></span></span> 和 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow><annotation encoding="application/x-tex">\lambda</annotation></semantics></math></span></span>。拟合时验证 Matched 系数能复现 Stage 已保存的系数。</p>
+<h2>6. A：固定训练尺度与幅度</h2>
+<p>原 Matched 在每个部署教师/识别器上，用该类型预测的标准差归一化。A 改用拟合教师标签的类型内中心化 RMS：</p>
+<div class="mathblock" data-index="14"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>σ</mi><mrow><mi>t</mi><mo separator="true">,</mo><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow></mrow></msub><mo>=</mo><msqrt><mrow><mfrac><mn>1</mn><mrow><mi>J</mi><mi mathvariant="normal">∣</mi><msub><mi>E</mi><mi>t</mi></msub><mi mathvariant="normal">∣</mi></mrow></mfrac><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>J</mi></munderover><munder><mo>∑</mo><mrow><mi>e</mi><mo>∈</mo><msub><mi>E</mi><mi>t</mi></msub></mrow></munder><msup><mrow><mo fence="true">(</mo><msubsup><mi>u</mi><mrow><mi>j</mi><mo separator="true">,</mo><mi>e</mi></mrow><mrow><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></msubsup><mo>−</mo><msubsup><mover accent="true"><mi>u</mi><mo stretchy="true">‾</mo></mover><mrow><mi>j</mi><mo separator="true">,</mo><mi>t</mi></mrow><mrow><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></msubsup><mo fence="true">)</mo></mrow><mn>2</mn></msup></mrow></msqrt><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\sigma_{t,\rm train}
+=\sqrt{\frac1{J|E_t|}
+\sum_{j=1}^{J}\sum_{e\in E_t}
+\left(u^{(1)}_{j,e}-\overline u^{(1)}_{j,t}\right)^2}.</annotation></semantics></math></span></div>
+<div class="mathblock" data-index="15"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msubsup><mi>r</mi><mi>e</mi><mi>A</mi></msubsup><mo>=</mo><mfrac><mrow><msub><mover accent="true"><mi>u</mi><mo stretchy="true">^</mo></mover><mi>e</mi></msub><mo>−</mo><msub><mover accent="true"><mover accent="true"><mi>u</mi><mo stretchy="true">^</mo></mover><mo stretchy="true">‾</mo></mover><mrow><mi>t</mi><mo stretchy="false">(</mo><mi>e</mi><mo stretchy="false">)</mo></mrow></msub></mrow><mrow><mi>max</mi><mo>⁡</mo><mo stretchy="false">(</mo><msub><mi>σ</mi><mrow><mi>t</mi><mo stretchy="false">(</mo><mi>e</mi><mo stretchy="false">)</mo><mo separator="true">,</mo><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow></mrow></msub><mo separator="true">,</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>12</mn></mrow></msup><mo stretchy="false">)</mo></mrow></mfrac><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">r_e^A=\frac{\widehat u_e-\overline{\widehat u}_{t(e)}}
+{\max(\sigma_{t(e),\rm train},10^{-12})}.</annotation></semantics></math></span></div>
+<p>对任意类型内得分 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi></mrow><annotation encoding="application/x-tex">r</annotation></semantics></math></span></span>，求解带等式预算的熵正则分配：</p>
+<div class="mathblock" data-index="16"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.25em" columnalign="right left" columnspacing="0em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><msup><mi>π</mi><mo>∗</mo></msup><mo stretchy="false">(</mo><mi>r</mi><mo stretchy="false">)</mo><mo>=</mo><mi>arg</mi><mo>⁡</mo><munder><mrow><mi>max</mi><mo>⁡</mo></mrow><mrow><mn>0</mn><mo>&lt;</mo><msub><mi>π</mi><mi>e</mi></msub><mo>&lt;</mo><mn>1</mn></mrow></munder><mspace width="1em"/></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><munder><mo>∑</mo><mi>e</mi></munder><msub><mi>r</mi><mi>e</mi></msub><msub><mi>π</mi><mi>e</mi></msub><mo>−</mo><munder><mo>∑</mo><mi>e</mi></munder><msub><mi>D</mi><mrow><mi mathvariant="normal">K</mi><mi mathvariant="normal">L</mi></mrow></msub><mtext> ⁣</mtext><mrow><mo fence="true">(</mo><mi mathvariant="normal">Ber</mi><mo>⁡</mo><mo stretchy="false">(</mo><msub><mi>π</mi><mi>e</mi></msub><mo stretchy="false">)</mo><mi mathvariant="normal">∥</mi><mi mathvariant="normal">Ber</mi><mo>⁡</mo><mo stretchy="false">(</mo><mn>1</mn><mi mathvariant="normal">/</mi><mn>2</mn><mo stretchy="false">)</mo><mo fence="true">)</mo></mrow></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mtext>s.t.</mtext><mspace width="1em"/></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><munder><mo>∑</mo><mrow><mi>e</mi><mo>∈</mo><msub><mi>E</mi><mi>t</mi></msub></mrow></munder><msub><mi>π</mi><mi>e</mi></msub><mo>=</mo><mi mathvariant="normal">∣</mi><msub><mi>E</mi><mi>t</mi></msub><mi mathvariant="normal">∣</mi><mi mathvariant="normal">/</mi><mn>2</mn><mo separator="true">,</mo><mspace width="1em"/><mi>t</mi><mo>=</mo><mn>0</mn><mo separator="true">,</mo><mn>1</mn><mo separator="true">,</mo><mn>2.</mn></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+\pi^*(r)=\arg\max_{0&lt;\pi_e&lt;1}\quad
+&amp;\sum_e r_e\pi_e
+-\sum_e D_{\rm KL}\!\left(\operatorname{Ber}(\pi_e)\Vert\operatorname{Ber}(1/2)\right)\\
+\text{s.t.}\quad &amp;\sum_{e\in E_t}\pi_e=|E_t|/2,\quad t=0,1,2.
+\end{aligned}</annotation></semantics></math></span></div>
+<p>KKT 驻点满足 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>e</mi></msub><mo>−</mo><mi mathvariant="normal">logit</mi><mo>⁡</mo><mo stretchy="false">(</mo><msub><mi>π</mi><mi>e</mi></msub><mo stretchy="false">)</mo><mo>−</mo><msub><mi>γ</mi><mi>t</mi></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">r_e-\operatorname{logit}(\pi_e)-\gamma_t=0</annotation></semantics></math></span></span>，因此：</p>
+<div class="mathblock" data-index="17"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msubsup><mi>π</mi><mi>e</mi><mo>∗</mo></msubsup><mo stretchy="false">(</mo><mi>r</mi><mo stretchy="false">)</mo><mo>=</mo><mi mathvariant="normal">sigmoid</mi><mo>⁡</mo><mo stretchy="false">(</mo><msub><mi>r</mi><mi>e</mi></msub><mo>−</mo><msub><mi>γ</mi><mrow><mi>t</mi><mo stretchy="false">(</mo><mi>e</mi><mo stretchy="false">)</mo></mrow></msub><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\pi_e^*(r)=\operatorname{sigmoid}(r_e-\gamma_{t(e)}).</annotation></semantics></math></span></div>
+<p>左侧类型概率和对 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>γ</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">\gamma_t</annotation></semantics></math></span></span> 严格递减，用二分法求唯一解。A 再与 Uniform 插值：</p>
+<div class="mathblock" data-index="18"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msubsup><mi>π</mi><mi>e</mi><mi>A</mi></msubsup><mo stretchy="false">(</mo><mi>η</mi><mo stretchy="false">)</mo><mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mo>+</mo><mi>η</mi><mrow><mo fence="true">(</mo><msubsup><mi>π</mi><mi>e</mi><mo>∗</mo></msubsup><mo stretchy="false">(</mo><msup><mi>r</mi><mi>A</mi></msup><mo stretchy="false">)</mo><mo>−</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mo fence="true">)</mo></mrow><mo separator="true">,</mo><mspace width="2em"/><mi>η</mi><mo>∈</mo><mo stretchy="false">{</mo><mn>0</mn><mo separator="true">,</mo><mn>0.25</mn><mo separator="true">,</mo><mn>0.5</mn><mo separator="true">,</mo><mn>1</mn><mo stretchy="false">}</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\pi_e^A(\eta)=\frac12+\eta\left(\pi_e^*(r^A)-\frac12\right),
+\qquad\eta\in\{0,0.25,0.5,1\}.</annotation></semantics></math></span></div>
+<p>插值保留每类半预算。选择三个 seed、八个图库的 Q4 独立 evaluate exact AUC 均值最高的共同 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>η</mi></mrow><annotation encoding="application/x-tex">\eta</annotation></semantics></math></span></span>，并列取较小值。选择结果写入 <code>utility/selection.json</code>。A 的尺度来自拟合教师；Q4 只选择四档幅度。</p>
+<p>Matched、B、C 采用各自预测向量的类型内标准差作为得分分母；C 在每个情境内分别处理。它们的正式强度固定为 1。Q4/Q5 同时记录 0、0.25、0.5、1 的插值曲线，用于理解分配方向和幅度。</p>
+<h2>7. C：冻结物体路由、条件响应与条件标签</h2>
+<p>只用 CLIP 物体文本锚点，将 12 个物体划分成各六个的两组。枚举包含物体索引 0 的六元组，最小化两组内部欧氏平方距离总和。共 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo fence="true">(</mo><mfrac linethickness="0px"><mn>11</mn><mn>5</mn></mfrac><mo fence="true">)</mo></mrow><mo>=</mo><mn>462</mn></mrow><annotation encoding="application/x-tex">\binom{11}{5}=462</annotation></semantics></math></span></span> 种划分；锚点先单位化，数值并列按索引顺序选择。</p>
+<div class="mathblock" data-index="19"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mo stretchy="false">(</mo><msub><mi>G</mi><mn>0</mn></msub><mo separator="true">,</mo><msub><mi>G</mi><mn>1</mn></msub><mo stretchy="false">)</mo><mo>=</mo><mi>arg</mi><mo>⁡</mo><munder><mrow><mi>min</mi><mo>⁡</mo></mrow><mrow><mi mathvariant="normal">∣</mi><msub><mi>G</mi><mn>0</mn></msub><mi mathvariant="normal">∣</mi><mo>=</mo><mi mathvariant="normal">∣</mi><msub><mi>G</mi><mn>1</mn></msub><mi mathvariant="normal">∣</mi><mo>=</mo><mn>6</mn></mrow></munder><munderover><mo>∑</mo><mrow><mi>g</mi><mo>=</mo><mn>0</mn></mrow><mn>1</mn></munderover><munder><mo>∑</mo><mrow><mi>o</mi><mo>∈</mo><msub><mi>G</mi><mi>g</mi></msub></mrow></munder><mi mathvariant="normal">∥</mi><msub><mi>v</mi><mi>o</mi></msub><mo>−</mo><msub><mover accent="true"><mi>v</mi><mo stretchy="true">‾</mo></mover><msub><mi>G</mi><mi>g</mi></msub></msub><msubsup><mi mathvariant="normal">∥</mi><mn>2</mn><mn>2</mn></msubsup><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">(G_0,G_1)
+=\arg\min_{|G_0|=|G_1|=6}
+\sum_{g=0}^{1}\sum_{o\in G_g}\|v_o-\overline v_{G_g}\|_2^2.</annotation></semantics></math></span></div>
+<p>给图像分配情境时，用冻结 CPF 主干的物体概率，而非真值物体：</p>
+<div class="mathblock" data-index="20"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>g</mi><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><mi>arg</mi><mo>⁡</mo><munder><mrow><mi>max</mi><mo>⁡</mo></mrow><mrow><mi>g</mi><mo>∈</mo><mo stretchy="false">{</mo><mn>0</mn><mo separator="true">,</mo><mn>1</mn><mo stretchy="false">}</mo></mrow></munder><munder><mo>∑</mo><mrow><mi>o</mi><mo>∈</mo><msub><mi>G</mi><mi>g</mi></msub></mrow></munder><mi mathvariant="normal">softmax</mi><mo>⁡</mo><mo stretchy="false">(</mo><msubsup><mi>z</mi><mi>o</mi><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">P</mi><mi mathvariant="normal">F</mi></mrow></msubsup><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><msub><mo stretchy="false">)</mo><mi>o</mi></msub><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">g(x)=\arg\max_{g\in\{0,1\}}
+\sum_{o\in G_g}\operatorname{softmax}(z^{\rm CPF}_o(x))_o.</annotation></semantics></math></span></div>
+<p>并列归入组 0。支持响应、查询测量和最终部署使用完全相同的路由规则。<code>groups.json</code> 保存具体对象名称和划分。</p>
+<p>对支持图像权重 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>w</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">w_i</annotation></semantics></math></span></span>，在情境 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi></mrow><annotation encoding="application/x-tex">g</annotation></semantics></math></span></span> 内重归一化：</p>
+<div class="mathblock" data-index="21"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>w</mi><mrow><mi>i</mi><mo>∣</mo><mi>g</mi></mrow></msub><mo>=</mo><mfrac><mrow><msub><mi>w</mi><mi>i</mi></msub><mn mathvariant="bold">1</mn><mo stretchy="false">{</mo><mi>g</mi><mo stretchy="false">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>=</mo><mi>g</mi><mo stretchy="false">}</mo></mrow><mrow><munder><mo>∑</mo><mi>k</mi></munder><msub><mi>w</mi><mi>k</mi></msub><mn mathvariant="bold">1</mn><mo stretchy="false">{</mo><mi>g</mi><mo stretchy="false">(</mo><msub><mi>x</mi><mi>k</mi></msub><mo stretchy="false">)</mo><mo>=</mo><mi>g</mi><mo stretchy="false">}</mo></mrow></mfrac><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">w_{i\mid g}
+=\frac{w_i\mathbf1\{g(x_i)=g\}}
+{\sum_k w_k\mathbf1\{g(x_k)=g\}}.</annotation></semantics></math></span></div>
+<p>在全局八维响应的两个四维块上分别这样计算，得到 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mrow><mi>j</mi><mo separator="true">,</mo><mi>e</mi><mo separator="true">,</mo><mi>g</mi></mrow></msub></mrow><annotation encoding="application/x-tex">h_{j,e,g}</annotation></semantics></math></span></span>。某个四维块没有该情境支持图像时，使用该边对应的全局四维块，其情境差为零，并记录 <code>empty_blocks</code>。</p>
+<p>对于伪未见 measure 图像，令 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mrow><mi>j</mi><mo separator="true">,</mo><mi>g</mi></mrow></msub></mrow><annotation encoding="application/x-tex">n_{j,g}</annotation></semantics></math></span></span> 为路由到情境 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi></mrow><annotation encoding="application/x-tex">g</annotation></semantics></math></span></span> 的图像数，<span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">n_j</annotation></semantics></math></span></span> 为总数：</p>
+<div class="mathblock" data-index="22"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>ω</mi><mrow><mi>j</mi><mo separator="true">,</mo><mi>g</mi></mrow></msub><mo>=</mo><mfrac><msub><mi>n</mi><mrow><mi>j</mi><mo separator="true">,</mo><mi>g</mi></mrow></msub><msub><mi>n</mi><mi>j</mi></msub></mfrac><mo separator="true">,</mo><mspace width="2em"/><msubsup><mi>u</mi><mrow><mi>j</mi><mo separator="true">,</mo><mi>e</mi><mo separator="true">,</mo><mi>g</mi></mrow><mrow><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></msubsup><mo>=</mo><mi mathvariant="double-struck">E</mi><mtext> ⁣</mtext><mrow><mo fence="true">[</mo><msubsup><mi mathvariant="normal">Δ</mi><mrow><mi>i</mi><mo separator="true">,</mo><mi>e</mi></mrow><mrow><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></msubsup><mo>∣</mo><mi>g</mi><mo stretchy="false">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>=</mo><mi>g</mi><mo separator="true">,</mo><mtext> </mtext><mi>i</mi><mo>∈</mo><msub><mi mathvariant="script">U</mi><mi>j</mi></msub><mo fence="true">]</mo></mrow><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\omega_{j,g}=\frac{n_{j,g}}{n_j},
+\qquad
+u_{j,e,g}^{(1)}
+=\mathbb E\!\left[\Delta_{i,e}^{(1)}\mid g(x_i)=g,\ i\in\mathcal U_j\right].</annotation></semantics></math></span></div>
+<div class="mathblock" data-index="23"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msubsup><mi>u</mi><mrow><mi>j</mi><mo separator="true">,</mo><mi>e</mi></mrow><mrow><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></msubsup><mo>=</mo><munder><mo>∑</mo><mi>g</mi></munder><msub><mi>ω</mi><mrow><mi>j</mi><mo separator="true">,</mo><mi>g</mi></mrow></msub><msubsup><mi>u</mi><mrow><mi>j</mi><mo separator="true">,</mo><mi>e</mi><mo separator="true">,</mo><mi>g</mi></mrow><mrow><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></msubsup><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">u_{j,e}^{(1)}=\sum_g\omega_{j,g}u_{j,e,g}^{(1)}.</annotation></semantics></math></span></div>
+<p>代码用同一组逐图像干预统计计算条件与全局标签，检查上式数值一致。查询情境为空时，其权重为零。</p>
+<p>定义保留零点的情境差分归一化：</p>
+<div class="mathblock" data-index="24"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.25em" columnalign="right left" columnspacing="0em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msubsup><mi>d</mi><mi>k</mi><mn>2</mn></msubsup></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mfrac><mn>1</mn><mrow><mi>J</mi><mi mathvariant="normal">∣</mi><mi>E</mi><mi mathvariant="normal">∣</mi></mrow></mfrac><munder><mo>∑</mo><mrow><mi>j</mi><mo separator="true">,</mo><mi>g</mi><mo separator="true">,</mo><mi>e</mi></mrow></munder><msub><mi>ω</mi><mrow><mi>j</mi><mo separator="true">,</mo><mi>g</mi></mrow></msub><mo stretchy="false">(</mo><msub><mi>h</mi><mrow><mi>j</mi><mo separator="true">,</mo><mi>e</mi><mo separator="true">,</mo><mi>g</mi><mo separator="true">,</mo><mi>k</mi></mrow></msub><mo>−</mo><msub><mi>h</mi><mrow><mi>j</mi><mo separator="true">,</mo><mi>e</mi><mo separator="true">,</mo><mi>k</mi></mrow></msub><msup><mo stretchy="false">)</mo><mn>2</mn></msup><mo separator="true">,</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mi>δ</mi><msub><mi>h</mi><mrow><mi>j</mi><mo separator="true">,</mo><mi>e</mi><mo separator="true">,</mo><mi>g</mi><mo separator="true">,</mo><mi>k</mi></mrow></msub></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mfrac><mrow><msub><mi>h</mi><mrow><mi>j</mi><mo separator="true">,</mo><mi>e</mi><mo separator="true">,</mo><mi>g</mi><mo separator="true">,</mo><mi>k</mi></mrow></msub><mo>−</mo><msub><mi>h</mi><mrow><mi>j</mi><mo separator="true">,</mo><mi>e</mi><mo separator="true">,</mo><mi>k</mi></mrow></msub></mrow><mrow><mi>max</mi><mo>⁡</mo><mo stretchy="false">(</mo><msub><mi>d</mi><mi>k</mi></msub><mo separator="true">,</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>6</mn></mrow></msup><mo stretchy="false">)</mo></mrow></mfrac><mi mathvariant="normal">.</mi></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+d_k^2&amp;=\frac1{J|E|}\sum_{j,g,e}
+\omega_{j,g}(h_{j,e,g,k}-h_{j,e,k})^2,\\
+\delta h_{j,e,g,k}&amp;=
+\frac{h_{j,e,g,k}-h_{j,e,k}}{\max(d_k,10^{-6})}.
+\end{aligned}</annotation></semantics></math></span></div>
+<p>差分不减均值，因此零差分始终表示“与全局响应相同”。51 参数设计为三个类型块，每块包含截距、八维全局项和八维差分项：</p>
+<div class="mathblock" data-index="25"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>ψ</mi><mrow><mi>j</mi><mo separator="true">,</mo><mi>e</mi><mo separator="true">,</mo><mi>g</mi></mrow></msub><mo>=</mo><msub><mrow><mi mathvariant="normal">block</mi><mo>⁡</mo></mrow><mrow><mi>t</mi><mo stretchy="false">(</mo><mi>e</mi><mo stretchy="false">)</mo></mrow></msub><mrow><mo fence="true">[</mo><mn>1</mn><mo separator="true">,</mo><mfrac><mrow><msub><mi>h</mi><mrow><mi>j</mi><mo separator="true">,</mo><mi>e</mi></mrow></msub><mo>−</mo><mover accent="true"><mi>h</mi><mo>ˉ</mo></mover></mrow><msub><mi>s</mi><mi>h</mi></msub></mfrac><mo separator="true">,</mo><mi>δ</mi><msub><mi>h</mi><mrow><mi>j</mi><mo separator="true">,</mo><mi>e</mi><mo separator="true">,</mo><mi>g</mi></mrow></msub><mo fence="true">]</mo></mrow><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><mn>51</mn></msup><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\psi_{j,e,g}
+=\operatorname{block}_{t(e)}
+\left[1,\frac{h_{j,e}-\bar h}{s_h},\delta h_{j,e,g}\right]
+\in\mathbb R^{51}.</annotation></semantics></math></span></div>
+<div class="mathblock" data-index="26"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mover accent="true"><mi>θ</mi><mo stretchy="true">^</mo></mover><mo>=</mo><mi>arg</mi><mo>⁡</mo><munder><mrow><mi>min</mi><mo>⁡</mo></mrow><mi>θ</mi></munder><mrow><mo fence="true">{</mo><mfrac><mn>1</mn><mi>J</mi></mfrac><munder><mo>∑</mo><mrow><mi>j</mi><mo separator="true">,</mo><mi>g</mi><mo separator="true">,</mo><mi>e</mi></mrow></munder><msub><mi>ω</mi><mrow><mi>j</mi><mo separator="true">,</mo><mi>g</mi></mrow></msub><msup><mrow><mo fence="true">(</mo><msubsup><mi>ψ</mi><mrow><mi>j</mi><mo separator="true">,</mo><mi>e</mi><mo separator="true">,</mo><mi>g</mi></mrow><mi mathvariant="normal">⊤</mi></msubsup><mi>θ</mi><mo>−</mo><mfrac><msubsup><mi>u</mi><mrow><mi>j</mi><mo separator="true">,</mo><mi>e</mi><mo separator="true">,</mo><mi>g</mi></mrow><mrow><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></msubsup><msub><mi>s</mi><mrow><mi>t</mi><mo stretchy="false">(</mo><mi>e</mi><mo stretchy="false">)</mo></mrow></msub></mfrac><mo fence="true">)</mo></mrow><mn>2</mn></msup><mo>+</mo><mi>λ</mi><mi mathvariant="normal">∥</mi><mi>θ</mi><msubsup><mi mathvariant="normal">∥</mi><mn>2</mn><mn>2</mn></msubsup><mo fence="true">}</mo></mrow><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\widehat\theta
+=\arg\min_\theta
+\left\{\frac1J\sum_{j,g,e}\omega_{j,g}
+\left(\psi_{j,e,g}^\top\theta-
+\frac{u_{j,e,g}^{(1)}}{s_{t(e)}}\right)^2
++\lambda\|\theta\|_2^2\right\}.</annotation></semantics></math></span></div>
+<div class="mathblock" data-index="27"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mover accent="true"><mi>θ</mi><mo stretchy="true">^</mo></mover><mo>=</mo><mo stretchy="false">(</mo><msup><mi>Z</mi><mi mathvariant="normal">⊤</mi></msup><mi>W</mi><mi>Z</mi><mo>+</mo><mn>30</mn><mi>I</mi><msup><mo stretchy="false">)</mo><mrow><mo>−</mo><mn>1</mn></mrow></msup><msup><mi>Z</mi><mi mathvariant="normal">⊤</mi></msup><mi>W</mi><mover accent="true"><mi>u</mi><mo stretchy="true">~</mo></mover><mo separator="true">,</mo><mspace width="2em"/><msub><mover accent="true"><mi>u</mi><mo stretchy="true">^</mo></mover><mrow><mi>e</mi><mo separator="true">,</mo><mi>g</mi></mrow></msub><mo>=</mo><msub><mi>s</mi><mrow><mi>t</mi><mo stretchy="false">(</mo><mi>e</mi><mo stretchy="false">)</mo></mrow></msub><msubsup><mi>ψ</mi><mrow><mi>e</mi><mo separator="true">,</mo><mi>g</mi></mrow><mi mathvariant="normal">⊤</mi></msubsup><mover accent="true"><mi>θ</mi><mo stretchy="true">^</mo></mover><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\widehat\theta
+=(Z^\top WZ+30I)^{-1}Z^\top W\widetilde u,
+\qquad
+\widehat u_{e,g}=s_{t(e)}\psi_{e,g}^\top\widehat\theta.</annotation></semantics></math></span></div>
+<p>每个教师的两情境权重和为 1。若将情境差分项系数限制为零，由加权平方误差分解，上式对全局系数的目标与 27 参数全局目标只差一个常数，因而严格包含全局模型。若所有情境响应恰好等于全局响应，岭回归也会将差分系数自动解为零。</p>
+<p>部署时每个情境各自求满足半预算的概率 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>π</mi><mrow><mi>e</mi><mo separator="true">,</mo><mi>g</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\pi_{e,g}</annotation></semantics></math></span></span>。固定一组公共随机数 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>U</mi><mrow><mi>m</mi><mo separator="true">,</mo><mi>e</mi></mrow></msub></mrow><annotation encoding="application/x-tex">U_{m,e}</annotation></semantics></math></span></span>，图像 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi></mrow><annotation encoding="application/x-tex">x</annotation></semantics></math></span></span> 使用：</p>
+<div class="mathblock" data-index="28"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msubsup><mi>b</mi><mi>e</mi><mrow><mo stretchy="false">(</mo><mi>m</mi><mo stretchy="false">)</mo></mrow></msubsup><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><mn mathvariant="bold">1</mn><mo stretchy="false">{</mo><msub><mi>U</mi><mrow><mi>m</mi><mo separator="true">,</mo><mi>e</mi></mrow></msub><mo>&lt;</mo><msub><mi>π</mi><mrow><mi>e</mi><mo separator="true">,</mo><mi>g</mi><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo></mrow></msub><mo stretchy="false">}</mo><mo separator="true">,</mo><mspace width="2em"/><msub><mi>U</mi><mrow><mi>m</mi><mo separator="true">,</mo><mi>e</mi></mrow></msub><mo>∼</mo><mi mathvariant="normal">Uniform</mi><mo>⁡</mo><mo stretchy="false">(</mo><mn>0</mn><mo separator="true">,</mo><mn>1</mn><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">b_e^{(m)}(x)=\mathbf1\{U_{m,e}&lt;\pi_{e,g(x)}\},
+\qquad U_{m,e}\sim\operatorname{Uniform}(0,1).</annotation></semantics></math></span></div>
+<p>公共随机数让两个情境及不同策略配对比较。每张图像仍只接受 16 张图的评分，代码按情境分组处理该组图像，不为每张图像重复计算两套完整预测。</p>
+<h2>8. 对照、曲线和统计单位</h2>
+<p>正式识别包含 Uniform、Matched、A、B、C、情境打乱。Matched/A/B/C 各加五个类型内关系置换，合计 26 种策略。情境模型的置换在两个情境中使用同一边排列，保留该边的跨情境向量。</p>
+<p>情境打乱模型固定选择九个拟合教师中的五个，交换其两个情境的输入响应，标签、权重和全局输入保留。所有边共用该教师的交换，不逐边随机拆散。归一化与 C 相同。这样可以比较条件输入和条件效用对应关系的贡献。</p>
+<p>Q4/Q5 另有三种“测量效用直接选图”诊断，以及 response averaging 的 readout-only、refit 两种对照。测量选图用有限块得到的效用，不称为真实最优策略。</p>
+<p>对于任一策略，定义单图或混合风险的一阶改善近似：</p>
+<div class="mathblock" data-index="29"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msubsup><mi>G</mi><mi>M</mi><mrow><mi mathvariant="normal">l</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow></msubsup><mo stretchy="false">(</mo><mi>π</mi><mo stretchy="false">)</mo><mo>=</mo><munder><mo>∑</mo><mi>e</mi></munder><msubsup><mi>u</mi><mi>e</mi><mrow><mo stretchy="false">(</mo><mi>M</mi><mo stretchy="false">)</mo></mrow></msubsup><mo stretchy="false">(</mo><msub><mi>π</mi><mi>e</mi></msub><mo>−</mo><mn>1</mn><mi mathvariant="normal">/</mi><mn>2</mn><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">G_M^{\rm lin}(\pi)
+=\sum_e u_e^{(M)}(\pi_e-1/2).</annotation></semantics></math></span></div>
+<p>情境策略则为：</p>
+<div class="mathblock" data-index="30"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msubsup><mi>G</mi><mrow><mi>M</mi><mo separator="true">,</mo><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">x</mi></mrow></mrow><mrow><mi mathvariant="normal">l</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow></msubsup><mo stretchy="false">(</mo><mi>π</mi><mo stretchy="false">)</mo><mo>=</mo><munder><mo>∑</mo><mi>g</mi></munder><msub><mi>ω</mi><mi>g</mi></msub><munder><mo>∑</mo><mi>e</mi></munder><msubsup><mi>u</mi><mrow><mi>e</mi><mo separator="true">,</mo><mi>g</mi></mrow><mrow><mo stretchy="false">(</mo><mi>M</mi><mo stretchy="false">)</mo></mrow></msubsup><mo stretchy="false">(</mo><msub><mi>π</mi><mrow><mi>e</mi><mo separator="true">,</mo><mi>g</mi></mrow></msub><mo>−</mo><mn>1</mn><mi mathvariant="normal">/</mi><mn>2</mn><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">G_{M,\rm ctx}^{\rm lin}(\pi)
+=\sum_g\omega_g\sum_e u_{e,g}^{(M)}(\pi_{e,g}-1/2).</annotation></semantics></math></span></div>
+<p>在同一 measure 图像上，用独立图库估计实际改善 <span class="inline-math"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mi>M</mi></msub><mo stretchy="false">(</mo><msub><mi>π</mi><mn>0</mn></msub><mo stretchy="false">)</mo><mo>−</mo><msub><mi>R</mi><mi>M</mi></msub><mo stretchy="false">(</mo><mi>π</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">R_M(\pi_0)-R_M(\pi)</annotation></semantics></math></span></span>，记录其与上述近似之差。另在独立 evaluate 图像上记录泛化后的 NLL 和 exact AUC。两类结果分文件保存，方向近似与图像迁移不混为一个误差。</p>
+<table>
+<thead>
+<tr>
+<th>输出</th>
+<th>核心观察</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>正式 CW/OW AUC native、exact；VAL bias 下的 HM</td>
+<td>同 seed、同图库，相对 Uniform 与 Matched 的增益</td>
+</tr>
+<tr>
+<td>真实策略减五次关系置换均值</td>
+<td>关系对应是否贡献于分配，而不仅是概率离散度</td>
+</tr>
+<tr>
+<td>C 减情境打乱；条件标签方差与覆盖</td>
+<td>情境输入是否解释稳定的条件效用差异</td>
+</tr>
+<tr>
+<td>单图与 16 图标签的秩相关、符号变化；B 的 Q5 预测误差</td>
+<td>部署读出是否改变了有用关系的排序</td>
+</tr>
+<tr>
+<td>幅度—NLL—AUC 曲线；线性近似偏差</td>
+<td>有效方向在怎样的幅度上转化为实际收益</td>
+</tr>
+<tr>
+<td>epoch 0–10、选中 epoch、耗时与峰值显存</td>
+<td>适配是否充分，以及新增机制的运行成本</td>
+</tr>
+</tbody>
+</table>
+<p>正式图库为 1701、2701、3701；Q4/Q5 图库为 8201–8208。先在每个 seed 内平均图库，再给出三个 seed 的均值、样本标准差和逐 seed 配对值。三 seed 共享九教师拟合出的效用模型，因此它们代表三个识别轨迹上的条件结果，图库数不当作额外训练重复。</p>
+<p>正式校准逐策略在 VAL 确定 bias 和 temperature，然后原样用于 TEST。AUC 仍由完整 seen–unseen 扫描曲线计算；固定 VAL bias 下的 HM 单独保存。</p>
+<h2>9. 代码与文件对应</h2>
+<table>
+<thead>
+<tr>
+<th>模块</th>
+<th>实现</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>abc_train.py</code></td>
+<td>Uniform 10 epoch、epoch 0 选模、优化器和 RNG 恢复</td>
+</tr>
+<tr>
+<td><code>abc.py</code></td>
+<td>有限混合效用、27/51 参数回归、幅度和预算策略</td>
+</tr>
+<tr>
+<td><code>abc_measure.py</code></td>
+<td>原开关统计复用、辅助图测量、条件响应和条件标签</td>
+</tr>
+<tr>
+<td><code>abc_formal.py</code></td>
+<td>两情境路由、16 图概率混合、CW/OW 评分</td>
+</tr>
+<tr>
+<td><code>abc_eval.py</code></td>
+<td>Q4/Q5 曲线、正式策略评价、同概率策略去重</td>
+</tr>
+<tr>
+<td><code>abc_workflow.py</code></td>
+<td>Stage 导入、Q4 图像划分、训练/拟合/选择顺序</td>
+</tr>
+<tr>
+<td><code>abc_report.py</code></td>
+<td>配对差值、seed 内图库平均、完整性汇总</td>
+</tr>
+<tr>
+<td><code>scripts/run_queue.py</code></td>
+<td>三 GPU 队列与共享拟合屏障</td>
+</tr>
+<tr>
+<td><code>scripts/pack_results.py</code>、<code>upload.ps1</code>、<code>download.ps1</code></td>
+<td>固定路径传输、SHA256、打包进度、自动解压</td>
+</tr>
+</tbody>
+</table>
+<p>完整代码以相邻 ZIP 和源码目录为准。下一节直接摘录对应函数，便于核对公式与实际实现。</p>
+<h2>10. 核心实现摘录</h2>
+<p>以下代码直接从交付模块抽取。模块内的 NumPy、PyTorch 和既有 CPF 工具导入见源码；没有另写一套演示实现。</p>
+<h3>10.1 有限混合效用与条件标签</h3>
+<p>来源：<code>trustcpf/abc.py</code>。</p>
+<pre><code class="language-python">def mixture_effect(off,on,aux):
+    &quot;&quot;&quot;[E,N] paired log probabilities; [M-1,N] independent auxiliary logs.&quot;&quot;&quot;
+    off,on,aux=[v.double() for v in (off,on,aux)]
+    m=len(aux)+1
+    if m==1:return on-off
+    a=aux.logsumexp(0)
+    return m*(torch.logaddexp(a[None],on)-torch.logaddexp(a[None],off))
+
+def conditional_targets(effects,routes,sample_seen):
+    &quot;&quot;&quot;effects: K x E x N; supervision uses pseudo-unseen images only.&quot;&quot;&quot;
+    keep=~sample_seen.bool();n=int(keep.sum());weights=[];targets=[];blocks=[]
+    for g in range(2):
+        use=keep&amp;(routes==g);weights.append(float(use.sum())/n)
+        b=effects[:,:,use].mean(-1) if use.any() else effects.new_zeros(effects.shape[:2])
+        blocks.append(b);targets.append(b.mean(0))
+    global_blocks=effects[:,:,keep].mean(-1)
+    targets=torch.stack(targets);blocks=torch.stack(blocks)
+    torch.testing.assert_close((targets*targets.new_tensor(weights)[:,None]).sum(0),global_blocks.mean(0),atol=1e-11,rtol=1e-9)
+    return dict(target=global_blocks.mean(0),blocks=global_blocks,
+                context=targets,context_blocks=blocks,weights=np.array(weights))
+</code></pre>
+<h3>10.2 情境模型的设计与闭式求解</h3>
+<p>来源：<code>trustcpf/abc.py</code>。</p>
+<pre><code class="language-python">def context_design(h,hg,types,norm,delta_scale):
+    &quot;&quot;&quot;G x E x 51; zero context difference stays zero.&quot;&quot;&quot;
+    h=np.asarray(h,dtype=np.float64);hg=np.asarray(hg,dtype=np.float64)
+    global_x=(h-norm['center'])/norm['spread']
+    diff=(hg-h[None])/delta_scale
+    raw=np.concatenate([np.ones((*diff.shape[:2],1)),np.broadcast_to(global_x,diff.shape),diff],-1)
+    return np.concatenate([raw*(types==t)[None,:,None] for t in range(3)],-1)
+
+def fit_context(xs,xgs,ys,weights,types,norm,alpha,swap=()):
+    delta=np.stack([g-x[None] for x,g in zip(xs,xgs)])
+    scale=np.sqrt(np.einsum('jg,jgek-&gt;k',np.stack(weights),delta**2)/(len(xs)*len(types)))
+    scale=np.maximum(scale,1e-6)
+    design=[];labels=[];mass=[]
+    for j,(x,g,y,w) in enumerate(zip(xs,xgs,ys,weights)):
+        z=context_design(x,g,types,norm,scale)
+        if j in swap:
+            # Only conditional inputs are swapped. Global input is group-invariant.
+            z=z[::-1].copy()
+        design.append(z.reshape(-1,51))
+        labels.append((y/norm['scales'][types]).reshape(-1))
+        mass.append(np.repeat(w,len(types)))
+    z=np.concatenate(design);y=np.concatenate(labels);w=np.concatenate(mass)
+    beta=np.linalg.solve(z.T@(w[:,None]*z)+alpha*np.eye(51),z.T@(w*y))
+    return dict(norm,delta_scale=scale,beta=beta,alpha=float(alpha),dimension=51,swapped_teachers=list(swap))
+</code></pre>
+<h3>10.3 固定尺度、幅度与等式预算</h3>
+<p>来源：<code>trustcpf/abc.py</code>。</p>
+<pre><code class="language-python">def fixed_scale(ys,types):
+    return np.array([max(np.sqrt(np.mean([np.mean((y[types==t]-y[types==t].mean())**2) for y in ys])),1e-12) for t in range(3)])
+
+def score_policy(mu,types,scale=None,eta=1.):
+    mu=np.atleast_2d(np.asarray(mu,dtype=np.float64));out=[]
+    for row in mu:
+        if scale is None:p,_=align.policy(row,types,1.)
+        else:
+            p=torch.empty(len(types),dtype=torch.double)
+            for t in range(3):
+                ix=types==t;r=(row[ix]-row[ix].mean())/scale[t]
+                lo,hi=float(r.min()-50),float(r.max()+50)
+                for _ in range(100):
+                    mid=(lo+hi)/2;q=1/(1+np.exp(np.clip(mid-r,-700,700)))
+                    if q.sum()&gt;len(q)/2:lo=mid
+                    else:hi=mid
+                p[ix]=torch.from_numpy(1/(1+np.exp(np.clip((lo+hi)/2-r,-700,700))))
+        out.append(.5+float(eta)*(p-.5))
+    return torch.stack(out)
+</code></pre>
+<h3>10.4 冻结物体路由与分组评分</h3>
+<p>来源：<code>trustcpf/abc.py</code>。</p>
+<pre><code class="language-python">def route(obj_logits,groups):
+    p=obj_logits.softmax(-1)
+    return torch.stack([p[:,g].sum(-1) for g in groups],-1).argmax(-1)
+</code></pre>
+<h3>10.5 每张图像只使用所属情境的图</h3>
+<p>来源：<code>trustcpf/abc_formal.py</code>。</p>
+<pre><code class="language-python">@torch.no_grad()
+def routed_stack(model,base,masks,routes):
+    if len(masks)==1:
+        return torch.stack([model.score(base,mask)[0] for mask in masks[0]])
+    n=len(routes);result=None
+    for g in range(len(masks)):
+        ix=torch.where(routes==g)[0]
+        if not len(ix):continue
+        part={k:v[ix] for k,v in base.items()}
+        scores=torch.stack([model.score(part,mask)[0] for mask in masks[g]])
+        if result is None:result=scores.new_empty((len(masks[g]),n,model.no,model.na))
+        result[:,ix]=scores
+    return result
+</code></pre>
+<h3>10.6 完整 10 epoch 与恢复</h3>
+<p>来源：<code>trustcpf/abc_train.py</code>。</p>
+<pre><code class="language-python">def uniform(args,until_epoch=None):
+    work,cfg,manifest,text,bank=align.context(args);cfg=dict(cfg,variant='uniform',readout='probability')
+    if cfg['adapt_epochs']!=10:raise ValueError('This experiment uses 10 complete epochs')
+    out=work/'runs/uniform';out.mkdir(parents=True,exist_ok=True)
+    cp=work/'reference/last.pt';model=align.restore(text,bank,cfg,args.device,cp);model.backbone.requires_grad_(False)
+    ids=engine.row_ids(args.cache,manifest['pairs']['train'],manifest['labels'])
+    opt=engine.optimizer(model,cfg);loader=engine.batches(args.cache,'train',cfg,ids,True)
+    candidates=torch.tensor(pair_ids(manifest['labels'],manifest['pairs']['train']),device=args.device)
+    pi=torch.full((len(bank['types']),),.5,device=args.device)
+    prepared=state_eval.prepare_phase(model,args.cache,'val',cfg)
+    def validate():
+        model.eval()
+        return state_eval.evaluate_cached(model,args.cache,cfg,manifest,pi,'val',prepared=prepared)
+    if (out/'last.pt').exists():
+        st=load_torch(out/'last.pt')
+        assert st['initial_sha256']==sha(cp) and st['cfg']==cfg
+        model.load_state_dict(st['model']);opt.load_state_dict(st['optimizer'])
+        torch.set_rng_state(st['torch_rng']);np.random.set_state(st['numpy_rng'])
+        if str(args.device).startswith('cuda'):torch.cuda.set_rng_state_all(st['cuda_rng'])
+    else:
+        v=validate()
+        st=dict(epoch=0,model=copy.deepcopy(model.state_dict()),best_model=copy.deepcopy(model.state_dict()),
+            best_epoch=0,best_metrics=v,optimizer=opt.state_dict(),history=[dict(epoch=0,val=v)],
+            pi=pi.cpu(),cfg=cfg,initial_sha256=sha(cp),torch_rng=torch.get_rng_state(),
+            numpy_rng=np.random.get_state(),cuda_rng=torch.cuda.get_rng_state_all() if str(args.device).startswith('cuda') else None)
+        save_torch(out/'last.pt',st)
+    export(out,st)
+    limit=10 if until_epoch is None else min(10,until_epoch)
+    total=max(1,10*len(loader));warmup=max(1,len(loader))
+    for epoch in range(st['epoch'],limit):
+        model.train();losses=[];tic=time.perf_counter()
+        for bi,data in enumerate(loader):
+            step=epoch*len(loader)+bi
+            factor=min((step+1)/warmup,1.)*.5*(1+math.cos(math.pi*max(0,step-warmup)/max(1,total-warmup)))
+            for g in opt.param_groups:g['lr']=cfg['graph_lr']*factor
+            g,fa,fo,a,o=[v.to(args.device) for v in data];mask=torch.bernoulli(pi)
+            joint,lo,lc=model(g,fa,fo,mask)
+            loss=task_loss(joint,lo,lc,a,o,candidates)+cfg['lambda_w']*model.graph.regularizer()
+            opt.zero_grad();loss.backward()
+            torch.nn.utils.clip_grad_norm_([p for gg in opt.param_groups for p in gg['params']],cfg['gradient_clip'])
+            opt.step();losses.append(float(loss.detach()))
+        v=validate()
+        if v['cw']['AUC_native']&gt;st['best_metrics']['cw']['AUC_native']:
+            st.update(best_epoch=epoch+1,best_metrics=v,best_model=copy.deepcopy(model.state_dict()))
+        st['history'].append(dict(epoch=epoch+1,loss=float(np.mean(losses)),val=v,
+            learning_rate=opt.param_groups[0]['lr'],seconds=time.perf_counter()-tic))
+        st.update(epoch=epoch+1,model=model.state_dict(),optimizer=opt.state_dict(),
+            torch_rng=torch.get_rng_state(),numpy_rng=np.random.get_state(),
+            cuda_rng=torch.cuda.get_rng_state_all() if str(args.device).startswith('cuda') else None)
+        save_torch(out/'last.pt',st);export(out,st)
+        print('UNIFORM_EPOCH',args.seed,epoch+1,'loss',st['history'][-1]['loss'],'val_auc',v['cw']['AUC_native'],'best_epoch',st['best_epoch'],flush=True)
+    if st['epoch']==10:
+        original=load_torch(cp)['model']
+        for key,value in original.items():
+            if key.startswith('backbone.'):
+                assert torch.equal(value,st['model'][key].detach().cpu())
+                assert torch.equal(value,st['best_model'][key].detach().cpu())
+        chosen=max(st['history'],key=lambda r:(r['val']['cw']['AUC_native'],-r['epoch']))['epoch']
+        assert chosen==st['best_epoch'] and len(st['history'])==11
+        write_json(out/'training_contract.json',dict(epochs_completed=10,selected_epoch=chosen,
+            best_sha256=sha(out/'best.pt'),last_sha256=sha(out/'last.pt'),initial_sha256=sha(cp),
+            backbone_identical=True,selection='VAL CW native AUC, earliest maximum among epoch 0..10',
+            training='new Uniform trajectory from reference; common frozen weights for A/B/C'))
+</code></pre></article></html>
