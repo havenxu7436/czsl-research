@@ -1,6 +1,6 @@
 # TRUST-CPF 方案
 
-CLIP / CPF 上的可迁移关系效用监督、关系概率分配与 CZSL 研究。01–09 按实际执行顺序归档。
+CLIP / CPF 上的可迁移关系效用监督、关系概率分配与 CZSL 研究。01–10 按实际执行顺序归档。
 
 | 编号 | 实验 | 已完成内容 | 入口 |
 | --- | --- | --- | --- |
@@ -13,11 +13,12 @@ CLIP / CPF 上的可迁移关系效用监督、关系概率分配与 CZSL 研究
 | 07 | R5 相对效用拟合 / 10 epoch | 27 阶段、15 份结果标签、1 次新适配；168 行 Q5 风险 | [阶段首页](07/README.md) · [分析](07/analysis/README.md) |
 | 08 | State 第一批 / 10 epoch | 3 条 Uniform 重训、1512 行识别、600 行 Q5、756 份预测 | [阶段首页](08/README.md) · [分析](08/analysis/README.md) |
 | 09 | Stage 第二批 / 10 epoch | 15 个教师追加训练、972 行识别、744 行 Q5、486 份预测 | [阶段首页](09/README.md) · [分析](09/analysis/README.md) |
+| 10 | A/B/C 幅度、混合与情境效用 / 10 epoch | 36 阶段、936 行识别、3360 行 Q4、3504 行 Q5、1056 行方向曲线 | [阶段首页](10/README.md) · [分析](10/analysis/README.md) |
 
 各阶段保存方案、公式、实现、配置、知识指纹、发布包、权重、测量、预测、审计、日志与复算入口。相同概率下复用的 Uniform、跨阶段复用的历史对照均明确标注。
 
-最新第二批完成教师阶段匹配与双响应比较。三 bank 平均的 Uniform 为 35.904 / 26.461，Matched-Single 为 35.903 / 26.463，Matched-Average 为 35.936 / 26.483（CW / OW）。阶段匹配主要修复了上一批的下降，正式终端仍接近持平；Q5 的效用决策信号继续保留。[最新完整分析](09/analysis/README.md)。
+最新 10 阶段已完成 A/B/C 整批实验。三 bank 平均 Uniform 为 36.051 / 26.638，Matched 为 36.148 / 26.744，C 为 36.147 / 26.747（CW / OW）。C 在三个 seed 均超过 Uniform、关系置换均值和情境打乱，平均性能与 Matched 接近；A/B 没有形成增量。[最新完整分析](10/analysis/README.md)。
 
-历史六路线安排保留于 [05/PLAN.md](05/PLAN.md)，v6 修订与本次两批设计见 [08/PLAN.md](08/PLAN.md)。08、09 已完成，09 分析末尾的新方向为后续提案。修订前 Competition 3 epoch 包见 [历史版本](06/references/pre_10epoch/README.md)。
+历史六路线安排保留于 [05/PLAN.md](05/PLAN.md)，v6 修订与本次两批设计见 [08/PLAN.md](08/PLAN.md)。08、09 和 10 均已完成；v8 公式及本轮三条机制见 [10/PLAN.md](10/PLAN.md)，10 分析末尾的五组独立重复为下一批提案。修订前 Competition 3 epoch 包见 [历史版本](06/references/pre_10epoch/README.md)。
 
 [全部实验路线](../README.md) 
