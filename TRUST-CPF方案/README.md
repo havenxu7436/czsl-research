@@ -1,6 +1,6 @@
 # TRUST-CPF 方案
 
-CLIP / CPF 上的可迁移关系效用监督、关系概率分配与 CZSL 研究。01–10 按实际执行顺序归档。
+Teacher-supervised Relation Utility for Semantic Transfer（Trust）实验归档.
 
 | 编号 | 实验 | 已完成内容 | 入口 |
 | --- | --- | --- | --- |
@@ -15,13 +15,3 @@ CLIP / CPF 上的可迁移关系效用监督、关系概率分配与 CZSL 研究
 | 09 | Stage 第二批 / 10 epoch | 15 个教师追加训练、972 行识别、744 行 Q5、486 份预测 | [阶段首页](09/README.md) · [分析](09/analysis/README.md) |
 | 10 | A/B/C 幅度、混合与情境效用 / 10 epoch | 36 阶段、936 行识别、3360 行 Q4、3504 行 Q5、1056 行方向曲线 | [阶段首页](10/README.md) · [分析](10/analysis/README.md) |
 | 11 | G₀ 三数据集完整独立流水线 / 10 epoch | 165任务、450段训练、1,620行识别、378行Q5；三数据集×三seed独立拟合 | [阶段首页](11/README.md) · [分析](11/analysis/README.md) |
-
-各阶段保存方案、公式、实现、配置、知识指纹、发布包、权重、测量、预测、审计、日志与复算入口。相同概率下复用的 Uniform、跨阶段复用的历史对照均明确标注。
-
-历史第10阶段已完成 A/B/C 整批实验。三 bank 平均 Uniform 为 36.051 / 26.638，Matched 为 36.148 / 26.744，C 为 36.147 / 26.747（CW / OW）。C 在三个 seed 均超过 Uniform、关系置换均值和情境打乱，平均性能与 Matched 接近；A/B 没有形成增量。[最新完整分析](10/analysis/README.md)。
-
-历史六路线安排保留于 [05/PLAN.md](05/PLAN.md)，v6 修订与本次两批设计见 [08/PLAN.md](08/PLAN.md)。08、09 和 10 均已完成；v8 公式及本轮三条机制见 [10/PLAN.md](10/PLAN.md)，10 分析末尾的五组独立重复为下一批提案。修订前 Competition 3 epoch 包见 [历史版本](06/references/pre_10epoch/README.md)。
-
-[全部实验路线](../README.md) 
-
-最新第11阶段完成UT、MIT、C-GQA全部任务。Context相对Uniform的CW/OW增量：UT +0.1499/+0.1676，MIT −0.0108/−0.0122，C-GQA +0.0333/+0.0106。Q5保留效用监督价值，正式迁移仍有限。[完整队列](11/configs/experiment_queue.json) · [三数据集分析](11/analysis/README.md)。
