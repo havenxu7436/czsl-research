@@ -261,9 +261,9 @@ R2−R1 是核心机制比较；R1−R0 说明局部读取带来的变化。三�
 
 ```math
 \begin{aligned}
-\widetilde h&=\operatorname{LN}_2(h),\\[4pt]
-h'&=h+\operatorname{MLP}(\widetilde h)
- +0.1\,U_b\operatorname{GELU}(D_b\widetilde h),\\[4pt]
+\widetilde h&=\mathrm{LN}_2(h),\\[4pt]
+h'&=h+\mathrm{MLP}(\widetilde h)
+ +0.1\,U_b\mathrm{GELU}(D_b\widetilde h),\\[4pt]
 D_b&\in\mathbb R^{64\times1024},\qquad U_b\in\mathbb R^{1024\times64}.
 \end{aligned}
 ```
@@ -331,7 +331,7 @@ m_{ab,o}&=\log Z^{+}_{ab,o}-\log Z^{-}_{ab,o}.
 
 
 ```math
-U_o=\underset{\mathbf1^\top U=0}{\operatorname{argmin}}
+U_o=\underset{\mathbf1^\top U=0}{\arg\min}
 \frac12\sum_{a<b}\left[(U_a-U_b)-m_{ab,o}\right]^2.
 ```
 
@@ -412,8 +412,8 @@ U'_{ao}&=U_{ao}+b_{ao}-\frac1A\sum_b b_{bo}.
 ```math
 \begin{aligned}
 S_o(x)&=\kappa g^\top e_o+(g^\top B_o)(e_o^\top C_o)^\top,\\[4pt]
-p(o\mid x)&=\operatorname{softmax}_o S_o(x),\\[4pt]
-p(a\mid o,x)&=\operatorname{softmax}_a U_{ao}(x),\\[4pt]
+p(o\mid x)&=\mathrm{softmax}_o S_o(x),\\[4pt]
+p(a\mid o,x)&=\mathrm{softmax}_a U_{ao}(x),\\[4pt]
 J_{ao}(x)&=\log p(o\mid x)+\log p(a\mid o,x).
 \end{aligned}
 ```

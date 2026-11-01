@@ -216,7 +216,7 @@ def policy(mu, types, strength):
 
 
 ```math
-e_s^\star=\operatorname*{arg\,max}_{e=0,\ldots,10}
+e_s^\star=\arg\max_{e=0,\ldots,10}
 A_{\mathrm{VAL,CW}}(\theta_{s,e}^{U},1/2).
 ```
 

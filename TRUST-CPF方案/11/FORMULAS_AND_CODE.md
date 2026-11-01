@@ -47,7 +47,7 @@ G₀ 的模型文件与历史 `trustcpf_abc_v1_10ep/trustcpf/g0.py` 字节一致
 候选组合采用规范索引：
 
 ```math
-\operatorname{id}(a,o)=aN_o+o.
+\mathrm{id}(a,o)=aN_o+o.
 ```
 
 模型张量为 `[batch, object, attribute]`，取值显式使用 `joint[:, id % N_o, id // N_o]`。CW 候选为 TRAIN 与当前自然 split 组合的并集；OW 为全部属性对象笛卡尔积，不做可行性过滤。
@@ -80,8 +80,8 @@ c_{oa}(x)=b_{oa}(x)+\rho\kappa\sum_{r=1}^{R}(g^\top W_c)_r(v_o)_r(u_a)_r.
 这里 R=32、adapter rank=8、κ=20、ρ=0.15；静态门控恒为 1。联合 log 概率：
 
 ```math
-s_{oa}(x)=\log\operatorname{softmax}_o(b(x))_o+
-\log\operatorname{softmax}_a(c_o(x))_a.
+s_{oa}(x)=\log\mathrm{softmax}_o(b(x))_o+
+\log\mathrm{softmax}_a(c_o(x))_a.
 ```
 
 给定训练候选集合 C，组合、对象和条件属性损失为：
@@ -102,16 +102,16 @@ G₀ 使用 AdamW，adapter 学习率 10⁻³、CP 参数学习率 3×10⁻⁴�
 对象查询局部特征与关系视觉上下文：
 
 ```math
-\alpha_{ol}(x)=\operatorname{softmax}_l(e_o^\top v_l/0.07),\quad
-f_o(x)=\operatorname n\!\left(\sum_l\alpha_{ol}(x)v_l\right),\quad
-h_o(x)=\operatorname n\!\left(\operatorname n(g)+0.5\operatorname n(f_o(x))\right).
+\alpha_{ol}(x)=\mathrm{softmax}_l(e_o^\top v_l/0.07),\quad
+f_o(x)=\mathrm{n}\!\left(\sum_l\alpha_{ol}(x)v_l\right),\quad
+h_o(x)=\mathrm{n}\!\left(\mathrm{n}(g)+0.5\mathrm{n}(f_o(x))\right).
 ```
 
 对边 e，类型 t(e)∈{OI,OE,AE}、目标原语 j(e)、源文本向量 kₑ、目标初始向量 z⁰ⱼ：
 
 ```math
 m_e=(I+L_{t(e)}R_{t(e)})(k_e-z^0_{j(e)}),\qquad
-z_j(b)=\operatorname n\!\left(z_j^0+0.1\sum_{e:j(e)=j}\frac{b_e}{d_{j,t(e)}}m_e\right).
+z_j(b)=\mathrm{n}\!\left(z_j^0+0.1\sum_{e:j(e)=j}\frac{b_e}{d_{j,t(e)}}m_e\right).
 ```
 
 d 为目标与类型对应的原始边数，L、R 的内部秩为 16。实现用有序入边 gather 求和，避免构造大型稠密 incidence 矩阵。
@@ -120,7 +120,7 @@ d 为目标与类型对应的原始边数，L、R 的内部秩为 16。实现用
 
 ```math
 T(x,o,a;z)=\sum_r
-\operatorname n(P_vh_o(x))_r\operatorname n(P_oz_o)_r\operatorname n(P_az_a)_r.
+\mathrm{n}(P_vh_o(x))_r\mathrm{n}(P_oz_o)_r\mathrm{n}(P_az_a)_r.
 ```
 
 ```math
@@ -144,13 +144,13 @@ Capacity 沿用历史实现：对象使用 n(z⁰ₒ+0.1L₀R₀z⁰ₒ)，属�
 
 ```math
 \Delta_e(x,y;b)=\ell_{b^{+e}}(y\mid x)-\ell_{b^{-e}}(y\mid x)
-=\operatorname{NLL}_{b^{-e}}-\operatorname{NLL}_{b^{+e}}.
+=\mathrm{NLL}_{b^{-e}}-\mathrm{NLL}_{b^{+e}}.
 ```
 
 正值表示加入关系降低损失。对 Inner 的全部支持图像、目标原语拥有者图像分别计算四个统计量：效用均值、效用标准差、候选 log-score 差的中心化 RMS、预测熵差，得到 8 维响应 hₑ。
 
 ```math
-\operatorname{RMS}_e^2=
+\mathrm{RMS}_e^2=
 \mathbb E_{x,b}\!\left[\frac{1}{|C|}\sum_{c\in C}
 \left(D_e(x,c;b)-\frac{1}{|C|}\sum_{c'\in C}D_e(x,c';b)\right)^2\right].
 ```

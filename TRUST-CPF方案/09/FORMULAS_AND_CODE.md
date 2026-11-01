@@ -66,7 +66,7 @@ STOP 上用固定 16 张 Uniform 图的概率平均，以全部训练组合为�
 
 
 ```math
-k^\star=\min\,\operatorname*{arg\,max}_{k\in\{0,\ldots,10\}}
+k^\star=\min\,\arg\max_{k\in\{0,\ldots,10\}}
  \mathop{\mathrm{AUC}}\nolimits_{\mathrm{native}}
  (\theta^{s,j}_k;\mathcal D^{j}_{\mathrm{STOP}}).
 ```
