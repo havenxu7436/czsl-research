@@ -153,7 +153,7 @@ X_{je}=\mathop{\mathrm{onehot}}\nolimits(t(e))\otimes
 
 ```math
 \widehat\beta_\alpha=
-\operatorname*{argmin}_\beta
+\arg\min_\beta
 \left\{\sum_{j,e}\left(X_{je}^\top\beta-\frac{\bar y_{je}}{a_{t(e)}}\right)^2+
 \alpha\|\beta\|_2^2\right\},
 \qquad
@@ -202,7 +202,7 @@ r_e=
 
 
 ```math
-\pi_\kappa=\operatorname*{argmax}_{\pi\in\mathcal P}
+\pi_\kappa=\arg\max_{\pi\in\mathcal P}
 \left\{\kappa\sum_e r_e\pi_e-
 \sum_eD_{\mathrm{KL}}\bigl(\mathop{\mathrm{Bern}}\nolimits(\pi_e)\|\mathop{\mathrm{Bern}}\nolimits(1/2)\bigr)\right\},
 ```
@@ -342,9 +342,9 @@ b_k=\max_{c\in S}z_{kc}-z_{k,y_k},
 
 
 ```math
-g_i^S=\mathbf1\!\left\{\operatorname*{argmax}_{c\in S}z_{ic}=y_i\right\},
+g_i^S=\mathbf1\!\left\{\arg\max_{c\in S}z_{ic}=y_i\right\},
 \qquad
-g_k^U=\mathbf1\!\left\{\operatorname*{argmax}_{c\in U}z_{kc}=y_k\right\}.
+g_k^U=\mathbf1\!\left\{\arg\max_{c\in U}z_{kc}=y_k\right\}.
 ```
 
 

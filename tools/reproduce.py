@@ -139,6 +139,9 @@ def verify():
     if (ROOT/'TRUST-CPF方案/10/inputs.json').is_file():
         from register_trustcpf_abc import check as check_abc
         result['trustcpf_abc']=check_abc()
+    from check_github_markdown import check as check_reading_math
+    result['github_reading_math']=check_reading_math()
+    result['passed']=result['passed'] and result['github_reading_math']['passed']
     print(json.dumps(result,ensure_ascii=False))
     if not result['passed']: raise SystemExit(1)
 

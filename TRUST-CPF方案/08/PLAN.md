@@ -571,7 +571,7 @@ Uniform 训练保持原 10 epoch 预算。从 epoch 0–10 中，按既定 VAL C
 ```math
 e_s^\star
 =
-\operatorname*{arg\,max}_{e\in\{0,\ldots,10\}}
+\arg\max_{e\in\{0,\ldots,10\}}
 A_{\mathrm{VAL,CW}}\!\left(\theta_{s,e}^{U},\rho\right),
 \qquad
 \theta_s^\star=\theta_{s,e_s^\star}^{U}.
