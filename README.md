@@ -21,7 +21,7 @@ provenance/    文件来源、路径映射与 SHA256
 | 前期实验 | 01–15 | [实验索引](前期实验/README.md) |
 | 0601方案 | 01–04 | [方案索引](0601方案/README.md) |
 | VG-CPOD | 01–13 | [方案索引](VG-CPOD方案/README.md) |
-| TRUST-CPF / CLIP | 01–10 | [方案索引](TRUST-CPF方案/README.md) |
+| TRUST-CPF / CLIP | 01–11 | [方案索引](TRUST-CPF方案/README.md) |
 
 ## 使用流程
 
@@ -41,3 +41,7 @@ python tools/reproduce.py verify
 评价中的 CW/OW 分别表示 closed-world/open-world。训练组按对应 VAL 规则选模，选中权重用于结果评价。
 
 文件来源与 SHA256 见 `provenance/`。
+
+## 最新完整实验
+
+[TRUST-G₀ 三数据集 · 第11阶段](TRUST-CPF方案/11/README.md)：9条完整流水线、165项任务、450段10-epoch训练；[1,620行正式结果](TRUST-CPF方案/11/results/summary.csv)与[完整分析及19张关键表](TRUST-CPF方案/11/analysis/README.md)。

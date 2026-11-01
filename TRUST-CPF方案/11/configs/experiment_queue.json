@@ -1,0 +1,4466 @@
+{
+  "source": "code/trustg0_three_v1_10ep/scripts/run_queue.py::jobs",
+  "total": 165,
+  "completed": 165,
+  "completion_basis": "Reconstructed task list with original completion receipts from three dataset exports; no global queue-status log invented.",
+  "jobs": [
+    {
+      "id": "prepare_ut-zap50k",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "prepare",
+        "--dataset",
+        "ut-zap50k",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/groups.json",
+      "receipt_sha256": "ccac58a6146f9be9851b46da6cab380021cb1b71c76865e5fd1860e2167c6c8e",
+      "dependencies": [],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_ut_results/logs/prepare_ut-zap50k.log"
+    },
+    {
+      "id": "prepare_mit-states",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "prepare",
+        "--dataset",
+        "mit-states",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/groups.json",
+      "receipt_sha256": "1dc3d9615f306b6293a2ae04d9461b13837040e0de766a222a1b27c8d9a270f8",
+      "dependencies": [],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_mit_results/logs/prepare_mit-states.log"
+    },
+    {
+      "id": "prepare_cgqa",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "prepare",
+        "--dataset",
+        "cgqa",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/groups.json",
+      "receipt_sha256": "0930dc6444e83a8cc6ca6f4aa6fd6894b1d9903415ca746428ca4be5ad98f52c",
+      "dependencies": [],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/prepare_cgqa.log"
+    },
+    {
+      "id": "base_ut-zap50k_5351",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "train-base",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5351",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5351/base_complete.json",
+      "receipt_sha256": "cc1918dcd79b1d8d4b3e969c40557118a9eea0205fe9402f38b2355d6687fe48",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_ut_results/logs/base_ut-zap50k_5351.log"
+    },
+    {
+      "id": "base_ut-zap50k_5352",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "train-base",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5352",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5352/base_complete.json",
+      "receipt_sha256": "cc1918dcd79b1d8d4b3e969c40557118a9eea0205fe9402f38b2355d6687fe48",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_ut_results/logs/base_ut-zap50k_5352.log"
+    },
+    {
+      "id": "base_ut-zap50k_5353",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "train-base",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5353",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5353/base_complete.json",
+      "receipt_sha256": "cc1918dcd79b1d8d4b3e969c40557118a9eea0205fe9402f38b2355d6687fe48",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_ut_results/logs/base_ut-zap50k_5353.log"
+    },
+    {
+      "id": "base_mit-states_5351",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "train-base",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5351",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5351/base_complete.json",
+      "receipt_sha256": "cc1918dcd79b1d8d4b3e969c40557118a9eea0205fe9402f38b2355d6687fe48",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_mit_results/logs/base_mit-states_5351.log"
+    },
+    {
+      "id": "base_mit-states_5352",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "train-base",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5352",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5352/base_complete.json",
+      "receipt_sha256": "cc1918dcd79b1d8d4b3e969c40557118a9eea0205fe9402f38b2355d6687fe48",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_mit_results/logs/base_mit-states_5352.log"
+    },
+    {
+      "id": "base_mit-states_5353",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "train-base",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5353",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5353/base_complete.json",
+      "receipt_sha256": "cc1918dcd79b1d8d4b3e969c40557118a9eea0205fe9402f38b2355d6687fe48",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_mit_results/logs/base_mit-states_5353.log"
+    },
+    {
+      "id": "base_cgqa_5351",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "train-base",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5351",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5351/base_complete.json",
+      "receipt_sha256": "cc1918dcd79b1d8d4b3e969c40557118a9eea0205fe9402f38b2355d6687fe48",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/base_cgqa_5351.log"
+    },
+    {
+      "id": "base_cgqa_5352",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "train-base",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5352",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5352/base_complete.json",
+      "receipt_sha256": "cc1918dcd79b1d8d4b3e969c40557118a9eea0205fe9402f38b2355d6687fe48",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/base_cgqa_5352.log"
+    },
+    {
+      "id": "base_cgqa_5353",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "train-base",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5353",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5353/base_complete.json",
+      "receipt_sha256": "cc1918dcd79b1d8d4b3e969c40557118a9eea0205fe9402f38b2355d6687fe48",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/base_cgqa_5353.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5351_t1_q1",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5351",
+        "--teacher",
+        "1",
+        "--fold",
+        "1",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5351/teachers/t1_q1/complete.json",
+      "receipt_sha256": "d4f9ce72789a985f10198a08cf5349a79cef502e6b00088c70d7dd95d121bb73",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5351_t1_q1.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5351_t2_q1",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5351",
+        "--teacher",
+        "2",
+        "--fold",
+        "1",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5351/teachers/t2_q1/complete.json",
+      "receipt_sha256": "6f699a3d26e04d2da93ca66c0e81f09bec70d11ddfc689c20b5b046df0c13bae",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5351_t2_q1.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5351_t3_q1",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5351",
+        "--teacher",
+        "3",
+        "--fold",
+        "1",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5351/teachers/t3_q1/complete.json",
+      "receipt_sha256": "2d27b30e55907a61cd1af904167b1a194dd4254f9189bc11f3f30956fffa2ef6",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5351_t3_q1.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5352_t1_q1",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5352",
+        "--teacher",
+        "1",
+        "--fold",
+        "1",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5352/teachers/t1_q1/complete.json",
+      "receipt_sha256": "efbd44840f61d0ef23fabf99680d6347dd7c2a69b311185970e6f683e68019cb",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5352_t1_q1.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5352_t2_q1",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5352",
+        "--teacher",
+        "2",
+        "--fold",
+        "1",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5352/teachers/t2_q1/complete.json",
+      "receipt_sha256": "cd065ea4ccedfb824a39273917b5c6c5d5c6f8029432b5603700dea6519219f3",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5352_t2_q1.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5352_t3_q1",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5352",
+        "--teacher",
+        "3",
+        "--fold",
+        "1",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5352/teachers/t3_q1/complete.json",
+      "receipt_sha256": "0cd5bd820a343ee3283a987eef7fe881e27c63871d7900bff16b9b4533487664",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5352_t3_q1.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5353_t1_q1",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5353",
+        "--teacher",
+        "1",
+        "--fold",
+        "1",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5353/teachers/t1_q1/complete.json",
+      "receipt_sha256": "0d171f747989a01f2ac4de3c665a6f92862833744e7d38f2d4ac6152fc2f54d4",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5353_t1_q1.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5353_t2_q1",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5353",
+        "--teacher",
+        "2",
+        "--fold",
+        "1",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5353/teachers/t2_q1/complete.json",
+      "receipt_sha256": "eb8ede98a29268de422380c35f1f4366da71dadd453d7ac409268e3f7e28b536",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5353_t2_q1.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5353_t3_q1",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5353",
+        "--teacher",
+        "3",
+        "--fold",
+        "1",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5353/teachers/t3_q1/complete.json",
+      "receipt_sha256": "60108a6550414009a47aa92e0b3625bb366490daed85ec17d8adecd0ea65cdbd",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5353_t3_q1.log"
+    },
+    {
+      "id": "teacher_mit-states_5351_t1_q1",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5351",
+        "--teacher",
+        "1",
+        "--fold",
+        "1",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5351/teachers/t1_q1/complete.json",
+      "receipt_sha256": "d4f9ce72789a985f10198a08cf5349a79cef502e6b00088c70d7dd95d121bb73",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5351_t1_q1.log"
+    },
+    {
+      "id": "teacher_mit-states_5351_t2_q1",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5351",
+        "--teacher",
+        "2",
+        "--fold",
+        "1",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5351/teachers/t2_q1/complete.json",
+      "receipt_sha256": "6f699a3d26e04d2da93ca66c0e81f09bec70d11ddfc689c20b5b046df0c13bae",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5351_t2_q1.log"
+    },
+    {
+      "id": "teacher_mit-states_5351_t3_q1",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5351",
+        "--teacher",
+        "3",
+        "--fold",
+        "1",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5351/teachers/t3_q1/complete.json",
+      "receipt_sha256": "2d27b30e55907a61cd1af904167b1a194dd4254f9189bc11f3f30956fffa2ef6",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5351_t3_q1.log"
+    },
+    {
+      "id": "teacher_mit-states_5352_t1_q1",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5352",
+        "--teacher",
+        "1",
+        "--fold",
+        "1",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5352/teachers/t1_q1/complete.json",
+      "receipt_sha256": "efbd44840f61d0ef23fabf99680d6347dd7c2a69b311185970e6f683e68019cb",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5352_t1_q1.log"
+    },
+    {
+      "id": "teacher_mit-states_5352_t2_q1",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5352",
+        "--teacher",
+        "2",
+        "--fold",
+        "1",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5352/teachers/t2_q1/complete.json",
+      "receipt_sha256": "cd065ea4ccedfb824a39273917b5c6c5d5c6f8029432b5603700dea6519219f3",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5352_t2_q1.log"
+    },
+    {
+      "id": "teacher_mit-states_5352_t3_q1",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5352",
+        "--teacher",
+        "3",
+        "--fold",
+        "1",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5352/teachers/t3_q1/complete.json",
+      "receipt_sha256": "0cd5bd820a343ee3283a987eef7fe881e27c63871d7900bff16b9b4533487664",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5352_t3_q1.log"
+    },
+    {
+      "id": "teacher_mit-states_5353_t1_q1",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5353",
+        "--teacher",
+        "1",
+        "--fold",
+        "1",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5353/teachers/t1_q1/complete.json",
+      "receipt_sha256": "0d171f747989a01f2ac4de3c665a6f92862833744e7d38f2d4ac6152fc2f54d4",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5353_t1_q1.log"
+    },
+    {
+      "id": "teacher_mit-states_5353_t2_q1",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5353",
+        "--teacher",
+        "2",
+        "--fold",
+        "1",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5353/teachers/t2_q1/complete.json",
+      "receipt_sha256": "eb8ede98a29268de422380c35f1f4366da71dadd453d7ac409268e3f7e28b536",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5353_t2_q1.log"
+    },
+    {
+      "id": "teacher_mit-states_5353_t3_q1",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5353",
+        "--teacher",
+        "3",
+        "--fold",
+        "1",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5353/teachers/t3_q1/complete.json",
+      "receipt_sha256": "60108a6550414009a47aa92e0b3625bb366490daed85ec17d8adecd0ea65cdbd",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5353_t3_q1.log"
+    },
+    {
+      "id": "teacher_cgqa_5351_t1_q1",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5351",
+        "--teacher",
+        "1",
+        "--fold",
+        "1",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5351/teachers/t1_q1/complete.json",
+      "receipt_sha256": "d4f9ce72789a985f10198a08cf5349a79cef502e6b00088c70d7dd95d121bb73",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5351_t1_q1.log"
+    },
+    {
+      "id": "teacher_cgqa_5351_t2_q1",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5351",
+        "--teacher",
+        "2",
+        "--fold",
+        "1",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5351/teachers/t2_q1/complete.json",
+      "receipt_sha256": "6f699a3d26e04d2da93ca66c0e81f09bec70d11ddfc689c20b5b046df0c13bae",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5351_t2_q1.log"
+    },
+    {
+      "id": "teacher_cgqa_5351_t3_q1",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5351",
+        "--teacher",
+        "3",
+        "--fold",
+        "1",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5351/teachers/t3_q1/complete.json",
+      "receipt_sha256": "2d27b30e55907a61cd1af904167b1a194dd4254f9189bc11f3f30956fffa2ef6",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5351_t3_q1.log"
+    },
+    {
+      "id": "teacher_cgqa_5352_t1_q1",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5352",
+        "--teacher",
+        "1",
+        "--fold",
+        "1",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5352/teachers/t1_q1/complete.json",
+      "receipt_sha256": "efbd44840f61d0ef23fabf99680d6347dd7c2a69b311185970e6f683e68019cb",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5352_t1_q1.log"
+    },
+    {
+      "id": "teacher_cgqa_5352_t2_q1",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5352",
+        "--teacher",
+        "2",
+        "--fold",
+        "1",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5352/teachers/t2_q1/complete.json",
+      "receipt_sha256": "cd065ea4ccedfb824a39273917b5c6c5d5c6f8029432b5603700dea6519219f3",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5352_t2_q1.log"
+    },
+    {
+      "id": "teacher_cgqa_5352_t3_q1",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5352",
+        "--teacher",
+        "3",
+        "--fold",
+        "1",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5352/teachers/t3_q1/complete.json",
+      "receipt_sha256": "0cd5bd820a343ee3283a987eef7fe881e27c63871d7900bff16b9b4533487664",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5352_t3_q1.log"
+    },
+    {
+      "id": "teacher_cgqa_5353_t1_q1",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5353",
+        "--teacher",
+        "1",
+        "--fold",
+        "1",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5353/teachers/t1_q1/complete.json",
+      "receipt_sha256": "0d171f747989a01f2ac4de3c665a6f92862833744e7d38f2d4ac6152fc2f54d4",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5353_t1_q1.log"
+    },
+    {
+      "id": "teacher_cgqa_5353_t2_q1",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5353",
+        "--teacher",
+        "2",
+        "--fold",
+        "1",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5353/teachers/t2_q1/complete.json",
+      "receipt_sha256": "eb8ede98a29268de422380c35f1f4366da71dadd453d7ac409268e3f7e28b536",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5353_t2_q1.log"
+    },
+    {
+      "id": "teacher_cgqa_5353_t3_q1",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5353",
+        "--teacher",
+        "3",
+        "--fold",
+        "1",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5353/teachers/t3_q1/complete.json",
+      "receipt_sha256": "60108a6550414009a47aa92e0b3625bb366490daed85ec17d8adecd0ea65cdbd",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5353_t3_q1.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5351_t1_q2",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5351",
+        "--teacher",
+        "1",
+        "--fold",
+        "2",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5351/teachers/t1_q2/complete.json",
+      "receipt_sha256": "47c815ab116b3e18ed11e2379718b7c0c92ca5da85c4eb0a8921afeea44b4f0c",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5351_t1_q2.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5351_t2_q2",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5351",
+        "--teacher",
+        "2",
+        "--fold",
+        "2",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5351/teachers/t2_q2/complete.json",
+      "receipt_sha256": "be0dbf688b7c908c995de81668473221b0761089b9525fbabd6e41de0b93a066",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5351_t2_q2.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5351_t3_q2",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5351",
+        "--teacher",
+        "3",
+        "--fold",
+        "2",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5351/teachers/t3_q2/complete.json",
+      "receipt_sha256": "a766043e7e255903327a118bb4561c6c5c083523477471da8ca9aec104c9d60f",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5351_t3_q2.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5352_t1_q2",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5352",
+        "--teacher",
+        "1",
+        "--fold",
+        "2",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5352/teachers/t1_q2/complete.json",
+      "receipt_sha256": "083b79513381e3ddcc7b7ead8011a15fcd60fa997c963177baf4ad018c2280d0",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5352_t1_q2.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5352_t2_q2",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5352",
+        "--teacher",
+        "2",
+        "--fold",
+        "2",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5352/teachers/t2_q2/complete.json",
+      "receipt_sha256": "a4254504209ab6c56badf4a20f1d049e236e40cef87f786266968750086660a9",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5352_t2_q2.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5352_t3_q2",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5352",
+        "--teacher",
+        "3",
+        "--fold",
+        "2",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5352/teachers/t3_q2/complete.json",
+      "receipt_sha256": "abf8f2e933267459e6280439639acb13ad9f56290c3e257ae538da84d885bff3",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5352_t3_q2.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5353_t1_q2",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5353",
+        "--teacher",
+        "1",
+        "--fold",
+        "2",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5353/teachers/t1_q2/complete.json",
+      "receipt_sha256": "b4a197f566e16612d4cfe5368c238d94de70a5824e1957e1f8dff8e03fd2988f",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5353_t1_q2.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5353_t2_q2",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5353",
+        "--teacher",
+        "2",
+        "--fold",
+        "2",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5353/teachers/t2_q2/complete.json",
+      "receipt_sha256": "6fac75185f91b4cbfc446319d6ba525bbecc91747ae1d8c1ed5594565d6608ed",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5353_t2_q2.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5353_t3_q2",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5353",
+        "--teacher",
+        "3",
+        "--fold",
+        "2",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5353/teachers/t3_q2/complete.json",
+      "receipt_sha256": "0ee327acf398d109b59911ed17f150573d0a442ea5d60a478c34567e439b61d6",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5353_t3_q2.log"
+    },
+    {
+      "id": "teacher_mit-states_5351_t1_q2",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5351",
+        "--teacher",
+        "1",
+        "--fold",
+        "2",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5351/teachers/t1_q2/complete.json",
+      "receipt_sha256": "47c815ab116b3e18ed11e2379718b7c0c92ca5da85c4eb0a8921afeea44b4f0c",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5351_t1_q2.log"
+    },
+    {
+      "id": "teacher_mit-states_5351_t2_q2",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5351",
+        "--teacher",
+        "2",
+        "--fold",
+        "2",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5351/teachers/t2_q2/complete.json",
+      "receipt_sha256": "be0dbf688b7c908c995de81668473221b0761089b9525fbabd6e41de0b93a066",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5351_t2_q2.log"
+    },
+    {
+      "id": "teacher_mit-states_5351_t3_q2",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5351",
+        "--teacher",
+        "3",
+        "--fold",
+        "2",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5351/teachers/t3_q2/complete.json",
+      "receipt_sha256": "a766043e7e255903327a118bb4561c6c5c083523477471da8ca9aec104c9d60f",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5351_t3_q2.log"
+    },
+    {
+      "id": "teacher_mit-states_5352_t1_q2",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5352",
+        "--teacher",
+        "1",
+        "--fold",
+        "2",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5352/teachers/t1_q2/complete.json",
+      "receipt_sha256": "083b79513381e3ddcc7b7ead8011a15fcd60fa997c963177baf4ad018c2280d0",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5352_t1_q2.log"
+    },
+    {
+      "id": "teacher_mit-states_5352_t2_q2",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5352",
+        "--teacher",
+        "2",
+        "--fold",
+        "2",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5352/teachers/t2_q2/complete.json",
+      "receipt_sha256": "a4254504209ab6c56badf4a20f1d049e236e40cef87f786266968750086660a9",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5352_t2_q2.log"
+    },
+    {
+      "id": "teacher_mit-states_5352_t3_q2",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5352",
+        "--teacher",
+        "3",
+        "--fold",
+        "2",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5352/teachers/t3_q2/complete.json",
+      "receipt_sha256": "abf8f2e933267459e6280439639acb13ad9f56290c3e257ae538da84d885bff3",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5352_t3_q2.log"
+    },
+    {
+      "id": "teacher_mit-states_5353_t1_q2",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5353",
+        "--teacher",
+        "1",
+        "--fold",
+        "2",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5353/teachers/t1_q2/complete.json",
+      "receipt_sha256": "b4a197f566e16612d4cfe5368c238d94de70a5824e1957e1f8dff8e03fd2988f",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5353_t1_q2.log"
+    },
+    {
+      "id": "teacher_mit-states_5353_t2_q2",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5353",
+        "--teacher",
+        "2",
+        "--fold",
+        "2",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5353/teachers/t2_q2/complete.json",
+      "receipt_sha256": "6fac75185f91b4cbfc446319d6ba525bbecc91747ae1d8c1ed5594565d6608ed",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5353_t2_q2.log"
+    },
+    {
+      "id": "teacher_mit-states_5353_t3_q2",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5353",
+        "--teacher",
+        "3",
+        "--fold",
+        "2",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5353/teachers/t3_q2/complete.json",
+      "receipt_sha256": "0ee327acf398d109b59911ed17f150573d0a442ea5d60a478c34567e439b61d6",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5353_t3_q2.log"
+    },
+    {
+      "id": "teacher_cgqa_5351_t1_q2",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5351",
+        "--teacher",
+        "1",
+        "--fold",
+        "2",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5351/teachers/t1_q2/complete.json",
+      "receipt_sha256": "47c815ab116b3e18ed11e2379718b7c0c92ca5da85c4eb0a8921afeea44b4f0c",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5351_t1_q2.log"
+    },
+    {
+      "id": "teacher_cgqa_5351_t2_q2",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5351",
+        "--teacher",
+        "2",
+        "--fold",
+        "2",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5351/teachers/t2_q2/complete.json",
+      "receipt_sha256": "be0dbf688b7c908c995de81668473221b0761089b9525fbabd6e41de0b93a066",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5351_t2_q2.log"
+    },
+    {
+      "id": "teacher_cgqa_5351_t3_q2",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5351",
+        "--teacher",
+        "3",
+        "--fold",
+        "2",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5351/teachers/t3_q2/complete.json",
+      "receipt_sha256": "a766043e7e255903327a118bb4561c6c5c083523477471da8ca9aec104c9d60f",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5351_t3_q2.log"
+    },
+    {
+      "id": "teacher_cgqa_5352_t1_q2",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5352",
+        "--teacher",
+        "1",
+        "--fold",
+        "2",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5352/teachers/t1_q2/complete.json",
+      "receipt_sha256": "083b79513381e3ddcc7b7ead8011a15fcd60fa997c963177baf4ad018c2280d0",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5352_t1_q2.log"
+    },
+    {
+      "id": "teacher_cgqa_5352_t2_q2",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5352",
+        "--teacher",
+        "2",
+        "--fold",
+        "2",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5352/teachers/t2_q2/complete.json",
+      "receipt_sha256": "a4254504209ab6c56badf4a20f1d049e236e40cef87f786266968750086660a9",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5352_t2_q2.log"
+    },
+    {
+      "id": "teacher_cgqa_5352_t3_q2",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5352",
+        "--teacher",
+        "3",
+        "--fold",
+        "2",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5352/teachers/t3_q2/complete.json",
+      "receipt_sha256": "abf8f2e933267459e6280439639acb13ad9f56290c3e257ae538da84d885bff3",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5352_t3_q2.log"
+    },
+    {
+      "id": "teacher_cgqa_5353_t1_q2",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5353",
+        "--teacher",
+        "1",
+        "--fold",
+        "2",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5353/teachers/t1_q2/complete.json",
+      "receipt_sha256": "b4a197f566e16612d4cfe5368c238d94de70a5824e1957e1f8dff8e03fd2988f",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5353_t1_q2.log"
+    },
+    {
+      "id": "teacher_cgqa_5353_t2_q2",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5353",
+        "--teacher",
+        "2",
+        "--fold",
+        "2",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5353/teachers/t2_q2/complete.json",
+      "receipt_sha256": "6fac75185f91b4cbfc446319d6ba525bbecc91747ae1d8c1ed5594565d6608ed",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5353_t2_q2.log"
+    },
+    {
+      "id": "teacher_cgqa_5353_t3_q2",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5353",
+        "--teacher",
+        "3",
+        "--fold",
+        "2",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5353/teachers/t3_q2/complete.json",
+      "receipt_sha256": "0ee327acf398d109b59911ed17f150573d0a442ea5d60a478c34567e439b61d6",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5353_t3_q2.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5351_t1_q3",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5351",
+        "--teacher",
+        "1",
+        "--fold",
+        "3",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5351/teachers/t1_q3/complete.json",
+      "receipt_sha256": "cf46a4720f3a8b07d0b53aec2caa3d616fdb5fd13ef3ccf1a967ffc067ae078b",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5351_t1_q3.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5351_t2_q3",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5351",
+        "--teacher",
+        "2",
+        "--fold",
+        "3",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5351/teachers/t2_q3/complete.json",
+      "receipt_sha256": "172c8b1afbff78b60e5cc64d6b653dfe11e283334a85800619b04b44781901bf",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5351_t2_q3.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5351_t3_q3",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5351",
+        "--teacher",
+        "3",
+        "--fold",
+        "3",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5351/teachers/t3_q3/complete.json",
+      "receipt_sha256": "9aa21535a71868f757c810d2fe3af9fa5d9a79dc77506e5670091a0c99dde954",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5351_t3_q3.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5352_t1_q3",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5352",
+        "--teacher",
+        "1",
+        "--fold",
+        "3",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5352/teachers/t1_q3/complete.json",
+      "receipt_sha256": "58a01778f3154a66e235aa6d6a3e00d473683d7a0c33e98d34a1eaf986944715",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5352_t1_q3.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5352_t2_q3",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5352",
+        "--teacher",
+        "2",
+        "--fold",
+        "3",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5352/teachers/t2_q3/complete.json",
+      "receipt_sha256": "b24cef53feef4283ceb4bbd518aec08a9b0d3997b01cd83ee36a119a4a77f50e",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5352_t2_q3.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5352_t3_q3",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5352",
+        "--teacher",
+        "3",
+        "--fold",
+        "3",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5352/teachers/t3_q3/complete.json",
+      "receipt_sha256": "e4e5860d91eb857f6b03b8b529efd41b24c73b48657dd26b3b00bca2d2ebae95",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5352_t3_q3.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5353_t1_q3",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5353",
+        "--teacher",
+        "1",
+        "--fold",
+        "3",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5353/teachers/t1_q3/complete.json",
+      "receipt_sha256": "c493e3fd15e9daf126ecdcef9da9c83b178e9dbe2542e781a4e16d488821c1ca",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5353_t1_q3.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5353_t2_q3",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5353",
+        "--teacher",
+        "2",
+        "--fold",
+        "3",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5353/teachers/t2_q3/complete.json",
+      "receipt_sha256": "1705d47c6340d818f6f58ce7ce33ff56f8eca338cdc32d41c57d587cc680f979",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5353_t2_q3.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5353_t3_q3",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5353",
+        "--teacher",
+        "3",
+        "--fold",
+        "3",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5353/teachers/t3_q3/complete.json",
+      "receipt_sha256": "dead30b068ed993f126db33051cda000c77e8cc5043dafbb488f8c384510072c",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5353_t3_q3.log"
+    },
+    {
+      "id": "teacher_mit-states_5351_t1_q3",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5351",
+        "--teacher",
+        "1",
+        "--fold",
+        "3",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5351/teachers/t1_q3/complete.json",
+      "receipt_sha256": "cf46a4720f3a8b07d0b53aec2caa3d616fdb5fd13ef3ccf1a967ffc067ae078b",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5351_t1_q3.log"
+    },
+    {
+      "id": "teacher_mit-states_5351_t2_q3",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5351",
+        "--teacher",
+        "2",
+        "--fold",
+        "3",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5351/teachers/t2_q3/complete.json",
+      "receipt_sha256": "172c8b1afbff78b60e5cc64d6b653dfe11e283334a85800619b04b44781901bf",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5351_t2_q3.log"
+    },
+    {
+      "id": "teacher_mit-states_5351_t3_q3",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5351",
+        "--teacher",
+        "3",
+        "--fold",
+        "3",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5351/teachers/t3_q3/complete.json",
+      "receipt_sha256": "9aa21535a71868f757c810d2fe3af9fa5d9a79dc77506e5670091a0c99dde954",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5351_t3_q3.log"
+    },
+    {
+      "id": "teacher_mit-states_5352_t1_q3",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5352",
+        "--teacher",
+        "1",
+        "--fold",
+        "3",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5352/teachers/t1_q3/complete.json",
+      "receipt_sha256": "58a01778f3154a66e235aa6d6a3e00d473683d7a0c33e98d34a1eaf986944715",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5352_t1_q3.log"
+    },
+    {
+      "id": "teacher_mit-states_5352_t2_q3",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5352",
+        "--teacher",
+        "2",
+        "--fold",
+        "3",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5352/teachers/t2_q3/complete.json",
+      "receipt_sha256": "b24cef53feef4283ceb4bbd518aec08a9b0d3997b01cd83ee36a119a4a77f50e",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5352_t2_q3.log"
+    },
+    {
+      "id": "teacher_mit-states_5352_t3_q3",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5352",
+        "--teacher",
+        "3",
+        "--fold",
+        "3",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5352/teachers/t3_q3/complete.json",
+      "receipt_sha256": "e4e5860d91eb857f6b03b8b529efd41b24c73b48657dd26b3b00bca2d2ebae95",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5352_t3_q3.log"
+    },
+    {
+      "id": "teacher_mit-states_5353_t1_q3",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5353",
+        "--teacher",
+        "1",
+        "--fold",
+        "3",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5353/teachers/t1_q3/complete.json",
+      "receipt_sha256": "c493e3fd15e9daf126ecdcef9da9c83b178e9dbe2542e781a4e16d488821c1ca",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5353_t1_q3.log"
+    },
+    {
+      "id": "teacher_mit-states_5353_t2_q3",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5353",
+        "--teacher",
+        "2",
+        "--fold",
+        "3",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5353/teachers/t2_q3/complete.json",
+      "receipt_sha256": "1705d47c6340d818f6f58ce7ce33ff56f8eca338cdc32d41c57d587cc680f979",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5353_t2_q3.log"
+    },
+    {
+      "id": "teacher_mit-states_5353_t3_q3",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5353",
+        "--teacher",
+        "3",
+        "--fold",
+        "3",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5353/teachers/t3_q3/complete.json",
+      "receipt_sha256": "dead30b068ed993f126db33051cda000c77e8cc5043dafbb488f8c384510072c",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5353_t3_q3.log"
+    },
+    {
+      "id": "teacher_cgqa_5351_t1_q3",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5351",
+        "--teacher",
+        "1",
+        "--fold",
+        "3",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5351/teachers/t1_q3/complete.json",
+      "receipt_sha256": "cf46a4720f3a8b07d0b53aec2caa3d616fdb5fd13ef3ccf1a967ffc067ae078b",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5351_t1_q3.log"
+    },
+    {
+      "id": "teacher_cgqa_5351_t2_q3",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5351",
+        "--teacher",
+        "2",
+        "--fold",
+        "3",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5351/teachers/t2_q3/complete.json",
+      "receipt_sha256": "172c8b1afbff78b60e5cc64d6b653dfe11e283334a85800619b04b44781901bf",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5351_t2_q3.log"
+    },
+    {
+      "id": "teacher_cgqa_5351_t3_q3",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5351",
+        "--teacher",
+        "3",
+        "--fold",
+        "3",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5351/teachers/t3_q3/complete.json",
+      "receipt_sha256": "9aa21535a71868f757c810d2fe3af9fa5d9a79dc77506e5670091a0c99dde954",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5351_t3_q3.log"
+    },
+    {
+      "id": "teacher_cgqa_5352_t1_q3",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5352",
+        "--teacher",
+        "1",
+        "--fold",
+        "3",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5352/teachers/t1_q3/complete.json",
+      "receipt_sha256": "58a01778f3154a66e235aa6d6a3e00d473683d7a0c33e98d34a1eaf986944715",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5352_t1_q3.log"
+    },
+    {
+      "id": "teacher_cgqa_5352_t2_q3",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5352",
+        "--teacher",
+        "2",
+        "--fold",
+        "3",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5352/teachers/t2_q3/complete.json",
+      "receipt_sha256": "b24cef53feef4283ceb4bbd518aec08a9b0d3997b01cd83ee36a119a4a77f50e",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5352_t2_q3.log"
+    },
+    {
+      "id": "teacher_cgqa_5352_t3_q3",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5352",
+        "--teacher",
+        "3",
+        "--fold",
+        "3",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5352/teachers/t3_q3/complete.json",
+      "receipt_sha256": "e4e5860d91eb857f6b03b8b529efd41b24c73b48657dd26b3b00bca2d2ebae95",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5352_t3_q3.log"
+    },
+    {
+      "id": "teacher_cgqa_5353_t1_q3",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5353",
+        "--teacher",
+        "1",
+        "--fold",
+        "3",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5353/teachers/t1_q3/complete.json",
+      "receipt_sha256": "c493e3fd15e9daf126ecdcef9da9c83b178e9dbe2542e781a4e16d488821c1ca",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5353_t1_q3.log"
+    },
+    {
+      "id": "teacher_cgqa_5353_t2_q3",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5353",
+        "--teacher",
+        "2",
+        "--fold",
+        "3",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5353/teachers/t2_q3/complete.json",
+      "receipt_sha256": "1705d47c6340d818f6f58ce7ce33ff56f8eca338cdc32d41c57d587cc680f979",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5353_t2_q3.log"
+    },
+    {
+      "id": "teacher_cgqa_5353_t3_q3",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5353",
+        "--teacher",
+        "3",
+        "--fold",
+        "3",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5353/teachers/t3_q3/complete.json",
+      "receipt_sha256": "dead30b068ed993f126db33051cda000c77e8cc5043dafbb488f8c384510072c",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5353_t3_q3.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5351_t1_q4",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5351",
+        "--teacher",
+        "1",
+        "--fold",
+        "4",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5351/teachers/t1_q4/complete.json",
+      "receipt_sha256": "e021169d1adaaa10a079b9b1f80cd3c3cd0d21e9af2eea5544e86447a4a263ba",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5351_t1_q4.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5351_t2_q4",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5351",
+        "--teacher",
+        "2",
+        "--fold",
+        "4",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5351/teachers/t2_q4/complete.json",
+      "receipt_sha256": "d61b4c5d20bd927cde06d100afd342a65db80f78a6cff5378fb6b20d462ae549",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5351_t2_q4.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5351_t3_q4",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5351",
+        "--teacher",
+        "3",
+        "--fold",
+        "4",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5351/teachers/t3_q4/complete.json",
+      "receipt_sha256": "a0ed0ec31b0a86793b8217fd41e26953ab1da8a200bcf2d92941a11a1c397928",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5351_t3_q4.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5352_t1_q4",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5352",
+        "--teacher",
+        "1",
+        "--fold",
+        "4",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5352/teachers/t1_q4/complete.json",
+      "receipt_sha256": "b2b2134cdb2a8fdc1f88573aa8c402639103106b68e8538fdb32874f8f5d97ae",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5352_t1_q4.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5352_t2_q4",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5352",
+        "--teacher",
+        "2",
+        "--fold",
+        "4",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5352/teachers/t2_q4/complete.json",
+      "receipt_sha256": "88d57eee27338a86bfd758e4fdfc64330cf630c2c203cbc1a5561b3bb4ef0f18",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5352_t2_q4.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5352_t3_q4",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5352",
+        "--teacher",
+        "3",
+        "--fold",
+        "4",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5352/teachers/t3_q4/complete.json",
+      "receipt_sha256": "811ab4b743be2cab5cf767280ed68b4f68bb0571e453ec862a968f809e064653",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5352_t3_q4.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5353_t1_q4",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5353",
+        "--teacher",
+        "1",
+        "--fold",
+        "4",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5353/teachers/t1_q4/complete.json",
+      "receipt_sha256": "fd182fe6d1f2d47def90c6007c79a895a06c0afcb146ce25865c91f0d57b1276",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5353_t1_q4.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5353_t2_q4",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5353",
+        "--teacher",
+        "2",
+        "--fold",
+        "4",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5353/teachers/t2_q4/complete.json",
+      "receipt_sha256": "d4797ece0860a4f15e52e20316d340ed43534c57dee5b65c6c87817f32215b23",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5353_t2_q4.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5353_t3_q4",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5353",
+        "--teacher",
+        "3",
+        "--fold",
+        "4",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5353/teachers/t3_q4/complete.json",
+      "receipt_sha256": "5280de4d5f2aa7a80ac1ae05395144867ab5e40f96c464e1c848c23ab4cde148",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5353_t3_q4.log"
+    },
+    {
+      "id": "teacher_mit-states_5351_t1_q4",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5351",
+        "--teacher",
+        "1",
+        "--fold",
+        "4",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5351/teachers/t1_q4/complete.json",
+      "receipt_sha256": "e021169d1adaaa10a079b9b1f80cd3c3cd0d21e9af2eea5544e86447a4a263ba",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5351_t1_q4.log"
+    },
+    {
+      "id": "teacher_mit-states_5351_t2_q4",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5351",
+        "--teacher",
+        "2",
+        "--fold",
+        "4",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5351/teachers/t2_q4/complete.json",
+      "receipt_sha256": "d61b4c5d20bd927cde06d100afd342a65db80f78a6cff5378fb6b20d462ae549",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5351_t2_q4.log"
+    },
+    {
+      "id": "teacher_mit-states_5351_t3_q4",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5351",
+        "--teacher",
+        "3",
+        "--fold",
+        "4",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5351/teachers/t3_q4/complete.json",
+      "receipt_sha256": "a0ed0ec31b0a86793b8217fd41e26953ab1da8a200bcf2d92941a11a1c397928",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5351_t3_q4.log"
+    },
+    {
+      "id": "teacher_mit-states_5352_t1_q4",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5352",
+        "--teacher",
+        "1",
+        "--fold",
+        "4",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5352/teachers/t1_q4/complete.json",
+      "receipt_sha256": "b2b2134cdb2a8fdc1f88573aa8c402639103106b68e8538fdb32874f8f5d97ae",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5352_t1_q4.log"
+    },
+    {
+      "id": "teacher_mit-states_5352_t2_q4",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5352",
+        "--teacher",
+        "2",
+        "--fold",
+        "4",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5352/teachers/t2_q4/complete.json",
+      "receipt_sha256": "88d57eee27338a86bfd758e4fdfc64330cf630c2c203cbc1a5561b3bb4ef0f18",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5352_t2_q4.log"
+    },
+    {
+      "id": "teacher_mit-states_5352_t3_q4",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5352",
+        "--teacher",
+        "3",
+        "--fold",
+        "4",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5352/teachers/t3_q4/complete.json",
+      "receipt_sha256": "811ab4b743be2cab5cf767280ed68b4f68bb0571e453ec862a968f809e064653",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5352_t3_q4.log"
+    },
+    {
+      "id": "teacher_mit-states_5353_t1_q4",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5353",
+        "--teacher",
+        "1",
+        "--fold",
+        "4",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5353/teachers/t1_q4/complete.json",
+      "receipt_sha256": "fd182fe6d1f2d47def90c6007c79a895a06c0afcb146ce25865c91f0d57b1276",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5353_t1_q4.log"
+    },
+    {
+      "id": "teacher_mit-states_5353_t2_q4",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5353",
+        "--teacher",
+        "2",
+        "--fold",
+        "4",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5353/teachers/t2_q4/complete.json",
+      "receipt_sha256": "d4797ece0860a4f15e52e20316d340ed43534c57dee5b65c6c87817f32215b23",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5353_t2_q4.log"
+    },
+    {
+      "id": "teacher_mit-states_5353_t3_q4",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5353",
+        "--teacher",
+        "3",
+        "--fold",
+        "4",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5353/teachers/t3_q4/complete.json",
+      "receipt_sha256": "5280de4d5f2aa7a80ac1ae05395144867ab5e40f96c464e1c848c23ab4cde148",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5353_t3_q4.log"
+    },
+    {
+      "id": "teacher_cgqa_5351_t1_q4",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5351",
+        "--teacher",
+        "1",
+        "--fold",
+        "4",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5351/teachers/t1_q4/complete.json",
+      "receipt_sha256": "e021169d1adaaa10a079b9b1f80cd3c3cd0d21e9af2eea5544e86447a4a263ba",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5351_t1_q4.log"
+    },
+    {
+      "id": "teacher_cgqa_5351_t2_q4",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5351",
+        "--teacher",
+        "2",
+        "--fold",
+        "4",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5351/teachers/t2_q4/complete.json",
+      "receipt_sha256": "d61b4c5d20bd927cde06d100afd342a65db80f78a6cff5378fb6b20d462ae549",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5351_t2_q4.log"
+    },
+    {
+      "id": "teacher_cgqa_5351_t3_q4",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5351",
+        "--teacher",
+        "3",
+        "--fold",
+        "4",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5351/teachers/t3_q4/complete.json",
+      "receipt_sha256": "a0ed0ec31b0a86793b8217fd41e26953ab1da8a200bcf2d92941a11a1c397928",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5351_t3_q4.log"
+    },
+    {
+      "id": "teacher_cgqa_5352_t1_q4",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5352",
+        "--teacher",
+        "1",
+        "--fold",
+        "4",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5352/teachers/t1_q4/complete.json",
+      "receipt_sha256": "b2b2134cdb2a8fdc1f88573aa8c402639103106b68e8538fdb32874f8f5d97ae",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5352_t1_q4.log"
+    },
+    {
+      "id": "teacher_cgqa_5352_t2_q4",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5352",
+        "--teacher",
+        "2",
+        "--fold",
+        "4",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5352/teachers/t2_q4/complete.json",
+      "receipt_sha256": "88d57eee27338a86bfd758e4fdfc64330cf630c2c203cbc1a5561b3bb4ef0f18",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5352_t2_q4.log"
+    },
+    {
+      "id": "teacher_cgqa_5352_t3_q4",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5352",
+        "--teacher",
+        "3",
+        "--fold",
+        "4",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5352/teachers/t3_q4/complete.json",
+      "receipt_sha256": "811ab4b743be2cab5cf767280ed68b4f68bb0571e453ec862a968f809e064653",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5352_t3_q4.log"
+    },
+    {
+      "id": "teacher_cgqa_5353_t1_q4",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5353",
+        "--teacher",
+        "1",
+        "--fold",
+        "4",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5353/teachers/t1_q4/complete.json",
+      "receipt_sha256": "fd182fe6d1f2d47def90c6007c79a895a06c0afcb146ce25865c91f0d57b1276",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5353_t1_q4.log"
+    },
+    {
+      "id": "teacher_cgqa_5353_t2_q4",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5353",
+        "--teacher",
+        "2",
+        "--fold",
+        "4",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5353/teachers/t2_q4/complete.json",
+      "receipt_sha256": "d4797ece0860a4f15e52e20316d340ed43534c57dee5b65c6c87817f32215b23",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5353_t2_q4.log"
+    },
+    {
+      "id": "teacher_cgqa_5353_t3_q4",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5353",
+        "--teacher",
+        "3",
+        "--fold",
+        "4",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5353/teachers/t3_q4/complete.json",
+      "receipt_sha256": "5280de4d5f2aa7a80ac1ae05395144867ab5e40f96c464e1c848c23ab4cde148",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5353_t3_q4.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5351_t1_q5",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5351",
+        "--teacher",
+        "1",
+        "--fold",
+        "5",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5351/teachers/t1_q5/complete.json",
+      "receipt_sha256": "f7de2da84b9d5f68a7f3db4c201b92ffe1c5acf64f4de3067d3b0233db6b2c6a",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5351_t1_q5.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5351_t2_q5",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5351",
+        "--teacher",
+        "2",
+        "--fold",
+        "5",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5351/teachers/t2_q5/complete.json",
+      "receipt_sha256": "7958aabb2c37a2c04e486878b94082b814823e7e9a0522584dc1dfe9e7486529",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5351_t2_q5.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5351_t3_q5",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5351",
+        "--teacher",
+        "3",
+        "--fold",
+        "5",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5351/teachers/t3_q5/complete.json",
+      "receipt_sha256": "58c118c05fda780a197b041ea0d876ff4b06e6264a77d0188160e3d445746729",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5351_t3_q5.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5352_t1_q5",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5352",
+        "--teacher",
+        "1",
+        "--fold",
+        "5",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5352/teachers/t1_q5/complete.json",
+      "receipt_sha256": "4e35f3dd67c3495c8f54cba7d33068cec0d418d7a56be5f3f4b04cf4913873f8",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5352_t1_q5.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5352_t2_q5",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5352",
+        "--teacher",
+        "2",
+        "--fold",
+        "5",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5352/teachers/t2_q5/complete.json",
+      "receipt_sha256": "7576f1154dbd42e13da0ebe8c384efe34d693ea2b69da46dfd0b43975838ca55",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5352_t2_q5.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5352_t3_q5",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5352",
+        "--teacher",
+        "3",
+        "--fold",
+        "5",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5352/teachers/t3_q5/complete.json",
+      "receipt_sha256": "a2bd2b657501c1c484a312fdb2efb55d4437e117ec641ba2c756bdcef96800e6",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5352_t3_q5.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5353_t1_q5",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5353",
+        "--teacher",
+        "1",
+        "--fold",
+        "5",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5353/teachers/t1_q5/complete.json",
+      "receipt_sha256": "62d5c232666bea8092b413503ea06f9b6c911b32bad95807797fa22237313b78",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5353_t1_q5.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5353_t2_q5",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5353",
+        "--teacher",
+        "2",
+        "--fold",
+        "5",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5353/teachers/t2_q5/complete.json",
+      "receipt_sha256": "3e37f0e1b8615ae848c70dd729dddc8171cf08b2d712e867f2f5e0e5e040d3b4",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5353_t2_q5.log"
+    },
+    {
+      "id": "teacher_ut-zap50k_5353_t3_q5",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5353",
+        "--teacher",
+        "3",
+        "--fold",
+        "5",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5353/teachers/t3_q5/complete.json",
+      "receipt_sha256": "8b91442b5fc14074df3aeae3fd2c37afc65ce0986ed3950fe13608afe43414a1",
+      "dependencies": [
+        "ut-zap50k\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_ut_results/logs/teacher_ut-zap50k_5353_t3_q5.log"
+    },
+    {
+      "id": "teacher_mit-states_5351_t1_q5",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5351",
+        "--teacher",
+        "1",
+        "--fold",
+        "5",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5351/teachers/t1_q5/complete.json",
+      "receipt_sha256": "f7de2da84b9d5f68a7f3db4c201b92ffe1c5acf64f4de3067d3b0233db6b2c6a",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5351_t1_q5.log"
+    },
+    {
+      "id": "teacher_mit-states_5351_t2_q5",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5351",
+        "--teacher",
+        "2",
+        "--fold",
+        "5",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5351/teachers/t2_q5/complete.json",
+      "receipt_sha256": "7958aabb2c37a2c04e486878b94082b814823e7e9a0522584dc1dfe9e7486529",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5351_t2_q5.log"
+    },
+    {
+      "id": "teacher_mit-states_5351_t3_q5",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5351",
+        "--teacher",
+        "3",
+        "--fold",
+        "5",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5351/teachers/t3_q5/complete.json",
+      "receipt_sha256": "58c118c05fda780a197b041ea0d876ff4b06e6264a77d0188160e3d445746729",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5351_t3_q5.log"
+    },
+    {
+      "id": "teacher_mit-states_5352_t1_q5",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5352",
+        "--teacher",
+        "1",
+        "--fold",
+        "5",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5352/teachers/t1_q5/complete.json",
+      "receipt_sha256": "4e35f3dd67c3495c8f54cba7d33068cec0d418d7a56be5f3f4b04cf4913873f8",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5352_t1_q5.log"
+    },
+    {
+      "id": "teacher_mit-states_5352_t2_q5",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5352",
+        "--teacher",
+        "2",
+        "--fold",
+        "5",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5352/teachers/t2_q5/complete.json",
+      "receipt_sha256": "7576f1154dbd42e13da0ebe8c384efe34d693ea2b69da46dfd0b43975838ca55",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5352_t2_q5.log"
+    },
+    {
+      "id": "teacher_mit-states_5352_t3_q5",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5352",
+        "--teacher",
+        "3",
+        "--fold",
+        "5",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5352/teachers/t3_q5/complete.json",
+      "receipt_sha256": "a2bd2b657501c1c484a312fdb2efb55d4437e117ec641ba2c756bdcef96800e6",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5352_t3_q5.log"
+    },
+    {
+      "id": "teacher_mit-states_5353_t1_q5",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5353",
+        "--teacher",
+        "1",
+        "--fold",
+        "5",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5353/teachers/t1_q5/complete.json",
+      "receipt_sha256": "62d5c232666bea8092b413503ea06f9b6c911b32bad95807797fa22237313b78",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5353_t1_q5.log"
+    },
+    {
+      "id": "teacher_mit-states_5353_t2_q5",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5353",
+        "--teacher",
+        "2",
+        "--fold",
+        "5",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5353/teachers/t2_q5/complete.json",
+      "receipt_sha256": "3e37f0e1b8615ae848c70dd729dddc8171cf08b2d712e867f2f5e0e5e040d3b4",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5353_t2_q5.log"
+    },
+    {
+      "id": "teacher_mit-states_5353_t3_q5",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5353",
+        "--teacher",
+        "3",
+        "--fold",
+        "5",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5353/teachers/t3_q5/complete.json",
+      "receipt_sha256": "8b91442b5fc14074df3aeae3fd2c37afc65ce0986ed3950fe13608afe43414a1",
+      "dependencies": [
+        "mit-states\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_mit_results/logs/teacher_mit-states_5353_t3_q5.log"
+    },
+    {
+      "id": "teacher_cgqa_5351_t1_q5",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5351",
+        "--teacher",
+        "1",
+        "--fold",
+        "5",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5351/teachers/t1_q5/complete.json",
+      "receipt_sha256": "f7de2da84b9d5f68a7f3db4c201b92ffe1c5acf64f4de3067d3b0233db6b2c6a",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5351_t1_q5.log"
+    },
+    {
+      "id": "teacher_cgqa_5351_t2_q5",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5351",
+        "--teacher",
+        "2",
+        "--fold",
+        "5",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5351/teachers/t2_q5/complete.json",
+      "receipt_sha256": "7958aabb2c37a2c04e486878b94082b814823e7e9a0522584dc1dfe9e7486529",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5351_t2_q5.log"
+    },
+    {
+      "id": "teacher_cgqa_5351_t3_q5",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5351",
+        "--teacher",
+        "3",
+        "--fold",
+        "5",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5351/teachers/t3_q5/complete.json",
+      "receipt_sha256": "58c118c05fda780a197b041ea0d876ff4b06e6264a77d0188160e3d445746729",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5351_t3_q5.log"
+    },
+    {
+      "id": "teacher_cgqa_5352_t1_q5",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5352",
+        "--teacher",
+        "1",
+        "--fold",
+        "5",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5352/teachers/t1_q5/complete.json",
+      "receipt_sha256": "4e35f3dd67c3495c8f54cba7d33068cec0d418d7a56be5f3f4b04cf4913873f8",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5352_t1_q5.log"
+    },
+    {
+      "id": "teacher_cgqa_5352_t2_q5",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5352",
+        "--teacher",
+        "2",
+        "--fold",
+        "5",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5352/teachers/t2_q5/complete.json",
+      "receipt_sha256": "7576f1154dbd42e13da0ebe8c384efe34d693ea2b69da46dfd0b43975838ca55",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5352_t2_q5.log"
+    },
+    {
+      "id": "teacher_cgqa_5352_t3_q5",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5352",
+        "--teacher",
+        "3",
+        "--fold",
+        "5",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5352/teachers/t3_q5/complete.json",
+      "receipt_sha256": "a2bd2b657501c1c484a312fdb2efb55d4437e117ec641ba2c756bdcef96800e6",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5352_t3_q5.log"
+    },
+    {
+      "id": "teacher_cgqa_5353_t1_q5",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5353",
+        "--teacher",
+        "1",
+        "--fold",
+        "5",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5353/teachers/t1_q5/complete.json",
+      "receipt_sha256": "62d5c232666bea8092b413503ea06f9b6c911b32bad95807797fa22237313b78",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5353_t1_q5.log"
+    },
+    {
+      "id": "teacher_cgqa_5353_t2_q5",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5353",
+        "--teacher",
+        "2",
+        "--fold",
+        "5",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5353/teachers/t2_q5/complete.json",
+      "receipt_sha256": "3e37f0e1b8615ae848c70dd729dddc8171cf08b2d712e867f2f5e0e5e040d3b4",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5353_t2_q5.log"
+    },
+    {
+      "id": "teacher_cgqa_5353_t3_q5",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "teacher",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5353",
+        "--teacher",
+        "3",
+        "--fold",
+        "5",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5353/teachers/t3_q5/complete.json",
+      "receipt_sha256": "8b91442b5fc14074df3aeae3fd2c37afc65ce0986ed3950fe13608afe43414a1",
+      "dependencies": [
+        "cgqa\\groups.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/teacher_cgqa_5353_t3_q5.log"
+    },
+    {
+      "id": "fit_ut-zap50k_5351",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "fit",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5351",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5351/fit_complete.json",
+      "receipt_sha256": "583817d56dd83dbcf9572f97aaf0abcf62b7ed9914ca84aef6c0039f621fe930",
+      "dependencies": [
+        "ut-zap50k\\seed5351\\teachers\\t1_q1\\complete.json",
+        "ut-zap50k\\seed5351\\teachers\\t1_q2\\complete.json",
+        "ut-zap50k\\seed5351\\teachers\\t1_q3\\complete.json",
+        "ut-zap50k\\seed5351\\teachers\\t1_q4\\complete.json",
+        "ut-zap50k\\seed5351\\teachers\\t1_q5\\complete.json",
+        "ut-zap50k\\seed5351\\teachers\\t2_q1\\complete.json",
+        "ut-zap50k\\seed5351\\teachers\\t2_q2\\complete.json",
+        "ut-zap50k\\seed5351\\teachers\\t2_q3\\complete.json",
+        "ut-zap50k\\seed5351\\teachers\\t2_q4\\complete.json",
+        "ut-zap50k\\seed5351\\teachers\\t2_q5\\complete.json",
+        "ut-zap50k\\seed5351\\teachers\\t3_q1\\complete.json",
+        "ut-zap50k\\seed5351\\teachers\\t3_q2\\complete.json",
+        "ut-zap50k\\seed5351\\teachers\\t3_q3\\complete.json",
+        "ut-zap50k\\seed5351\\teachers\\t3_q4\\complete.json",
+        "ut-zap50k\\seed5351\\teachers\\t3_q5\\complete.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_ut_results/logs/fit_ut-zap50k_5351.log"
+    },
+    {
+      "id": "fit_ut-zap50k_5352",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "fit",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5352",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5352/fit_complete.json",
+      "receipt_sha256": "e121a73ed20074cf33bcf442b2e6379bd64b6c924774c3a213485f9d072ab1f1",
+      "dependencies": [
+        "ut-zap50k\\seed5352\\teachers\\t1_q1\\complete.json",
+        "ut-zap50k\\seed5352\\teachers\\t1_q2\\complete.json",
+        "ut-zap50k\\seed5352\\teachers\\t1_q3\\complete.json",
+        "ut-zap50k\\seed5352\\teachers\\t1_q4\\complete.json",
+        "ut-zap50k\\seed5352\\teachers\\t1_q5\\complete.json",
+        "ut-zap50k\\seed5352\\teachers\\t2_q1\\complete.json",
+        "ut-zap50k\\seed5352\\teachers\\t2_q2\\complete.json",
+        "ut-zap50k\\seed5352\\teachers\\t2_q3\\complete.json",
+        "ut-zap50k\\seed5352\\teachers\\t2_q4\\complete.json",
+        "ut-zap50k\\seed5352\\teachers\\t2_q5\\complete.json",
+        "ut-zap50k\\seed5352\\teachers\\t3_q1\\complete.json",
+        "ut-zap50k\\seed5352\\teachers\\t3_q2\\complete.json",
+        "ut-zap50k\\seed5352\\teachers\\t3_q3\\complete.json",
+        "ut-zap50k\\seed5352\\teachers\\t3_q4\\complete.json",
+        "ut-zap50k\\seed5352\\teachers\\t3_q5\\complete.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_ut_results/logs/fit_ut-zap50k_5352.log"
+    },
+    {
+      "id": "fit_ut-zap50k_5353",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "fit",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5353",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5353/fit_complete.json",
+      "receipt_sha256": "348e3f031b9b8b1ee395cb36f2c5a86f9253c11880c67029d67b91bcdb1e8faa",
+      "dependencies": [
+        "ut-zap50k\\seed5353\\teachers\\t1_q1\\complete.json",
+        "ut-zap50k\\seed5353\\teachers\\t1_q2\\complete.json",
+        "ut-zap50k\\seed5353\\teachers\\t1_q3\\complete.json",
+        "ut-zap50k\\seed5353\\teachers\\t1_q4\\complete.json",
+        "ut-zap50k\\seed5353\\teachers\\t1_q5\\complete.json",
+        "ut-zap50k\\seed5353\\teachers\\t2_q1\\complete.json",
+        "ut-zap50k\\seed5353\\teachers\\t2_q2\\complete.json",
+        "ut-zap50k\\seed5353\\teachers\\t2_q3\\complete.json",
+        "ut-zap50k\\seed5353\\teachers\\t2_q4\\complete.json",
+        "ut-zap50k\\seed5353\\teachers\\t2_q5\\complete.json",
+        "ut-zap50k\\seed5353\\teachers\\t3_q1\\complete.json",
+        "ut-zap50k\\seed5353\\teachers\\t3_q2\\complete.json",
+        "ut-zap50k\\seed5353\\teachers\\t3_q3\\complete.json",
+        "ut-zap50k\\seed5353\\teachers\\t3_q4\\complete.json",
+        "ut-zap50k\\seed5353\\teachers\\t3_q5\\complete.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_ut_results/logs/fit_ut-zap50k_5353.log"
+    },
+    {
+      "id": "fit_mit-states_5351",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "fit",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5351",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5351/fit_complete.json",
+      "receipt_sha256": "583817d56dd83dbcf9572f97aaf0abcf62b7ed9914ca84aef6c0039f621fe930",
+      "dependencies": [
+        "mit-states\\seed5351\\teachers\\t1_q1\\complete.json",
+        "mit-states\\seed5351\\teachers\\t1_q2\\complete.json",
+        "mit-states\\seed5351\\teachers\\t1_q3\\complete.json",
+        "mit-states\\seed5351\\teachers\\t1_q4\\complete.json",
+        "mit-states\\seed5351\\teachers\\t1_q5\\complete.json",
+        "mit-states\\seed5351\\teachers\\t2_q1\\complete.json",
+        "mit-states\\seed5351\\teachers\\t2_q2\\complete.json",
+        "mit-states\\seed5351\\teachers\\t2_q3\\complete.json",
+        "mit-states\\seed5351\\teachers\\t2_q4\\complete.json",
+        "mit-states\\seed5351\\teachers\\t2_q5\\complete.json",
+        "mit-states\\seed5351\\teachers\\t3_q1\\complete.json",
+        "mit-states\\seed5351\\teachers\\t3_q2\\complete.json",
+        "mit-states\\seed5351\\teachers\\t3_q3\\complete.json",
+        "mit-states\\seed5351\\teachers\\t3_q4\\complete.json",
+        "mit-states\\seed5351\\teachers\\t3_q5\\complete.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_mit_results/logs/fit_mit-states_5351.log"
+    },
+    {
+      "id": "fit_mit-states_5352",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "fit",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5352",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5352/fit_complete.json",
+      "receipt_sha256": "e121a73ed20074cf33bcf442b2e6379bd64b6c924774c3a213485f9d072ab1f1",
+      "dependencies": [
+        "mit-states\\seed5352\\teachers\\t1_q1\\complete.json",
+        "mit-states\\seed5352\\teachers\\t1_q2\\complete.json",
+        "mit-states\\seed5352\\teachers\\t1_q3\\complete.json",
+        "mit-states\\seed5352\\teachers\\t1_q4\\complete.json",
+        "mit-states\\seed5352\\teachers\\t1_q5\\complete.json",
+        "mit-states\\seed5352\\teachers\\t2_q1\\complete.json",
+        "mit-states\\seed5352\\teachers\\t2_q2\\complete.json",
+        "mit-states\\seed5352\\teachers\\t2_q3\\complete.json",
+        "mit-states\\seed5352\\teachers\\t2_q4\\complete.json",
+        "mit-states\\seed5352\\teachers\\t2_q5\\complete.json",
+        "mit-states\\seed5352\\teachers\\t3_q1\\complete.json",
+        "mit-states\\seed5352\\teachers\\t3_q2\\complete.json",
+        "mit-states\\seed5352\\teachers\\t3_q3\\complete.json",
+        "mit-states\\seed5352\\teachers\\t3_q4\\complete.json",
+        "mit-states\\seed5352\\teachers\\t3_q5\\complete.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_mit_results/logs/fit_mit-states_5352.log"
+    },
+    {
+      "id": "fit_mit-states_5353",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "fit",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5353",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5353/fit_complete.json",
+      "receipt_sha256": "348e3f031b9b8b1ee395cb36f2c5a86f9253c11880c67029d67b91bcdb1e8faa",
+      "dependencies": [
+        "mit-states\\seed5353\\teachers\\t1_q1\\complete.json",
+        "mit-states\\seed5353\\teachers\\t1_q2\\complete.json",
+        "mit-states\\seed5353\\teachers\\t1_q3\\complete.json",
+        "mit-states\\seed5353\\teachers\\t1_q4\\complete.json",
+        "mit-states\\seed5353\\teachers\\t1_q5\\complete.json",
+        "mit-states\\seed5353\\teachers\\t2_q1\\complete.json",
+        "mit-states\\seed5353\\teachers\\t2_q2\\complete.json",
+        "mit-states\\seed5353\\teachers\\t2_q3\\complete.json",
+        "mit-states\\seed5353\\teachers\\t2_q4\\complete.json",
+        "mit-states\\seed5353\\teachers\\t2_q5\\complete.json",
+        "mit-states\\seed5353\\teachers\\t3_q1\\complete.json",
+        "mit-states\\seed5353\\teachers\\t3_q2\\complete.json",
+        "mit-states\\seed5353\\teachers\\t3_q3\\complete.json",
+        "mit-states\\seed5353\\teachers\\t3_q4\\complete.json",
+        "mit-states\\seed5353\\teachers\\t3_q5\\complete.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_mit_results/logs/fit_mit-states_5353.log"
+    },
+    {
+      "id": "fit_cgqa_5351",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "fit",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5351",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5351/fit_complete.json",
+      "receipt_sha256": "583817d56dd83dbcf9572f97aaf0abcf62b7ed9914ca84aef6c0039f621fe930",
+      "dependencies": [
+        "cgqa\\seed5351\\teachers\\t1_q1\\complete.json",
+        "cgqa\\seed5351\\teachers\\t1_q2\\complete.json",
+        "cgqa\\seed5351\\teachers\\t1_q3\\complete.json",
+        "cgqa\\seed5351\\teachers\\t1_q4\\complete.json",
+        "cgqa\\seed5351\\teachers\\t1_q5\\complete.json",
+        "cgqa\\seed5351\\teachers\\t2_q1\\complete.json",
+        "cgqa\\seed5351\\teachers\\t2_q2\\complete.json",
+        "cgqa\\seed5351\\teachers\\t2_q3\\complete.json",
+        "cgqa\\seed5351\\teachers\\t2_q4\\complete.json",
+        "cgqa\\seed5351\\teachers\\t2_q5\\complete.json",
+        "cgqa\\seed5351\\teachers\\t3_q1\\complete.json",
+        "cgqa\\seed5351\\teachers\\t3_q2\\complete.json",
+        "cgqa\\seed5351\\teachers\\t3_q3\\complete.json",
+        "cgqa\\seed5351\\teachers\\t3_q4\\complete.json",
+        "cgqa\\seed5351\\teachers\\t3_q5\\complete.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/fit_cgqa_5351.log"
+    },
+    {
+      "id": "fit_cgqa_5352",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "fit",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5352",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5352/fit_complete.json",
+      "receipt_sha256": "e121a73ed20074cf33bcf442b2e6379bd64b6c924774c3a213485f9d072ab1f1",
+      "dependencies": [
+        "cgqa\\seed5352\\teachers\\t1_q1\\complete.json",
+        "cgqa\\seed5352\\teachers\\t1_q2\\complete.json",
+        "cgqa\\seed5352\\teachers\\t1_q3\\complete.json",
+        "cgqa\\seed5352\\teachers\\t1_q4\\complete.json",
+        "cgqa\\seed5352\\teachers\\t1_q5\\complete.json",
+        "cgqa\\seed5352\\teachers\\t2_q1\\complete.json",
+        "cgqa\\seed5352\\teachers\\t2_q2\\complete.json",
+        "cgqa\\seed5352\\teachers\\t2_q3\\complete.json",
+        "cgqa\\seed5352\\teachers\\t2_q4\\complete.json",
+        "cgqa\\seed5352\\teachers\\t2_q5\\complete.json",
+        "cgqa\\seed5352\\teachers\\t3_q1\\complete.json",
+        "cgqa\\seed5352\\teachers\\t3_q2\\complete.json",
+        "cgqa\\seed5352\\teachers\\t3_q3\\complete.json",
+        "cgqa\\seed5352\\teachers\\t3_q4\\complete.json",
+        "cgqa\\seed5352\\teachers\\t3_q5\\complete.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/fit_cgqa_5352.log"
+    },
+    {
+      "id": "fit_cgqa_5353",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "fit",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5353",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5353/fit_complete.json",
+      "receipt_sha256": "348e3f031b9b8b1ee395cb36f2c5a86f9253c11880c67029d67b91bcdb1e8faa",
+      "dependencies": [
+        "cgqa\\seed5353\\teachers\\t1_q1\\complete.json",
+        "cgqa\\seed5353\\teachers\\t1_q2\\complete.json",
+        "cgqa\\seed5353\\teachers\\t1_q3\\complete.json",
+        "cgqa\\seed5353\\teachers\\t1_q4\\complete.json",
+        "cgqa\\seed5353\\teachers\\t1_q5\\complete.json",
+        "cgqa\\seed5353\\teachers\\t2_q1\\complete.json",
+        "cgqa\\seed5353\\teachers\\t2_q2\\complete.json",
+        "cgqa\\seed5353\\teachers\\t2_q3\\complete.json",
+        "cgqa\\seed5353\\teachers\\t2_q4\\complete.json",
+        "cgqa\\seed5353\\teachers\\t2_q5\\complete.json",
+        "cgqa\\seed5353\\teachers\\t3_q1\\complete.json",
+        "cgqa\\seed5353\\teachers\\t3_q2\\complete.json",
+        "cgqa\\seed5353\\teachers\\t3_q3\\complete.json",
+        "cgqa\\seed5353\\teachers\\t3_q4\\complete.json",
+        "cgqa\\seed5353\\teachers\\t3_q5\\complete.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/fit_cgqa_5353.log"
+    },
+    {
+      "id": "finish_ut-zap50k_5351",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "finish",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5351",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5351/complete.json",
+      "receipt_sha256": "10919e082a7068432e790dfea70a291abc756f5b0e7169a0f78b754ec55fc3ca",
+      "dependencies": [
+        "ut-zap50k\\seed5351\\base_complete.json",
+        "ut-zap50k\\seed5351\\fit_complete.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_ut_results/logs/finish_ut-zap50k_5351.log"
+    },
+    {
+      "id": "finish_ut-zap50k_5352",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "finish",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5352",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5352/complete.json",
+      "receipt_sha256": "d85091b49cf738c9547aa8fb643e9576f7dde75f6363f1e5f8ded1904fca6c24",
+      "dependencies": [
+        "ut-zap50k\\seed5352\\base_complete.json",
+        "ut-zap50k\\seed5352\\fit_complete.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_ut_results/logs/finish_ut-zap50k_5352.log"
+    },
+    {
+      "id": "finish_ut-zap50k_5353",
+      "dataset": "ut-zap50k",
+      "command": [
+        "python",
+        "run.py",
+        "finish",
+        "--dataset",
+        "ut-zap50k",
+        "--seed",
+        "5353",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_ut_results/work/ut-zap50k/seed5353/complete.json",
+      "receipt_sha256": "8f59e56a21f8cd4f936f618717a9a0da46aba30a2d6e2856a25f379b48203599",
+      "dependencies": [
+        "ut-zap50k\\seed5353\\base_complete.json",
+        "ut-zap50k\\seed5353\\fit_complete.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_ut_results/logs/finish_ut-zap50k_5353.log"
+    },
+    {
+      "id": "finish_mit-states_5351",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "finish",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5351",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5351/complete.json",
+      "receipt_sha256": "10919e082a7068432e790dfea70a291abc756f5b0e7169a0f78b754ec55fc3ca",
+      "dependencies": [
+        "mit-states\\seed5351\\base_complete.json",
+        "mit-states\\seed5351\\fit_complete.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_mit_results/logs/finish_mit-states_5351.log"
+    },
+    {
+      "id": "finish_mit-states_5352",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "finish",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5352",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5352/complete.json",
+      "receipt_sha256": "d85091b49cf738c9547aa8fb643e9576f7dde75f6363f1e5f8ded1904fca6c24",
+      "dependencies": [
+        "mit-states\\seed5352\\base_complete.json",
+        "mit-states\\seed5352\\fit_complete.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_mit_results/logs/finish_mit-states_5352.log"
+    },
+    {
+      "id": "finish_mit-states_5353",
+      "dataset": "mit-states",
+      "command": [
+        "python",
+        "run.py",
+        "finish",
+        "--dataset",
+        "mit-states",
+        "--seed",
+        "5353",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_mit_results/work/mit-states/seed5353/complete.json",
+      "receipt_sha256": "8f59e56a21f8cd4f936f618717a9a0da46aba30a2d6e2856a25f379b48203599",
+      "dependencies": [
+        "mit-states\\seed5353\\base_complete.json",
+        "mit-states\\seed5353\\fit_complete.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_mit_results/logs/finish_mit-states_5353.log"
+    },
+    {
+      "id": "finish_cgqa_5351",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "finish",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5351",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5351/complete.json",
+      "receipt_sha256": "10919e082a7068432e790dfea70a291abc756f5b0e7169a0f78b754ec55fc3ca",
+      "dependencies": [
+        "cgqa\\seed5351\\base_complete.json",
+        "cgqa\\seed5351\\fit_complete.json"
+      ],
+      "physical_gpu": 0,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/finish_cgqa_5351.log"
+    },
+    {
+      "id": "finish_cgqa_5352",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "finish",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5352",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5352/complete.json",
+      "receipt_sha256": "d85091b49cf738c9547aa8fb643e9576f7dde75f6363f1e5f8ded1904fca6c24",
+      "dependencies": [
+        "cgqa\\seed5352\\base_complete.json",
+        "cgqa\\seed5352\\fit_complete.json"
+      ],
+      "physical_gpu": 2,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/finish_cgqa_5352.log"
+    },
+    {
+      "id": "finish_cgqa_5353",
+      "dataset": "cgqa",
+      "command": [
+        "python",
+        "run.py",
+        "finish",
+        "--dataset",
+        "cgqa",
+        "--seed",
+        "5353",
+        "--work",
+        "WORK_ROOT"
+      ],
+      "complete": true,
+      "receipt": "results/raw_export/trustg0_cgqa_results/work/cgqa/seed5353/complete.json",
+      "receipt_sha256": "8f59e56a21f8cd4f936f618717a9a0da46aba30a2d6e2856a25f379b48203599",
+      "dependencies": [
+        "cgqa\\seed5353\\base_complete.json",
+        "cgqa\\seed5353\\fit_complete.json"
+      ],
+      "physical_gpu": 1,
+      "log": "results/raw_export/trustg0_cgqa_results/logs/finish_cgqa_5353.log"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+from pathlib import Path
+import json,itertools,hashlib
+
+ROOT=Path.cwd();OUT=ROOT/'output/TRUST-G0_THREE_20261030_analysis'
+SOURCES={'UT':'trustg0_ut_results_20261030_083432/trustg0_ut_results',
+ 'MIT':'trustg0_mit_results_20261030_085219/trustg0_mit_results',
+ 'CGQA':'trustg0_cgqa_results_20261030_102311/trustg0_cgqa_results'}
+read=lambda p:json.loads(Path(p).read_text(encoding='utf-8-sig'))
+identities={};result={}
+for d,path in SOURCES.items():
+ src=ROOT/'output'/path;identity=read(src/'work/identity.json');identities[d]=identity
+ ixp=next((src/'work').glob('*/index.json'));ix=read(ixp);ds=ixp.parent;no=len(ix['objs']);train=set(ix['pairs']['train'])
+ seen_unseen={phase:{'seen':len(set(ix['pairs'][phase])&train),'unseen':len(set(ix['pairs'][phase])-train)} for phase in ['val','test']}
+ assert not (set(ix['pairs']['val'])-train)&(set(ix['pairs']['test'])-train)
+ assert all(r['pair']==r['attr']*no+r['obj'] for r in ix['rows'])
+ for phase in ['train','val','test']:assert set(r['pair'] for r in ix['rows'] if r['phase']==phase)==set(ix['pairs'][phase])
+ image_sets={phase:{r['image'] for r in ix['rows'] if r['phase']==phase} for phase in ['train','val','test']}
+ overlap={a+'_'+b:len(image_sets[a]&image_sets[b]) for a,b in itertools.combinations(image_sets,2)};assert not any(overlap.values())
+ checks=[]
+ for seed in [5351,5352,5353]:
+  folds=read(ds/f'seed{seed}/folds.json');common=set(folds[0]['common_pairs']);queries=[set(f['query_pairs']) for f in folds]
+  assert set.union(common,*queries)==train
+  assert all(not a&b for a,b in itertools.combinations(queries,2))
+  assert all(not common&q for q in queries)
+  for f in folds:
+   inner=set(f['inner_pairs']);query=set(f['query_pairs'])
+   assert not inner&query and inner|query==train
+   assert {p//no for p in query}<={p//no for p in inner}
+   assert {p%no for p in query}<={p%no for p in inner}
+   assert set(f['all_inner_ids'])==set(f['train_ids'])|set(f['audit_seen_ids'])
+   assert set(ix['rows'][i]['pair'] for i in f['query_ids'])==query
+   checks.append(dict(seed=seed,fold=f['fold'],common_pairs=len(common),inner_pairs=len(inner),query_pairs=len(query),primitive_coverage=True))
+ result[d]=dict(source=str(src),seen_unseen_pairs=seen_unseen,image_split_overlap=overlap,
+  candidate_counts={'teacher':len(train),'val_cw':len(train|set(ix['pairs']['val'])),'test_cw':len(train|set(ix['pairs']['test'])),'ow':len(ix['attrs'])*no},
+  fold_checks=checks,metadata_sha256=ix['metadata_sha256'],split_sha256=ix['split_sha256'])
+ print(d,'CANDIDATES',result[d]['candidate_counts'],'PAIRS',seen_unseen,'COMMON',checks[0]['common_pairs'],flush=True)
+core={d:{k:v for k,v in x['code'].items() if k.startswith('trustg0/')} for d,x in identities.items()}
+assert core['UT']==core['MIT']==core['CGQA']
+assert identities['UT']['config']==identities['MIT']['config']==identities['CGQA']['config']
+result['comparability']=dict(same_core_code=True,core_files=len(core['UT']),same_config=True)
+(OUT/'cross_dataset_checks.json').write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf8')
+print('CROSS_DATASET_CHECKS_OK',result['comparability'])

@@ -1,0 +1,37 @@
+{
+  "name": "trustg0_three_v1_10ep",
+  "date": "2026-10-28",
+  "allowed_gpus": [
+    0,
+    1,
+    2
+  ],
+  "datasets": [
+    "ut-zap50k",
+    "mit-states",
+    "cgqa"
+  ],
+  "seeds": [
+    5351,
+    5352,
+    5353
+  ],
+  "epochs_per_neural_stage": 10,
+  "independent_pipelines": 9,
+  "teachers": 135,
+  "methods": 17,
+  "readouts_per_pipeline": 45,
+  "metric_rows": 1620,
+  "queue_jobs": 165,
+  "real_server_training_executed": false,
+  "validation": {
+    "core_tests": 7,
+    "synthetic_pipeline_epochs": 10,
+    "real_index_fold_cases": 45,
+    "cgqa_full_dimensions_gpu": true,
+    "linux_scoped_stop": true,
+    "queue_failure_resume": true,
+    "network_simulated": true,
+    "formula_blocks_rendered": 26
+  }
+}

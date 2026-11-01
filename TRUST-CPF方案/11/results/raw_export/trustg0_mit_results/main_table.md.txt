@@ -1,0 +1,50 @@
+# TRUST-G0 MIT completed results
+
+Complete seeds: 5351, 5352, 5353
+
+First average graph banks within each seed, then report seed mean +/- sample SD.
+Permutation-mean rows additionally average the five type-preserving permutations.
+AUC/HM: 0-100 scale. TEST HM below uses the corresponding VAL bias.
+
+| Method | CW AUC | OW AUC | CW HM at VAL bias | OW HM at VAL bias |
+| --- | --- | --- | --- | --- |
+| g0 | 10.957 +/- 0.392 | 3.407 +/- 0.136 | 26.820 +/- 0.759 | 13.483 +/- 0.416 |
+| capacity | 11.370 +/- 0.434 | 3.800 +/- 0.190 | 27.215 +/- 0.665 | 14.503 +/- 0.475 |
+| dense | 11.389 +/- 0.447 | 3.696 +/- 0.225 | 27.394 +/- 0.446 | 14.227 +/- 0.599 |
+| uniform | 11.485 +/- 0.449 | 3.731 +/- 0.216 | 27.498 +/- 0.625 | 14.222 +/- 0.547 |
+| matched | 11.470 +/- 0.458 | 3.722 +/- 0.231 | 27.505 +/- 0.588 | 14.244 +/- 0.574 |
+| context | 11.475 +/- 0.502 | 3.719 +/- 0.235 | 27.559 +/- 0.641 | 14.213 +/- 0.579 |
+| context_shuffle | 11.467 +/- 0.471 | 3.722 +/- 0.230 | 27.534 +/- 0.680 | 14.215 +/- 0.599 |
+| matched_perm_mean | 11.468 +/- 0.444 | 3.722 +/- 0.217 | 27.478 +/- 0.610 | 14.230 +/- 0.567 |
+| context_perm_mean | 11.469 +/- 0.441 | 3.724 +/- 0.220 | 27.479 +/- 0.592 | 14.251 +/- 0.576 |
+| context_perm7101 | 11.471 +/- 0.463 | 3.719 +/- 0.217 | 27.500 +/- 0.564 | 14.219 +/- 0.565 |
+| context_perm7102 | 11.451 +/- 0.425 | 3.723 +/- 0.205 | 27.464 +/- 0.577 | 14.198 +/- 0.533 |
+| context_perm7103 | 11.471 +/- 0.425 | 3.716 +/- 0.214 | 27.429 +/- 0.611 | 14.295 +/- 0.594 |
+| context_perm7104 | 11.481 +/- 0.450 | 3.734 +/- 0.238 | 27.487 +/- 0.645 | 14.243 +/- 0.615 |
+| context_perm7105 | 11.469 +/- 0.443 | 3.729 +/- 0.226 | 27.512 +/- 0.570 | 14.302 +/- 0.578 |
+| matched_perm7101 | 11.486 +/- 0.452 | 3.728 +/- 0.215 | 27.492 +/- 0.621 | 14.193 +/- 0.599 |
+| matched_perm7102 | 11.452 +/- 0.419 | 3.727 +/- 0.204 | 27.445 +/- 0.597 | 14.205 +/- 0.550 |
+| matched_perm7103 | 11.445 +/- 0.450 | 3.703 +/- 0.211 | 27.445 +/- 0.660 | 14.248 +/- 0.544 |
+| matched_perm7104 | 11.482 +/- 0.454 | 3.722 +/- 0.226 | 27.473 +/- 0.591 | 14.223 +/- 0.569 |
+| matched_perm7105 | 11.475 +/- 0.444 | 3.727 +/- 0.229 | 27.536 +/- 0.585 | 14.282 +/- 0.592 |
+
+| Comparison | World | AUC difference | Improving seeds |
+| --- | --- | --- | --- |
+| uniform - g0 | test_cw | +0.5283 +/- 0.1030 | 3/3 |
+| matched - uniform | test_cw | -0.0157 +/- 0.0451 | 1/3 |
+| context - uniform | test_cw | -0.0108 +/- 0.1047 | 2/3 |
+| context - matched | test_cw | +0.0050 +/- 0.0628 | 2/3 |
+| context - context_shuffle | test_cw | +0.0082 +/- 0.0410 | 2/3 |
+| context - capacity | test_cw | +0.1045 +/- 0.0687 | 3/3 |
+| context - dense | test_cw | +0.0854 +/- 0.1073 | 2/3 |
+| matched - matched_perm_mean | test_cw | +0.0018 +/- 0.0390 | 2/3 |
+| context - context_perm_mean | test_cw | +0.0062 +/- 0.1110 | 2/3 |
+| uniform - g0 | test_ow | +0.3236 +/- 0.0814 | 3/3 |
+| matched - uniform | test_ow | -0.0094 +/- 0.0256 | 2/3 |
+| context - uniform | test_ow | -0.0122 +/- 0.0431 | 2/3 |
+| context - matched | test_ow | -0.0028 +/- 0.0187 | 2/3 |
+| context - context_shuffle | test_ow | -0.0037 +/- 0.0097 | 2/3 |
+| context - capacity | test_ow | -0.0812 +/- 0.0483 | 0/3 |
+| context - dense | test_ow | +0.0223 +/- 0.0331 | 2/3 |
+| matched - matched_perm_mean | test_ow | +0.0000 +/- 0.0152 | 1/3 |
+| context - context_perm_mean | test_ow | -0.0055 +/- 0.0357 | 2/3 |

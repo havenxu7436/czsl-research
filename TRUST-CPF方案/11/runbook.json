@@ -1,0 +1,16 @@
+{
+  "line": "TRUST-CPF方案",
+  "stage": "11",
+  "commands": [
+    {
+      "source": "SERVER_COMMANDS.md",
+      "language": "bash",
+      "text": "git lfs pull --include=\"TRUST-CPF方案/11/**\"\npython tools/register_trustg0_three.py --check\npython tools/reproduce.py materialize --line TRUST-CPF方案 --stage 11 --dest \"$HOME/experiments/trust-g0-11\"\ncd \"$HOME/experiments/trust-g0-11/trustg0_three_v1_10ep\"\npython -m unittest discover -s tests -v\npython run.py setup --help\n"
+    },
+    {
+      "source": "SERVER_COMMANDS.md",
+      "language": "bash",
+      "text": "mkdir -p logs\nnohup python -u scripts/run_queue.py 0 1 2 --work \"$PWD/work\" > logs/queue.log 2>&1 &\npython scripts/status.py\npython run.py report --work \"$PWD/work\"\n"
+    }
+  ]
+}

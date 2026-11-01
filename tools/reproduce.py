@@ -132,6 +132,9 @@ def verify():
     result={'trustcpf_followup':followup_check,'trustcpf_strong_series':strong_series_check,'passed':not(failures or links or formatting or syntax),'original_canonical_files':len(expected),
       'changed_or_missing':failures,'broken_links':links,'formatting_errors':formatting,
       'python_syntax_errors':syntax,'vgcpod':route_check,'vgcpod_round_b':b_check,'vgcpod_round_c':c_check,'vgcpod_round_d':d_check,'vgcpod_round_e':e_check,'vgcpod_round_f':f_check,'vgcpod_round_g':g_check,'vgcpod_round_h':h_check,'vgcpod_round_i':i_check,'vgcpod_round_j':j_check,'vgcpod_round_k':k_check,'trustcpf':trust_check,'vgcpod_round_l':round_l_check,'training_started':False}
+    if (ROOT/'TRUST-CPF方案/11/inputs.json').is_file():
+        from register_trustg0_three import check as check_g0_three
+        result['trustg0_three']=check_g0_three()
     result['trustcpf_state_stage']=state_stage_check
     if (ROOT/'TRUST-CPF方案/10/inputs.json').is_file():
         from register_trustcpf_abc import check as check_abc
@@ -150,6 +153,10 @@ def archive_stage(line,number):
     return matches[0]
 
 def materialize(stage,destination,line=None,number=None):
+    if stage=='43':
+        from register_trustg0_three import materialize as restore_g0_three
+        print(json.dumps(restore_g0_three(destination),ensure_ascii=False))
+        return
     if stage=='42':
         from register_trustcpf_abc import materialize as restore_abc
         print(json.dumps(restore_abc('10',destination),ensure_ascii=False))

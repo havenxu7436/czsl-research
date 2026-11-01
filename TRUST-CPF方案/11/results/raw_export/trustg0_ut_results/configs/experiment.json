@@ -1,0 +1,82 @@
+{
+  "epochs": 10,
+  "seeds": [
+    5351,
+    5352,
+    5353
+  ],
+  "datasets": [
+    "ut-zap50k",
+    "mit-states",
+    "cgqa"
+  ],
+  "teacher_initializations": 3,
+  "g0": {
+    "variant": "V1",
+    "rank": 32,
+    "adapter_rank": 8,
+    "kappa": 20.0,
+    "rho": 0.15,
+    "rho_a": 0.1,
+    "tau_v": 0.07,
+    "tau_gamma": 0.1,
+    "tau_pi": 0.1,
+    "lambda_prim": 0.2,
+    "lambda_cent": 0.1,
+    "lambda_orth": 0.001,
+    "batch_size": 64,
+    "eval_batch_size": 64,
+    "workers": 4,
+    "epochs": 10,
+    "lr": 0.001,
+    "min_lr": 1e-05,
+    "weight_decay": 0.0001,
+    "gradient_clip": 1.0,
+    "adam_betas": [
+      0.9,
+      0.999
+    ],
+    "adam_eps": 1e-08,
+    "task_aux_beta": 0.075,
+    "cp_lr_scale": 0.3,
+    "readout_feature": "global",
+    "readout_alpha": 0.5,
+    "gate_input": "none",
+    "gate_eta": 0.25,
+    "gate_center_modes": true
+  },
+  "graph_lr": 0.0003,
+  "graph_weight_decay": 0.0001,
+  "lambda_w": 0.001,
+  "graph_rank": 64,
+  "message_rank": 16,
+  "eta": 0.1,
+  "gain": 1.0,
+  "object_context": 0.5,
+  "batch_size": 64,
+  "eval_batch": 32,
+  "cache_batch": 24,
+  "workers": 4,
+  "graphs": 16,
+  "eval_banks": [
+    1701,
+    2701,
+    3701
+  ],
+  "permutation_seeds": [
+    7101,
+    7102,
+    7103,
+    7104,
+    7105
+  ],
+  "response_backgrounds": 4,
+  "response_images_per_pair": 2,
+  "response_pair_limit": 256,
+  "query_images_per_pair": 2,
+  "query_pair_limit": 128,
+  "measure_batch": 32,
+  "ridge_lambda": 3.3333333333333335,
+  "cache_reserve_gb": 12,
+  "measurement_checkpoint_batches": 1
+}

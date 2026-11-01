@@ -1,0 +1,3380 @@
+{
+  "UT": {
+    "image_counts": {
+      "train": 22998,
+      "val": 3214,
+      "test": 2914
+    },
+    "pair_counts": {
+      "train": 83,
+      "val": 30,
+      "test": 36
+    },
+    "attrs": 16,
+    "objs": 12,
+    "edges": 96,
+    "edge_counts": [
+      12,
+      36,
+      48
+    ],
+    "conditional_audits": [
+      {
+        "seed": 5351,
+        "fold": 4,
+        "teacher": 1,
+        "method": "matched",
+        "conditional_rmse": 0.0035264646842054614,
+        "centered_rmse": 0.0034992853825642767,
+        "target_centered_rms": 0.0033535915523366837,
+        "centered_skill": -0.08877562932041583,
+        "centered_rho": 0.03779010623966309,
+        "context_mass": [
+          0.6470588235294118,
+          0.35294117647058826
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 4,
+        "teacher": 1,
+        "method": "context",
+        "conditional_rmse": 0.003756127939560211,
+        "centered_rmse": 0.0037196766290402516,
+        "target_centered_rms": 0.0033535915523366837,
+        "centered_skill": -0.2302405510507577,
+        "centered_rho": 0.008548544611127692,
+        "context_mass": [
+          0.6470588235294118,
+          0.35294117647058826
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 4,
+        "teacher": 1,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.0036450254932563863,
+        "centered_rmse": 0.003609029408965525,
+        "target_centered_rms": 0.0033535915523366837,
+        "centered_skill": -0.15813852388920058,
+        "centered_rho": -0.03793946504625235,
+        "context_mass": [
+          0.6470588235294118,
+          0.35294117647058826
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 4,
+        "teacher": 2,
+        "method": "matched",
+        "conditional_rmse": 0.003781917933107239,
+        "centered_rmse": 0.0037187441518009992,
+        "target_centered_rms": 0.003910457008232944,
+        "centered_skill": 0.09564786336785713,
+        "centered_rho": 0.24564925484576403,
+        "context_mass": [
+          0.6764705882352942,
+          0.3235294117647059
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 4,
+        "teacher": 2,
+        "method": "context",
+        "conditional_rmse": 0.0034304065216097493,
+        "centered_rmse": 0.0033565365048408135,
+        "target_centered_rms": 0.003910457008232944,
+        "centered_skill": 0.2632371512382745,
+        "centered_rho": 0.3162418956677428,
+        "context_mass": [
+          0.6764705882352942,
+          0.3235294117647059
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 4,
+        "teacher": 2,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.0039402937240967965,
+        "centered_rmse": 0.003877914055557717,
+        "target_centered_rms": 0.003910457008232944,
+        "centered_skill": 0.016574809973494475,
+        "centered_rho": 0.20426308222336764,
+        "context_mass": [
+          0.6764705882352942,
+          0.3235294117647059
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 4,
+        "teacher": 3,
+        "method": "matched",
+        "conditional_rmse": 0.002325062935876808,
+        "centered_rmse": 0.0022960069507003693,
+        "target_centered_rms": 0.002507506836190501,
+        "centered_skill": 0.16157900398538827,
+        "centered_rho": 0.409627931920885,
+        "context_mass": [
+          0.6764705882352942,
+          0.3235294117647059
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 4,
+        "teacher": 3,
+        "method": "context",
+        "conditional_rmse": 0.0022613778064034984,
+        "centered_rmse": 0.002237440258776933,
+        "target_centered_rms": 0.002507506836190501,
+        "centered_skill": 0.20380646848903594,
+        "centered_rho": 0.4706565526408595,
+        "context_mass": [
+          0.6764705882352942,
+          0.3235294117647059
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 4,
+        "teacher": 3,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.002446479522509121,
+        "centered_rmse": 0.0024045267272696084,
+        "target_centered_rms": 0.002507506836190501,
+        "centered_skill": 0.08045081000260967,
+        "centered_rho": 0.3563108672652796,
+        "context_mass": [
+          0.6764705882352942,
+          0.3235294117647059
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 5,
+        "teacher": 1,
+        "method": "matched",
+        "conditional_rmse": 0.003982005622018556,
+        "centered_rmse": 0.00389361364970794,
+        "target_centered_rms": 0.00339249653296331,
+        "centered_skill": -0.31724599398541886,
+        "centered_rho": -0.10005697009220199,
+        "context_mass": [
+          0.5,
+          0.5
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 5,
+        "teacher": 1,
+        "method": "context",
+        "conditional_rmse": 0.004177459401570736,
+        "centered_rmse": 0.0040788758083411475,
+        "target_centered_rms": 0.00339249653296331,
+        "centered_skill": -0.4455800288101188,
+        "centered_rho": -0.132312549168543,
+        "context_mass": [
+          0.5,
+          0.5
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 5,
+        "teacher": 1,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.004055823378901331,
+        "centered_rmse": 0.003959065819345396,
+        "target_centered_rms": 0.00339249653296331,
+        "centered_skill": -0.3619043871750063,
+        "centered_rho": -0.1736700756856469,
+        "context_mass": [
+          0.5,
+          0.5
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 5,
+        "teacher": 2,
+        "method": "matched",
+        "conditional_rmse": 0.003698074772295335,
+        "centered_rmse": 0.00354594544002888,
+        "target_centered_rms": 0.0029900286622288027,
+        "centered_skill": -0.40641469366644145,
+        "centered_rho": 0.042561344527459744,
+        "context_mass": [
+          0.5294117647058824,
+          0.47058823529411764
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 5,
+        "teacher": 2,
+        "method": "context",
+        "conditional_rmse": 0.004323254706945201,
+        "centered_rmse": 0.0041864175519757815,
+        "target_centered_rms": 0.0029900286622288027,
+        "centered_skill": -0.9603534538816152,
+        "centered_rho": 0.17230861568510433,
+        "context_mass": [
+          0.5294117647058824,
+          0.47058823529411764
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 5,
+        "teacher": 2,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.003730151090180439,
+        "centered_rmse": 0.003586102478854657,
+        "target_centered_rms": 0.0029900286622288027,
+        "centered_skill": -0.4384497306738733,
+        "centered_rho": 0.17936345386973387,
+        "context_mass": [
+          0.5294117647058824,
+          0.47058823529411764
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 5,
+        "teacher": 3,
+        "method": "matched",
+        "conditional_rmse": 0.0029206638904305357,
+        "centered_rmse": 0.0028702822476383764,
+        "target_centered_rms": 0.0028983357545650052,
+        "centered_skill": 0.019264669003742685,
+        "centered_rho": 0.20451555162545593,
+        "context_mass": [
+          0.5588235294117647,
+          0.44117647058823534
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 5,
+        "teacher": 3,
+        "method": "context",
+        "conditional_rmse": 0.002794434043638253,
+        "centered_rmse": 0.0027456426896997226,
+        "target_centered_rms": 0.0028983357545650052,
+        "centered_skill": 0.10259052916731715,
+        "centered_rho": 0.34211472207904947,
+        "context_mass": [
+          0.5588235294117647,
+          0.44117647058823534
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 5,
+        "teacher": 3,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.0030212859679054943,
+        "centered_rmse": 0.0029612055557797527,
+        "target_centered_rms": 0.0028983357545650052,
+        "centered_skill": -0.04385390977518511,
+        "centered_rho": 0.24684643138105963,
+        "context_mass": [
+          0.5588235294117647,
+          0.44117647058823534
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 4,
+        "teacher": 1,
+        "method": "matched",
+        "conditional_rmse": 0.0028498880234226085,
+        "centered_rmse": 0.002750405187297073,
+        "target_centered_rms": 0.0027075546395876077,
+        "centered_skill": -0.03190305355056133,
+        "centered_rho": 0.10149817568730758,
+        "context_mass": [
+          0.59375,
+          0.40625
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 4,
+        "teacher": 1,
+        "method": "context",
+        "conditional_rmse": 0.002979782878871784,
+        "centered_rmse": 0.0028705292099258178,
+        "target_centered_rms": 0.0027075546395876077,
+        "centered_skill": -0.12400820573327986,
+        "centered_rho": 0.0661893361907604,
+        "context_mass": [
+          0.59375,
+          0.40625
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 4,
+        "teacher": 1,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.0028663544646756424,
+        "centered_rmse": 0.002779961525829408,
+        "target_centered_rms": 0.0027075546395876077,
+        "centered_skill": -0.054200241921547265,
+        "centered_rho": 0.04074715839730896,
+        "context_mass": [
+          0.59375,
+          0.40625
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 4,
+        "teacher": 2,
+        "method": "matched",
+        "conditional_rmse": 0.00818744336091602,
+        "centered_rmse": 0.007864453889808195,
+        "target_centered_rms": 0.007831061456495397,
+        "centered_skill": -0.008546383614790098,
+        "centered_rho": -0.13081060195576127,
+        "context_mass": [
+          0.5625,
+          0.4375
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 4,
+        "teacher": 2,
+        "method": "context",
+        "conditional_rmse": 0.008302778496781507,
+        "centered_rmse": 0.007913519615173515,
+        "target_centered_rms": 0.007831061456495397,
+        "centered_skill": -0.021170127696970686,
+        "centered_rho": -0.12890805143368692,
+        "context_mass": [
+          0.5625,
+          0.4375
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 4,
+        "teacher": 2,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.008437689421425774,
+        "centered_rmse": 0.008122353523558388,
+        "target_centered_rms": 0.007831061456495397,
+        "centered_skill": -0.07577763642849988,
+        "centered_rho": -0.19815092369042134,
+        "context_mass": [
+          0.5625,
+          0.4375
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 4,
+        "teacher": 3,
+        "method": "matched",
+        "conditional_rmse": 0.0025248816026357253,
+        "centered_rmse": 0.0024910490529485,
+        "target_centered_rms": 0.0026720550889300096,
+        "centered_skill": 0.13089200711131166,
+        "centered_rho": 0.2049360445520279,
+        "context_mass": [
+          0.625,
+          0.375
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 4,
+        "teacher": 3,
+        "method": "context",
+        "conditional_rmse": 0.0024206552583647166,
+        "centered_rmse": 0.002361712835289134,
+        "target_centered_rms": 0.0026720550889300096,
+        "centered_skill": 0.2187979675234193,
+        "centered_rho": 0.3999538832976155,
+        "context_mass": [
+          0.625,
+          0.375
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 4,
+        "teacher": 3,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.002646261794463507,
+        "centered_rmse": 0.0025987566225832964,
+        "target_centered_rms": 0.0026720550889300096,
+        "centered_skill": 0.05411050347152491,
+        "centered_rho": 0.12161923880313595,
+        "context_mass": [
+          0.625,
+          0.375
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 5,
+        "teacher": 1,
+        "method": "matched",
+        "conditional_rmse": 0.004160638625529623,
+        "centered_rmse": 0.004118794136401403,
+        "target_centered_rms": 0.004094193575592926,
+        "centered_skill": -0.012053396297183605,
+        "centered_rho": 0.234574013731376,
+        "context_mass": [
+          0.5625,
+          0.4375
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 5,
+        "teacher": 1,
+        "method": "context",
+        "conditional_rmse": 0.00419443671461568,
+        "centered_rmse": 0.0041463742514093955,
+        "target_centered_rms": 0.004094193575592926,
+        "centered_skill": -0.02565252342971891,
+        "centered_rho": 0.07550592735263001,
+        "context_mass": [
+          0.5625,
+          0.4375
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 5,
+        "teacher": 1,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.004348736276003172,
+        "centered_rmse": 0.004310262981926732,
+        "target_centered_rms": 0.004094193575592926,
+        "centered_skill": -0.10833434712157497,
+        "centered_rho": 0.15134077530314954,
+        "context_mass": [
+          0.5625,
+          0.4375
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 5,
+        "teacher": 2,
+        "method": "matched",
+        "conditional_rmse": 0.0031172157542908563,
+        "centered_rmse": 0.0030061859243371084,
+        "target_centered_rms": 0.003003521273593475,
+        "centered_skill": -0.001775138250967201,
+        "centered_rho": -0.0324186482099048,
+        "context_mass": [
+          0.5625,
+          0.4375
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 5,
+        "teacher": 2,
+        "method": "context",
+        "conditional_rmse": 0.003046886778933826,
+        "centered_rmse": 0.0029556311810546854,
+        "target_centered_rms": 0.003003521273593475,
+        "centered_skill": 0.03163506621237189,
+        "centered_rho": 0.11703808697067522,
+        "context_mass": [
+          0.5625,
+          0.4375
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 5,
+        "teacher": 2,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.003364586080428904,
+        "centered_rmse": 0.0032470586391623217,
+        "target_centered_rms": 0.003003521273593475,
+        "centered_skill": -0.16874250464173146,
+        "centered_rho": -0.04127783956813066,
+        "context_mass": [
+          0.5625,
+          0.4375
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 5,
+        "teacher": 3,
+        "method": "matched",
+        "conditional_rmse": 0.003862602765012571,
+        "centered_rmse": 0.0037419380802646294,
+        "target_centered_rms": 0.003416179792725341,
+        "centered_skill": -0.19980800339878857,
+        "centered_rho": -0.11789739982361509,
+        "context_mass": [
+          0.59375,
+          0.40625
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 5,
+        "teacher": 3,
+        "method": "context",
+        "conditional_rmse": 0.00430522112779669,
+        "centered_rmse": 0.004195313570836161,
+        "target_centered_rms": 0.003416179792725341,
+        "centered_skill": -0.5081599891000628,
+        "centered_rho": -0.2407495320511082,
+        "context_mass": [
+          0.59375,
+          0.40625
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 5,
+        "teacher": 3,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.003686436987013255,
+        "centered_rmse": 0.0035659562530301757,
+        "target_centered_rms": 0.003416179792725341,
+        "centered_skill": -0.08960875233087773,
+        "centered_rho": -0.08812867916338879,
+        "context_mass": [
+          0.59375,
+          0.40625
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 4,
+        "teacher": 1,
+        "method": "matched",
+        "conditional_rmse": 0.002767258536638536,
+        "centered_rmse": 0.0026879295135537533,
+        "target_centered_rms": 0.0024780642832236423,
+        "centered_skill": -0.17655061563032848,
+        "centered_rho": 0.2900756889668898,
+        "context_mass": [
+          0.47058823529411764,
+          0.5294117647058824
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 4,
+        "teacher": 1,
+        "method": "context",
+        "conditional_rmse": 0.002818060418572629,
+        "centered_rmse": 0.0026884979446120095,
+        "target_centered_rms": 0.0024780642832236423,
+        "centered_skill": -0.17704829135007394,
+        "centered_rho": 0.433378319724385,
+        "context_mass": [
+          0.47058823529411764,
+          0.5294117647058824
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 4,
+        "teacher": 1,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.0025531400062529675,
+        "centered_rmse": 0.002473499621001419,
+        "target_centered_rms": 0.0024780642832236423,
+        "centered_skill": 0.0036806616654253554,
+        "centered_rho": 0.36555963974717204,
+        "context_mass": [
+          0.47058823529411764,
+          0.5294117647058824
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 4,
+        "teacher": 2,
+        "method": "matched",
+        "conditional_rmse": 0.002269155557982386,
+        "centered_rmse": 0.002110372114766741,
+        "target_centered_rms": 0.0019042765765236206,
+        "centered_skill": -0.2281687097743983,
+        "centered_rho": 0.1298000625031931,
+        "context_mass": [
+          0.5,
+          0.5
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 4,
+        "teacher": 2,
+        "method": "context",
+        "conditional_rmse": 0.0026137524657005233,
+        "centered_rmse": 0.0025026398631659845,
+        "target_centered_rms": 0.0019042765765236206,
+        "centered_skill": -0.7271762798834909,
+        "centered_rho": 0.24140737324688716,
+        "context_mass": [
+          0.5,
+          0.5
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 4,
+        "teacher": 2,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.0022843491303955092,
+        "centered_rmse": 0.0020736247323200627,
+        "target_centered_rms": 0.0019042765765236206,
+        "centered_skill": -0.1857695054053332,
+        "centered_rho": 0.29653209179936524,
+        "context_mass": [
+          0.5,
+          0.5
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 4,
+        "teacher": 3,
+        "method": "matched",
+        "conditional_rmse": 0.004897379612450282,
+        "centered_rmse": 0.0046355614805946585,
+        "target_centered_rms": 0.003446260718221082,
+        "centered_skill": -0.8092910347023439,
+        "centered_rho": -0.10658478367003324,
+        "context_mass": [
+          0.411764705882353,
+          0.5882352941176471
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 4,
+        "teacher": 3,
+        "method": "context",
+        "conditional_rmse": 0.005232399972136772,
+        "centered_rmse": 0.004891305781948513,
+        "target_centered_rms": 0.003446260718221082,
+        "centered_skill": -1.014435507325238,
+        "centered_rho": -0.06728460787239238,
+        "context_mass": [
+          0.411764705882353,
+          0.5882352941176471
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 4,
+        "teacher": 3,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.005244621534037476,
+        "centered_rmse": 0.004964081625760123,
+        "target_centered_rms": 0.003446260718221082,
+        "centered_skill": -1.0748254602047327,
+        "centered_rho": -0.1576462170740309,
+        "context_mass": [
+          0.411764705882353,
+          0.5882352941176471
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 5,
+        "teacher": 1,
+        "method": "matched",
+        "conditional_rmse": 0.00390021988693614,
+        "centered_rmse": 0.0035129222294757556,
+        "target_centered_rms": 0.0030452939492037283,
+        "centered_skill": -0.330695326022191,
+        "centered_rho": -0.21800523599564434,
+        "context_mass": [
+          0.3823529411764706,
+          0.6176470588235294
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 5,
+        "teacher": 1,
+        "method": "context",
+        "conditional_rmse": 0.004234911796930215,
+        "centered_rmse": 0.0039061593403752564,
+        "target_centered_rms": 0.0030452939492037283,
+        "centered_skill": -0.6452862605491372,
+        "centered_rho": -0.34781827306513313,
+        "context_mass": [
+          0.3823529411764706,
+          0.6176470588235294
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 5,
+        "teacher": 1,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.004701791689391459,
+        "centered_rmse": 0.004291102165112493,
+        "target_centered_rms": 0.0030452939492037283,
+        "centered_skill": -0.9855428775263044,
+        "centered_rho": -0.34892710848276054,
+        "context_mass": [
+          0.3823529411764706,
+          0.6176470588235294
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 5,
+        "teacher": 2,
+        "method": "matched",
+        "conditional_rmse": 0.0030370494724933734,
+        "centered_rmse": 0.0029660440784419714,
+        "target_centered_rms": 0.002939360749395125,
+        "centered_skill": -0.018238281116275568,
+        "centered_rho": -0.027250654499455542,
+        "context_mass": [
+          0.411764705882353,
+          0.5882352941176471
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 5,
+        "teacher": 2,
+        "method": "context",
+        "conditional_rmse": 0.0032242734986713843,
+        "centered_rmse": 0.0031702525162731203,
+        "target_centered_rms": 0.002939360749395125,
+        "centered_skill": -0.163273757170322,
+        "centered_rho": 0.06960231126061363,
+        "context_mass": [
+          0.411764705882353,
+          0.5882352941176471
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 5,
+        "teacher": 2,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.0032371315497691337,
+        "centered_rmse": 0.0031724919373953167,
+        "target_centered_rms": 0.002939360749395125,
+        "centered_skill": -0.16491777757428872,
+        "centered_rho": 0.03083376285163986,
+        "context_mass": [
+          0.411764705882353,
+          0.5882352941176471
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 5,
+        "teacher": 3,
+        "method": "matched",
+        "conditional_rmse": 0.004536575899151492,
+        "centered_rmse": 0.004433616130332147,
+        "target_centered_rms": 0.004189223923397564,
+        "centered_skill": -0.12007995973494534,
+        "centered_rho": 0.0595540062617519,
+        "context_mass": [
+          0.44117647058823534,
+          0.5588235294117647
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 5,
+        "teacher": 3,
+        "method": "context",
+        "conditional_rmse": 0.005119660501880845,
+        "centered_rmse": 0.004940167783894781,
+        "target_centered_rms": 0.004189223923397564,
+        "centered_skill": -0.39064490320037804,
+        "centered_rho": 0.032259650598160765,
+        "context_mass": [
+          0.44117647058823534,
+          0.5588235294117647
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 5,
+        "teacher": 3,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.00442940403771846,
+        "centered_rmse": 0.0043709188776963614,
+        "target_centered_rms": 0.004189223923397564,
+        "centered_skill": -0.08862509765400639,
+        "centered_rho": 0.1814709193500258,
+        "context_mass": [
+          0.44117647058823534,
+          0.5588235294117647
+        ]
+      }
+    ],
+    "policies": [
+      {
+        "seed": 5351,
+        "method": "matched",
+        "std": 0.17840152376391433,
+        "min": 0.09772789748921194,
+        "max": 0.9912698136154117,
+        "mean_abs_deviation": 0.14173992816725356,
+        "context_difference": 0.0
+      },
+      {
+        "seed": 5351,
+        "method": "context",
+        "std": 0.1796467341639978,
+        "min": 0.023455147209529993,
+        "max": 0.9921042090827336,
+        "mean_abs_deviation": 0.1356687430466624,
+        "context_difference": 0.16328492445941098
+      },
+      {
+        "seed": 5351,
+        "method": "context_shuffle",
+        "std": 0.19407763829655952,
+        "min": 0.08451072537479606,
+        "max": 0.9895517984604856,
+        "mean_abs_deviation": 0.157304403623811,
+        "context_difference": 0.1243088332786985
+      },
+      {
+        "seed": 5352,
+        "method": "matched",
+        "std": 0.17673580688218576,
+        "min": 0.005213241063716259,
+        "max": 0.7980270137506394,
+        "mean_abs_deviation": 0.13403608302149103,
+        "context_difference": 0.0
+      },
+      {
+        "seed": 5352,
+        "method": "context",
+        "std": 0.176776301167649,
+        "min": 0.004513256806197804,
+        "max": 0.8761722833899626,
+        "mean_abs_deviation": 0.13474505038925177,
+        "context_difference": 0.16671555148247727
+      },
+      {
+        "seed": 5352,
+        "method": "context_shuffle",
+        "std": 0.17835914032556066,
+        "min": 0.0034163912824427918,
+        "max": 0.822464949753064,
+        "mean_abs_deviation": 0.13495464767745421,
+        "context_difference": 0.12360208041300758
+      },
+      {
+        "seed": 5353,
+        "method": "matched",
+        "std": 0.18818264375923913,
+        "min": 0.03457573001306446,
+        "max": 0.9650373752828127,
+        "mean_abs_deviation": 0.14539923625231754,
+        "context_difference": 0.0
+      },
+      {
+        "seed": 5353,
+        "method": "context",
+        "std": 0.18175369083173323,
+        "min": 0.032331119435411254,
+        "max": 0.9876619778271897,
+        "mean_abs_deviation": 0.13991738195952852,
+        "context_difference": 0.12700355698992874
+      },
+      {
+        "seed": 5353,
+        "method": "context_shuffle",
+        "std": 0.1931346830092879,
+        "min": 0.017511668712151828,
+        "max": 0.9739281744882284,
+        "mean_abs_deviation": 0.15301299532773727,
+        "context_difference": 0.15163138905655146
+      }
+    ],
+    "epoch_selection": [
+      {
+        "seed": 5351,
+        "stage": "g0",
+        "selected": 6,
+        "val_best": 44.0594003851579,
+        "val_last": 44.026271145505675
+      },
+      {
+        "seed": 5351,
+        "stage": "uniform",
+        "selected": 6,
+        "val_best": 43.32892260687595,
+        "val_last": 42.24548912955973
+      },
+      {
+        "seed": 5351,
+        "stage": "capacity",
+        "selected": 1,
+        "val_best": 44.39374223304738,
+        "val_last": 43.698198969626965
+      },
+      {
+        "seed": 5352,
+        "stage": "g0",
+        "selected": 10,
+        "val_best": 43.92415111812403,
+        "val_last": 43.92415111812403
+      },
+      {
+        "seed": 5352,
+        "stage": "uniform",
+        "selected": 3,
+        "val_best": 44.324897818983594,
+        "val_last": 42.19189197233148
+      },
+      {
+        "seed": 5352,
+        "stage": "capacity",
+        "selected": 2,
+        "val_best": 44.76726343210141,
+        "val_last": 44.52464908133448
+      },
+      {
+        "seed": 5353,
+        "stage": "g0",
+        "selected": 10,
+        "val_best": 42.79365850731063,
+        "val_last": 42.79365850731063
+      },
+      {
+        "seed": 5353,
+        "stage": "uniform",
+        "selected": 2,
+        "val_best": 42.34246168303368,
+        "val_last": 40.883604149010345
+      },
+      {
+        "seed": 5353,
+        "stage": "capacity",
+        "selected": 5,
+        "val_best": 43.28640105701303,
+        "val_last": 43.21689796145397
+      }
+    ],
+    "bank_differences": [
+      {
+        "seed": 5351,
+        "phase": "test_cw",
+        "reference": "uniform",
+        "values": [
+          -0.18857654176055405,
+          0.16218719840288998,
+          0.008115821561510472
+        ],
+        "mean": -0.006091173932051201,
+        "sd": 0.1758129102030837
+      },
+      {
+        "seed": 5351,
+        "phase": "test_cw",
+        "reference": "context_perm_mean",
+        "values": [
+          -0.1388580883983579,
+          0.14588835420960322,
+          0.11229298839540292
+        ],
+        "mean": 0.039774418068882746,
+        "sd": 0.15560958012321754
+      },
+      {
+        "seed": 5351,
+        "phase": "test_ow",
+        "reference": "uniform",
+        "values": [
+          -0.297649048096833,
+          -0.1627041297125409,
+          -0.2570957868547481
+        ],
+        "mean": -0.23914965488804066,
+        "sd": 0.06923929873172224
+      },
+      {
+        "seed": 5351,
+        "phase": "test_ow",
+        "reference": "context_perm_mean",
+        "values": [
+          -0.3196082901307946,
+          -0.20232691459726482,
+          -0.2818412886477262
+        ],
+        "mean": -0.26792549779192854,
+        "sd": 0.059866244145728206
+      },
+      {
+        "seed": 5352,
+        "phase": "test_cw",
+        "reference": "uniform",
+        "values": [
+          0.45859561135655724,
+          0.3147594744462765,
+          0.37893649653940287
+        ],
+        "mean": 0.3840971941140789,
+        "sd": 0.07205680516031228
+      },
+      {
+        "seed": 5352,
+        "phase": "test_cw",
+        "reference": "context_perm_mean",
+        "values": [
+          0.36402302825597843,
+          0.3196651525748706,
+          0.3242606719176564
+        ],
+        "mean": 0.3359829509161685,
+        "sd": 0.024391887020572482
+      },
+      {
+        "seed": 5352,
+        "phase": "test_ow",
+        "reference": "uniform",
+        "values": [
+          0.49405709919860286,
+          0.40075099780666434,
+          0.539934752930094
+        ],
+        "mean": 0.4782476166451204,
+        "sd": 0.07092590659640069
+      },
+      {
+        "seed": 5352,
+        "phase": "test_ow",
+        "reference": "context_perm_mean",
+        "values": [
+          0.338057568572232,
+          0.28191365903107624,
+          0.43304369672053156
+        ],
+        "mean": 0.3510049747746133,
+        "sd": 0.07639239863056495
+      },
+      {
+        "seed": 5353,
+        "phase": "test_cw",
+        "reference": "uniform",
+        "values": [
+          0.038278763479624445,
+          0.029775243435871346,
+          0.1471703438575389
+        ],
+        "mean": 0.07174145025767824,
+        "sd": 0.06546156090071452
+      },
+      {
+        "seed": 5353,
+        "phase": "test_cw",
+        "reference": "context_perm_mean",
+        "values": [
+          0.011935943939832327,
+          -0.016660696110037065,
+          0.2002385121062602
+        ],
+        "mean": 0.06517125331201849,
+        "sd": 0.11784233218236326
+      },
+      {
+        "seed": 5353,
+        "phase": "test_ow",
+        "reference": "uniform",
+        "values": [
+          0.325666725079909,
+          0.15280489513272855,
+          0.312329897290919
+        ],
+        "mean": 0.26360050583451883,
+        "sd": 0.09618325351616723
+      },
+      {
+        "seed": 5353,
+        "phase": "test_ow",
+        "reference": "context_perm_mean",
+        "values": [
+          0.2929966663099819,
+          0.2377108627428477,
+          0.26697951349527216
+        ],
+        "mean": 0.26589568084936727,
+        "sd": 0.02765883292764147
+      }
+    ]
+  },
+  "MIT": {
+    "image_counts": {
+      "train": 30338,
+      "val": 10420,
+      "test": 12995
+    },
+    "pair_counts": {
+      "train": 1262,
+      "val": 600,
+      "test": 800
+    },
+    "attrs": 115,
+    "objs": 245,
+    "edges": 1325,
+    "edge_counts": [
+      245,
+      735,
+      345
+    ],
+    "conditional_audits": [
+      {
+        "seed": 5351,
+        "fold": 4,
+        "teacher": 1,
+        "method": "matched",
+        "conditional_rmse": 0.00028701298167329935,
+        "centered_rmse": 0.00028660301031660447,
+        "target_centered_rms": 0.00028708413909126,
+        "centered_skill": 0.003349022419547154,
+        "centered_rho": 0.0762321996836774,
+        "context_mass": [
+          0.5814606741573034,
+          0.4185393258426967
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 4,
+        "teacher": 1,
+        "method": "context",
+        "conditional_rmse": 0.00028708099387871126,
+        "centered_rmse": 0.0002866585859075849,
+        "target_centered_rms": 0.00028708413909126,
+        "centered_skill": 0.0029624609710571237,
+        "centered_rho": 0.06737261414657349,
+        "context_mass": [
+          0.5814606741573034,
+          0.4185393258426967
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 4,
+        "teacher": 1,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.0002880882321447832,
+        "centered_rmse": 0.0002876685063266936,
+        "target_centered_rms": 0.00028708413909126,
+        "centered_skill": -0.004075195408859145,
+        "centered_rho": 0.05026787521026723,
+        "context_mass": [
+          0.5814606741573034,
+          0.4185393258426967
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 4,
+        "teacher": 2,
+        "method": "matched",
+        "conditional_rmse": 0.0003225961741462429,
+        "centered_rmse": 0.000322110101323739,
+        "target_centered_rms": 0.0003203102989838053,
+        "centered_skill": -0.0112694398568427,
+        "centered_rho": 0.06998982643028163,
+        "context_mass": [
+          0.5898876404494382,
+          0.4101123595505618
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 4,
+        "teacher": 2,
+        "method": "context",
+        "conditional_rmse": 0.0003240604832819117,
+        "centered_rmse": 0.00032363318444151977,
+        "target_centered_rms": 0.0003203102989838053,
+        "centered_skill": -0.020855534178705115,
+        "centered_rho": 0.04450303302366584,
+        "context_mass": [
+          0.5898876404494382,
+          0.4101123595505618
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 4,
+        "teacher": 2,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.00032137685240711875,
+        "centered_rmse": 0.0003209068176282675,
+        "target_centered_rms": 0.0003203102989838053,
+        "centered_skill": -0.0037280980295555377,
+        "centered_rho": 0.06836533155118003,
+        "context_mass": [
+          0.5898876404494382,
+          0.4101123595505618
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 4,
+        "teacher": 3,
+        "method": "matched",
+        "conditional_rmse": 0.00029500621114114905,
+        "centered_rmse": 0.0002943576742272357,
+        "target_centered_rms": 0.00029434565349514857,
+        "centered_skill": -8.167932769320707e-05,
+        "centered_rho": 0.04985635262926348,
+        "context_mass": [
+          0.5431034482758622,
+          0.4568965517241379
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 4,
+        "teacher": 3,
+        "method": "context",
+        "conditional_rmse": 0.00029598773867993774,
+        "centered_rmse": 0.00029527598463453326,
+        "target_centered_rms": 0.00029434565349514857,
+        "centered_skill": -0.006331341168514415,
+        "centered_rho": 0.040307301668590825,
+        "context_mass": [
+          0.5431034482758622,
+          0.4568965517241379
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 4,
+        "teacher": 3,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.0002953989765528788,
+        "centered_rmse": 0.00029483122569198757,
+        "target_centered_rms": 0.00029434565349514857,
+        "centered_skill": -0.003302054623119055,
+        "centered_rho": 0.031765171097091066,
+        "context_mass": [
+          0.5431034482758622,
+          0.4568965517241379
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 5,
+        "teacher": 1,
+        "method": "matched",
+        "conditional_rmse": 0.0002913732602064876,
+        "centered_rmse": 0.0002910315143647537,
+        "target_centered_rms": 0.00029067654053950527,
+        "centered_skill": -0.0024438888076994125,
+        "centered_rho": 0.021667889361004118,
+        "context_mass": [
+          0.5027624309392265,
+          0.4972375690607735
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 5,
+        "teacher": 1,
+        "method": "context",
+        "conditional_rmse": 0.0002931483565277136,
+        "centered_rmse": 0.00029256021893293545,
+        "target_centered_rms": 0.00029067654053950527,
+        "centered_skill": -0.013002644202545488,
+        "centered_rho": -0.017486553992322153,
+        "context_mass": [
+          0.5027624309392265,
+          0.4972375690607735
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 5,
+        "teacher": 1,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.00029299808100805784,
+        "centered_rmse": 0.0002926443807461309,
+        "target_centered_rms": 0.00029067654053950527,
+        "centered_skill": -0.013585556005001775,
+        "centered_rho": -0.016951510786568973,
+        "context_mass": [
+          0.5027624309392265,
+          0.4972375690607735
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 5,
+        "teacher": 2,
+        "method": "matched",
+        "conditional_rmse": 0.0002912271092295497,
+        "centered_rmse": 0.0002910599051622266,
+        "target_centered_rms": 0.00029486403381816456,
+        "centered_skill": 0.025636151747776226,
+        "centered_rho": 0.10691376469454579,
+        "context_mass": [
+          0.46578947368421064,
+          0.5342105263157896
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 5,
+        "teacher": 2,
+        "method": "context",
+        "conditional_rmse": 0.000290231131907793,
+        "centered_rmse": 0.0002901055500844245,
+        "target_centered_rms": 0.00029486403381816456,
+        "centered_skill": 0.03201535111579412,
+        "centered_rho": 0.128324031787781,
+        "context_mass": [
+          0.46578947368421064,
+          0.5342105263157896
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 5,
+        "teacher": 2,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.00029264813326772076,
+        "centered_rmse": 0.00029248664805877164,
+        "target_centered_rms": 0.00029486403381816456,
+        "centered_skill": 0.016060295404966562,
+        "centered_rho": 0.10051059085570321,
+        "context_mass": [
+          0.46578947368421064,
+          0.5342105263157896
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 5,
+        "teacher": 3,
+        "method": "matched",
+        "conditional_rmse": 0.00029300757714360463,
+        "centered_rmse": 0.00029258440121074093,
+        "target_centered_rms": 0.0002943334387559181,
+        "centered_skill": 0.0118494238396043,
+        "centered_rho": 0.07793673114481764,
+        "context_mass": [
+          0.4891304347826087,
+          0.5108695652173911
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 5,
+        "teacher": 3,
+        "method": "context",
+        "conditional_rmse": 0.0002936310298026814,
+        "centered_rmse": 0.0002932492635785112,
+        "target_centered_rms": 0.0002943334387559181,
+        "centered_skill": 0.007353417988203992,
+        "centered_rho": 0.06658368550934082,
+        "context_mass": [
+          0.4891304347826087,
+          0.5108695652173911
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 5,
+        "teacher": 3,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.00029332760300228517,
+        "centered_rmse": 0.00029290180246408133,
+        "target_centered_rms": 0.0002943334387559181,
+        "centered_skill": 0.009704330994068977,
+        "centered_rho": 0.05386585193116506,
+        "context_mass": [
+          0.4891304347826087,
+          0.5108695652173911
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 4,
+        "teacher": 1,
+        "method": "matched",
+        "conditional_rmse": 0.00023742782044638942,
+        "centered_rmse": 0.00023720811447370234,
+        "target_centered_rms": 0.00023694047844745423,
+        "centered_skill": -0.0022603751126697436,
+        "centered_rho": -0.00021221929006913823,
+        "context_mass": [
+          0.5326086956521738,
+          0.467391304347826
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 4,
+        "teacher": 1,
+        "method": "context",
+        "conditional_rmse": 0.00023728722648157046,
+        "centered_rmse": 0.0002369971538101911,
+        "target_centered_rms": 0.00023694047844745423,
+        "centered_skill": -0.00047845046474148667,
+        "centered_rho": 0.0048787705785980125,
+        "context_mass": [
+          0.5326086956521738,
+          0.467391304347826
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 4,
+        "teacher": 1,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.00023797749885113632,
+        "centered_rmse": 0.0002377716597571264,
+        "target_centered_rms": 0.00023694047844745423,
+        "centered_skill": -0.007028256183295056,
+        "centered_rho": 0.01094213703912159,
+        "context_mass": [
+          0.5326086956521738,
+          0.467391304347826
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 4,
+        "teacher": 2,
+        "method": "matched",
+        "conditional_rmse": 0.00026246123325797724,
+        "centered_rmse": 0.00026231605302708724,
+        "target_centered_rms": 0.0002632586346087092,
+        "centered_skill": 0.00714805920736572,
+        "centered_rho": 0.07637778504418323,
+        "context_mass": [
+          0.5135135135135134,
+          0.4864864864864865
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 4,
+        "teacher": 2,
+        "method": "context",
+        "conditional_rmse": 0.00026247036548754165,
+        "centered_rmse": 0.0002621725046151481,
+        "target_centered_rms": 0.0002632586346087092,
+        "centered_skill": 0.008234407687966239,
+        "centered_rho": 0.045447424461034266,
+        "context_mass": [
+          0.5135135135135134,
+          0.4864864864864865
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 4,
+        "teacher": 2,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.0002637761026094265,
+        "centered_rmse": 0.0002636352642208384,
+        "target_centered_rms": 0.0002632586346087092,
+        "centered_skill": -0.0028633364622476787,
+        "centered_rho": 0.06566864082548135,
+        "context_mass": [
+          0.5135135135135134,
+          0.4864864864864865
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 4,
+        "teacher": 3,
+        "method": "matched",
+        "conditional_rmse": 0.0003100601286169207,
+        "centered_rmse": 0.00030885401455073313,
+        "target_centered_rms": 0.00031110624584421116,
+        "centered_skill": 0.014426446850329011,
+        "centered_rho": 0.039210402346577765,
+        "context_mass": [
+          0.5327868852459017,
+          0.4672131147540983
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 4,
+        "teacher": 3,
+        "method": "context",
+        "conditional_rmse": 0.0003066813300451233,
+        "centered_rmse": 0.0003054735559862827,
+        "target_centered_rms": 0.00031110624584421116,
+        "centered_skill": 0.03588291138603783,
+        "centered_rho": 0.05072243747063465,
+        "context_mass": [
+          0.5327868852459017,
+          0.4672131147540983
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 4,
+        "teacher": 3,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.0003119589212302695,
+        "centered_rmse": 0.00031078996156967583,
+        "target_centered_rms": 0.00031110624584421116,
+        "centered_skill": 0.0020322542829992463,
+        "centered_rho": 0.037808130695355026,
+        "context_mass": [
+          0.5327868852459017,
+          0.4672131147540983
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 5,
+        "teacher": 1,
+        "method": "matched",
+        "conditional_rmse": 0.0002992785956719595,
+        "centered_rmse": 0.0002986936756010584,
+        "target_centered_rms": 0.0002998503245793264,
+        "centered_skill": 0.00769996256487282,
+        "centered_rho": 0.028947940207291453,
+        "context_mass": [
+          0.5135135135135135,
+          0.4864864864864864
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 5,
+        "teacher": 1,
+        "method": "context",
+        "conditional_rmse": 0.0002994882700971509,
+        "centered_rmse": 0.0002988500486232938,
+        "target_centered_rms": 0.0002998503245793264,
+        "centered_skill": 0.006660706726812293,
+        "centered_rho": -0.01081621121666663,
+        "context_mass": [
+          0.5135135135135135,
+          0.4864864864864864
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 5,
+        "teacher": 1,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.0003007808064454371,
+        "centered_rmse": 0.00030021451282326203,
+        "target_centered_rms": 0.0002998503245793264,
+        "centered_skill": -0.002430608737333584,
+        "centered_rho": 0.05031115604557123,
+        "context_mass": [
+          0.5135135135135135,
+          0.4864864864864864
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 5,
+        "teacher": 2,
+        "method": "matched",
+        "conditional_rmse": 0.00024454870475371185,
+        "centered_rmse": 0.0002440831850471473,
+        "target_centered_rms": 0.00024386633408212413,
+        "centered_skill": -0.0017792318895599735,
+        "centered_rho": 0.013889088684764924,
+        "context_mass": [
+          0.5247252747252747,
+          0.4752747252747253
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 5,
+        "teacher": 2,
+        "method": "context",
+        "conditional_rmse": 0.000246134925200051,
+        "centered_rmse": 0.00024555870196103714,
+        "target_centered_rms": 0.00024386633408212413,
+        "centered_skill": -0.013927631118981765,
+        "centered_rho": -0.04014772293323835,
+        "context_mass": [
+          0.5247252747252747,
+          0.4752747252747253
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 5,
+        "teacher": 2,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.0002447702964673804,
+        "centered_rmse": 0.0002443350706220606,
+        "target_centered_rms": 0.00024386633408212413,
+        "centered_skill": -0.003847903171809719,
+        "centered_rho": 0.01277056855482078,
+        "context_mass": [
+          0.5247252747252747,
+          0.4752747252747253
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 5,
+        "teacher": 3,
+        "method": "matched",
+        "conditional_rmse": 0.0003275750643880699,
+        "centered_rmse": 0.00032514248350404577,
+        "target_centered_rms": 0.0003258057408509271,
+        "centered_skill": 0.0040673453684340055,
+        "centered_rho": 0.09460154316571472,
+        "context_mass": [
+          0.5139664804469275,
+          0.4860335195530727
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 5,
+        "teacher": 3,
+        "method": "context",
+        "conditional_rmse": 0.00032930473735709345,
+        "centered_rmse": 0.000326603191275414,
+        "target_centered_rms": 0.0003258057408509271,
+        "centered_skill": -0.00490124177910678,
+        "centered_rho": 0.017645363448227095,
+        "context_mass": [
+          0.5139664804469275,
+          0.4860335195530727
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 5,
+        "teacher": 3,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.0003277496819667005,
+        "centered_rmse": 0.0003254401642871124,
+        "target_centered_rms": 0.0003258057408509271,
+        "centered_skill": 0.002242879218592897,
+        "centered_rho": 0.11521744255062757,
+        "context_mass": [
+          0.5139664804469275,
+          0.4860335195530727
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 4,
+        "teacher": 1,
+        "method": "matched",
+        "conditional_rmse": 0.0003065048776324087,
+        "centered_rmse": 0.00030561309102154446,
+        "target_centered_rms": 0.0003057033180794833,
+        "centered_skill": 0.0005902045384125199,
+        "centered_rho": 0.04070679756752493,
+        "context_mass": [
+          0.5248618784530387,
+          0.4751381215469613
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 4,
+        "teacher": 1,
+        "method": "context",
+        "conditional_rmse": 0.00030559357729819053,
+        "centered_rmse": 0.000304624302240019,
+        "target_centered_rms": 0.0003057033180794833,
+        "centered_skill": 0.007046777179479213,
+        "centered_rho": 0.0018212097678596902,
+        "context_mass": [
+          0.5248618784530387,
+          0.4751381215469613
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 4,
+        "teacher": 1,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.0003080102014576956,
+        "centered_rmse": 0.00030703741324897006,
+        "target_centered_rms": 0.0003057033180794833,
+        "centered_skill": -0.008747083194233785,
+        "centered_rho": 0.03224429355494149,
+        "context_mass": [
+          0.5248618784530387,
+          0.4751381215469613
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 4,
+        "teacher": 2,
+        "method": "matched",
+        "conditional_rmse": 0.00026417898261282347,
+        "centered_rmse": 0.0002632180084488177,
+        "target_centered_rms": 0.00026492197942373845,
+        "centered_skill": 0.012822575394495717,
+        "centered_rho": 0.08159722662770803,
+        "context_mass": [
+          0.5459770114942529,
+          0.4540229885057471
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 4,
+        "teacher": 2,
+        "method": "context",
+        "conditional_rmse": 0.0002639003902341718,
+        "centered_rmse": 0.000262930473976545,
+        "target_centered_rms": 0.00026492197942373845,
+        "centered_skill": 0.014978146030413919,
+        "centered_rho": 0.008560516221329983,
+        "context_mass": [
+          0.5459770114942529,
+          0.4540229885057471
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 4,
+        "teacher": 2,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.00026474635593082393,
+        "centered_rmse": 0.00026375266025265893,
+        "target_centered_rms": 0.00026492197942373845,
+        "centered_skill": 0.008808167511878962,
+        "centered_rho": 0.07989562915552663,
+        "context_mass": [
+          0.5459770114942529,
+          0.4540229885057471
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 4,
+        "teacher": 3,
+        "method": "matched",
+        "conditional_rmse": 0.0003489874557692356,
+        "centered_rmse": 0.00034837496764305144,
+        "target_centered_rms": 0.0003483412036228211,
+        "centered_skill": -0.00019386541826738046,
+        "centered_rho": 0.05047704069321204,
+        "context_mass": [
+          0.5,
+          0.5
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 4,
+        "teacher": 3,
+        "method": "context",
+        "conditional_rmse": 0.00035043561363616387,
+        "centered_rmse": 0.000349773904514924,
+        "target_centered_rms": 0.0003483412036228211,
+        "centered_skill": -0.008242764118081114,
+        "centered_rho": 0.027243962315011732,
+        "context_mass": [
+          0.5,
+          0.5
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 4,
+        "teacher": 3,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.0003484506111534699,
+        "centered_rmse": 0.0003478926871107145,
+        "target_centered_rms": 0.0003483412036228211,
+        "centered_skill": 0.002573498382741901,
+        "centered_rho": 0.05898978761382549,
+        "context_mass": [
+          0.5,
+          0.5
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 5,
+        "teacher": 1,
+        "method": "matched",
+        "conditional_rmse": 0.00028487994318247606,
+        "centered_rmse": 0.0002844747221972495,
+        "target_centered_rms": 0.00028313498121213893,
+        "centered_skill": -0.009486010378330967,
+        "centered_rho": 0.055685992217453184,
+        "context_mass": [
+          0.5257142857142856,
+          0.4742857142857142
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 5,
+        "teacher": 1,
+        "method": "context",
+        "conditional_rmse": 0.0002859055046505798,
+        "centered_rmse": 0.0002854960408720228,
+        "target_centered_rms": 0.00028313498121213893,
+        "centered_skill": -0.016747517920195687,
+        "centered_rho": -0.00035834913114182564,
+        "context_mass": [
+          0.5257142857142856,
+          0.4742857142857142
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 5,
+        "teacher": 1,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.00028753797010380353,
+        "centered_rmse": 0.00028711038921945683,
+        "target_centered_rms": 0.00028313498121213893,
+        "centered_skill": -0.02827850312533875,
+        "centered_rho": 0.03950690025689855,
+        "context_mass": [
+          0.5257142857142856,
+          0.4742857142857142
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 5,
+        "teacher": 2,
+        "method": "matched",
+        "conditional_rmse": 0.00028061823955733334,
+        "centered_rmse": 0.00027988752778239227,
+        "target_centered_rms": 0.000281396782439622,
+        "centered_skill": 0.010698112793281256,
+        "centered_rho": 0.1015659546538145,
+        "context_mass": [
+          0.48595505617977525,
+          0.5140449438202246
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 5,
+        "teacher": 2,
+        "method": "context",
+        "conditional_rmse": 0.0002806237368856145,
+        "centered_rmse": 0.0002798504697309195,
+        "target_centered_rms": 0.000281396782439622,
+        "centered_skill": 0.01096006925478532,
+        "centered_rho": 0.06296202039801199,
+        "context_mass": [
+          0.48595505617977525,
+          0.5140449438202246
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 5,
+        "teacher": 2,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.00028071881873380184,
+        "centered_rmse": 0.0002800050257688728,
+        "target_centered_rms": 0.000281396782439622,
+        "centered_skill": 0.009867312079003487,
+        "centered_rho": 0.0953757898262777,
+        "context_mass": [
+          0.48595505617977525,
+          0.5140449438202246
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 5,
+        "teacher": 3,
+        "method": "matched",
+        "conditional_rmse": 0.0002840882696349806,
+        "centered_rmse": 0.0002832465143606306,
+        "target_centered_rms": 0.00028288187898740046,
+        "centered_skill": -0.002579665989501212,
+        "centered_rho": 0.09733836403832444,
+        "context_mass": [
+          0.5168539325842696,
+          0.4831460674157303
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 5,
+        "teacher": 3,
+        "method": "context",
+        "conditional_rmse": 0.0002828806915475104,
+        "centered_rmse": 0.0002820932464453759,
+        "target_centered_rms": 0.00028288187898740046,
+        "centered_skill": 0.00556792997710065,
+        "centered_rho": 0.09915587814171846,
+        "context_mass": [
+          0.5168539325842696,
+          0.4831460674157303
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 5,
+        "teacher": 3,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.00028594662882029686,
+        "centered_rmse": 0.0002851215373880138,
+        "target_centered_rms": 0.00028288187898740046,
+        "centered_skill": -0.015897267250099212,
+        "centered_rho": 0.08917485002053253,
+        "context_mass": [
+          0.5168539325842696,
+          0.4831460674157303
+        ]
+      }
+    ],
+    "policies": [
+      {
+        "seed": 5351,
+        "method": "matched",
+        "std": 0.18597892998189552,
+        "min": 0.0006340128273714565,
+        "max": 0.9669729064782452,
+        "mean_abs_deviation": 0.1455396087464715,
+        "context_difference": 0.0
+      },
+      {
+        "seed": 5351,
+        "method": "context",
+        "std": 0.1784877566822,
+        "min": 0.00015892179076759829,
+        "max": 0.9987850750477208,
+        "mean_abs_deviation": 0.13590299342435808,
+        "context_difference": 0.15751334927352928
+      },
+      {
+        "seed": 5351,
+        "method": "context_shuffle",
+        "std": 0.1847741310358203,
+        "min": 0.000752485079504644,
+        "max": 0.9904338980517883,
+        "mean_abs_deviation": 0.14140283533655795,
+        "context_difference": 0.1298045947647816
+      },
+      {
+        "seed": 5352,
+        "method": "matched",
+        "std": 0.1890568863741281,
+        "min": 0.007635769261849917,
+        "max": 0.9925390008495358,
+        "mean_abs_deviation": 0.14749673925164503,
+        "context_difference": 0.0
+      },
+      {
+        "seed": 5352,
+        "method": "context",
+        "std": 0.17429515150182864,
+        "min": 5.27347623095269e-05,
+        "max": 0.9990372070743886,
+        "mean_abs_deviation": 0.13045616533832027,
+        "context_difference": 0.1808825434655679
+      },
+      {
+        "seed": 5352,
+        "method": "context_shuffle",
+        "std": 0.18627817314064307,
+        "min": 0.0024506629908668744,
+        "max": 0.9979295591767412,
+        "mean_abs_deviation": 0.1444408669149367,
+        "context_difference": 0.1415340028677278
+      },
+      {
+        "seed": 5353,
+        "method": "matched",
+        "std": 0.18824610114861992,
+        "min": 2.7819663249852666e-05,
+        "max": 0.9956151279903895,
+        "mean_abs_deviation": 0.15265647307547217,
+        "context_difference": 0.0
+      },
+      {
+        "seed": 5353,
+        "method": "context",
+        "std": 0.18433639543857308,
+        "min": 9.597009013129342e-06,
+        "max": 0.9988856054987324,
+        "mean_abs_deviation": 0.14621395764413095,
+        "context_difference": 0.1496881170918909
+      },
+      {
+        "seed": 5353,
+        "method": "context_shuffle",
+        "std": 0.18593414769829006,
+        "min": 3.4887820031195095e-05,
+        "max": 0.9990737250446051,
+        "mean_abs_deviation": 0.14820143573697192,
+        "context_difference": 0.10685916055500135
+      }
+    ],
+    "epoch_selection": [
+      {
+        "seed": 5351,
+        "stage": "g0",
+        "selected": 8,
+        "val_best": 11.772309648881407,
+        "val_last": 11.748106631633052
+      },
+      {
+        "seed": 5351,
+        "stage": "uniform",
+        "selected": 8,
+        "val_best": 12.447505852988312,
+        "val_last": 12.443013039466441
+      },
+      {
+        "seed": 5351,
+        "stage": "capacity",
+        "selected": 2,
+        "val_best": 12.433236980768609,
+        "val_last": 12.294528872381585
+      },
+      {
+        "seed": 5352,
+        "stage": "g0",
+        "selected": 8,
+        "val_best": 11.944791320984557,
+        "val_last": 11.855987905510407
+      },
+      {
+        "seed": 5352,
+        "stage": "uniform",
+        "selected": 5,
+        "val_best": 12.451941755431088,
+        "val_last": 12.283355330519313
+      },
+      {
+        "seed": 5352,
+        "stage": "capacity",
+        "selected": 1,
+        "val_best": 12.357099442119662,
+        "val_last": 12.232027860629065
+      },
+      {
+        "seed": 5353,
+        "stage": "g0",
+        "selected": 8,
+        "val_best": 12.092048738142259,
+        "val_last": 12.075731067075145
+      },
+      {
+        "seed": 5353,
+        "stage": "uniform",
+        "selected": 5,
+        "val_best": 12.825550342781753,
+        "val_last": 12.795608791724671
+      },
+      {
+        "seed": 5353,
+        "stage": "capacity",
+        "selected": 5,
+        "val_best": 12.888237896404634,
+        "val_last": 12.749754270607378
+      }
+    ],
+    "bank_differences": [
+      {
+        "seed": 5351,
+        "phase": "test_cw",
+        "reference": "uniform",
+        "values": [
+          -0.0999992083503205,
+          -0.15947980699580988,
+          -0.12311735810668978
+        ],
+        "mean": -0.1275321244842734,
+        "sd": 0.029985046697194425
+      },
+      {
+        "seed": 5351,
+        "phase": "test_cw",
+        "reference": "context_perm_mean",
+        "values": [
+          -0.11038604796605256,
+          -0.12997027355454804,
+          -0.11728408744562202
+        ],
+        "mean": -0.11921346965540754,
+        "sd": 0.009933647857602361
+      },
+      {
+        "seed": 5351,
+        "phase": "test_ow",
+        "reference": "uniform",
+        "values": [
+          -0.04645796142291081,
+          -0.08195355391332182,
+          -0.05679888535725164
+        ],
+        "mean": -0.061736800231161425,
+        "sd": 0.018255725787758074
+      },
+      {
+        "seed": 5351,
+        "phase": "test_ow",
+        "reference": "context_perm_mean",
+        "values": [
+          -0.03312895577448982,
+          -0.06485273336842923,
+          -0.04129798881398994
+        ],
+        "mean": -0.04642655931896966,
+        "sd": 0.016471982053652315
+      },
+      {
+        "seed": 5352,
+        "phase": "test_cw",
+        "reference": "uniform",
+        "values": [
+          0.05767167912855342,
+          0.07453183817097297,
+          0.09265269932749298
+        ],
+        "mean": 0.07495207220900646,
+        "sd": 0.01749429595681678
+      },
+      {
+        "seed": 5352,
+        "phase": "test_cw",
+        "reference": "context_perm_mean",
+        "values": [
+          0.07336494654385639,
+          0.09052711993888352,
+          0.11127150813222286
+        ],
+        "mean": 0.09172119153832092,
+        "sd": 0.01898147012487685
+      },
+      {
+        "seed": 5352,
+        "phase": "test_ow",
+        "reference": "uniform",
+        "values": [
+          0.021584328502951333,
+          0.014879055720262713,
+          0.014024074066743886
+        ],
+        "mean": 0.01682915276331931,
+        "sd": 0.004140231955223301
+      },
+      {
+        "seed": 5352,
+        "phase": "test_ow",
+        "reference": "context_perm_mean",
+        "values": [
+          0.026849590519203215,
+          0.021030569552361822,
+          0.009865142477150979
+        ],
+        "mean": 0.01924843418290534,
+        "sd": 0.008631330933268278
+      },
+      {
+        "seed": 5353,
+        "phase": "test_cw",
+        "reference": "uniform",
+        "values": [
+          0.04914165383534552,
+          -0.034492176522043394,
+          0.04609973994308092
+        ],
+        "mean": 0.020249739085461016,
+        "sd": 0.047432281236688786
+      },
+      {
+        "seed": 5353,
+        "phase": "test_cw",
+        "reference": "context_perm_mean",
+        "values": [
+          0.043068117496645186,
+          0.02142124866904105,
+          0.07371089745366
+        ],
+        "mean": 0.046066754539782075,
+        "sd": 0.02627347922510559
+      },
+      {
+        "seed": 5353,
+        "phase": "test_ow",
+        "reference": "uniform",
+        "values": [
+          0.021051944093700037,
+          -0.005670190827155253,
+          0.009501775274405766
+        ],
+        "mean": 0.008294509513650183,
+        "sd": 0.013401911865286909
+      },
+      {
+        "seed": 5353,
+        "phase": "test_ow",
+        "reference": "context_perm_mean",
+        "values": [
+          0.01916742203240318,
+          -0.0019716035260088915,
+          0.015008886267649402
+        ],
+        "mean": 0.010734901591347898,
+        "sd": 0.011198875352004985
+      }
+    ]
+  },
+  "CGQA": {
+    "image_counts": {
+      "train": 26920,
+      "val": 7280,
+      "test": 5098
+    },
+    "pair_counts": {
+      "train": 5592,
+      "val": 2292,
+      "test": 1811
+    },
+    "attrs": 413,
+    "objs": 674,
+    "edges": 3935,
+    "edge_counts": [
+      674,
+      2022,
+      1239
+    ],
+    "conditional_audits": [
+      {
+        "seed": 5351,
+        "fold": 4,
+        "teacher": 1,
+        "method": "matched",
+        "conditional_rmse": 0.0002468848038723854,
+        "centered_rmse": 0.00024633168363005,
+        "target_centered_rms": 0.0002525077535690872,
+        "centered_skill": 0.04831962437512072,
+        "centered_rho": 0.4779001105133119,
+        "context_mass": [
+          0.5989761092150171,
+          0.4010238907849829
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 4,
+        "teacher": 1,
+        "method": "context",
+        "conditional_rmse": 0.0002362005281904193,
+        "centered_rmse": 0.00023555736549556993,
+        "target_centered_rms": 0.0002525077535690872,
+        "centered_skill": 0.12975018326600096,
+        "centered_rho": 0.46822358882743903,
+        "context_mass": [
+          0.5989761092150171,
+          0.4010238907849829
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 4,
+        "teacher": 1,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.0002512571384003602,
+        "centered_rmse": 0.00025078957746004193,
+        "target_centered_rms": 0.0002525077535690872,
+        "centered_skill": 0.013562597299008106,
+        "centered_rho": 0.46313184502129295,
+        "context_mass": [
+          0.5989761092150171,
+          0.4010238907849829
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 4,
+        "teacher": 2,
+        "method": "matched",
+        "conditional_rmse": 0.0002308449476489666,
+        "centered_rmse": 0.00023013763094829892,
+        "target_centered_rms": 0.0002476295469098459,
+        "centered_skill": 0.13628522230841655,
+        "centered_rho": 0.39780950743711707,
+        "context_mass": [
+          0.6129568106312293,
+          0.3870431893687708
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 4,
+        "teacher": 2,
+        "method": "context",
+        "conditional_rmse": 0.00021878723524900145,
+        "centered_rmse": 0.00021803352814219284,
+        "target_centered_rms": 0.0002476295469098459,
+        "centered_skill": 0.22475024288240408,
+        "centered_rho": 0.3814047535107485,
+        "context_mass": [
+          0.6129568106312293,
+          0.3870431893687708
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 4,
+        "teacher": 2,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.0002344807401241126,
+        "centered_rmse": 0.00023373988736698066,
+        "target_centered_rms": 0.0002476295469098459,
+        "centered_skill": 0.1090348134373752,
+        "centered_rho": 0.38583659730960407,
+        "context_mass": [
+          0.6129568106312293,
+          0.3870431893687708
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 4,
+        "teacher": 3,
+        "method": "matched",
+        "conditional_rmse": 0.00029693288047387856,
+        "centered_rmse": 0.0002953485512235693,
+        "target_centered_rms": 0.0003194812369217847,
+        "centered_skill": 0.14536834395826947,
+        "centered_rho": 0.39635668315387546,
+        "context_mass": [
+          0.6016949152542372,
+          0.39830508474576276
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 4,
+        "teacher": 3,
+        "method": "context",
+        "conditional_rmse": 0.00028328958732121764,
+        "centered_rmse": 0.0002816084907410998,
+        "target_centered_rms": 0.0003194812369217847,
+        "centered_skill": 0.2230362163655485,
+        "centered_rho": 0.35743330910358057,
+        "context_mass": [
+          0.6016949152542372,
+          0.39830508474576276
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 4,
+        "teacher": 3,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.00029792333864513094,
+        "centered_rmse": 0.00029619218944131764,
+        "target_centered_rms": 0.0003194812369217847,
+        "centered_skill": 0.14047900448547812,
+        "centered_rho": 0.3847746169665081,
+        "context_mass": [
+          0.6016949152542372,
+          0.39830508474576276
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 5,
+        "teacher": 1,
+        "method": "matched",
+        "conditional_rmse": 0.0003432031838298622,
+        "centered_rmse": 0.0003413415205710744,
+        "target_centered_rms": 0.0003105200529145867,
+        "centered_skill": -0.20836721771932787,
+        "centered_rho": 0.32104566384002026,
+        "context_mass": [
+          0.5926573426573427,
+          0.4073426573426573
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 5,
+        "teacher": 1,
+        "method": "context",
+        "conditional_rmse": 0.0003371926655514994,
+        "centered_rmse": 0.0003353739453966314,
+        "target_centered_rms": 0.0003105200529145867,
+        "centered_skill": -0.16648547951609305,
+        "centered_rho": 0.29931298036993476,
+        "context_mass": [
+          0.5926573426573427,
+          0.4073426573426573
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 5,
+        "teacher": 1,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.00034931136415432604,
+        "centered_rmse": 0.0003472532590165111,
+        "target_centered_rms": 0.0003105200529145867,
+        "centered_skill": -0.25058541005470003,
+        "centered_rho": 0.3170741863735386,
+        "context_mass": [
+          0.5926573426573427,
+          0.4073426573426573
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 5,
+        "teacher": 2,
+        "method": "matched",
+        "conditional_rmse": 0.00021982655789482195,
+        "centered_rmse": 0.0002197499828853333,
+        "target_centered_rms": 0.00023220781805235408,
+        "centered_skill": 0.10442074608561691,
+        "centered_rho": 0.39056409125789027,
+        "context_mass": [
+          0.6463414634146343,
+          0.35365853658536583
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 5,
+        "teacher": 2,
+        "method": "context",
+        "conditional_rmse": 0.00021541334367979772,
+        "centered_rmse": 0.0002153099549335551,
+        "target_centered_rms": 0.00023220781805235408,
+        "centered_skill": 0.1402453273109293,
+        "centered_rho": 0.3587239234770345,
+        "context_mass": [
+          0.6463414634146343,
+          0.35365853658536583
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 5,
+        "teacher": 2,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.00022042288884553318,
+        "centered_rmse": 0.00022035509872969867,
+        "target_centered_rms": 0.00023220781805235408,
+        "centered_skill": 0.09948172099376562,
+        "centered_rho": 0.3827209555691001,
+        "context_mass": [
+          0.6463414634146343,
+          0.35365853658536583
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 5,
+        "teacher": 3,
+        "method": "matched",
+        "conditional_rmse": 0.00019962599030976265,
+        "centered_rmse": 0.00019946892202785406,
+        "target_centered_rms": 0.00021774934397463327,
+        "centered_skill": 0.16085546449744215,
+        "centered_rho": 0.38458721226093506,
+        "context_mass": [
+          0.6060070671378092,
+          0.39399293286219084
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 5,
+        "teacher": 3,
+        "method": "context",
+        "conditional_rmse": 0.00020033485112660703,
+        "centered_rmse": 0.00020017333919675873,
+        "target_centered_rms": 0.00021774934397463327,
+        "centered_skill": 0.1549181831430293,
+        "centered_rho": 0.3665732082436885,
+        "context_mass": [
+          0.6060070671378092,
+          0.39399293286219084
+        ]
+      },
+      {
+        "seed": 5351,
+        "fold": 5,
+        "teacher": 3,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.00020082934855171424,
+        "centered_rmse": 0.000200674652195439,
+        "target_centered_rms": 0.00021774934397463327,
+        "centered_skill": 0.15068004638196097,
+        "centered_rho": 0.36402788852780826,
+        "context_mass": [
+          0.6060070671378092,
+          0.39399293286219084
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 4,
+        "teacher": 1,
+        "method": "matched",
+        "conditional_rmse": 0.00022022803716258222,
+        "centered_rmse": 0.00021998082377964497,
+        "target_centered_rms": 0.00023306941466818044,
+        "centered_skill": 0.10916129659526186,
+        "centered_rho": 0.32052757718495606,
+        "context_mass": [
+          0.5584415584415585,
+          0.4415584415584416
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 4,
+        "teacher": 1,
+        "method": "context",
+        "conditional_rmse": 0.00022127988053777912,
+        "centered_rmse": 0.00022098407740786364,
+        "target_centered_rms": 0.00023306941466818044,
+        "centered_skill": 0.10101717609186267,
+        "centered_rho": 0.3149141787941576,
+        "context_mass": [
+          0.5584415584415585,
+          0.4415584415584416
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 4,
+        "teacher": 1,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.00021878393280418669,
+        "centered_rmse": 0.00021852485531215194,
+        "target_centered_rms": 0.00023306941466818044,
+        "centered_skill": 0.12091450997151065,
+        "centered_rho": 0.2950735890464583,
+        "context_mass": [
+          0.5584415584415585,
+          0.4415584415584416
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 4,
+        "teacher": 2,
+        "method": "matched",
+        "conditional_rmse": 0.0002465095703618696,
+        "centered_rmse": 0.0002459594980224716,
+        "target_centered_rms": 0.00024360010876752606,
+        "centered_skill": -0.019464812238378038,
+        "centered_rho": 0.2987538227530008,
+        "context_mass": [
+          0.5696202531645571,
+          0.4303797468354431
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 4,
+        "teacher": 2,
+        "method": "context",
+        "conditional_rmse": 0.00024220635757077566,
+        "centered_rmse": 0.00024120308458721562,
+        "target_centered_rms": 0.00024360010876752606,
+        "centered_skill": 0.019583167165152626,
+        "centered_rho": 0.3021173102216818,
+        "context_mass": [
+          0.5696202531645571,
+          0.4303797468354431
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 4,
+        "teacher": 2,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.00025118553014909695,
+        "centered_rmse": 0.00025057400662001225,
+        "target_centered_rms": 0.00024360010876752606,
+        "centered_skill": -0.05807652462127888,
+        "centered_rho": 0.2751396104612965,
+        "context_mass": [
+          0.5696202531645571,
+          0.4303797468354431
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 4,
+        "teacher": 3,
+        "method": "matched",
+        "conditional_rmse": 0.00025324158153282956,
+        "centered_rmse": 0.00025287749755471015,
+        "target_centered_rms": 0.0002909975902272236,
+        "centered_skill": 0.24483546634830355,
+        "centered_rho": 0.40764381687281176,
+        "context_mass": [
+          0.5784313725490196,
+          0.42156862745098045
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 4,
+        "teacher": 3,
+        "method": "context",
+        "conditional_rmse": 0.00024266741512441524,
+        "centered_rmse": 0.00024226404928251075,
+        "target_centered_rms": 0.0002909975902272236,
+        "centered_skill": 0.3068947976252784,
+        "centered_rho": 0.40697077208953436,
+        "context_mass": [
+          0.5784313725490196,
+          0.42156862745098045
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 4,
+        "teacher": 3,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.0002609519571149393,
+        "centered_rmse": 0.00026059377047256893,
+        "target_centered_rms": 0.0002909975902272236,
+        "centered_skill": 0.19804633938377225,
+        "centered_rho": 0.37248282109469816,
+        "context_mass": [
+          0.5784313725490196,
+          0.42156862745098045
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 5,
+        "teacher": 1,
+        "method": "matched",
+        "conditional_rmse": 0.00021084993606283669,
+        "centered_rmse": 0.00021066059846689035,
+        "target_centered_rms": 0.00022345577924202554,
+        "centered_skill": 0.11124216027814549,
+        "centered_rho": 0.367105387467514,
+        "context_mass": [
+          0.5825082508250825,
+          0.4174917491749174
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 5,
+        "teacher": 1,
+        "method": "context",
+        "conditional_rmse": 0.00020579233746059037,
+        "centered_rmse": 0.0002056354894872616,
+        "target_centered_rms": 0.00022345577924202554,
+        "centered_skill": 0.15313739537753945,
+        "centered_rho": 0.3539161359648558,
+        "context_mass": [
+          0.5825082508250825,
+          0.4174917491749174
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 5,
+        "teacher": 1,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.00021641313753428744,
+        "centered_rmse": 0.00021620600683747287,
+        "target_centered_rms": 0.00022345577924202554,
+        "centered_skill": 0.06383515393625616,
+        "centered_rho": 0.3483651644612244,
+        "context_mass": [
+          0.5825082508250825,
+          0.4174917491749174
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 5,
+        "teacher": 2,
+        "method": "matched",
+        "conditional_rmse": 0.0002649939608950513,
+        "centered_rmse": 0.00026447274048755785,
+        "target_centered_rms": 0.000267779992613625,
+        "centered_skill": 0.024548725744129363,
+        "centered_rho": 0.30288882901003744,
+        "context_mass": [
+          0.5855263157894737,
+          0.4144736842105262
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 5,
+        "teacher": 2,
+        "method": "context",
+        "conditional_rmse": 0.0002611543142849359,
+        "centered_rmse": 0.00026040544603387955,
+        "target_centered_rms": 0.000267779992613625,
+        "centered_skill": 0.05432071737586308,
+        "centered_rho": 0.2893136753250893,
+        "context_mass": [
+          0.5855263157894737,
+          0.4144736842105262
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 5,
+        "teacher": 2,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.00026859332502895044,
+        "centered_rmse": 0.000268072712893351,
+        "target_centered_rms": 0.000267779992613625,
+        "centered_skill": -0.0021874694116277293,
+        "centered_rho": 0.2757062061209347,
+        "context_mass": [
+          0.5855263157894737,
+          0.4144736842105262
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 5,
+        "teacher": 3,
+        "method": "matched",
+        "conditional_rmse": 0.0003046227937120515,
+        "centered_rmse": 0.0003036941729770536,
+        "target_centered_rms": 0.00031169301272091036,
+        "centered_skill": 0.05066654740832399,
+        "centered_rho": 0.14735737399087617,
+        "context_mass": [
+          0.5622950819672132,
+          0.43770491803278694
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 5,
+        "teacher": 3,
+        "method": "context",
+        "conditional_rmse": 0.0003024062063836689,
+        "centered_rmse": 0.00030157664402038185,
+        "target_centered_rms": 0.00031169301272091036,
+        "centered_skill": 0.0638589822989929,
+        "centered_rho": 0.16072938795509825,
+        "context_mass": [
+          0.5622950819672132,
+          0.43770491803278694
+        ]
+      },
+      {
+        "seed": 5352,
+        "fold": 5,
+        "teacher": 3,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.00032176075295230753,
+        "centered_rmse": 0.0003207784039061999,
+        "target_centered_rms": 0.00031169301272091036,
+        "centered_skill": -0.059146683945290324,
+        "centered_rho": 0.12901064627868972,
+        "context_mass": [
+          0.5622950819672132,
+          0.43770491803278694
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 4,
+        "teacher": 1,
+        "method": "matched",
+        "conditional_rmse": 0.00020027575704142288,
+        "centered_rmse": 0.00020011342591630732,
+        "target_centered_rms": 0.0002186163087841128,
+        "centered_skill": 0.16210935846213037,
+        "centered_rho": 0.400770270835228,
+        "context_mass": [
+          0.5863192182410424,
+          0.4136807817589577
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 4,
+        "teacher": 1,
+        "method": "context",
+        "conditional_rmse": 0.00019548422117597142,
+        "centered_rmse": 0.00019536017978098654,
+        "target_centered_rms": 0.0002186163087841128,
+        "centered_skill": 0.201441056194127,
+        "centered_rho": 0.40670947649445083,
+        "context_mass": [
+          0.5863192182410424,
+          0.4136807817589577
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 4,
+        "teacher": 1,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.00020511295086566634,
+        "centered_rmse": 0.00020495760373865672,
+        "target_centered_rms": 0.0002186163087841128,
+        "centered_skill": 0.12105245924966568,
+        "centered_rho": 0.3861320312439619,
+        "context_mass": [
+          0.5863192182410424,
+          0.4136807817589577
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 4,
+        "teacher": 2,
+        "method": "matched",
+        "conditional_rmse": 0.00020449620788036895,
+        "centered_rmse": 0.00020435576726691857,
+        "target_centered_rms": 0.000216744745511244,
+        "centered_skill": 0.11105141713986677,
+        "centered_rho": 0.3869249976591629,
+        "context_mass": [
+          0.6006600660066005,
+          0.39933993399339923
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 4,
+        "teacher": 2,
+        "method": "context",
+        "conditional_rmse": 0.00020157488605909845,
+        "centered_rmse": 0.00020140138971860827,
+        "target_centered_rms": 0.000216744745511244,
+        "centered_skill": 0.13656873524008306,
+        "centered_rho": 0.3641288645108491,
+        "context_mass": [
+          0.6006600660066005,
+          0.39933993399339923
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 4,
+        "teacher": 2,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.00020817433887005665,
+        "centered_rmse": 0.00020799427700404782,
+        "target_centered_rms": 0.000216744745511244,
+        "centered_skill": 0.07911454118640038,
+        "centered_rho": 0.3663854188820631,
+        "context_mass": [
+          0.6006600660066005,
+          0.39933993399339923
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 4,
+        "teacher": 3,
+        "method": "matched",
+        "conditional_rmse": 0.00021828226671587653,
+        "centered_rmse": 0.0002181921441829259,
+        "target_centered_rms": 0.00023835045107023354,
+        "centered_skill": 0.1619956674386689,
+        "centered_rho": 0.37930239621024214,
+        "context_mass": [
+          0.5714285714285715,
+          0.4285714285714286
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 4,
+        "teacher": 3,
+        "method": "context",
+        "conditional_rmse": 0.0002132022784686578,
+        "centered_rmse": 0.00021311722246097816,
+        "target_centered_rms": 0.00023835045107023354,
+        "centered_skill": 0.2005245382689146,
+        "centered_rho": 0.3884239382739096,
+        "context_mass": [
+          0.5714285714285715,
+          0.4285714285714286
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 4,
+        "teacher": 3,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.0002237257322773465,
+        "centered_rmse": 0.00022348979462159408,
+        "target_centered_rms": 0.00023835045107023354,
+        "centered_skill": 0.12080858940789185,
+        "centered_rho": 0.3507297013151756,
+        "context_mass": [
+          0.5714285714285715,
+          0.4285714285714286
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 5,
+        "teacher": 1,
+        "method": "matched",
+        "conditional_rmse": 0.00025783838980831354,
+        "centered_rmse": 0.0002576190475219336,
+        "target_centered_rms": 0.00025673118067617027,
+        "centered_skill": -0.006928664617631641,
+        "centered_rho": 0.4211020270535541,
+        "context_mass": [
+          0.57439446366782,
+          0.4256055363321799
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 5,
+        "teacher": 1,
+        "method": "context",
+        "conditional_rmse": 0.00025321099675120227,
+        "centered_rmse": 0.0002530610966934868,
+        "target_centered_rms": 0.00025673118067617027,
+        "centered_skill": 0.02838651112831414,
+        "centered_rho": 0.39622645229296954,
+        "context_mass": [
+          0.57439446366782,
+          0.4256055363321799
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 5,
+        "teacher": 1,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.00026009368099242004,
+        "centered_rmse": 0.00025972285215204103,
+        "target_centered_rms": 0.00025673118067617027,
+        "centered_skill": -0.023441658647848085,
+        "centered_rho": 0.3941467145385383,
+        "context_mass": [
+          0.57439446366782,
+          0.4256055363321799
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 5,
+        "teacher": 2,
+        "method": "matched",
+        "conditional_rmse": 0.00024353353699207433,
+        "centered_rmse": 0.00024340878103289878,
+        "target_centered_rms": 0.0002597429258331464,
+        "centered_skill": 0.1218169986344847,
+        "centered_rho": 0.3487977480220319,
+        "context_mass": [
+          0.5859106529209624,
+          0.4140893470790379
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 5,
+        "teacher": 2,
+        "method": "context",
+        "conditional_rmse": 0.0002377381861402643,
+        "centered_rmse": 0.0002376080159069161,
+        "target_centered_rms": 0.0002597429258331464,
+        "centered_skill": 0.16317485938934106,
+        "centered_rho": 0.3330690644289088,
+        "context_mass": [
+          0.5859106529209624,
+          0.4140893470790379
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 5,
+        "teacher": 2,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.000246819781274349,
+        "centered_rmse": 0.000246601272903361,
+        "target_centered_rms": 0.0002597429258331464,
+        "centered_skill": 0.09862985061705043,
+        "centered_rho": 0.3182609799043971,
+        "context_mass": [
+          0.5859106529209624,
+          0.4140893470790379
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 5,
+        "teacher": 3,
+        "method": "matched",
+        "conditional_rmse": 0.0003125088126150274,
+        "centered_rmse": 0.00031212801265719615,
+        "target_centered_rms": 0.00032985409492443775,
+        "centered_skill": 0.10459042430872934,
+        "centered_rho": 0.38783142514410723,
+        "context_mass": [
+          0.5699658703071672,
+          0.4300341296928328
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 5,
+        "teacher": 3,
+        "method": "context",
+        "conditional_rmse": 0.00030305153869362945,
+        "centered_rmse": 0.0003024014374296281,
+        "target_centered_rms": 0.00032985409492443775,
+        "centered_skill": 0.15952665911268227,
+        "centered_rho": 0.34380655288457684,
+        "context_mass": [
+          0.5699658703071672,
+          0.4300341296928328
+        ]
+      },
+      {
+        "seed": 5353,
+        "fold": 5,
+        "teacher": 3,
+        "method": "context_shuffle",
+        "conditional_rmse": 0.00031714070119106614,
+        "centered_rmse": 0.0003169140769399282,
+        "target_centered_rms": 0.00032985409492443775,
+        "centered_skill": 0.07692008575432596,
+        "centered_rho": 0.3823350284688881,
+        "context_mass": [
+          0.5699658703071672,
+          0.4300341296928328
+        ]
+      }
+    ],
+    "policies": [
+      {
+        "seed": 5351,
+        "method": "matched",
+        "std": 0.13255996367079878,
+        "min": 9.139357897750223e-07,
+        "max": 0.9999998051354508,
+        "mean_abs_deviation": 0.09767532141246861,
+        "context_difference": 0.0
+      },
+      {
+        "seed": 5351,
+        "method": "context",
+        "std": 0.12782651276218965,
+        "min": 8.157659038010927e-07,
+        "max": 0.9999999995914373,
+        "mean_abs_deviation": 0.09113430880916894,
+        "context_difference": 0.08282111809638226
+      },
+      {
+        "seed": 5351,
+        "method": "context_shuffle",
+        "std": 0.13416788277726105,
+        "min": 2.3438661453749464e-06,
+        "max": 0.9999999142108109,
+        "mean_abs_deviation": 0.09827147059715755,
+        "context_difference": 0.03857131823150632
+      },
+      {
+        "seed": 5352,
+        "method": "matched",
+        "std": 0.12204384736352188,
+        "min": 1.0388018868051783e-10,
+        "max": 0.9999931037584363,
+        "mean_abs_deviation": 0.07901547890196281,
+        "context_difference": 0.0
+      },
+      {
+        "seed": 5352,
+        "method": "context",
+        "std": 0.1164749369288013,
+        "min": 9.742215279956969e-11,
+        "max": 0.9999990673954777,
+        "mean_abs_deviation": 0.0742129729595692,
+        "context_difference": 0.07240144687829746
+      },
+      {
+        "seed": 5352,
+        "method": "context_shuffle",
+        "std": 0.1260274086434067,
+        "min": 1.2746381983329514e-10,
+        "max": 0.9999722778999669,
+        "mean_abs_deviation": 0.08304551465465673,
+        "context_difference": 0.0355680709084836
+      },
+      {
+        "seed": 5353,
+        "method": "matched",
+        "std": 0.11773398039976309,
+        "min": 7.64234724641259e-09,
+        "max": 0.9999999978317979,
+        "mean_abs_deviation": 0.07847417593667348,
+        "context_difference": 0.0
+      },
+      {
+        "seed": 5353,
+        "method": "context",
+        "std": 0.1173289137044354,
+        "min": 4.1895961180996744e-08,
+        "max": 0.9999999998697484,
+        "mean_abs_deviation": 0.07925774722372099,
+        "context_difference": 0.08011820853715608
+      },
+      {
+        "seed": 5353,
+        "method": "context_shuffle",
+        "std": 0.12300598757389801,
+        "min": 1.2853671145749346e-08,
+        "max": 0.9999999994090565,
+        "mean_abs_deviation": 0.08448905595180355,
+        "context_difference": 0.055068355786405974
+      }
+    ],
+    "epoch_selection": [
+      {
+        "seed": 5351,
+        "stage": "g0",
+        "selected": 8,
+        "val_best": 3.6917440885774297,
+        "val_last": 3.6582909686918352
+      },
+      {
+        "seed": 5351,
+        "stage": "uniform",
+        "selected": 7,
+        "val_best": 4.341673702277121,
+        "val_last": 4.332343214591554
+      },
+      {
+        "seed": 5351,
+        "stage": "capacity",
+        "selected": 1,
+        "val_best": 4.125509855289873,
+        "val_last": 4.0981411796393665
+      },
+      {
+        "seed": 5352,
+        "stage": "g0",
+        "selected": 9,
+        "val_best": 3.446109186635118,
+        "val_last": 3.4258327384769993
+      },
+      {
+        "seed": 5352,
+        "stage": "uniform",
+        "selected": 8,
+        "val_best": 4.25588001898709,
+        "val_last": 4.228726488076904
+      },
+      {
+        "seed": 5352,
+        "stage": "capacity",
+        "selected": 3,
+        "val_best": 3.8765911652057956,
+        "val_last": 3.821483915930192
+      },
+      {
+        "seed": 5353,
+        "stage": "g0",
+        "selected": 10,
+        "val_best": 3.3306255291805726,
+        "val_last": 3.3306255291805726
+      },
+      {
+        "seed": 5353,
+        "stage": "uniform",
+        "selected": 6,
+        "val_best": 3.9308755802113944,
+        "val_last": 3.9255082851107153
+      },
+      {
+        "seed": 5353,
+        "stage": "capacity",
+        "selected": 1,
+        "val_best": 3.7663087262102755,
+        "val_last": 3.7366300754531476
+      }
+    ],
+    "bank_differences": [
+      {
+        "seed": 5351,
+        "phase": "test_cw",
+        "reference": "uniform",
+        "values": [
+          0.004985214583090425,
+          0.012800174029309552,
+          0.05817557505721416
+        ],
+        "mean": 0.02532032122320471,
+        "sd": 0.02872053579164927
+      },
+      {
+        "seed": 5351,
+        "phase": "test_cw",
+        "reference": "context_perm_mean",
+        "values": [
+          0.03749411943645686,
+          0.083614539229107,
+          0.027424207052431537
+        ],
+        "mean": 0.0495109552393318,
+        "sd": 0.0299606677923945
+      },
+      {
+        "seed": 5351,
+        "phase": "test_ow",
+        "reference": "uniform",
+        "values": [
+          0.008942435915121782,
+          -0.03871002543233193,
+          0.04523170304657409
+        ],
+        "mean": 0.005154704509787981,
+        "sd": 0.042098855410875595
+      },
+      {
+        "seed": 5351,
+        "phase": "test_ow",
+        "reference": "context_perm_mean",
+        "values": [
+          -0.01738745574102185,
+          -0.018795695958063297,
+          0.0414557622448366
+        ],
+        "mean": 0.0017575368485838183,
+        "sd": 0.03438688136246133
+      },
+      {
+        "seed": 5352,
+        "phase": "test_cw",
+        "reference": "uniform",
+        "values": [
+          0.06131482326474824,
+          0.1679055643395566,
+          0.13759634396963616
+        ],
+        "mean": 0.12227224385798034,
+        "sd": 0.05492283271912737
+      },
+      {
+        "seed": 5352,
+        "phase": "test_cw",
+        "reference": "context_perm_mean",
+        "values": [
+          0.05012406662634339,
+          0.12151543448963853,
+          0.12584405983495506
+        ],
+        "mean": 0.09916118698364566,
+        "sd": 0.04252250732315112
+      },
+      {
+        "seed": 5352,
+        "phase": "test_ow",
+        "reference": "uniform",
+        "values": [
+          -0.011186335162055916,
+          0.029524408318035156,
+          -0.011528999579075494
+        ],
+        "mean": 0.0022696911923012486,
+        "sd": 0.023603899231451203
+      },
+      {
+        "seed": 5352,
+        "phase": "test_ow",
+        "reference": "context_perm_mean",
+        "values": [
+          -0.001087683181764998,
+          0.032422686064567774,
+          -0.010324147274071382
+        ],
+        "mean": 0.007003618536243798,
+        "sd": 0.022492772455596423
+      },
+      {
+        "seed": 5353,
+        "phase": "test_cw",
+        "reference": "uniform",
+        "values": [
+          -0.0814988627962836,
+          -0.032309938417677486,
+          -0.02971232106285271
+        ],
+        "mean": -0.047840374092271265,
+        "sd": 0.029178027698237522
+      },
+      {
+        "seed": 5353,
+        "phase": "test_cw",
+        "reference": "context_perm_mean",
+        "values": [
+          -0.08920107459561155,
+          -0.08286952046436102,
+          -0.06077982462656184
+        ],
+        "mean": -0.07761680656217813,
+        "sd": 0.014920962266370123
+      },
+      {
+        "seed": 5353,
+        "phase": "test_ow",
+        "reference": "uniform",
+        "values": [
+          0.021974737452734594,
+          0.026948898344952843,
+          0.024417603135357346
+        ],
+        "mean": 0.024447079644348262,
+        "sd": 0.00248721144936555
+      },
+      {
+        "seed": 5353,
+        "phase": "test_ow",
+        "reference": "context_perm_mean",
+        "values": [
+          0.017033737633130763,
+          0.011807552589039538,
+          0.023265808546537037
+        ],
+        "mean": 0.017369032922902445,
+        "sd": 0.005736481900554471
+      }
+    ]
+  }
+}
