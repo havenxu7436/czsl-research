@@ -35,8 +35,8 @@ m_d\in\{0.3,0.1\}.
 ## 2. 模板、运行配置与数据身份
 
 - [round_k模板](round_k/)、[服务器runtime](runtime/)、[六训练清单](experiment_inventory.json)、[十二项均值评估](intervention_inventory.json)。
-- [TRAIN查询均值](../results/raw_export/roundK_20261021/feature_statistics/)来自全部22,998张TRAIN图像，形状[12,768]，与J组逐字相同。
-- [38项历史运行](references/pre_k_complete.json)、[文本资产](assets/)、[外部输入](../external_inputs.json)。
+- TRAIN查询均值（精简版未保留）来自全部22,998张TRAIN图像，形状[12,768]，与J组逐字相同。
+- [38项历史运行](references/pre_k_complete.json)、[文本资产](assets/)、外部输入（精简版未保留）。
 - 对照模板：[J1](round_j/J1.json)、[G0](round_g/G0.json)、[I2](round_i/I2.json)。缓存manifest SHA256：`bb8b7a8eb8c4e77a14ef65dd5c626aac559880d7c8d642dcc1e9a2a843831d2a`。
 
 ## 3. 根据结果作出的决策

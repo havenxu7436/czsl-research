@@ -45,7 +45,7 @@ from torch import nn
 from torch.nn import functional as F
 ```
 
-[vgcpod/common.py · unit](code/vgcpod_v1/vgcpod/common.py#L72)
+vgcpod/common.py · unit（精简版未保留）
 
 ```python
 def unit(x):
@@ -73,7 +73,7 @@ p_\ell&=\nu\!\left(P_v^\top\mathop{\mathrm{LN}}\nolimits_{\mathrm{post}}(H_\ell)
 
 向量采用列表示；代码采用行向量右乘 `visual.proj`。末层归一化与视觉投影同时作用于CLS和补丁。
 
-[vendor/clip/clip.py · _transform](code/vgcpod_v1/vendor/clip/clip.py#L79)
+vendor/clip/clip.py · _transform（精简版未保留）
 
 ```python
 def _transform(n_px):
@@ -86,7 +86,7 @@ def _transform(n_px):
     ])
 ```
 
-[vgcpod/features.py · prepare（局部）](code/vgcpod_v1/vgcpod/features.py#L95)
+vgcpod/features.py · prepare（局部）（精简版未保留）
 
 ```python
 model, preprocess = clip.load(str(args.checkpoint), device=args.device, jit=False)
@@ -96,7 +96,7 @@ if model.visual.input_resolution != 224 or model.visual.proj.shape != (1024, 768
     raise ValueError('CLIP backbone must be ViT-L/14 at 224px')
 ```
 
-[vgcpod/features.py · visual_tokens](code/vgcpod_v1/vgcpod/features.py#L17)
+vgcpod/features.py · visual_tokens（精简版未保留）
 
 ```python
 def visual_tokens(visual, images):
@@ -129,7 +129,7 @@ e_{ij}^c&=\nu(E_T(t_{ij}^c)).
 
 类别字符串读取 `assets/names.json`；组合表按物体外层、属性内层构造。
 
-[vgcpod/features.py · prompts](code/vgcpod_v1/vgcpod/features.py#L37)
+vgcpod/features.py · prompts（精简版未保留）
 
 ```python
 def prompts():
@@ -139,7 +139,7 @@ def prompts():
             'c': ['a photo of {} made of {}'.format(o, a) for o in names['o'] for a in names['a']]}
 ```
 
-[vgcpod/features.py · prepare（局部）](code/vgcpod_v1/vgcpod/features.py#L101)
+vgcpod/features.py · prepare（局部）（精简版未保留）
 
 ```python
 text = {}
@@ -169,7 +169,7 @@ f_{bj}^o=f_b(e_j^o),\qquad\tau_v=0.07.
 \end{aligned}
 ```
 
-[vgcpod/features.py · query_patches](code/vgcpod_v1/vgcpod/features.py#L32)
+vgcpod/features.py · query_patches（精简版未保留）
 
 ```python
 def query_patches(patches, queries, tau):
@@ -189,7 +189,7 @@ def query_patches(patches, queries, tau):
 
 后续前向公式中的图像和查询特征对应上述 $`\widehat z`$；读取后不再单位化。文本表保存为FP32。
 
-[vgcpod/features.py · prepare（局部）](code/vgcpod_v1/vgcpod/features.py#L143)
+vgcpod/features.py · prepare（局部）（精简版未保留）
 
 ```python
 global_features.append(g.cpu().numpy().astype(np.float16))
@@ -197,7 +197,7 @@ attribute_features.append(f[:, :len(ea)].cpu().numpy().astype(np.float16))
 object_features.append(f[:, len(ea):].cpu().numpy().astype(np.float16))
 ```
 
-[vgcpod/data.py · FeatureDataset.__getitem__](code/vgcpod_v1/vgcpod/data.py#L109)
+vgcpod/data.py · FeatureDataset.__getitem__（精简版未保留）
 
 ```python
 def __getitem__(self, index):
@@ -267,7 +267,7 @@ B_{\mathrm{vis}}B_{\mathrm{vis}}^\top=I_r.
 \end{aligned}
 ```
 
-[vgcpod/model.py · VGCPOD.__init__](code/vgcpod_v1/vgcpod/model.py#L16)
+vgcpod/model.py · VGCPOD.__init__（精简版未保留）
 
 ```python
 def __init__(self, ea, eo, ec, cfg, seed):
@@ -423,7 +423,7 @@ p^{\mathrm{joint}}_{bi}&=\sum_{j=1}^{N}P_{bji}.
 \end{aligned}
 ```
 
-[vgcpod/model.py · VGCPOD.forward](code/vgcpod_v1/vgcpod/model.py#L55)
+vgcpod/model.py · VGCPOD.forward（精简版未保留）
 
 ```python
 def forward(self, g, fa, fo):
@@ -481,7 +481,7 @@ def forward(self, g, fa, fo):
 T_{ji}=\mathbf{1}\{(a_i,o_j)\in\mathcal{C}^s\}.
 ```
 
-[vgcpod/data.py · mask_from_pairs](code/vgcpod_v1/vgcpod/data.py#L123)
+vgcpod/data.py · mask_from_pairs（精简版未保留）
 
 ```python
 def mask_from_pairs(labels, pairs):
@@ -537,7 +537,7 @@ m_{bi}&=\frac{p^{\mathrm{prim}}_{bi}+p^{\mathrm{joint}}_{bi}}2,\\
 \bigl(\log_\epsilon p^{\mathrm{joint}}_{bi}-\log_\epsilon m_{bi}\bigr)\right].
 ```
 
-[vgcpod/model.py · js_divergence](code/vgcpod_v1/vgcpod/model.py#L9)
+vgcpod/model.py · js_divergence（精简版未保留）
 
 ```python
 def js_divergence(p, q):
@@ -562,7 +562,7 @@ def js_divergence(p, q):
 
 V0/V1/V1L关闭原语和正交项；V2/V3/V6关闭原语项；V7关闭正交项。两侧属性分布均保留梯度。
 
-[vgcpod/model.py · VGCPOD.objective](code/vgcpod_v1/vgcpod/model.py#L87)
+vgcpod/model.py · VGCPOD.objective（精简版未保留）
 
 ```python
 def objective(self, out, attrs, objs, train_mask):
@@ -727,7 +727,7 @@ n_t=\sqrt{\sum_{\theta\in\vartheta}\lVert\mathop{\mathrm{vec}}\nolimits(\nabla_\
 \end{aligned}
 ```
 
-[vgcpod/engine.py · clip_total_norm](code/vgcpod_v1/vgcpod/engine.py#L19)
+vgcpod/engine.py · clip_total_norm（精简版未保留）
 
 ```python
 @torch.no_grad()
@@ -757,7 +757,7 @@ v_t&=\beta_2v_{t-1}+(1-\beta_2)\bar d_t\odot\bar d_t,\\
 
 $`\beta_1=0.9`$，$`\beta_2=0.999`$，$`\epsilon_{\mathrm{Adam}}=10^{-8}`$，$`w_d=10^{-4}`$。参数组由 `requires_grad` 筛选。
 
-[vgcpod/engine.py · train（局部）](code/vgcpod_v1/vgcpod/engine.py#L106)
+vgcpod/engine.py · train（局部）（精简版未保留）
 
 ```python
 parameters = [p for p in model.parameters() if p.requires_grad]
@@ -778,7 +778,7 @@ optimizer = torch.optim.AdamW(parameters, lr=cfg['lr'], betas=tuple(cfg['adam_be
 
 `step` 在更新前等于 $`t-1`$。
 
-[vgcpod/engine.py · train（局部）](code/vgcpod_v1/vgcpod/engine.py#L134)
+vgcpod/engine.py · train（局部）（精简版未保留）
 
 ```python
 eta = cfg['min_lr'] + 0.5 * (cfg['lr'] - cfg['min_lr']) * (
@@ -800,7 +800,7 @@ optimizer.step()
 
 ### 9.1 前向收集
 
-[vgcpod/engine.py · predict](code/vgcpod_v1/vgcpod/engine.py#L49)
+vgcpod/engine.py · predict（精简版未保留）
 
 ```python
 @torch.no_grad()
@@ -854,7 +854,7 @@ def predict(model, cache, phase, cfg, device):
 
 准确率输出乘100；NLL使用自然对数。GT-object属性预测采用 `numpy.argmax`，同分时取属性轴首项。四类错误由属性与物体预测正确性分别取交集计数。
 
-[vgcpod/metrics.py · evaluate_scores](code/vgcpod_v1/vgcpod/metrics.py#L78)
+vgcpod/metrics.py · evaluate_scores（精简版未保留）
 
 ```python
 def evaluate_scores(joint, cond, attrs, objs, labels, pairs, phase, world, fixed_bias=None):
@@ -930,7 +930,7 @@ U(\beta)&=\frac{\sum_{b:c_b\notin\mathcal{C}^s}\mathbf{1}\{\widehat c_b(\beta)=c
 \end{aligned}
 ```
 
-[vgcpod/metrics.py · hm](code/vgcpod_v1/vgcpod/metrics.py#L6)
+vgcpod/metrics.py · hm（精简版未保留）
 
 ```python
 def hm(s, u):
@@ -956,7 +956,7 @@ h=\max(\lfloor K/20\rfloor,1),\qquad
 
 若 $`K=0`$，扫描序列仅含1000。曲线按扫描次序做梯形积分；HM平局由 `np.argmax` 取首次。
 
-[vgcpod/metrics.py · native_curve](code/vgcpod_v1/vgcpod/metrics.py#L11)
+vgcpod/metrics.py · native_curve（精简版未保留）
 
 ```python
 def native_curve(scores, truth, seen_classes):
@@ -1018,7 +1018,7 @@ U_k&=\frac{\sum_{\ell=1}^{k}\sum_{b:\delta_b=\theta_\ell}\chi_b^u}{n_u},
 
 相同临界值的事件同时更新；$`k=0`$ 的累计和为零。各区间用中点或两侧外部点表示，使用§10.1的面积公式。
 
-[vgcpod/metrics.py · exact_curve](code/vgcpod_v1/vgcpod/metrics.py#L43)
+vgcpod/metrics.py · exact_curve（精简版未保留）
 
 ```python
 def exact_curve(scores, truth, seen_classes):
@@ -1063,7 +1063,7 @@ t^*=\min\underset{t}{\arg\max}\;
 \mathop{\mathrm{AUC}}\nolimits_{\mathrm{native}}^{\mathrm{VAL,CW}}(t).
 ```
 
-[vgcpod/engine.py · train（局部）](code/vgcpod_v1/vgcpod/engine.py#L161)
+vgcpod/engine.py · train（局部）（精简版未保留）
 
 ```python
 selected = metrics['AUC_native'] > best
@@ -1073,7 +1073,7 @@ if selected:
 
 CW与OW各自取选中权重的VAL原生扫描最佳HM bias，并固定用于TEST；TEST曲线最佳HM另存为 `HM_oracle_native/exact`。
 
-[vgcpod/engine.py · evaluate_run](code/vgcpod_v1/vgcpod/engine.py#L197)
+vgcpod/engine.py · evaluate_run（精简版未保留）
 
 ```python
 def evaluate_run(cache, run, device):
@@ -1139,7 +1139,7 @@ n_{\mathrm{V4}}=n_{\mathrm{V5}}=n_{\mathrm{V7}}&=4dq+5dr=147456.
 \end{aligned}
 ```
 
-[vgcpod/model.py · VGCPOD.trainable_count](code/vgcpod_v1/vgcpod/model.py#L109)
+vgcpod/model.py · VGCPOD.trainable_count（精简版未保留）
 
 ```python
 def trainable_count(self):
@@ -1152,26 +1152,26 @@ def trainable_count(self):
 
 | 源码 | 函数／方法 | 算子 |
 |---|---|---|
-| [vgcpod/common.py](code/vgcpod_v1/vgcpod/common.py#L72) | `unit` | 带范数下界的单位化 |
-| [vendor/clip/clip.py](code/vgcpod_v1/vendor/clip/clip.py#L79) | `_transform` | CLIP图像预处理 |
-| [vgcpod/features.py](code/vgcpod_v1/vgcpod/features.py#L17) | `visual_tokens` | CLS与补丁投影 |
-| [vgcpod/features.py](code/vgcpod_v1/vgcpod/features.py#L37) | `prompts` | 名称文本模板 |
-| [vgcpod/features.py](code/vgcpod_v1/vgcpod/features.py#L32) | `query_patches` | 类别查询 |
-| [vgcpod/features.py](code/vgcpod_v1/vgcpod/features.py#L66) | `prepare` | 冻结编码与FP16缓存 |
-| [vgcpod/data.py](code/vgcpod_v1/vgcpod/data.py#L109) | `FeatureDataset.__getitem__` | FP32缓存读取 |
-| [vgcpod/data.py](code/vgcpod_v1/vgcpod/data.py#L123) | `mask_from_pairs` | 训练组合mask |
-| [vgcpod/model.py](code/vgcpod_v1/vgcpod/model.py#L16) | `VGCPOD.__init__` | 参数、初始化与路由 |
-| [vgcpod/model.py](code/vgcpod_v1/vgcpod/model.py#L55) | `VGCPOD.forward` | 完整前向 |
-| [vgcpod/model.py](code/vgcpod_v1/vgcpod/model.py#L9) | `js_divergence` | 带对数下界的JS |
-| [vgcpod/model.py](code/vgcpod_v1/vgcpod/model.py#L87) | `VGCPOD.objective` | 损失组合 |
-| [vgcpod/engine.py](code/vgcpod_v1/vgcpod/engine.py#L19) | `clip_total_norm` | 总梯度裁剪 |
-| [vgcpod/engine.py](code/vgcpod_v1/vgcpod/engine.py#L89) | `train` | AdamW更新与选模 |
-| [vgcpod/engine.py](code/vgcpod_v1/vgcpod/engine.py#L49) | `predict` | 推理收集 |
-| [vgcpod/engine.py](code/vgcpod_v1/vgcpod/engine.py#L232) | `baselines` | 名称CLIP与链式零样本 |
-| [vgcpod/engine.py](code/vgcpod_v1/vgcpod/engine.py#L197) | `evaluate_run` | 选中权重的VAL/TEST评价 |
-| [vgcpod/metrics.py](code/vgcpod_v1/vgcpod/metrics.py#L78) | `evaluate_scores` | 候选归一化与指标 |
-| [vgcpod/metrics.py](code/vgcpod_v1/vgcpod/metrics.py#L11) | `native_curve` | 原生有限bias扫描 |
-| [vgcpod/metrics.py](code/vgcpod_v1/vgcpod/metrics.py#L43) | `exact_curve` | 完整临界事件扫描 |
+| vgcpod/common.py（精简版未保留） | `unit` | 带范数下界的单位化 |
+| vendor/clip/clip.py（精简版未保留） | `_transform` | CLIP图像预处理 |
+| vgcpod/features.py（精简版未保留） | `visual_tokens` | CLS与补丁投影 |
+| vgcpod/features.py（精简版未保留） | `prompts` | 名称文本模板 |
+| vgcpod/features.py（精简版未保留） | `query_patches` | 类别查询 |
+| vgcpod/features.py（精简版未保留） | `prepare` | 冻结编码与FP16缓存 |
+| vgcpod/data.py（精简版未保留） | `FeatureDataset.__getitem__` | FP32缓存读取 |
+| vgcpod/data.py（精简版未保留） | `mask_from_pairs` | 训练组合mask |
+| vgcpod/model.py（精简版未保留） | `VGCPOD.__init__` | 参数、初始化与路由 |
+| vgcpod/model.py（精简版未保留） | `VGCPOD.forward` | 完整前向 |
+| vgcpod/model.py（精简版未保留） | `js_divergence` | 带对数下界的JS |
+| vgcpod/model.py（精简版未保留） | `VGCPOD.objective` | 损失组合 |
+| vgcpod/engine.py（精简版未保留） | `clip_total_norm` | 总梯度裁剪 |
+| vgcpod/engine.py（精简版未保留） | `train` | AdamW更新与选模 |
+| vgcpod/engine.py（精简版未保留） | `predict` | 推理收集 |
+| vgcpod/engine.py（精简版未保留） | `baselines` | 名称CLIP与链式零样本 |
+| vgcpod/engine.py（精简版未保留） | `evaluate_run` | 选中权重的VAL/TEST评价 |
+| vgcpod/metrics.py（精简版未保留） | `evaluate_scores` | 候选归一化与指标 |
+| vgcpod/metrics.py（精简版未保留） | `native_curve` | 原生有限bias扫描 |
+| vgcpod/metrics.py（精简版未保留） | `exact_curve` | 完整临界事件扫描 |
 
 CLIP源码提交：`a1d071733d7111c9c014f024669f959182114e33`。
 

@@ -2,9 +2,9 @@
 
 | 方案 | gate_input | ε | ρ | β | η／τγ | native／exact最佳epoch |
 |---|---|---|---|---|---|---|
-| [H1](round_h/H1.json) | train_residual | 1e-12 | 0.15 | 0.075 | 0.25／0.1 | 5/8/6；5/8/6 |
+| H1（精简版未保留） | train_residual | 1e-12 | 0.15 | 0.075 | 0.25／0.1 | 5/8/6；5/8/6 |
 
-轮次按 seed3351/3352/3353 顺序。三次训练各十轮、3600 次更新。完整实际配置与两套指标见 [experiment_inventory.json](experiment_inventory.json)。
+轮次按 seed3351/3352/3353 顺序。三次训练各十轮、3600 次更新。完整实际配置与两套指标见 experiment_inventory.json（精简版未保留）。
 
 ## 选取策略
 
@@ -32,10 +32,10 @@
 
 ## 模板、运行配置与统计资产
 
-- [H1模板](round_h/H1.json) 是原 ZIP 的配置，保留实验超参数；[runtime/H1.json](runtime/H1.json) 为原服务器实际运行配置，新增均值文件路径及 SHA256。
-- [TRAIN均值及身份](../results/raw_export/roundH_20261020/feature_statistics/)与 [原输出运行配置](../results/raw_export/roundH_20261020/configs/H1.json)随结果保存。三 seed checkpoint 记录相同均值和哈希。
+- H1模板（精简版未保留） 是原 ZIP 的配置，保留实验超参数；runtime/H1.json（精简版未保留） 为原服务器实际运行配置，新增均值文件路径及 SHA256。
+- TRAIN均值及身份（精简版未保留）与 原输出运行配置（精简版未保留）随结果保存。三 seed checkpoint 记录相同均值和哈希。
 - 新的复现运行由调度器在指定输出目录生成自己的均值资产及运行配置。原运行配置保留服务器当时的路径。
-- [三项训练](experiment_inventory.json)、[六项均值评估](intervention_inventory.json)、[26份历史参考](references/pre_h_complete.json)、[标签资产](assets/)、[外部输入](../external_inputs.json)。
-- 直接对照为 [G1](round_g/G1.json)，静态对照为 [G0](round_g/G0.json)。缓存 manifest SHA256：`bb8b7a8eb8c4e77a14ef65dd5c626aac559880d7c8d642dcc1e9a2a843831d2a`。
+- 三项训练（精简版未保留）、六项均值评估（精简版未保留）、26份历史参考（精简版未保留）、标签资产（精简版未保留）、外部输入（精简版未保留）。
+- 直接对照为 G1（精简版未保留），静态对照为 G0（精简版未保留）。缓存 manifest SHA256：`bb8b7a8eb8c4e77a14ef65dd5c626aac559880d7c8d642dcc1e9a2a843831d2a`。
 
 下一轮 I1/I2 的输入与温度建议见[数据分析](../analysis/README.md)；本阶段实际训练配置为 H1。

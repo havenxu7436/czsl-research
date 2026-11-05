@@ -28,7 +28,7 @@
 
 J1 相对 I2 的 TEST CW AUC 提高 0.448 点、未见条件属性提高 0.370 个百分点，OW AUC 下降 0.328 点。相对相同 β/ρ 的 G0，CW 高 0.141 点、OW 低 0.658 点。D1 继续作为已有性能参照；D1 的 β=0.1，其余 G/I/J 对照使用 β=0.075。
 
-![三 seed 结果与历史参照](confirmed/figures/01_results.png)
+**图（精简版未保留）：** 三 seed 结果与历史参照
 
 | seed | J1 native/exact epoch | J1−I2 CW | J1−I2 OW | 未见条件属性净正确数 |
 | --- | --- | --- | --- | --- |
@@ -74,7 +74,7 @@ J1 的 dynamic−mean 达到 CW +8.645、OW +3.592 点。该比较测量已训�
 
 J1 在 VAL 上的 dynamic−mean 为 CW +0.172、OW −1.287 点，与 TEST 的幅度和方向不同。下一轮继续按 VAL 选权重，并同时报告两种世界的结果和三个 seed 的差值。
 
-![门控、动态 logit 修正与优化器步长](confirmed/figures/02_optimizer_and_scale.png)
+**图（精简版未保留）：** 门控、动态 logit 修正与优化器步长
 
 ### 3.2 两路修正共同增长
 
@@ -86,7 +86,7 @@ J1 在 VAL 上的 dynamic−mean 为 CW +0.172、OW −1.287 点，与 TEST 的�
 
 表中修正 RMS 为选中 epoch 各训练 batch 的图像数加权统计；中心化沿每个物体的属性维进行。两路中心化余弦约为 0.52–0.57，表示训练输出上两项总体同向。矩阵范数描述参数尺度，中心化分数 RMS 则直接描述条件 softmax 相关的修正尺度。
 
-![静态与动态修正的训练过程](confirmed/figures/03_readout_history.png)
+**图（精简版未保留）：** 静态与动态修正的训练过程
 
 ## 4. 下一轮的依据：Adam 使梯度尺度与步长尺度分离
 
@@ -189,15 +189,10 @@ m_d\in\{0.3,0.1\}.
 - TRAIN 均值与 I 组逐字相同，所有 J1 选中／末轮 checkpoint buffer 一致；损失恒等式和两路 RMS 一致。
 - 原始大特征缓存仍在服务器，本次分析使用下载的 checkpoint、预测、曲线、日志与固定 TRAIN 均值。
 
-明细位于 [confirmed/](confirmed/)：`analysis.json`、`audit.json`、`supplement.json`、`tables/`、`figures/`。本轮分析未修改实验源代码。
+明细位于 confirmed/（精简版未保留）：`analysis.json`、`audit.json`、`supplement.json`、`tables/`、`figures/`。本轮分析未修改实验源代码。
 
 ## 7. 仓库复算与归档核对
 
-[主说明](../README.md)汇总本轮公式、代码与超参数策略；[分析JSON](confirmed/analysis.json)、[预测审计](confirmed/audit.json)、[优化器与逐图像补充分析](confirmed/supplement.json)、[仓库验证](repository_validation.json)和[源码补丁](../code/source_changes.patch)按平行结构保存。
-
-```bash
-python VG-CPOD方案/11/analysis/recompute.py
-python tools/reproduce.py verify
-```
+[主说明](../README.md)汇总本轮公式、代码与超参数策略；分析JSON（精简版未保留）、预测审计（精简版未保留）、优化器与逐图像补充分析（精简版未保留）、仓库验证（精简版未保留）和源码补丁（精简版未保留）按平行结构保存。
 
 复算使用本轮预测、checkpoint、门控矩和固定TRAIN均值，重算J1指标、配对差值、动态幅值、Adam状态与图表；历史数据读取10的已核验分析，并校验I组原始包身份。输出至`recomputed/`，与`confirmed/`中的JSON和CSV比较。

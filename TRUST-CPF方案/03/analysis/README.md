@@ -100,7 +100,7 @@ exact AUC 与 native AUC 给出相同方向。新模型 CW HM 比原 TRUST 高�
 
 ### 4.3 相当一部分标签波动来自 Query 组合
 
-利用原测量保存的 query_pair_ids，我做了同教师内的五折 episode 交叉验证：用 episode 的组合比例预测每条边的效用，并与该边的常数均值比较。岭惩罚固定为 0.001；没有新增图像训练。
+利用原测量保存的 query_pair_ids，执行同教师内的五折 episode 交叉验证：用 episode 的组合比例预测每条边的效用，并与该边的常数均值比较。岭惩罚固定为 0.001；没有新增图像训练。
 
 | 关系范围 | 15 个教师中改善的数量 | MSE 相对下降的中位数 | 完整范围 |
 | --- | --- | --- | --- |
@@ -141,7 +141,7 @@ exact AUC 与 native AUC 给出相同方向。新模型 CW HM 比原 TRUST 高�
 
 ## 6. 本次离线诊断发现了一个更具体的可行方向
 
-我用已有响应和配对标签，实际拟合了一个类型条件岭回归：八维响应加截距，每类九个系数，共 27 个参数。Q1–Q3 拟合；正则候选为 0.1、1、10、100；Q4 选择同预算效用代理遗憾最低的模型；Q5 报告结果。它保留原来的效用监督，只改变目标聚合、预测器和选模标准。
+已有响应和配对标签用于拟合类型条件岭回归：八维响应加截距，每类九个系数，共 27 个参数。Q1–Q3 拟合；正则候选为 0.1、1、10、100；Q4 选择同预算效用代理遗憾最低的模型；Q5 报告结果。该模型保留原来的效用监督，只改变目标聚合、预测器和选模标准。
 
 以下均在每条边的 episode 均值上计算，不能与第 3 节 3072 条观测级 Spearman 混为同一口径。
 
@@ -163,7 +163,7 @@ exact AUC 与 native AUC 给出相同方向。新模型 CW HM 比原 TRUST 高�
 
 此前还用 Q4 标准化 MSE 选过同一组岭模型，三个 seed 的边排序同样为正；完整数值保存在分析文件中。最终推荐以预算决策遗憾作为选模指标，因为预测器的用途就是分配关系概率。把预测误差与下游决策效果区分开来，是已有 predict-then-optimize 研究的基本出发点，参见 [Smart “Predict, then Optimize”](https://arxiv.org/abs/1710.08005)。
 
-![正式结果与离线效用诊断](figures/TRUST_CPF_modelcond_v1_analysis.png)
+**图（精简版未保留）：** 正式结果与离线效用诊断
 
 ## 7. 下一轮：紧凑期望效用 TRUST
 
@@ -305,20 +305,20 @@ CPF 强调物体与属性的条件依赖，参见 [CPF，ICCV 2025](https://open
 
 ## 分析文件与复现来源
 
-- [完整指标、审计、响应与选图统计](confirmed/analysis.json)
+- 完整指标、审计、响应与选图统计（精简版未保留）
 
-- [归档逐文件核验](confirmed/archive_verification.json)
+- 归档逐文件核验（精简版未保留）
 
-- [Query 组合诊断与 Q4-MSE 岭回归诊断](confirmed/context_diagnostics.json)
+- Query 组合诊断与 Q4-MSE 岭回归诊断（精简版未保留）
 
-- [Q4 决策选模与 Q5 预算遗憾](confirmed/selection_diagnostics.json)
+- Q4 决策选模与 Q5 预算遗憾（精简版未保留）
 
-- [正式结果分析脚本](../references/original_scripts/analyze_modelcond_v1.py.txt)
+- 正式结果分析脚本（精简版未保留）
 
-- [组合与响应诊断脚本](../references/original_scripts/diagnose_modelcond_context.py.txt)
+- 组合与响应诊断脚本（精简版未保留）
 
-- [预算决策诊断脚本](../references/original_scripts/diagnose_modelcond_selection.py.txt)
+- 预算决策诊断脚本（精简版未保留）
 
-- [本轮原始结果](../results/raw_export/trustcpf_modelcond_v1/work)
+- 本轮原始结果（精简版未保留）
 
 - [上一轮强基底完整分析](../../02/analysis/README.md)

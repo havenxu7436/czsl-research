@@ -17,7 +17,6 @@
 
 | 文件 | 内容 |
 |---|---|
-| SERVER_COMMANDS.md | 上传、环境、三卡运行、结果检查、打包和下载的完整命令 |
 | FORMULAS_AND_CODE.md | 新阶段训练、监督、拟合、分配与评分公式，真实核心代码 |
 | configs/default.json | 固定的完整实验配置 |
 | trustcpf/matched_train.py | 10 epoch 教师训练、断点续训、效用重测 |
@@ -41,4 +40,4 @@ QUEUE_COMPLETE
 
 ## CUDA 检查修复
 
-当前版本已修复教师 epoch10 后的 CPU/CUDA 冻结权重比较。已有旧包运行请按 SERVER_COMMANDS.md 第8节执行补丁，保留已完成 checkpoint 并续跑。本机 CUDA 十轮及断点恢复验证见 validation/device_fix_gpu.json。
+当前版本已修复教师 epoch10 后的 CPU/CUDA 冻结权重比较。CUDA 十轮及断点恢复验证在原实验中通过；精简档案保留修复结论，不保留设备相关操作记录。

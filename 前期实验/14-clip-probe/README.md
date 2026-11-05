@@ -15,26 +15,12 @@
 2. 编码图像与七组固定文本。
 3. 计算条件属性 micro、pair-macro、NLL 与逐类统计。
 
-## 运行入口
-
-变量与路径对应关系见 [环境说明](../../environment/README.md)。
-
-```bash
-REPLAY=/srv/czsl-reproduce-14
-python tools/reproduce.py materialize --line 前期实验 --stage 14 --dest "$REPLAY"
-WORK=/var/tmp/czsl_clip_knowledge_probe_20261010_r2
-"$CPF_PY" "$REPLAY/clip_knowledge_probe_20261010_r2/probe.py" \
-  --work "$WORK" --export "$WORK.zip" --check-inputs-only
-"$CPF_PY" "$REPLAY/clip_knowledge_probe_20261010_r2/probe.py" \
-  --work "$WORK" --export "$WORK.zip"
-```
-
 ## 结果与文件
 
 OE+AE 与 AE-only 的预设诊断判据均为 false。
 
-- [执行代码](code/clip_knowledge_probe_20261010_r2/)
-- [知识、配置与结果索引](inputs.json)
-- [执行命令](runbook.json)
-- [results/recovered/czsl_clip_knowledge_probe_20261010_r2/result/metrics.csv](<results/recovered/czsl_clip_knowledge_probe_20261010_r2/result/metrics.csv>)
-- [results/recovered/czsl_clip_knowledge_probe_20261010_r2/result/summary.json](<results/recovered/czsl_clip_knowledge_probe_20261010_r2/result/summary.json>)
+- 执行代码（精简版未保留）
+- 知识、配置与结果索引（精简版未保留）
+- 执行命令（精简版未保留）
+- results/recovered/czsl_clip_knowledge_probe_20261010_r2/result/metrics.csv（精简版未保留）
+- results/recovered/czsl_clip_knowledge_probe_20261010_r2/result/summary.json（精简版未保留）

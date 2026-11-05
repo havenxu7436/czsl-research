@@ -15,25 +15,12 @@
 2. 各组从初始化训练 10 epoch。
 3. 同一选中 checkpoint 评价 VAL/TEST CW/OW。
 
-## 运行入口
-
-变量与路径对应关系见 [环境说明](../../environment/README.md)。
-
-```bash
-REPLAY=/srv/czsl-reproduce-0601-01
-python tools/reproduce.py materialize --line 0601方案 --stage 01 --dest "$REPLAY"
-"$CPF_PY" "$REPLAY/reproduce_0601_20261010/prepare.py" --root "$PROJECT" --work "$WORK" --tier 1
-"$CPF_PY" "$REPLAY/reproduce_0601_20261010/run_suite.py" --work "$WORK" \
-  --gpus "${CZSL_GPUS:?Set physical GPU IDs}" --max-workers 1 \
-  --deadline "${CZSL_DEADLINE:?Set a future ISO8601 deadline}" --export "$WORK/results.zip"
-```
-
 ## 结果与文件
 
 完整 H 的指标低于 A；主表与配对差分见 metrics.csv。
 
-- [执行代码](code/reproduce_0601_20261010/)
-- [知识、配置与结果索引](inputs.json)
-- [执行命令](runbook.json)
-- [results/extracted/summary/metrics.csv](<results/extracted/summary/metrics.csv>)
-- [results/extracted/summary/summary.json](<results/extracted/summary/summary.json>)
+- 执行代码（精简版未保留）
+- 知识、配置与结果索引（精简版未保留）
+- 执行命令（精简版未保留）
+- results/extracted/summary/metrics.csv（精简版未保留）
+- results/extracted/summary/summary.json（精简版未保留）

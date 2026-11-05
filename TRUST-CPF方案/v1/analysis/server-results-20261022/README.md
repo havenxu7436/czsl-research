@@ -19,7 +19,7 @@
 | 测量标签 | 三个主 seed 与 shuffled3351 的全部 20 份 fold 测量，共 172,032 条标签 |
 | 噪声实验 | seed3351，4 个模型 × 5 个扰动 seed × 3 种关系 × 5 个强度 × 2 种扰动，共 600 次评估 |
 | 代码 | 归档内的模型、训练、测量、选图、噪声和评估实现 |
-| 历史参照 | 本机 VG-CPOD roundK 汇总中的 G0 静态 CP 三 seed 结果及其实现 |
+| 历史参照 | 归档环境 VG-CPOD roundK 汇总中的 G0 静态 CP 三 seed 结果及其实现 |
 
 原压缩包 gzip CRC 正常；解压文件已按归档校验 434 个文件，内容 SHA256 无差异。此前 Windows 解压遇到的中文文件名错误已经修复。
 
@@ -78,7 +78,7 @@
 
 ### 2.3 历史强基底是下一轮的起点
 
-本机 roundK 的 matched native 汇总保留了 G0 三个 seed：
+归档环境 roundK 的 matched native 汇总保留了 G0 三个 seed：
 
 | 模型 | VAL CW AUC | TEST CW AUC | TEST OW AUC |
 | --- | --- | --- | --- |
@@ -193,37 +193,37 @@ seed3351 的原始 `robust` 为 **9.999 CW / 8.282 OW**，完整打乱流程为 
 
 ## 结果图像
 
-![三 seed 主实验 AUC](confirmed/figures/01_main_auc.png)
+**图（精简版未保留）：** 三 seed 主实验 AUC
 
 点为独立训练 seed，误差条为三 seed 的样本标准差。
 
-![独立效用审计](confirmed/figures/02_utility_audit.png)
+**图（精简版未保留）：** 独立效用审计
 
 Q5 每个 seed 含 3,072 条标签；方向准确率以 50% 为随机基准。
 
-![完整 OW 噪声曲线](confirmed/figures/03_noise_ow_curves.png)
+**图（精简版未保留）：** 完整 OW 噪声曲线
 
 噪声仅使用训练 seed3351，曲线对五个扰动 seed、三种关系求均值；capacity 虚线来自其实现对附件扰动的不变性。
 
-![联合物体与条件属性准确率](confirmed/figures/04_error_decomposition.png)
+**图（精简版未保留）：** 联合物体与条件属性准确率
 
-全部图像提供 PNG 与 SVG，图表源数据见 [CSV 汇总](confirmed/)。
+全部图像提供 PNG 与 SVG，图表源数据见 CSV 汇总（精简版未保留）。
 
 ## 数据与实现索引
 
 本报告的全部汇总值、完整 OW 噪声恢复和同 Q5 子集比较保存在本地分析目录中。下面链接用于复核，不需要重新训练。
 
-- [原始归档完整性校验](../../results/server-results-20261022/validation/source_archive_integrity.json)
-- [完整派生分析（含逐 seed 数值、审计、噪声及耗时）](confirmed/analysis.json)
-- [从原日志恢复的完整 600 次 OW 噪声结果](confirmed/noise_ow_recovered.csv)
-- [现存 JSON 的 CW/OW 噪声长表](confirmed/noise_long.csv)
-- [本次分析脚本](recompute_metrics.py)
-- [v1 模型：完整三元项与差分项](../../code/trustcpf_clip_v1/trustcpf/model.py)
-- [v1 训练、选模与评价](../../code/trustcpf_clip_v1/trustcpf/engine.py)
-- [v1 效用、选图、消融与噪声流程](../../code/trustcpf_clip_v1/trustcpf/stages.py)
-- [v1 测量标签与效用预测定义](../../code/trustcpf_clip_v1/trustcpf/utility.py)
-- [v1 关系归一化与扰动](../../code/trustcpf_clip_v1/trustcpf/graph.py)
-- [历史 G0 matched native 汇总](../../../../VG-CPOD方案/12/results/raw_export/roundK_20261021/matched_native_summary.csv)
+- 原始归档完整性校验（精简版未保留）
+- 完整派生分析（含逐 seed 数值、审计、噪声及耗时）（精简版未保留）
+- 从原日志恢复的完整 600 次 OW 噪声结果（精简版未保留）
+- 现存 JSON 的 CW/OW 噪声长表（精简版未保留）
+- 本次分析脚本（精简版未保留）
+- v1 模型：完整三元项与差分项（精简版未保留）
+- v1 训练、选模与评价（精简版未保留）
+- v1 效用、选图、消融与噪声流程（精简版未保留）
+- v1 测量标签与效用预测定义（精简版未保留）
+- v1 关系归一化与扰动（精简版未保留）
+- 历史 G0 matched native 汇总（精简版未保留）
 - [历史 G0 配置](../../../../VG-CPOD方案/12/configs/round_g/G0.json)
 - [历史静态 CP 模型与损失实现](../../../../VG-CPOD方案/12/code/vgcpod_v1_roundK/vgcpod/model.py)
 - [此前局部视觉判别方向](../../../../VG-CPOD方案/12/code/original_analysis/analysis_roundK_results_20261021/research_direction.md)

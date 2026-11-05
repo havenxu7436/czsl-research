@@ -2,10 +2,10 @@
 
 | 方案 | gate_input | τγ | η／ρ／β | native／exact最佳epoch |
 |---|---|---|---|---|
-| [I1](round_i/I1.json) | train_centered | 0.1 | 0.25／0.15／0.075 | 8/8/6；10/8/6 |
-| [I2](round_i/I2.json) | train_residual | 0.56 | 0.25／0.15／0.075 | 8/8/6；8/8/6 |
+| I1（精简版未保留） | train_centered | 0.1 | 0.25／0.15／0.075 | 8/8/6；10/8/6 |
+| I2（精简版未保留） | train_residual | 0.56 | 0.25／0.15／0.075 | 8/8/6；8/8/6 |
 
-轮次按seed3351/3352/3353顺序。六次训练各十轮、3600次更新；实际配置与两套指标见[experiment_inventory.json](experiment_inventory.json)。
+轮次按seed3351/3352/3353顺序。六次训练各十轮、3600次更新；实际配置与两套指标见experiment_inventory.json（精简版未保留）。
 
 ## 1. 选取策略
 
@@ -34,9 +34,9 @@
 
 ## 2. 模板、运行配置与统计身份
 
-- [模板](round_i/)来自原ZIP；[runtime](runtime/)为服务器实际运行配置，补充统计文件路径及SHA256。
-- [TRAIN均值与身份](../results/raw_export/roundI_20261021/feature_statistics/)、[服务器原运行配置](../results/raw_export/roundI_20261021/configs/)。I/H统计NPZ逐字相同，六个模型checkpoint中的均值逐元素相同。
-- [六项训练清单](experiment_inventory.json)、[十二项均值评估](intervention_inventory.json)、[历史参考](references/pre_i_complete.json)、[标签资产](assets/)、[外部输入](../external_inputs.json)。
-- 对照配置：[H1](round_h/H1.json)、[G0](round_g/G0.json)、[G1](round_g/G1.json)。缓存manifest SHA256：`bb8b7a8eb8c4e77a14ef65dd5c626aac559880d7c8d642dcc1e9a2a843831d2a`。
+- 模板（精简版未保留）来自原ZIP；runtime（精简版未保留）为服务器实际运行配置，补充统计文件路径及SHA256。
+- TRAIN均值与身份（精简版未保留）、服务器原运行配置（精简版未保留）。I/H统计NPZ逐字相同，六个模型checkpoint中的均值逐元素相同。
+- 六项训练清单（精简版未保留）、十二项均值评估（精简版未保留）、历史参考（精简版未保留）、标签资产（精简版未保留）、外部输入（精简版未保留）。
+- 对照配置：H1（精简版未保留）、G0（精简版未保留）、G1（精简版未保留）。缓存manifest SHA256：`bb8b7a8eb8c4e77a14ef65dd5c626aac559880d7c8d642dcc1e9a2a843831d2a`。
 
 下一轮J1的结构建议及固定参数见[数据分析](../analysis/README.md)；本阶段已完成模型为I1/I2。

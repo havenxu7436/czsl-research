@@ -1,5 +1,7 @@
 # 02 · 公式对齐版 r2
 
+> **精简归档说明：** 本版本保留三 seed 的完整分析、公式、核心代码和配置；checkpoint、日志、逐样本结果与打包文件已移出 GitHub。历史命令若引用这些产物，需要从独立实验归档补齐。
+
 > **[完整公式及代码（0–12 章）](复现公式及代码.md)**
 >
 > 公式对齐版 r2 的数学定义、核心实现和源码索引。
@@ -20,37 +22,6 @@
 2. seed 3351 的 14 组各训练 30 epoch；seed 3352、3353 的 28 组各训练 10 epoch。
 3. 同一选中 checkpoint 评价 VAL/TEST CW/OW，导出原始分数与日志。
 
-## 运行入口
-
-变量与路径对应关系见 [环境说明](../../environment/README.md)。
-
-```bash
-REPLAY=/srv/czsl-reproduce-0601-02
-python tools/reproduce.py materialize --line 0601方案 --stage 02 --dest "$REPLAY"
-WORK3351="$WORK/seed3351-30epoch"
-"$CPF_PY" "$REPLAY/faithful_0601_20261011/prepare.py" --root "$PROJECT" --work "$WORK3351" \
-  --epochs 30 --seeds 3351
-"$CPF_PY" "$REPLAY/faithful_0601_20261011/run_suite.py" --work "$WORK3351" \
-  --gpus "${CZSL_GPUS:?Set physical GPU IDs}" --max-workers 1 --seeds 3351 --export "$WORK3351/results.zip"
-```
-
-seed 3352、3353 使用单独的 10 epoch 运行目录：
-
-```bash
-WORK2="$WORK/seeds3352-3353-10epoch"
-"$CPF_PY" "$REPLAY/faithful_0601_20261011/prepare.py" --root "$PROJECT" --work "$WORK2" \
-  --epochs 10 --seeds 3352,3353
-"$CPF_PY" "$REPLAY/faithful_0601_20261011/run_suite.py" --work "$WORK2" \
-  --gpus "${CZSL_GPUS:?Set physical GPU IDs}" --max-workers 1 --seeds 3352,3353 --export "$WORK2/results.zip"
-```
-
-只读结果校验：
-
-```bash
-python 0601方案/02-公式对齐版/code/epoch_review_20261012/verify_result.py
-python 0601方案/02-公式对齐版/code/epoch_review_20261012/verify_additional_results.py
-```
-
 ## 结果与文件
 
 | seed | 每组实际 epoch | 训练组数 | 评价份数 | 结果入口 |
@@ -62,8 +33,8 @@ python 0601方案/02-公式对齐版/code/epoch_review_20261012/verify_additiona
 三批结果均按首次严格最大 VAL CW AUC 选模，同一权重评价 VAL/TEST CW/OW。seed 3351 的最终选中权重位于 epoch 2–6，仍保留其实际 30 epoch 的完整记录。
 
 - [执行代码](code/faithful_0601_20261011/)
-- [知识、配置与结果索引](inputs.json)
-- [执行命令](runbook.json)
+- 历史索引：`inputs.json`（精简版已移除）
+- 历史执行清单：`runbook.json`（精简版已移除）
 - [results/seed3351-30epoch-20261012/README.md](<results/seed3351-30epoch-20261012/README.md>)
 - [seed 3352、3353：完整结果与校验](results/seeds3352-3353-10epoch-20261012/README.md)
 

@@ -109,15 +109,15 @@ R_{\mathrm{image}}=
 
 | 文件 | 本轮具体修订 | 作用 |
 |---|---|---|
-| [D1.json](configs/round_d/D1.json) | 相对 C2 只改 `rho=0.125` 与 `experiment_id=D1` | 中心化与较高修正强度联用 |
-| [mean_gate_eval.py](code/vgcpod_v1_roundD/mean_gate_eval.py) | 新增 TRAIN 均值／方差统计、同权重两条件评估 | 分开测量固定模式与图像相关调制 |
-| [round_d.py](code/vgcpod_v1_roundD/round_d.py) | 原 C 源码补 C2 两 seed，D1/3351 单独训练，四权重均值评估及汇总 | 首轮三卡任务 |
-| [D组tmux](code/vgcpod_v1_roundD/scripts/start_round_d_tmux.sh) | 捕获当前 Python 路径，日志与退出码 | SSH 脱离后继续运行 |
-| [next_round.py](code/vgcpod_next_v1_20261020/next_round.py) | 三卡并行 D1/3352、D1/3353、C1/3352；复用原 D/C 函数 | 补齐 D1 三 seed 与第二组四格 |
-| [补充轮tmux](code/vgcpod_next_v1_20261020/start_tmux.sh) | 独立任务状态、日志和退出码 | 区分首轮与补充轮完成状态 |
-| [D组数学测试](code/vgcpod_v1_roundD/tests/test_round_d.py) | 四项新测试，累计 30 项 | 比例／梯度、加权均值、固定模式替换与归一化 |
+| D1.json（精简版未保留） | 相对 C2 只改 `rho=0.125` 与 `experiment_id=D1` | 中心化与较高修正强度联用 |
+| mean_gate_eval.py（精简版未保留） | 新增 TRAIN 均值／方差统计、同权重两条件评估 | 分开测量固定模式与图像相关调制 |
+| round_d.py（精简版未保留） | 原 C 源码补 C2 两 seed，D1/3351 单独训练，四权重均值评估及汇总 | 首轮三卡任务 |
+| D组tmux（精简版未保留） | 捕获当前 Python 路径，日志与退出码 | SSH 脱离后继续运行 |
+| next_round.py（精简版未保留） | 三卡并行 D1/3352、D1/3353、C1/3352；复用原 D/C 函数 | 补齐 D1 三 seed 与第二组四格 |
+| 补充轮tmux（精简版未保留） | 独立任务状态、日志和退出码 | 区分首轮与补充轮完成状态 |
+| D组数学测试（精简版未保留） | 四项新测试，累计 30 项 | 比例／梯度、加权均值、固定模式替换与归一化 |
 
-训练核心沿用 [model.py](code/vgcpod_v1_roundD/vgcpod/model.py) 与 [engine.py](code/vgcpod_v1_roundD/vgcpod/engine.py)。本轮实际仍按首次严格最大 VAL CW native AUC 选 best，保存 best/last。相对 04 的[完整补丁](code/source_changes.patch)保留新增配置、评估、测试和两轮调度；双 native/exact 最优权重保存属于后续建议。
+训练核心沿用 model.py（精简版未保留） 与 engine.py（精简版未保留）。本轮实际仍按首次严格最大 VAL CW native AUC 选 best，保存 best/last。相对 04 的完整补丁（精简版未保留）保留新增配置、评估、测试和两轮调度；双 native/exact 最优权重保存属于后续建议。
 
 ## 5. 超参数选取策略与已完成矩阵
 
@@ -149,67 +149,6 @@ R_{\mathrm{image}}=
 
 原配置字段 `variant=V1`，动态分支由显式 `gate_input=local`、`gate_center_modes=true` 启用。D1 的 Bvis 与 Au/Av/Wc 同属 CP 参数组。
 
-## 6. 仓库结构与复现入口
-
-```text
-05/
-  README.md          # 修订、公式、超参策略与末节数据分析
-  code/              # 原D运行代码、补充轮启动器、分析源码和补丁
-  configs/           # D1、兼容配置、资产、参考与运行清单
-  results/           # 六次新增训练、六项均值干预、状态和原始归档
-  analysis/          # 首轮/三seed分析、图表、仓库复算入口
-```
-
-恢复原 D 包、原 C 源码及补充轮启动器，复用服务器已有 C 参考结果与特征缓存：
-
-```bash
-git lfs pull
-python tools/reproduce.py materialize --line VG-CPOD方案 --stage 05 \
-  --dest /data/xhw/vgcpod_project/replay_05
-conda activate vgcpod_v1
-cd /data/xhw/vgcpod_project/replay_05/vgcpod_v1_roundD
-
-export VG_CACHE=/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14
-export VG_A_OUT=/data/xhw/vgcpod_v1_runs/roundA_20261019
-export VG_B_OUT=/data/xhw/vgcpod_v1_runs/roundB_20261019
-export VG_C_ROOT=/data/xhw/vgcpod_project/replay_05/vgcpod_v1_roundC
-export VG_C_OUT=/data/xhw/vgcpod_v1_runs/roundC_20261020
-export VG_D_OUT=/data/xhw/vgcpod_v1_runs/replay_05_D
-export VG_D_SESSION=vgcpod_05_pilot
-
-bash scripts/start_round_d_tmux.sh --gpus 1 2 3
-tmux attach -t vgcpod_05_pilot
-```
-
-该首轮重跑 D1/3351，复用同源已完成的 C2 两 seed。首轮退出码为 0 后执行补充轮：
-
-```bash
-cd /data/xhw/vgcpod_project/replay_05/vgcpod_next_v1_20261020
-export VG_NEXT_SESSION=vgcpod_05_confirm
-export VG_NEXT_OUT=/data/xhw/vgcpod_v1_runs/replay_05_next
-
-bash start_tmux.sh --gpus 1 2 3 \
-  --d-root /data/xhw/vgcpod_project/replay_05/vgcpod_v1_roundD \
-  --c-root /data/xhw/vgcpod_project/replay_05/vgcpod_v1_roundC \
-  --d-out /data/xhw/vgcpod_v1_runs/replay_05_D \
-  --c-out /data/xhw/vgcpod_v1_runs/roundC_20261020 \
-  --a-out /data/xhw/vgcpod_v1_runs/roundA_20261019 \
-  --b-out /data/xhw/vgcpod_v1_runs/roundB_20261019
-tmux attach -t vgcpod_05_confirm
-```
-
-GPU1/2 执行 D1/3352、3353 并做均值替换；GPU3 读取同源 C1/3352。`Ctrl+b` 后按 `d` 脱离 tmux。完整命令与外部参考见 [runbook.json](runbook.json)、[external_inputs.json](external_inputs.json)。
-
-从仓库保存的预测复算数据分析：
-
-```bash
-python VG-CPOD方案/05/analysis/recompute.py
-python VG-CPOD方案/05/analysis/recompute_bias.py
-python tools/reproduce.py verify
-```
-
-复算使用 NumPy、PyTorch、Matplotlib，读取 01 的缓存元数据、02 的 A5/A6、04 的 C1/C2 首 seed，以及本轮新增运行和均值干预。输出至 `analysis/recomputed/`，数值计算与原分析一致。
-
 ## 7. 数据分析与本轮结论
 
 | 三 seed 方案 | VAL CW AUC | TEST CW AUC | TEST OW AUC | TEST 未见条件属性 |
@@ -227,6 +166,6 @@ python tools/reproduce.py verify
 - D1 的 OW HM 三个 seed 均低于 A5；改用 exact VAL bias 后配对平均差仍为 −0.866。后续同时报告排序与已见／未见平衡。
 - D1/3353 的 native 选中 epoch9，exact 峰值位于 epoch6；未来计划同步保存两种最优权重。下一实验建议 E1 取 ρ=0.15、η=0.25，三 seed 各 10 轮；该建议与本轮已完成代码和结果分开记录。
 
-![D1三seed同seed配对结果](analysis/confirmed/figures/01_paired_results.png)
+**图（精简版未保留）：** D1三seed同seed配对结果
 
 完整均值、配对差值、均值替换、交互、逐组合变化与训练曲线见[数据分析 README](analysis/README.md)。

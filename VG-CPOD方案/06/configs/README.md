@@ -2,9 +2,9 @@
 
 | 方案 | 读出 | 门控 | ρ | η | 本阶段新增 seed／native最佳epoch |
 |---|---|---|---|---|---|
-| [E1](round_e/E1.json) | 全局 g | 物体查询输入、模式中心化 | 0.15 | 0.25 | 3351/8、3352/8、3353/6 |
+| E1（精简版未保留） | 全局 g | 物体查询输入、模式中心化 | 0.15 | 0.25 | 3351/8、3352/8、3353/6 |
 
-E1 与 [D1](round_d/D1.json) 的完整配置仅 `rho` 与 `experiment_id` 不同。三次训练各 10 epochs、3600 次更新。两种选权重均选中 8／8／6 轮，实际全字段配置及两套指标见[experiment_inventory.json](experiment_inventory.json)。
+E1 与 D1（精简版未保留） 的完整配置仅 `rho` 与 `experiment_id` 不同。三次训练各 10 epochs、3600 次更新。两种选权重均选中 8／8／6 轮，实际全字段配置及两套指标见experiment_inventory.json（精简版未保留）。
 
 ## 选取策略
 
@@ -31,9 +31,9 @@ CP 参数组为 Bvis、Au、Av、Wc，学习率比例 `cp_lr_scale=0.3`；Wc 从
 
 ## 配置、资产与评估索引
 
-- [E1实际配置](round_e/E1.json)、[D1对照配置](round_d/D1.json)、[C兼容配置](round_c/)、[A/B兼容配置](round_a/)、[默认配置](default.json)。
-- [三次训练清单](experiment_inventory.json)、[六项均值评估清单](intervention_inventory.json)。
-- [E前14份参考指标](references/pre_e_complete.json)、[A组三seed参考](references/round_a_confirm.json)、[C组首seed参考](references/round_c_pilot.json)。
-- [标签和命名资产](assets/)、[外部输入及跨阶段引用](../external_inputs.json)。特征缓存 manifest SHA256 为 `bb8b7a8eb8c4e77a14ef65dd5c626aac559880d7c8d642dcc1e9a2a843831d2a`。
+- E1实际配置（精简版未保留）、D1对照配置（精简版未保留）、C兼容配置（精简版未保留）、A/B兼容配置（精简版未保留）、默认配置（精简版未保留）。
+- 三次训练清单（精简版未保留）、六项均值评估清单（精简版未保留）。
+- E前14份参考指标（精简版未保留）、A组三seed参考（精简版未保留）、C组首seed参考（精简版未保留）。
+- 标签和命名资产（精简版未保留）、外部输入及跨阶段引用（精简版未保留）。特征缓存 manifest SHA256 为 `bb8b7a8eb8c4e77a14ef65dd5c626aac559880d7c8d642dcc1e9a2a843831d2a`。
 
 本目录保留本轮实际训练配置；后续 β 调整的系数推导见[数据分析](../analysis/README.md)。

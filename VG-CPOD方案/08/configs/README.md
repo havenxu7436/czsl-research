@@ -2,10 +2,10 @@
 
 | 方案 | gate_input | ρ | β | η | native／exact最佳epoch |
 |---|---|---|---|---|---|
-| [G0静态](round_g/G0.json) | none | 0.15 | 0.075 | 配置0.25，静态分支不使用 | 8/8/9；8/8/6 |
-| [G1动态](round_g/G1.json) | local | 0.15 | 0.075 | 0.25 | 8/8/9；8/8/6 |
+| G0静态（精简版未保留） | none | 0.15 | 0.075 | 配置0.25，静态分支不使用 | 8/8/9；8/8/6 |
+| G1动态（精简版未保留） | local | 0.15 | 0.075 | 0.25 | 8/8/9；8/8/6 |
 
-每列轮次按seed3351/3352/3353顺序。六次训练各十轮、3600次更新；两组逐seed轮次对齐。完整配置与两套指标见[experiment_inventory.json](experiment_inventory.json)。
+每列轮次按seed3351/3352/3353顺序。六次训练各十轮、3600次更新；两组逐seed轮次对齐。完整配置与两套指标见experiment_inventory.json（精简版未保留）。
 
 ## 选取策略
 
@@ -34,9 +34,9 @@
 
 ## 配置、资产与对照索引
 
-- [G0/G1实际配置](round_g/)、[F1](round_f/F1.json)、[E1](round_e/E1.json)、[D1](round_d/D1.json)、[默认配置](default.json)。
-- [六项训练清单](experiment_inventory.json)、[六项均值评估清单](intervention_inventory.json)。
-- [G前20份参考指标](references/pre_g_complete.json)、[标签资产](assets/)、[已有阶段与外部输入](../external_inputs.json)。
+- G0/G1实际配置（精简版未保留）、F1（精简版未保留）、E1（精简版未保留）、D1（精简版未保留）、默认配置（精简版未保留）。
+- 六项训练清单（精简版未保留）、六项均值评估清单（精简版未保留）。
+- G前20份参考指标（精简版未保留）、标签资产（精简版未保留）、已有阶段与外部输入（精简版未保留）。
 - 缓存manifest SHA256为 `bb8b7a8eb8c4e77a14ef65dd5c626aac559880d7c8d642dcc1e9a2a843831d2a`。
 
 后续H1门控输入表示设计见[数据分析](../analysis/README.md)，本阶段实际配置为G0/G1。

@@ -17,7 +17,7 @@ F1 相对 E1：TEST 未见条件属性 **+1.816 个百分点**，CW／OW AUC **�
 | E1 | 0.15 | 0.1 | 43.554 | 34.427 | 25.180 | 23.374% |
 | F1 | 0.15 | 0.05 | 43.505 | 34.030 | 24.351 | 25.189% |
 
-![F1 与已有配置的验证和测试结果](confirmed/figures/05_f1_comparison.png)
+**图（精简版未保留）：** F1 与已有配置的验证和测试结果
 
 F1 的 VAL CW／OW AUC 为 **43.505／31.750**，E1 为 **43.554／31.788**。F1 的 TEST CW／OW AUC 在三个 seed 上均下降，未见条件属性正确数在三个 seed 上均增加。E1 和 F1 对应 seed 选中同一 epoch，因此该对比在训练轮数上也对齐。
 
@@ -33,7 +33,7 @@ F1 的 VAL CW／OW AUC 为 **43.505／31.750**，E1 为 **43.554／31.788**。F1
 | F1-D1 | -0.762 ± 0.331 | -1.101 ± 0.484 | +0.846 个百分点 |
 | F1-A5 | -0.407 ± 0.224 | -0.904 ± 0.969 | +1.551 个百分点 |
 
-![F1 相对 E1 的同 seed 变化](confirmed/figures/06_f1_e1_paired.png)
+**图（精简版未保留）：** F1 相对 E1 的同 seed 变化
 
 F1−E1 的 exact AUC 变化为 **−0.395／−0.810 CW／OW**，与 native AUC 方向一致。F1 三个 seed 的 native 和 exact 均选择 epoch **8／8／6**，模型参数与预测导出逐元素一致。
 
@@ -73,7 +73,7 @@ TEST 未见图像上的 TRAIN 组合概率质量从 **73.698% 降到 70.770%**�
 
 F1 的物体准确率和物体 NLL 均改善。属性在真实物体条件下更准确，但与其他物体、属性共同竞争时，真实组合在全部未见候选中的 top-1 比例从 **49.921% 降到 48.017%**。
 
-![属性预测与未见候选排序的分离](confirmed/figures/07_ranking_mechanism.png)
+**图（精简版未保留）：** 属性预测与未见候选排序的分离
 
 CW 集合外组合的总概率质量平均增加 **1.687 个百分点**；其最高分压过 CW 内未见组合最高分的图像比例增加 **2.151 个百分点**。三个 seed 中，原本正确的未见候选 top-1 共退化 177 张次，另有 69 张次修正，净减少 108 张次；177 次退化中，130 次转向 CW 集合外组合。该统计描述模型的候选排序变化。
 
@@ -118,7 +118,7 @@ F1 的动态门控与 TRAIN 均值替换使用相同 checkpoint，统计均值�
 - TEST OW AUC：**−0.0032 ± 0.0758 点**。
 - TEST 未见条件属性：**+0.3702 个百分点**，正确数变化分别为 +7／+6／+8。
 
-![不同配置中的动态门控作用](confirmed/figures/08_f1_dynamic_effect.png)
+**图（精简版未保留）：** 不同配置中的动态门控作用
 
 TRAIN 门控图像变化占比为 **1.88%／1.88%／1.51%**，其余主要为物体／模式之间的固定差异。F1 均值替换相对 E1 均值替换的 TEST CW／OW AUC 仍下降 **0.295／0.816 点**，β 引起的排序变化在两种推理条件下都存在。
 
@@ -187,19 +187,14 @@ F 组退出码为 0，三项训练与六项均值门控评估均完成。核查 
 
 固定 VAL bias 的 HM 和未见条件属性复算一致；exact AUC 最大误差约 0.000049 点、native AUC 最大误差约 0.00864 点。正文使用服务器保存的主指标；因子交换单列，采用从保存联合 log 概率恢复的分布。每项对比均使用同 seed、同特征缓存。
 
-- [完整指标](confirmed/tables/metrics.csv)、[三 seed 均值](confirmed/tables/means.csv)、[配对差值](confirmed/tables/comparisons.csv)、[配对均值与标准差](confirmed/tables/paired_means.csv)。
-- [排序分解](confirmed/tables/ranking_diagnostics.csv)、[逐组合概率与正确数](confirmed/tables/pair_probability_diagnostics.csv)、[未见候选排序变化](confirmed/tables/unseen_ceiling_movements.csv)、[概率因子交换](confirmed/tables/head_swap_metrics.csv)。
-- [训练历史](confirmed/tables/history.csv)、[TRAIN 门控统计](confirmed/tables/moments.csv)、[结构化分析](confirmed/analysis.json)、[机制分解](confirmed/mechanism.json)、[复算核查](confirmed/audit.json)、[新增日志核查](confirmed/supplementary_audit.json)。
-- [复算脚本](../code/original_analysis/analysis_roundF_results_20261020/analyze_f.py)、[分解脚本](../code/original_analysis/analysis_roundF_results_20261020/analyze_mechanism.py)。
+- 完整指标（精简版未保留）、三 seed 均值（精简版未保留）、配对差值（精简版未保留）、配对均值与标准差（精简版未保留）。
+- 排序分解（精简版未保留）、逐组合概率与正确数（精简版未保留）、未见候选排序变化（精简版未保留）、概率因子交换（精简版未保留）。
+- 训练历史（精简版未保留）、TRAIN 门控统计（精简版未保留）、结构化分析（精简版未保留）、机制分解（精简版未保留）、复算核查（精简版未保留）、新增日志核查（精简版未保留）。
+- 复算脚本（精简版未保留）、分解脚本（精简版未保留）。
 
 ## 8. 仓库复算与归档核查
 
-- [复算入口](recompute.py)顺序运行[预测复算](recompute_metrics.py)、[排序分解与因子交换](recompute_mechanism.py)、[图表](recompute_figures.py)。读取02/04/05/06已有结果、07新增结果和01缓存元数据，数值计算沿用原分析。
-- [归档验证](repository_validation.json)记录原包与服务器成员、README数值、公式、链接和运行包恢复；[原始复算](confirmed/audit.json)、[新增日志核查](confirmed/supplementary_audit.json)、[机制分解](confirmed/mechanism.json)。
-
-```bash
-python VG-CPOD方案/07/analysis/recompute.py
-python tools/reproduce.py verify
-```
+- 复算入口（精简版未保留）顺序运行预测复算（精简版未保留）、排序分解与因子交换（精简版未保留）、图表（精简版未保留）。读取02/04/05/06已有结果、07新增结果和01缓存元数据，数值计算沿用原分析。
+- 归档验证（精简版未保留）记录原包与服务器成员、README数值、公式、链接和运行包恢复；原始复算（精简版未保留）、新增日志核查（精简版未保留）、机制分解（精简版未保留）。
 
 输出至 `analysis/recomputed/`；原分析在 `analysis/confirmed/`。本阶段已完成 F1 三seed、β=0.05，G0/G1 为后续实验建议。

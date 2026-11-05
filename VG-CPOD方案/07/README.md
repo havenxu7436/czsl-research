@@ -94,16 +94,16 @@ w_{\mathrm{support}}&=\frac{1.5\beta}{1+\beta},\\[4pt]
 
 | 文件 | 本轮具体改动 | 作用 |
 |---|---|---|
-| [F1.json](configs/round_f/F1.json) | `task_aux_beta=0.05`、`experiment_id=F1` | 单独测量支持集项系数 |
-| [engine.py](code/vgcpod_v1_roundF/vgcpod/engine.py) | 新增 `task_decomposition()` 和四个标量日志字段 | 直接记录原始与加权损失的关系 |
-| [round_f.py](code/vgcpod_v1_roundF/round_f.py) | 三卡训练、续训、六项均值评估、β 主表及 F1−E1 等配对汇总 | 输出完整 F 组结果 |
-| [pre_f_complete.json](configs/references/pre_f_complete.json) | 17 份已有 A5/A6/C1/C2/D1/E1 指标和选中 epoch TRAIN 快照 | 提供已有对照 |
-| [tmux启动](code/vgcpod_v1_roundF/scripts/start_round_f_tmux.sh) | F 组独立会话、输出与日志路径 | GPU1/2/3 分别运行一个 seed |
-| [F组测试](code/vgcpod_v1_roundF/tests/test_round_f.py) | 配置差异、损失及梯度恒等式、有限差分、加权日志 | 累计 36 项发布测试 |
+| F1.json（精简版未保留） | `task_aux_beta=0.05`、`experiment_id=F1` | 单独测量支持集项系数 |
+| engine.py（精简版未保留） | 新增 `task_decomposition()` 和四个标量日志字段 | 直接记录原始与加权损失的关系 |
+| round_f.py（精简版未保留） | 三卡训练、续训、六项均值评估、β 主表及 F1−E1 等配对汇总 | 输出完整 F 组结果 |
+| pre_f_complete.json（精简版未保留） | 17 份已有 A5/A6/C1/C2/D1/E1 指标和选中 epoch TRAIN 快照 | 提供已有对照 |
+| tmux启动（精简版未保留） | F 组独立会话、输出与日志路径 | GPU1/2/3 分别运行一个 seed |
+| F组测试（精简版未保留） | 配置差异、损失及梯度恒等式、有限差分、加权日志 | 累计 36 项发布测试 |
 
-[相对06的源码补丁](code/source_changes.patch)保留实际差异。新增代码不改变模型初始化、objective、优化器或学习率的实现。
+相对06的源码补丁（精简版未保留）保留实际差异。新增代码不改变模型初始化、objective、优化器或学习率的实现。
 
-[原 CPU 完整流程](results/package_validation/F/validation/result.json)完成三项训练、六项均值评估与重复启动复用；将原 E 引擎设为相同 β=0.05 后，native best／last 的模型参数、AdamW 状态与 Torch 随机状态逐元素一致。[服务器源码核对](results/server_source_identity.json)及[原包69成员映射](package_members.json)保留来源身份。
+原 CPU 完整流程（精简版未保留）完成三项训练、六项均值评估与重复启动复用；将原 E 引擎设为相同 β=0.05 后，native best／last 的模型参数、AdamW 状态与 Torch 随机状态逐元素一致。服务器源码核对（精简版未保留）及原包69成员映射（精简版未保留）保留来源身份。
 
 ## 5. 超参数选取策略与实际矩阵
 
@@ -130,49 +130,7 @@ w_{\mathrm{support}}&=\frac{1.5\beta}{1+\beta},\\[4pt]
 | 总梯度裁剪／动态正交项 | 1 / 0.001 |
 | eval batch／workers | 64 / 4 |
 
-CP 参数组为 Bvis、Au、Av、Wc，`cp_lr_scale=0.3`，Wc 从零初始化。内部 `variant=V1`，动态行为由 `gate_input=local` 和 `gate_center_modes=true` 显式启用。实际全字段配置和两套指标见[实验清单](configs/experiment_inventory.json)。
-
-## 6. 仓库结构与复现入口
-
-```text
-07/
-  README.md          # 修订、公式、超参策略与末节数据分析
-  code/              # 原F代码、相对E补丁、原始分析源码
-  configs/           # F1、兼容配置、资产、参考与运行清单
-  results/           # 三seed、双选择、均值评估、状态及原归档
-  analysis/          # 数据分析、机制分解、图表及仓库复算入口
-```
-
-恢复本轮训练包并复用服务器已有 CLIP 特征：
-
-```bash
-git lfs pull
-python tools/reproduce.py materialize --line VG-CPOD方案 --stage 07 \
-  --dest /data/xhw/vgcpod_project/replay_07
-conda activate vgcpod_v1
-cd /data/xhw/vgcpod_project/replay_07/vgcpod_v1_roundF
-
-export VG_F_OUT=/data/xhw/vgcpod_v1_runs/replay_07_F
-export VG_F_SESSION=vgcpod_07_F
-bash scripts/start_round_f_tmux.sh \
-  --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14 --gpus 1 2 3 \
-  --a-out /data/xhw/vgcpod_v1_runs/roundA_20261019 \
-  --c-out /data/xhw/vgcpod_v1_runs/roundC_20261020 \
-  --d-out /data/xhw/vgcpod_v1_runs/roundD_20261020 \
-  --e-out /data/xhw/vgcpod_v1_runs/roundE_20261020
-tmux attach -t vgcpod_07_F
-```
-
-每卡先训练对应 seed，再运行 native／exact 两项均值评估。按 Ctrl+b、d 脱离 tmux。`launcher.exitcode=0` 且三项状态均为 complete 表示整轮完成。已有对照优先读取对应运行，包内 17 份快照提供同 seed 标量对比。外部输入见 [external_inputs.json](external_inputs.json)，命令见 [runbook.json](runbook.json)。
-
-从仓库预测、权重和缓存元数据复算本次分析与概率因子交换：
-
-```bash
-python VG-CPOD方案/07/analysis/recompute.py
-python tools/reproduce.py verify
-```
-
-复算依赖 NumPy、PyTorch、Matplotlib，输出至 `analysis/recomputed/`，原分析保存于 `analysis/confirmed/`。运行包的原 README、说明及验证字节分区保留，materialize 恢复原始布局。
+CP 参数组为 Bvis、Au、Av、Wc，`cp_lr_scale=0.3`，Wc 从零初始化。内部 `variant=V1`，动态行为由 `gate_input=local` 和 `gate_center_modes=true` 显式启用。实际全字段配置和两套指标见实验清单（精简版未保留）。
 
 ## 7. 数据分析与下一轮方向
 
@@ -193,6 +151,6 @@ AUC 为面积×100，条件属性使用 GT-object。**F1 相对 E1 的 TEST CW�
 - F1 的 OW HM 均值为 40.349，相对 E1 的 39.792 提高 0.556 点；三个 seed 的增量为 −0.588／−1.389／+3.645。已见准确率提高、未见准确率下降，工作点向已见侧移动。
 - **下一轮建议 G1：ρ=0.15、β=0.075、η=0.25；并补 G0：相同 β 和 ρ，gate_input=none 的静态训练对照。** 各三个 seed、10 epochs，共六次训练。该项为后续计划；本阶段归档的实际训练为 F1、β=0.05。
 
-![F1 相对 E1 的属性与组合排序变化](analysis/confirmed/figures/06_f1_e1_paired.png)
+**图（精简版未保留）：** F1 相对 E1 的属性与组合排序变化
 
 完整配对结果、损失日志核查、逐组合概率质量、概率因子交换、动态／均值分析及下一轮设计见[数据分析 README](analysis/README.md)。

@@ -30,13 +30,13 @@ K1/K2各三seed，共六次训练、60个模型epoch。native/exact分别保存2
 
 ## 3. 原始训练与汇总
 
-- [K1完整运行](raw_export/roundK_20261021/K1/ut-zap50k/V1/)、[K2完整运行](raw_export/roundK_20261021/K2/ut-zap50k/V1/)：protocol、history、metrics、曲线、预测、checkpoint、exact_selection。
-- [TRAIN均值](raw_export/roundK_20261021/feature_statistics/)、[运行配置](raw_export/roundK_20261021/configs/)、[全部任务日志](raw_export/roundK_20261021/logs/)。
-- [三卡状态](raw_export/roundK_20261021/round_k_status.json)、[任务表](raw_export/roundK_20261021/round_k_jobs.json)、[主日志](raw_export/roundK_20261021/launcher.log)、[退出码0](raw_export/roundK_20261021/launcher.exitcode)。
-- [结果总表](raw_export/roundK_20261021/round_k_summary.json)、[均值与SD](raw_export/roundK_20261021/round_k_mean_sd.csv)、[配对增量](raw_export/roundK_20261021/round_k_paired_deltas.csv)、[配对汇总](raw_export/roundK_20261021/round_k_paired_mean_sd.csv)。
-- [实际Adam更新量](raw_export/roundK_20261021/readout_optimizer_summary.csv)、[训练修正幅值](raw_export/roundK_20261021/readout_training_summary.csv)、[支持损失](raw_export/roundK_20261021/support_training_summary.csv)。
-- [exact结果](raw_export/roundK_20261021/exact_selection_summary.csv)、[exact配对](raw_export/roundK_20261021/exact_reference_paired_mean_sd.csv)、[选权重规则差异](raw_export/roundK_20261021/exact_selection_effects.csv)。
-- [排序诊断](raw_export/roundK_20261021/ranking_diagnostics.json)、[逐组合增量](raw_export/roundK_20261021/per_pair_gains.csv)、[组合概率](raw_export/roundK_20261021/pair_probability_diagnostics.csv)。
+- K1完整运行（精简版未保留）、K2完整运行（精简版未保留）：protocol、history、metrics、曲线、预测、checkpoint、exact_selection。
+- TRAIN均值（精简版未保留）、运行配置（精简版未保留）、全部任务日志（精简版未保留）。
+- 三卡状态（精简版未保留）、任务表（精简版未保留）、主日志（精简版未保留）、退出码0（精简版未保留）。
+- 结果总表（精简版未保留）、均值与SD（精简版未保留）、配对增量（精简版未保留）、配对汇总（精简版未保留）。
+- 实际Adam更新量（精简版未保留）、训练修正幅值（精简版未保留）、支持损失（精简版未保留）。
+- exact结果（精简版未保留）、exact配对（精简版未保留）、选权重规则差异（精简版未保留）。
+- 排序诊断（精简版未保留）、逐组合增量（精简版未保留）、组合概率（精简版未保留）。
 
 ## 4. 动态与TRAIN均值评估
 
@@ -49,16 +49,16 @@ K1/K2各三seed，共六次训练、60个模型epoch。native/exact分别保存2
 | K2 | 3352 | +1.6509 | +0.5019 |
 | K2 | 3353 | +0.9704 | +0.2953 |
 
-[native评估](raw_export/roundK_20261021/mean_gate/)与[exact评估](raw_export/roundK_20261021/mean_gate_exact/)均按实验／seed保存。每项包含dynamic/train_mean两条件、四种设置的预测与曲线、[12,32]门控均值和图像方差，优化步数为零。
+native评估（精简版未保留）与exact评估（精简版未保留）均按实验／seed保存。每项包含dynamic/train_mean两条件、四种设置的预测与曲线、[12,32]门控均值和图像方差，优化步数为零。
 
 96份预测逐项重算指标，另48份dynamic复评与原预测逐元素核对，覆盖全部144份文件。四个native/exact同权重训练对应16份重复预测也已验证；重复文件按原归档保留。
 
 ## 5. 原包、来源与数据分析
 
-- [服务器TAR](archives/vgcpod_roundK_results_20261021.tar.gz)、[发布ZIP](archives/vgcpod_v1_roundK_20261021.zip)，均附SHA256；二进制按仓库原规则使用Git LFS。
-- [原发布验证](package_validation/K/)、[原说明字节](package_support/K/)、[原实施与分析报告](package_support/original_reports/)。
-- [99个成员映射](../package_members.json)、[结果哈希](raw_export_members.json)、[服务器源码身份](server_source_identity.json)、[历史引用](reused_reference_members.json)、[阶段清单](../file_manifest.json)。
+- 服务器TAR（精简版未保留）、发布ZIP（精简版未保留），均附SHA256；二进制按仓库原规则曾使用 Git LFS（精简版未保留）。
+- 原发布验证（精简版未保留）、原说明字节（精简版未保留）、原实施与分析报告（精简版未保留）。
+- 99个成员映射（精简版未保留）、结果哈希（精简版未保留）、服务器源码身份（精简版未保留）、历史引用（精简版未保留）、阶段清单（精简版未保留）。
 - 历史对照使用[11 J组](../../11/results/README.md)、[10 I组](../../10/results/README.md)、[08 G组](../../08/results/README.md)及其前序引用。
-- [仓库复核](../analysis/repository_validation.json)、[完整数据分析](../analysis/README.md)。
+- 仓库复核（精简版未保留）、[完整数据分析](../analysis/README.md)。
 
 K1/K2缩小了Wd实际更新和动态分数幅值，整体结果仍低于静态G0。误差交集、候选内排序与下一阶段视觉判别研究集中放在最后的数据分析中。

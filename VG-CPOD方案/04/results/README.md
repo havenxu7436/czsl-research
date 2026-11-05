@@ -10,13 +10,13 @@
 
 AUC 为保存的 AUC_native，面积×100。各训练共 10 epochs、3600 次更新，best 按首次严格最大 VAL CW AUC 选择；同一权重评价 VAL/TEST CW/OW。TEST HM 使用对应 VAL 的 bias。
 
-- [C1完整运行](raw_export/roundC_20261020/C1/ut-zap50k/V1/seed3351/)、[C2完整运行](raw_export/roundC_20261020/C2/ut-zap50k/V1/seed3351/)、[B3/3352完整运行](raw_export/roundB_20261019/B3/ut-zap50k/V1/seed3352/)：metrics、history、protocol、best/last、四份预测和曲线。
-- [C队列完成状态](raw_export/roundC_20261020/round_c_status.json)、[任务计划](raw_export/roundC_20261020/round_c_jobs.json)、[总日志](raw_export/roundC_20261020/launcher.log)、[退出码0](raw_export/roundC_20261020/launcher.exitcode)。
-- [原逐运行汇总](raw_export/roundC_20261020/round_c_summary.csv)、[原同seed配对增量](raw_export/roundC_20261020/round_c_paired_deltas.csv)、[原配置聚合](raw_export/roundC_20261020/round_c_mean_sd.csv)、[原逐组合增量](raw_export/roundC_20261020/per_pair_gains.csv)。联合汇总含原 B3/3351，因此为 4 个运行记录；其原始运行保存在 03。
-- [服务器完整导出包](archives/vgcpod_roundC_results_20261020.tar.gz)与[SHA256](archives/vgcpod_roundC_results_20261020.tar.gz.sha256)：保留全部 C、当时的 B 结果和两套运行源码。
-- [实际C训练代码ZIP](archives/vgcpod_v1_roundC_20261020.zip)与[SHA256](archives/vgcpod_v1_roundC_20261020.zip.sha256)。归档、权重与预测沿用仓库 Git LFS 规则。
-- [原发布验证](package_validation/)、[原说明文档字节](package_support/)、[C/B源码身份](server_source_identity.json)。
-- [原始结果成员与哈希](raw_export_members.json)、[阶段SHA256清单](../file_manifest.json)、[完整数据分析](../analysis/README.md)。
-- [仓库验证结果](../analysis/repository_validation.json)：已恢复原 C/B 运行包，复算 32 份预测；10 张 CSV 表与原分析逐字节一致。
+- C1完整运行（精简版未保留）、C2完整运行（精简版未保留）、B3/3352完整运行（精简版未保留）：metrics、history、protocol、best/last、四份预测和曲线。
+- C队列完成状态（精简版未保留）、任务计划（精简版未保留）、总日志（精简版未保留）、退出码0（精简版未保留）。
+- 原逐运行汇总（精简版未保留）、原同seed配对增量（精简版未保留）、原配置聚合（精简版未保留）、原逐组合增量（精简版未保留）。联合汇总含原 B3/3351，因此为 4 个运行记录；其原始运行保存在 03。
+- 服务器完整导出包（精简版未保留）与SHA256（精简版未保留）：保留全部 C、当时的 B 结果和两套运行源码。
+- 实际C训练代码ZIP（精简版未保留）与SHA256（精简版未保留）。归档、权重与预测曾沿用 Git LFS；精简版未保留。
+- 原发布验证（精简版未保留）、原说明文档字节（精简版未保留）、C/B源码身份（精简版未保留）。
+- 原始结果成员与哈希（精简版未保留）、阶段SHA256清单（精简版未保留）、[完整数据分析](../analysis/README.md)。
+- 仓库验证结果（精简版未保留）：已恢复原 C/B 运行包，复算 32 份预测；10 张 CSV 表与原分析逐字节一致。
 
 归档解出的 B 结果只新增 B3/3352 及其日志；原 B1/B2/B3/3351 继续引用[03](../../03/results/README.md)，A5/A6 引用[02](../../02/results/README.md)。原导出 TAR 内保留当时完整目录。本轮日志逐字节保存，逐 epoch 数值以各运行的 `history.json` 为准。

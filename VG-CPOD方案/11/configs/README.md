@@ -2,9 +2,9 @@
 
 | 方案 | 读出模式 | τγ／η／ρ／β | CP LR | native／exact最佳epoch |
 |---|---|---|---|---|
-| [J1](round_j/J1.json) | separate | 0.56／0.25／0.15／0.075 | Ws/Wd均3e-4→3e-6 | 5/6/6；5/6/6 |
+| J1（精简版未保留） | separate | 0.56／0.25／0.15／0.075 | Ws/Wd均3e-4→3e-6 | 5/6/6；5/6/6 |
 
-轮次按seed3351/3352/3353顺序。三次训练各十轮、3600次更新，完整配置和两套结果见[experiment_inventory.json](experiment_inventory.json)。
+轮次按seed3351/3352/3353顺序。三次训练各十轮、3600次更新，完整配置和两套结果见experiment_inventory.json（精简版未保留）。
 
 ## 1. 本轮选取策略
 
@@ -34,10 +34,10 @@
 
 ## 2. 模板、运行配置与统计身份
 
-- [模板](round_j/J1.json)来自发布ZIP；[runtime](runtime/J1.json)为服务器实际配置，补充TRAIN均值文件路径与SHA256。
-- [TRAIN均值与身份](../results/raw_export/roundJ_20261021/feature_statistics/)包含全部22,998张TRAIN图像、12个查询的固定统计，与[10 I组](../../10/configs/README.md)逐字相同。
-- [三训练清单](experiment_inventory.json)、[六项均值评估](intervention_inventory.json)、[历史参考](references/pre_j_complete.json)、[文本资产](assets/)、[外部输入](../external_inputs.json)。
-- 对照模板：[I2](round_i/I2.json)、[G0](round_g/G0.json)、[G1](round_g/G1.json)。特征manifest SHA256为`bb8b7a8eb8c4e77a14ef65dd5c626aac559880d7c8d642dcc1e9a2a843831d2a`。
+- 模板（精简版未保留）来自发布ZIP；runtime（精简版未保留）为服务器实际配置，补充TRAIN均值文件路径与SHA256。
+- TRAIN均值与身份（精简版未保留）包含全部22,998张TRAIN图像、12个查询的固定统计，与[10 I组](../../10/configs/README.md)逐字相同。
+- 三训练清单（精简版未保留）、六项均值评估（精简版未保留）、历史参考（精简版未保留）、文本资产（精简版未保留）、外部输入（精简版未保留）。
+- 对照模板：I2（精简版未保留）、G0（精简版未保留）、G1（精简版未保留）。特征manifest SHA256为`bb8b7a8eb8c4e77a14ef65dd5c626aac559880d7c8d642dcc1e9a2a843831d2a`。
 
 ## 3. 后续配置建议
 

@@ -14,23 +14,11 @@
 2. 完成三组 SG-EKR 训练。
 3. 导出 VAL CW/OW 指标和支持槽统计。
 
-## 运行入口
-
-变量与路径对应关系见 [环境说明](../../environment/README.md)。
-
-```bash
-REPLAY=/srv/czsl-reproduce-08
-python tools/reproduce.py materialize --line 前期实验 --stage 08 --dest "$REPLAY"
-bash "$REPLAY/sgekr_support_mask_20261008/run.sh" prepare
-bash "$REPLAY/sgekr_support_mask_20261008/run.sh" train
-bash "$REPLAY/sgekr_support_mask_20261008/run.sh" report
-```
-
 ## 结果与文件
 
 支持描述组的指标未高于匹配控制组。
 
-- [执行代码](code/sgekr_support_mask_20261008/)
-- [知识、配置与结果索引](inputs.json)
-- [执行命令](runbook.json)
-- [results/artifacts/reports/results.csv](<results/artifacts/reports/results.csv>)
+- 执行代码（精简版未保留）
+- 知识、配置与结果索引（精简版未保留）
+- 执行命令（精简版未保留）
+- results/artifacts/reports/results.csv（精简版未保留）

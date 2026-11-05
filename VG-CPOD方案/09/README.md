@@ -81,18 +81,18 @@ t_m^*&=\min\{t\in\{1,\ldots,T\}:A_t^m=\max_{1\le s\le T}A_s^m\},
 
 | 文件 | 具体改动 | 作用 |
 |---|---|---|
-| [gate_features.py](code/vgcpod_v1_roundH/vgcpod/gate_features.py) | `prepare_gate_statistics()` 和 `load_gate_mean()` | 分块统计、复用、身份检查与加载 |
-| [model.py](code/vgcpod_v1_roundH/vgcpod/model.py) | 固定 `gate_fo_mean` buffer；`train_residual` 分支 | 残差与 L2 单位化后进入原门控 |
-| [engine.py](code/vgcpod_v1_roundH/vgcpod/engine.py) | 构建模型加载均值；`evaluate_run()` 从 checkpoint 恢复 | 训练与离线评价共享同一均值 |
-| [mean_gate_eval.py](code/vgcpod_v1_roundH/mean_gate_eval.py) | 从 checkpoint 模型状态传入固定均值 | 对 H1 的两套权重做均值替换 |
-| [H1.json](configs/round_h/H1.json)／[运行配置](configs/runtime/H1.json) | 模板与服务器生成配置分开保存 | 运行配置补充均值路径及 SHA256 |
-| [round_h.py](code/vgcpod_v1_roundH/round_h.py) | 先统计一次，再三卡训练与六项评估 | H1−G0/G1、双选择及逐组合汇总 |
-| [ranking_diagnostics.py](code/vgcpod_v1_roundH/ranking_diagnostics.py) | H1 及 exact 历史对照、dynamic−mean | 保存分组排序量与同 seed 差值 |
-| [tmux启动](code/vgcpod_v1_roundH/scripts/start_round_h_tmux.sh)／[H组测试](code/vgcpod_v1_roundH/tests/test_round_h.py) | 会话、日志与退出码；五项新增测试 | 累计 44 项发布测试 |
+| gate_features.py（精简版未保留） | `prepare_gate_statistics()` 和 `load_gate_mean()` | 分块统计、复用、身份检查与加载 |
+| model.py（精简版未保留） | 固定 `gate_fo_mean` buffer；`train_residual` 分支 | 残差与 L2 单位化后进入原门控 |
+| engine.py（精简版未保留） | 构建模型加载均值；`evaluate_run()` 从 checkpoint 恢复 | 训练与离线评价共享同一均值 |
+| mean_gate_eval.py（精简版未保留） | 从 checkpoint 模型状态传入固定均值 | 对 H1 的两套权重做均值替换 |
+| H1.json（精简版未保留）／运行配置（精简版未保留） | 模板与服务器生成配置分开保存 | 运行配置补充均值路径及 SHA256 |
+| round_h.py（精简版未保留） | 先统计一次，再三卡训练与六项评估 | H1−G0/G1、双选择及逐组合汇总 |
+| ranking_diagnostics.py（精简版未保留） | H1 及 exact 历史对照、dynamic−mean | 保存分组排序量与同 seed 差值 |
+| tmux启动（精简版未保留）／H组测试（精简版未保留） | 会话、日志与退出码；五项新增测试 | 累计 44 项发布测试 |
 
-[相对08的源码补丁](code/source_changes.patch)保留完整差异。[源码身份](results/server_source_identity.json)逐文件核对服务器源字节；均值资产、12 份 checkpoint 和全部预测进入本轮结果目录。
+相对08的源码补丁（精简版未保留）保留完整差异。源码身份（精简版未保留）逐文件核对服务器源字节；均值资产、12 份 checkpoint 和全部预测进入本轮结果目录。
 
-原发布验证完成 44 项测试、三项 CPU 合成训练、六项均值评估及重复启动复用。相同 G1 配置在新旧核心上的模型参数、AdamW 状态和 Torch RNG 逐元素一致；H1 续训与固定 buffer 恢复通过核对。[原验证明细](results/package_validation/H/validation/result.json)、[测试日志](results/package_validation/H/validation/unit_tests.txt)、[仓库复算](analysis/recompute.py)。
+原发布验证完成 44 项测试、三项 CPU 合成训练、六项均值评估及重复启动复用。相同 G1 配置在新旧核心上的模型参数、AdamW 状态和 Torch RNG 逐元素一致；H1 续训与固定 buffer 恢复通过核对。原验证明细（精简版未保留）、测试日志（精简版未保留）、仓库复算（精简版未保留）。
 
 ## 5. 超参数选取策略与实际矩阵
 
@@ -121,51 +121,6 @@ t_m^*&=\min\{t\in\{1,\ldots,T\}:A_t^m=\max_{1\le s\le T}A_s^m\},
 
 CP 优化组为 Au/Av/Wc/Bvis，`cp_lr_scale=0.3`。`gate_fo_mean` 是固定 buffer，未增加可训练参数。
 
-## 6. 仓库结构与复现入口
-
-```text
-09/
-  README.md          # 实验修订、公式、超参策略，末节数据分析
-  code/              # H原代码、相对G补丁、原分析源码
-  configs/           # H1模板、服务器运行配置、资产、参考与清单
-  results/           # 三seed、双选择、六项干预、TRAIN均值、日志及原归档
-  analysis/          # 数据分析、图表、保存预测复算与归档核对
-```
-
-恢复原运行包，复用服务器现有 CLIP 缓存：
-
-```bash
-git lfs pull
-python tools/reproduce.py materialize --line VG-CPOD方案 --stage 09 \
-  --dest /data/xhw/vgcpod_project/replay_09
-conda activate vgcpod_v1
-cd /data/xhw/vgcpod_project/replay_09/vgcpod_v1_roundH
-
-export VG_H_OUT=/data/xhw/vgcpod_v1_runs/replay_09_H
-export VG_H_SESSION=vgcpod_09_H
-bash scripts/start_round_h_tmux.sh \
-  --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14 --gpus 1 2 3 \
-  --a-out /data/xhw/vgcpod_v1_runs/roundA_20261019 \
-  --c-out /data/xhw/vgcpod_v1_runs/roundC_20261020 \
-  --d-out /data/xhw/vgcpod_v1_runs/roundD_20261020 \
-  --e-out /data/xhw/vgcpod_v1_runs/roundE_20261020 \
-  --f-out /data/xhw/vgcpod_v1_runs/roundF_20261020 \
-  --g-out /data/xhw/vgcpod_v1_runs/roundG_20261020
-
-tmux attach -t vgcpod_09_H
-```
-
-脚本先计算并保存共享 TRAIN 均值，再生成输出目录下的 `configs/H1.json`，随后三个 seed 并行训练及评价。按 Ctrl+b、d 脱离 tmux。`launcher.exitcode=0` 且日志出现 `ROUND_H_COMPLETE ... training_jobs 3 mean_gate_jobs 6` 表示整轮完成。外部输入见 [external_inputs.json](external_inputs.json)，命令见 [runbook.json](runbook.json)。
-
-从仓库保存的预测、checkpoint、均值和缓存元数据复算指标与图表：
-
-```bash
-python VG-CPOD方案/09/analysis/recompute.py
-python tools/reproduce.py verify
-```
-
-复算依赖 NumPy、PyTorch、Matplotlib，输出至 `analysis/recomputed/`，原分析保存在 `analysis/confirmed/`。materialize 按映射恢复原包 80 个成员的布局与字节。
-
 ## 7. 数据分析与下一轮方向
 
 | 三 seed 方案 | VAL CW AUC | VAL OW AUC | TEST CW AUC | TEST OW AUC | TEST 未见条件属性 |
@@ -180,6 +135,6 @@ python tools/reproduce.py verify
 - **主要下降位于条件属性和未见组合排序。** H1−G1 的 TEST 未见条件属性下降 1.375 个百分点、NLL 增加 0.0545，全部未见候选内真实组合 top-1 下降 1.851 个百分点；物体准确率下降 0.053 个百分点。
 - **后续建议 I1/I2 拆分幅值因素。** I1 保留 TRAIN 去均值并去掉残差 L2；I2 保留归一化残差、τγ=0.56，作为 TRAIN 代表尺度对照。两组固定 η=0.25、ρ=0.15、β=0.075，各三个 seed。它们为下一轮方案，本阶段实际结果为已完成 H1。
 
-![同配置静态、原门控与残差门控](analysis/confirmed/figures/01_matched_results.png)
+**图（精简版未保留）：** 同配置静态、原门控与残差门控
 
 完整逐 seed 差值、动态／均值干预、双选择、残差尺度推导与下一轮计划，见[数据分析 README](analysis/README.md)。

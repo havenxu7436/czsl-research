@@ -450,18 +450,18 @@ epoch 0 表示完成参考头训练后的适配起点。两个 readout 行沿用
 
 下列本地文件保存逐 seed、逐关系类型、逐噪声曲线的数值与核验结果，正文表格由这些结果自动生成。
 
-- [完整统计、效用折间比较及 720 条 CW/OW 噪声曲线](confirmed/analysis.json)
+- 完整统计、效用折间比较及 720 条 CW/OW 噪声曲线（精简版未保留）
 
-- [归档逐文件核验](confirmed/archive_verification.json)
+- 归档逐文件核验（精简版未保留）
 
-- [样本顺序、适配选模和未测边同子集对照](confirmed/additional_checks.json)
+- 样本顺序、适配选模和未测边同子集对照（精简版未保留）
 
-- [指标重算与数据分析脚本](../references/original_scripts/analyze_strong_v1.py.txt)
+- 指标重算与数据分析脚本（精简版未保留）
 
-- [本轮原始工作目录](../results/raw_export/trustcpf_strong_v1/work)
+- 本轮原始工作目录（精简版未保留）
 
-- [本轮执行的关系模型](../results/raw_export/trustcpf_strong_v1/trustcpf/model.py)
+- 本轮执行的关系模型（精简版未保留）
 
-- [本轮执行的效用特征与损失](../results/raw_export/trustcpf_strong_v1/trustcpf/utility.py)
+- 本轮执行的效用特征与损失（精简版未保留）
 
-- [本轮执行的测量、选择和噪声流程](../results/raw_export/trustcpf_strong_v1/trustcpf/stages.py)
+- 本轮执行的测量、选择和噪声流程（精简版未保留）

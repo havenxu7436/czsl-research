@@ -82,7 +82,7 @@ Old-Average 的平均增量为 **+0.022 CW／+0.052 OW**，与 Matched-Average �
 
 Old-Average 的 VAL 相对 Uniform 为 +0.300 CW／+0.144 OW，TEST 只有 +0.022／+0.052。这仍体现了开发组合与测试组合之间的迁移落差。
 
-![第二批结果总览](figures/stage_results_overview.png)
+**图（精简版未保留）：** 第二批结果总览
 
 图 A、B 的黑点为三个 seed。图 C 的 Q5 使用 exact AUC、正式 TEST 使用 native AUC。图 D 每条灰线为一个教师，星号为其选中轮次，蓝线为十五教师平均的 STOP 变化。
 
@@ -219,32 +219,32 @@ Old-Average 的 VAL 相对 Uniform 为 +0.300 CW／+0.144 OW，TEST 只有 +0.02
 
 复算使用已保存的逐图像预测、效用 on/off 统计与 checkpoint；未重新执行 CLIP 编码或 GPU 图像前向。报告中的后续实验尚未实施。
 
-- [完整执行状态](../results/raw_export/trustcpf_stage_v1_10ep/work/status.json)
+- 完整执行状态（精简版未保留）
 
-- [972 行正式识别结果](../results/raw_export/trustcpf_stage_v1_10ep/work/summary.csv)
+- 972 行正式识别结果（精简版未保留）
 
-- [576 行正式配对](../results/raw_export/trustcpf_stage_v1_10ep/work/paired.csv)
+- 576 行正式配对（精简版未保留）
 
-- [744 行 Q5 决策](../results/raw_export/trustcpf_stage_v1_10ep/work/q5_decisions.csv)
+- 744 行 Q5 决策（精简版未保留）
 
-- [336 行 Q5 配对](../results/raw_export/trustcpf_stage_v1_10ep/work/q5_paired.csv)
+- 336 行 Q5 配对（精简版未保留）
 
-- [效用预测指标](../results/raw_export/trustcpf_stage_v1_10ep/work/utility.csv)
+- 效用预测指标（精简版未保留）
 
-- [十五教师完整训练曲线](../results/raw_export/trustcpf_stage_v1_10ep/work/teacher_curves.csv)
+- 十五教师完整训练曲线（精简版未保留）
 
-- [新旧效用变化](../results/raw_export/trustcpf_stage_v1_10ep/work/teacher_change.csv)
+- 新旧效用变化（精简版未保留）
 
-- [重复响应](../results/raw_export/trustcpf_stage_v1_10ep/work/response_repeats.csv)
+- 重复响应（精简版未保留）
 
-- [图分配结构](../results/raw_export/trustcpf_stage_v1_10ep/work/deployment.csv)
+- 图分配结构（精简版未保留）
 
-- [阶段成本](../results/raw_export/trustcpf_stage_v1_10ep/work/costs.csv)
+- 阶段成本（精简版未保留）
 
 归档 SHA256：`511d8ffa1a733eb73f09db187f1641cf166b6b1ae50e5afaf264e50240d33b76`。
 
-- [预测、checkpoint 与文件完整性复算](confirmed/verification.json)
+- 预测、checkpoint 与文件完整性复算（精简版未保留）
 
-- [效用测量、拟合及 Q5 决策复算](confirmed/mechanism_verification.json)
+- 效用测量、拟合及 Q5 决策复算（精简版未保留）
 
-- [配对与聚合表复算](confirmed/table_verification.json)
+- 配对与聚合表复算（精简版未保留）

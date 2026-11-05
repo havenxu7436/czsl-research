@@ -17,7 +17,7 @@
 | D1：动态 | 0.125 | 43.301 | 31.564 | 34.791 | 25.453 | 24.343% |
 | E1：动态 | 0.15 | 43.554 | 31.788 | 34.427 | 25.180 | 23.374% |
 
-![三档 rho 的验证与测试表现](confirmed/figures/01_rho_sweep.png)
+**图（精简版未保留）：** 三档 rho 的验证与测试表现
 
 从 C2 到 D1，TEST 平均排序提高；从 D1 到 E1，VAL CW/OW 继续提高，而 TEST 回落。E1 相对 A5 的 TEST CW/OW AUC 为 **−0.010／−0.075 点**，基本回到静态基座水平。D1 保留为本轮三档中已有 TEST 排序最高的参照。
 
@@ -35,7 +35,7 @@
 | E1-C2 | +0.099 ± 0.140 | +0.051 ± 0.340 | +0.175 | -0.740 |
 | E1-A5 | -0.010 ± 0.248 | -0.075 ± 0.352 | +0.019 | -0.846 |
 
-![E1 相对 D1 的同 seed 差异](confirmed/figures/02_e1_d1_deltas.png)
+**图（精简版未保留）：** E1 相对 D1 的同 seed 差异
 
 E1−D1 的 exact AUC 均值为 **−0.326／−0.292 CW／OW**，方向与 native 一致。未见条件属性正确数在三个 seed 上分别减少 **6、3、46 张**。E1 相对 A5 也分别少 2、7、6 张。
 
@@ -67,7 +67,7 @@ E1 的 TEST 未见条件属性均值为 **23.374%**，D1 为 **24.343%**，A5 �
 
 E1 三个 seed 的该质量均高于 D1，平均由 **73.466% 增至 73.698%**；未见条件属性 NLL 平均由 **2.3763 增至 2.3872**。E1 的梯度裁剪步数比例也均增加，表明修正尺度调整已明显影响优化过程。
 
-![已见概率质量与未见条件属性的变化](confirmed/figures/04_support_attributes.png)
+**图（精简版未保留）：** 已见概率质量与未见条件属性的变化
 
 这些观测把下一轮实验目标落在现有训练目标中的支持集质量项。F1 将直接改变这一项的系数，测量其对未见属性和 OW 平衡的影响。
 
@@ -87,7 +87,7 @@ E1 的 dynamic−TRAIN mean 三 seed 平均为：
 - TEST OW AUC：**+0.010 ± 0.088 点**；exact AUC 为 +0.021 点。
 - 未见条件属性：平均 +0.071 个百分点，正确图像数分别为 +2、−2、+4。
 
-![三档 rho 下动态输入的作用](confirmed/figures/03_dynamic_effect.png)
+**图（精简版未保留）：** 三档 rho 下动态输入的作用
 
 E1 的门控图像变化占比仍低：
 
@@ -202,20 +202,16 @@ E 组退出码为 0，三项训练和六项均值评估均完成。分析包含 
 
 48 份动态重评估预测与对应原导出逐元素一致；E1 的 12 份 exact 选中预测与 native 选中预测也逐元素一致。固定 VAL bias 的 HM 和未见条件属性复算一致；exact AUC 最大误差约 0.000049 点，native AUC 最大误差约 0.00864 点。正文采用服务器保存指标，配对 SD 由同 seed 差值计算。
 
-- [全部指标](confirmed/tables/metrics.csv)、[各组均值](confirmed/tables/means.csv)、[同 seed 差值](confirmed/tables/comparisons.csv)、[配对均值与标准差](confirmed/tables/paired_means.csv)。
-- [条件属性与概率质量](confirmed/tables/diagnostics.csv)、[逐图像修正与退化](confirmed/tables/similarity.csv)、[逐组合增量](confirmed/tables/pair_deltas.csv)。
-- [训练历史](confirmed/tables/history.csv)、[TRAIN 门控统计](confirmed/tables/moments.csv)、[结构化分析](confirmed/analysis.json)、[复算记录](confirmed/audit.json)。
-- [分析脚本](../code/original_analysis/analysis_roundE_results_20261020/analyze_e.py)、[报告生成脚本](../code/original_analysis/analysis_roundE_results_20261020/build_report.py)。
+- 全部指标（精简版未保留）、各组均值（精简版未保留）、同 seed 差值（精简版未保留）、配对均值与标准差（精简版未保留）。
+- 条件属性与概率质量（精简版未保留）、逐图像修正与退化（精简版未保留）、逐组合增量（精简版未保留）。
+- 训练历史（精简版未保留）、TRAIN 门控统计（精简版未保留）、结构化分析（精简版未保留）、复算记录（精简版未保留）。
+- 分析脚本（精简版未保留）、报告生成脚本（精简版未保留）。
 
 ## 9. 仓库复算与归档核查
 
-- [仓库复算入口](recompute.py)：读取本阶段 E1、02 的 A5／A6、04／05 的 C1／C2／D1 和 01 缓存元数据，数值计算沿用原分析。
-- [仓库验证记录](repository_validation.json)：核对原包成员、权重与预测数量、README 数值、公式、链接及恢复目录。
-- [原始结构化分析](confirmed/analysis.json)、[原始复算审计](confirmed/audit.json)、[分析图表](confirmed/figures/)。
+- 仓库复算入口（精简版未保留）：读取本阶段 E1、02 的 A5／A6、04／05 的 C1／C2／D1 和 01 缓存元数据，数值计算沿用原分析。
+- 仓库验证记录（精简版未保留）：核对原包成员、权重与预测数量、README 数值、公式、链接及恢复目录。
+- 原始结构化分析（精简版未保留）、原始复算审计（精简版未保留）、分析图表（精简版未保留）。
 
-```bash
-python VG-CPOD方案/06/analysis/recompute.py
-python tools/reproduce.py verify
-```
 
 复算输出至 `analysis/recomputed/`。原始分析和服务器指标保留在本阶段目录。F1 为后续实验计划，本轮新增训练为 E1 三个 seed、β=0.1。

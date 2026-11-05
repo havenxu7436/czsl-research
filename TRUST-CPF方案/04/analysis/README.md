@@ -147,7 +147,7 @@ Compact 选中的 epoch 为 2、0、1；没有 seed 选择最后一个 epoch 3�
 
 ### 4.5 两项本地补充诊断
 
-我额外利用已有数据进行了两项计算，均未训练新的识别模型。
+已有数据还用于两项附加计算，均未训练新的识别模型。
 
 - **只把回归输入改为类型内标准化**：三个 seed 的 Q5 Spearman 从 0.207/0.310/0.361 变为 0.181/0.259/0.214，遗憾两差一好。这项单独改动不作为下一轮主方案。
 - **将部署中心设为 0.5、对类型内效用标准化后再映射概率**：固定强度 κ=1 时，已有 Q5 的加性原始效用相对同密度均匀图提高 0.01443/0.01524/0.01607；Q4 也为正。这支持继续检验该决策方向，数字是代理效用，不是 AUC。κ=1 用于展示这一固定计算，正式强度由 VAL 选择。
@@ -234,24 +234,24 @@ Permuted-Policy 对最终概率做置换，不重新拟合打乱标签模型；�
 | 3353 | TRUST-Compact | 1 | 44.444 | 34.128 | 25.160 |
 | 3353 | 打乱效用标签 | 1 | 44.778 | 34.215 | 25.314 |
 
-![本轮识别结果、效用审计与部署概率](figures/TRUST_CPF_compact_v1_analysis.png)
+**图（精简版未保留）：** 本轮识别结果、效用审计与部署概率
 
 ## 7. 分析数据与复现文件
 
-- [完整分析数据：指标、逐 seed 配对、审计、结构、响应、训练历史](confirmed/analysis.json)
+- 完整分析数据：指标、逐 seed 配对、审计、结构、响应、训练历史（精简版未保留）
 
-- [归档逐文件校验](confirmed/archive_verification.json)
+- 归档逐文件校验（精简版未保留）
 
-- [选模与打乱映射复核](confirmed/selection_verification.json)
+- 选模与打乱映射复核（精简版未保留）
 
-- [18 个教师/reference 的实际采边概率](confirmed/teacher_policy_checks.json)
+- 18 个教师/reference 的实际采边概率（精简版未保留）
 
-- [类型内标准化补充诊断](confirmed/type_scaling_diagnostic.json)
+- 类型内标准化补充诊断（精简版未保留）
 
-- [0.5 密度与类型尺度校准的代理诊断](confirmed/aligned_policy_diagnostic.json)
+- 0.5 密度与类型尺度校准的代理诊断（精简版未保留）
 
-- [本轮完整分析脚本](../references/original_scripts/analyze_compact_v1.py.txt)
+- 本轮完整分析脚本（精简版未保留）
 
-- [本轮原始结果目录](../results/raw_export/trustcpf_compact_v1/work)
+- 本轮原始结果目录（精简版未保留）
 
 - [上一轮模型响应分析与 Compact 设计](../../03/analysis/README.md)

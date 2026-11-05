@@ -16,9 +16,9 @@
 
 关键比较为 Competition−Balanced、Competition−Uniform、Competition−Permuted；同时保留 Balanced−U-NLL 和 Competition−U-NLL。
 
-- [完整上传、服务器训练和下载命令](results/package_support/trustcpf_competition_v1_10ep/SERVER_COMMANDS.md.txt)
-- [公式、实现与核心指标](results/package_support/trustcpf_competition_v1_10ep/FORMULAS_AND_CODE.md.txt)
-- [默认配置](configs/trustcpf_competition_v1_10ep/configs/default.json)
+- 完整上传、服务器训练和下载命令（精简版未保留）
+- 公式、实现与核心指标（精简版未保留）
+- 默认配置（精简版未保留）
 
 主要实现：`competition.py` 定义划分和风险公式；`competition_training.py` 完成教师、测量、拟合、扫描和 Q5 实际决策；`competition_workflow.py` 管理三 seed 队列、恢复和汇总。`engine.py` 与 `strong.py` 增加显式训练图像 ID，保证 G0 和关系教师都使用同一训练图像清单。分类器、原损失和 native/exact 识别指标沿用上一轮。
 

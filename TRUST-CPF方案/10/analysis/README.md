@@ -10,7 +10,7 @@
 
 ## 1. 数据完整性、复算及统计口径
 
-数据目录：[本轮完整结果](../results/raw_export/trustcpf_abc_v1_10ep)。分析读取压缩包、发布代码、训练轨迹、效用标签和预测文件；没有改写原始实验结果。
+数据目录：本轮完整结果（精简版未保留）。分析读取压缩包、发布代码、训练轨迹、效用标签和预测文件；没有改写原始实验结果。
 
 | 产物 | 实际 / 计划 | 结果 |
 | --- | --- | --- |
@@ -57,7 +57,7 @@ Matched 是原 27 参数、单图 NLL 效用监督的全局分配；A 使用训�
 | C - Context-Shuffle | 0.169 ± 0.091 | 0.172 ± 0.089 | 3/3 · 3/3 |
 | C - Matched | -0.001 ± 0.176 | 0.003 ± 0.239 | 1/3 · 1/3 |
 
-![正式识别配对增量及三个 seed](figures/formal_paired_gains.png)
+**图（精简版未保留）：** 正式识别配对增量及三个 seed
 
 最重要的变化不是 Matched → C 的平均分数上升，而是它对 seed 3353 的改善。Matched 在前两个 seed 的收益更大，在第三个 seed 出现下降；C 的三次收益都保持正向。
 
@@ -181,7 +181,7 @@ Q4 是新增的独立 evaluate 图像：已见和伪未见各 256 张，排除�
 
 Uniform exact AUC：Q4 41.848119；Q5 42.263667。Measured 系列使用本教师 measure 图像上的直接测量值，再在 evaluate 图像上评价；它们是有限样本测量参照，不是知道真实总体效用的上界。
 
-![Q4 与 Q5 的风险和 AUC 变化](figures/q4_q5_risk_and_auc.png)
+**图（精简版未保留）：** Q4 与 Q5 的风险和 AUC 变化
 
 这张表给出三个直接判断。
 
@@ -208,7 +208,7 @@ Uniform exact AUC：Q4 41.848119；Q5 42.263667。Measured 系列使用本教师
 
 这些主策略的实际 NLL 改善均大于线性代理，Q5 尤其明显。当前曲线没有呈现“预测为正、执行后普遍变负”的幅度失控模式；A 压小动作也就没有修复一个已经被数据证实的主要问题。由于两者含 Monte Carlo 测量与图库采样差异，这张表用于识别方向模式，不把差值全部解释为确定性的曲率。
 
-为看清 C 的平均收益如何组成，我将正式 TEST exact AUC 分解为四类已见/未见图像配对贡献。令每张图像的最佳已见与最佳未见分数差为 $`d_i`$，$`c_i`$ 表示真类在自身已见/未见候选分区内是否排名第一，则：
+为分析 C 的平均收益组成，正式 TEST exact AUC 被分解为四类已见/未见图像配对贡献。令每张图像的最佳已见与最佳未见分数差为 $`d_i`$，$`c_i`$ 表示真类在自身已见/未见候选分区内是否排名第一，则：
 
 
 ```math
@@ -355,27 +355,27 @@ TRUST 的核心链条仍然完整保留：**TRAIN 留出组合上的关系干预
 
 ## 附录 C. 文件与复核入口
 
-- [正式识别全部指标](../results/raw_export/trustcpf_abc_v1_10ep/work/summary.csv)
-- [正式配对增量](../results/raw_export/trustcpf_abc_v1_10ep/work/paired.csv)
-- [Q4 全部曲线](../results/raw_export/trustcpf_abc_v1_10ep/work/q4_curves.csv)
-- [Q5 全部曲线](../results/raw_export/trustcpf_abc_v1_10ep/work/q5_curves.csv)
-- [Q4 全部配对](../results/raw_export/trustcpf_abc_v1_10ep/work/q4_paired.csv)
-- [Q5 全部配对](../results/raw_export/trustcpf_abc_v1_10ep/work/q5_paired.csv)
-- [方向曲线](../results/raw_export/trustcpf_abc_v1_10ep/work/directional_curves.csv)
-- [效用预测误差与相关](../results/raw_export/trustcpf_abc_v1_10ep/work/utility.csv)
-- [标签诊断](../results/raw_export/trustcpf_abc_v1_10ep/work/label_diagnostics.csv)
-- [完整训练曲线](../results/raw_export/trustcpf_abc_v1_10ep/work/training_curves.csv)
-- [阶段成本](../results/raw_export/trustcpf_abc_v1_10ep/work/costs.csv)
-- [幅度选择](../results/raw_export/trustcpf_abc_v1_10ep/work/utility/selection.json)
-- [拟合维度及情境交换记录](../results/raw_export/trustcpf_abc_v1_10ep/work/utility/fit.json)
-- [运行完成状态](../results/raw_export/trustcpf_abc_v1_10ep/work/status.json)
+- 正式识别全部指标（精简版未保留）
+- 正式配对增量（精简版未保留）
+- Q4 全部曲线（精简版未保留）
+- Q5 全部曲线（精简版未保留）
+- Q4 全部配对（精简版未保留）
+- Q5 全部配对（精简版未保留）
+- 方向曲线（精简版未保留）
+- 效用预测误差与相关（精简版未保留）
+- 标签诊断（精简版未保留）
+- 完整训练曲线（精简版未保留）
+- 阶段成本（精简版未保留）
+- 幅度选择（精简版未保留）
+- 拟合维度及情境交换记录（精简版未保留）
+- 运行完成状态（精简版未保留）
 
 - [本轮公式与实现](../FORMULAS_AND_CODE.md)
-- [本次数值核验](confirmed/audit.json)
-- [独立汇总与逐 seed 结果](confirmed/analysis.json)
-- [AUC 情境贡献与 Q4/Q5 配对复核](confirmed/supplement.json)
-- [完整分析复算脚本](../references/original_analysis_scripts/analyze.py.txt)
-- [逐文件预测与标签复算脚本](../references/original_analysis_scripts/audit.py.txt)
-- [AUC 贡献分解脚本](../references/original_analysis_scripts/supplement.py.txt)
+- 本次数值核验（精简版未保留）
+- 独立汇总与逐 seed 结果（精简版未保留）
+- AUC 情境贡献与 Q4/Q5 配对复核（精简版未保留）
+- 完整分析复算脚本（精简版未保留）
+- 逐文件预测与标签复算脚本（精简版未保留）
+- AUC 贡献分解脚本（精简版未保留）
 - [Stage 第二批完整分析](../../09/analysis/README.md)
 - [v8 公式修订与实验方案](../PLAN.md)

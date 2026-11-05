@@ -2,8 +2,9 @@
 
 # TRUST-CPF 公式修订与后续实验方案 v6
 
-日期：2026-10-25  
-依据：第五版诊断 PDF，以及弱基底、强基底、响应条件化、Compact、Align、Competition 10 epoch、R5 10 epoch 的已归档结果。  
+日期：2026-10-25
+
+依据：第五版诊断 PDF，以及弱基底、强基底、响应条件化、Compact、Align、Competition 10 epoch、R5 10 epoch 的已归档结果。
 当前平台：UT-Zappos、CLIP ViT-L/14 缓存、工程内强 CPF 基底、96 条关系、seed 3351／3352／3353。
 
 **下一步主线确定为：U-NLL 配对效用监督 → 多教师联合拟合 → Uniform 完成训练 → 在同一冻结模型上提取响应、分配关系并识别。**
@@ -839,17 +840,17 @@ g_t=\frac{v_t}{\sqrt{v_t^2+\widehat\epsilon_t^2}}.
 
 ### 9.2 来源与新增分析
 
-- [第五版诊断 PDF](references/revision_v6/source_diagnosis_v5.pdf)：重点参考其效用、拟合、状态与实验设计章节。
+- 第五版诊断 PDF（精简版未保留）：重点参考其效用、拟合、状态与实验设计章节。
 - [弱基底完整分析](../v1/analysis/server-results-20261022/README.md)。
-- [强基底前置比较](../05/references/history/conditional_v2_analysis.md.txt)。
+- 强基底前置比较（精简版未保留）。
 - [强基底完整 TRUST](../02/analysis/README.md)。
 - [响应条件化结果](../03/analysis/README.md)。
 - [Compact 结果](../04/analysis/README.md)。
 - [Align 结果](../05/analysis/README.md)。
 - [Competition 10 epoch 结果](../06/analysis/README.md)。
 - [R5 10 epoch 结果](../07/analysis/README.md)。
-- [本次联合拟合复算](references/revision_v6/pooled_diagnostic.json)及[复算脚本](references/revision_v6/pooled_diagnostic.py)。
-- [公式数值核验](references/revision_v6/formula_checks.json)：Bernoulli 偏导、教师平均正则、原始单位系数、重复响应平均、相对投影、预算求解和收缩界均通过。
+- 本次联合拟合复算（精简版未保留）及复算脚本（精简版未保留）。
+- 公式数值核验（精简版未保留）：Bernoulli 偏导、教师平均正则、原始单位系数、重复响应平均、相对投影、预算求解和收缩界均通过。
 
 本方案已检查公式解析、Markdown 表格及渲染布局。当前最直接的一批工作是：**复用三个 Uniform-best，实际评分联合预测器与匹配置换；随后在相同正式权重上检验教师阶段匹配。**
 
