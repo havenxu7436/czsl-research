@@ -228,45 +228,6 @@ dynamic/mean 分别重算条件 softmax、联合概率和 CW/OW 曲线，并各�
 
 数值均为native AUC，单位为点；主表使用native选择权重。两组native最佳epoch均为5/8/6，exact均为5/6/6。seed3352的两条选择轨道不同，分别保留权重、指标与预测，详见[结果README](results/README.md)。
 
-## 6. 仓库结构与复现入口
-
-```text
-12/
-  README.md          # 公式、优化器、代码与超参数，末节数据分析
-  code/              # 原K源码、相对J补丁、原分析脚本
-  configs/           # 模板、运行配置、资产、参考结果与清单
-  results/           # 六训练、双选择、十二评估、日志与原始包
-  analysis/          # 分析、图表、复算、公式与网页Markdown核对
-```
-
-在仓库根目录恢复运行包，复用服务器现有CLIP缓存与J组结果：
-
-```bash
-git lfs pull
-python tools/reproduce.py materialize --line VG-CPOD方案 --stage 12 \
-  --dest /data/xhw/vgcpod_project/replay_12
-conda activate vgcpod_v1
-cd /data/xhw/vgcpod_project/replay_12/vgcpod_v1_roundK
-
-export VG_K_OUT=/data/xhw/vgcpod_v1_runs/replay_12_K
-export VG_K_SESSION=vgcpod_12_K
-bash scripts/start_round_k_tmux.sh \
-  --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14 --gpus 1 2 3 \
-  --j-out /data/xhw/vgcpod_v1_runs/roundJ_20261021
-tmux attach -t vgcpod_12_K
-```
-
-Ctrl+b、d脱离tmux；主日志出现`ROUND_K_COMPLETE ... training_jobs 6 mean_gate_jobs 12`且`launcher.exitcode`为0表示队列完成。其余历史对照默认读取原服务器目录；外部输入索引与历史 runbook 已从精简版移除。
-
-在仓库根目录复算结果：
-
-```bash
-python VG-CPOD方案/12/analysis/recompute.py
-python tools/reproduce.py verify
-```
-
-依赖NumPy、PyTorch、Matplotlib。复算输出到`analysis/recomputed/`；正式分析位于`analysis/confirmed/`。历史 materialize 成员映射已从精简版移除。
-
 ## 7. 数据分析与后续主线
 
 | 模型 | VAL CW | VAL OW | TEST CW | TEST OW |

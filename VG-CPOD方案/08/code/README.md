@@ -1,16 +1,16 @@
 # 08 · 代码与修订
 
-原 G 包源码位于 [vgcpod_v1_roundG](vgcpod_v1_roundG/)。配置、资产、原说明和验证记录按平行结构分区保存，materialize 恢复原始布局。本轮相对 [07 F组](../../07/code/README.md)的实际改动见[源码补丁](source_changes.patch)。
+原 G 包源码位于 vgcpod_v1_roundG（精简版未保留）。配置、资产、原说明和验证记录按平行结构分区保存，历史打包流程 恢复原始布局。本轮相对 [07 F组](../../07/code/README.md)的实际改动见源码补丁（精简版未保留）。
 
 | 入口 | 改动与用途 |
 |---|---|
-| [G0/G1配置](../configs/round_g/) | β=0.075；gate_input=none/local |
-| [round_g.py](vgcpod_v1_roundG/round_g.py) | `worker()` 每卡顺序 G0→G1；`launch()` 三个队列并行；`summarize()` 输出主指标、双选择、β与静态配对及诊断 |
-| [ranking_diagnostics.py](vgcpod_v1_roundG/ranking_diagnostics.py) | `diagnose()` 从完整OW预测计算排序量；`summarize_entries()` 输出分组、逐组合及同seed比较 |
-| [tmux启动](vgcpod_v1_roundG/scripts/start_round_g_tmux.sh) | 记录激活环境 Python、G会话和退出码 |
-| [G组测试](vgcpod_v1_roundG/tests/test_round_g.py) | 配置范围、静态极限、β=0.075目标梯度、已知概率样例；累计39项 |
-| [模型](vgcpod_v1_roundG/vgcpod/model.py)／[训练器](vgcpod_v1_roundG/vgcpod/engine.py) | 与 F 包逐字节一致，通过已有配置分支实现本轮目标 |
-| [均值评估器](vgcpod_v1_roundG/mean_gate_eval.py) | 沿用 F 包；本轮只对 G1 的两种权重执行均值替换 |
+| G0/G1配置（精简版未保留） | β=0.075；gate_input=none/local |
+| round_g.py（精简版未保留） | `worker()` 每卡顺序 G0→G1；`launch()` 三个队列并行；`summarize()` 输出主指标、双选择、β与静态配对及诊断 |
+| ranking_diagnostics.py（精简版未保留） | `diagnose()` 从完整OW预测计算排序量；`summarize_entries()` 输出分组、逐组合及同seed比较 |
+| tmux启动（精简版未保留） | 记录激活环境 Python、G会话和退出码 |
+| G组测试（精简版未保留） | 配置范围、静态极限、β=0.075目标梯度、已知概率样例；累计39项 |
+| 模型（精简版未保留）／训练器（精简版未保留） | 与 F 包逐字节一致，通过已有配置分支实现本轮目标 |
+| 均值评估器（精简版未保留） | 沿用 F 包；本轮只对 G1 的两种权重执行均值替换 |
 
 ## 1. 静态和动态训练分支
 
@@ -37,9 +37,9 @@ G1 保留 λorth=0.001。原模型和训练运算顺序保持源包字节身份�
 
 ## 4. 原发布验证与仓库复算
 
-- [39项测试](../results/package_validation/G/validation/unittest.txt)、[六训练六评估流程](../results/package_validation/G/validation/result.json)、[流程日志](../results/package_validation/G/validation/cli_output.txt)。
+- 39项测试（精简版未保留）、六训练六评估流程（精简版未保留）、流程日志（精简版未保留）。
 - 原F训练器设置为相同G0/G1配置时，native/exact/last参数、AdamW状态和Torch RNG逐元素一致；重复启动跳过全部已完成任务。
-- [真实E1/F1诊断复核](../results/package_validation/G/validation/real_prediction_diagnostics.json)、[代码范围](../results/package_validation/G/validation/source_scope.json)、[服务器身份](../results/server_source_identity.json)。
-- [原包76成员映射](../package_members.json)、[原分析源码](original_analysis/)、[仓库复算入口](../analysis/recompute.py)、[归档验证](../analysis/repository_validation.json)。
+- 真实E1/F1诊断复核（精简版未保留）、代码范围（精简版未保留）、服务器身份（精简版未保留）。
+- 原包76成员映射（精简版未保留）、原分析源码（精简版未保留）、仓库复算入口（精简版未保留）、归档验证（精简版未保留）。
 
-服务器使用Python3.8.18、PyTorch1.13.1+cu117、RTX3090；发布数学及调度测试使用CPU合成特征，正式训练结果来自服务器。CLIP许可见[CLIP_LICENSE](vgcpod_v1_roundG/vendor/CLIP_LICENSE)。
+服务器使用Python3.8.18、PyTorch1.13.1+cu117、RTX3090；发布数学及调度测试使用CPU合成特征，正式训练结果来自服务器。CLIP许可见CLIP_LICENSE（精简版未保留）。

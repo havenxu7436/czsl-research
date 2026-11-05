@@ -98,18 +98,18 @@ U^{\mathrm{mean}}_{bji}&=U^{\mathrm{base}}_{bji}+
 
 | 文件 | 具体修订 | 作用 |
 |---|---|---|
-| [model.py](code/vgcpod_v1_roundJ/vgcpod/model.py) | 新增零初始化Wd、separate分支、cp_static/cp_dynamic输出 | 静态／动态读出独立学习 |
-| [engine.py](code/vgcpod_v1_roundJ/vgcpod/engine.py) | 记录两路MSE、属性中心化MSE及epoch RMS | 量化训练修正幅值 |
-| [mean_gate_eval.py](code/vgcpod_v1_roundJ/mean_gate_eval.py) | 静态项与Wd均值动态项分别计算 | 干预对应J1前向 |
-| [J1.json](configs/round_j/J1.json) | I2上新增separate模式及J1编号 | 固定输入与优化设置 |
-| [round_j.py](code/vgcpod_v1_roundJ/round_j.py) | 三卡、复用I统计、六评估、读出幅值及配对汇总 | 完整流程 |
-| [ranking_diagnostics.py](code/vgcpod_v1_roundJ/ranking_diagnostics.py) | J1−I2/G0/G1等、J1 dynamic−mean | 预测级比较 |
-| [tmux脚本](code/vgcpod_v1_roundJ/scripts/start_round_j_tmux.sh) | 会话、Python路径、日志与退出码 | GPU1/2/3各一个seed |
-| [J组测试](code/vgcpod_v1_roundJ/tests/test_round_j.py) | 七项新测试 | 恒等式、梯度、双路学习、干预和续训 |
+| model.py（精简版未保留） | 新增零初始化Wd、separate分支、cp_static/cp_dynamic输出 | 静态／动态读出独立学习 |
+| engine.py（精简版未保留） | 记录两路MSE、属性中心化MSE及epoch RMS | 量化训练修正幅值 |
+| mean_gate_eval.py（精简版未保留） | 静态项与Wd均值动态项分别计算 | 干预对应J1前向 |
+| J1.json（精简版未保留） | I2上新增separate模式及J1编号 | 固定输入与优化设置 |
+| round_j.py（精简版未保留） | 三卡、复用I统计、六评估、读出幅值及配对汇总 | 完整流程 |
+| ranking_diagnostics.py（精简版未保留） | J1−I2/G0/G1等、J1 dynamic−mean | 预测级比较 |
+| tmux脚本（精简版未保留） | 会话、Python路径、日志与退出码 | GPU1/2/3各一个seed |
+| J组测试（精简版未保留） | 七项新测试 | 恒等式、梯度、双路学习、干预和续训 |
 
-两路矩阵在本轮使用同一个CP参数组，初始LR均为3e-4。详细差异见[相对10的补丁](code/source_changes.patch)，服务器字节核对见[源码身份](results/server_source_identity.json)。核心运行改动为model/engine/mean_gate_eval。
+两路矩阵在本轮使用同一个CP参数组，初始LR均为3e-4。详细差异见相对10的补丁（精简版未保留），服务器字节核对见源码身份（精简版未保留）。核心运行改动为model/engine/mean_gate_eval。
 
-原发布验证55项测试通过；CPU合成缓存完成三训练、六评估，重复启动跳过已完成任务，checkpoint一致。旧I2配置在新旧训练器中的参数、AdamW和Torch RNG逐元素一致。记录见[发布验证](results/package_validation/J/validation/result.json)和[仓库复算核对](analysis/repository_validation.json)。
+原发布验证55项测试通过；CPU合成缓存完成三训练、六评估，重复启动跳过已完成任务，checkpoint一致。旧I2配置在新旧训练器中的参数、AdamW和Torch RNG逐元素一致。记录见发布验证（精简版未保留）和仓库复算核对（精简版未保留）。
 
 ## 5. 超参数选取策略与实际结果
 
@@ -135,46 +135,7 @@ U^{\mathrm{mean}}_{bji}&=U^{\mathrm{base}}_{bji}+
 | AdamW β₁、β₂／ε／weight decay | 0.9、0.999 / 1e-8 / 1e-4 |
 | 总梯度裁剪／λorth／eval batch／workers | 1 / 0.001 / 64 / 4 |
 
-模板见[round_j](configs/round_j/)，实际运行配置见[runtime](configs/runtime/)。可训练参数147,456；门控均值buffer形状[12,768]。本轮按训练前确定的配置执行，后续学习率建议保存在末节数据分析。
-
-## 6. 仓库结构与复现入口
-
-```text
-11/
-  README.md          # 公式、代码修订、超参数策略，末节数据分析
-  code/              # 原J源码、相对I补丁、原分析脚本
-  configs/           # 模板、运行配置、资产、历史参考和清单
-  results/           # 三训练、双选择、六评估、日志与原始包
-  analysis/          # 完整分析、图表、复算与网页排版核对
-```
-
-在仓库根目录恢复原运行包，复用服务器已有CLIP缓存和历史对照：
-
-```bash
-git lfs pull
-python tools/reproduce.py materialize --line VG-CPOD方案 --stage 11 \
-  --dest /data/xhw/vgcpod_project/replay_11
-conda activate vgcpod_v1
-cd /data/xhw/vgcpod_project/replay_11/vgcpod_v1_roundJ
-
-export VG_J_OUT=/data/xhw/vgcpod_v1_runs/replay_11_J
-export VG_J_SESSION=vgcpod_11_J
-bash scripts/start_round_j_tmux.sh \
-  --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14 --gpus 1 2 3 \
-  --i-out /data/xhw/vgcpod_v1_runs/roundI_20261021
-tmux attach -t vgcpod_11_J
-```
-
-其他A/C/D/E/F/G/H对照默认读取此前服务器目录；具体外部输入见[external_inputs.json](external_inputs.json)，命令见[runbook.json](runbook.json)。主日志出现`ROUND_J_COMPLETE ... training_jobs 3 mean_gate_jobs 6`且退出码为0表示完成。Ctrl+b、d脱离tmux。
-
-在仓库根目录复算保存结果与优化器分析：
-
-```bash
-python VG-CPOD方案/11/analysis/recompute.py
-python tools/reproduce.py verify
-```
-
-依赖NumPy、PyTorch、Matplotlib，输出至`analysis/recomputed/`，原分析位于`analysis/confirmed/`。materialize按[映射](package_members.json)恢复原包91个成员的字节和布局。复算沿用10中已核验的历史分析，并校验原I结果包身份；新J预测与checkpoint重新核查。
+模板见round_j（精简版未保留），实际运行配置见runtime（精简版未保留）。可训练参数147,456；门控均值buffer形状[12,768]。本轮按训练前确定的配置执行，后续学习率建议保存在末节数据分析。
 
 ## 7. 数据分析与下一轮方向
 
@@ -192,6 +153,6 @@ TRAIN门控标准差I2/J1为0.0281/0.0269，但TEST未见图像的dynamic−mean
 
 下一轮方向是为Wd单独设置学习率，比较9e-5与3e-5两档；其他参数沿用J1，检验两路学习速度的配比。已有J1作为3e-4对照。本阶段已完成结果为J1，下一轮配置与推导见[完整数据分析](analysis/README.md)。
 
-![J1与历史对照的三seed结果](analysis/confirmed/figures/01_results.png)
+**图（精简版未保留）：** J1与历史对照的三seed结果
 
 [数据分析README](analysis/README.md)最后集中记录配对SD、不同seed表现、候选排序、动态幅值、Adam推导及下一轮实验范围。

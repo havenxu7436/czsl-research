@@ -747,13 +747,13 @@ Co-CGE 已使用图关系及组合可行性加权，CPF 已建立条件概率识
 
 - [用户提供的六条路线第四版 PDF](references/six_routes/README.md)：R1 印刷页 5–6，R2 页 7–9，R3 页 10–11，R4 页 12–15，R5 页 16–17，R6 页 18–20；PDF 文件页码比印刷页码大 2。
 - [弱基底 v1 完整结果](../v1/analysis/server-results-20261022/README.md)。
-- [条件残差 v2 完整结果](references/history/conditional_v2_analysis.md.txt)。
+- 条件残差 v2 完整结果（精简版未保留）。
 - [Strong v1 完整结果及全部噪声、消融](../02/analysis/README.md)。
 - [模型响应条件化完整结果](../03/analysis/README.md)。
 - [Compact v1 完整结果与逐 seed 配对](../04/analysis/README.md)。
-- [Compact 完整分析数据](../04/analysis/confirmed/analysis.json)。
-- [Strong 完整分析数据](../02/analysis/confirmed/analysis.json)。
-- [当前 Compact 回归与聚合实现](../04/code/trustcpf_compact_v1/trustcpf/compact.py)。
-- [当前采样与配对测量实现](../04/code/trustcpf_compact_v1/trustcpf/stages.py)。
-- [关系与 Capacity 评分实现](../04/code/trustcpf_compact_v1/trustcpf/model.py)。
-- [当前 native／exact AUC 实现](../04/code/trustcpf_compact_v1/trustcpf/metrics.py)。
+- Compact 完整分析数据（精简版未保留）。
+- Strong 完整分析数据（精简版未保留）。
+- 当前 Compact 回归与聚合实现（精简版未保留）。
+- 当前采样与配对测量实现（精简版未保留）。
+- 关系与 Capacity 评分实现（精简版未保留）。
+- 当前 native／exact AUC 实现（精简版未保留）。

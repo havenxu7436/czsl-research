@@ -118,14 +118,14 @@ E1 仍使用 β=0.1 的归一化目标与原正交项：
 
 | 文件 | 本轮具体修订 | 作用 |
 |---|---|---|
-| [E1.json](configs/round_e/E1.json) | `rho=0.15`、`experiment_id=E1` | 形成三档修正强度比较 |
-| [engine.py](code/vgcpod_v1_roundE/vgcpod/engine.py) | 独立 `best_exact_auc`／`selected_exact`，保存两套 best、兼容副本和 last；扩展指定 checkpoint／输出目录的评价入口 | 分别测量 native／exact 选权重结果 |
-| [mean_gate_eval.py](code/vgcpod_v1_roundE/mean_gate_eval.py) | 新增 `--selection native/exact`，记录来源权重与评价器身份 | 对两套选择独立完成动态／均值评估 |
-| [round_e.py](code/vgcpod_v1_roundE/round_e.py) | 三卡三 seed，训练后各做两项均值评估；新增 ρ 汇总、选权重差值与同 seed 对比 | 完成 3 次训练和 6 项无训练评估 |
-| [tmux启动](code/vgcpod_v1_roundE/scripts/start_round_e_tmux.sh) | 捕获当前 Python，保留日志、任务状态与退出码 | GPU1／2／3 独立运行，支持脱离与续跑 |
-| [E组测试](code/vgcpod_v1_roundE/tests/test_round_e.py) | E1 配置差异、独立首次峰值及双输出、双轨续训一致性 | 累计 33 项原发布测试 |
+| E1.json（精简版未保留） | `rho=0.15`、`experiment_id=E1` | 形成三档修正强度比较 |
+| engine.py（精简版未保留） | 独立 `best_exact_auc`／`selected_exact`，保存两套 best、兼容副本和 last；扩展指定 checkpoint／输出目录的评价入口 | 分别测量 native／exact 选权重结果 |
+| mean_gate_eval.py（精简版未保留） | 新增 `--selection native/exact`，记录来源权重与评价器身份 | 对两套选择独立完成动态／均值评估 |
+| round_e.py（精简版未保留） | 三卡三 seed，训练后各做两项均值评估；新增 ρ 汇总、选权重差值与同 seed 对比 | 完成 3 次训练和 6 项无训练评估 |
+| tmux启动（精简版未保留） | 捕获当前 Python，保留日志、任务状态与退出码 | GPU1／2／3 独立运行，支持脱离与续跑 |
+| E组测试（精简版未保留） | E1 配置差异、独立首次峰值及双输出、双轨续训一致性 | 累计 33 项原发布测试 |
 
-[相对05的源码补丁](code/source_changes.patch)保留本轮实际差异。[原 CPU 流程验证](results/package_validation/E/validation/result.json)完成 3 次合成数据训练、6 项均值评估及重复启动复用；在相同 ρ=0.15 配置下，新旧引擎的参数与 Torch RNG 逐位一致。服务器源码与发布包的核对见[来源记录](results/server_source_identity.json)。
+相对05的源码补丁（精简版未保留）保留本轮实际差异。原 CPU 流程验证（精简版未保留）完成 3 次合成数据训练、6 项均值评估及重复启动复用；在相同 ρ=0.15 配置下，新旧引擎的参数与 Torch RNG 逐位一致。服务器源码与发布包的核对见来源记录（精简版未保留）。
 
 ## 5. 超参数选取策略与已完成矩阵
 
@@ -152,48 +152,7 @@ E1 仍使用 β=0.1 的归一化目标与原正交项：
 | AdamW β₁、β₂／ε／weight decay | 0.9、0.999 / 1e-8 / 1e-4 |
 | 总梯度裁剪／动态正交项 | 1 / 0.001 |
 
-完整实际配置和两套指标见[实验清单](configs/experiment_inventory.json)。内部 `variant=V1`，动态行为由 `gate_input=local`、`gate_center_modes=true` 显式启用。Wc 从零初始化，Bvis、Au、Av、Wc 同属 CP 参数组。
-
-## 6. 仓库结构与复现入口
-
-```text
-06/
-  README.md          # 修订、公式、超参策略与末节数据分析
-  code/              # 原E运行代码、相对D补丁、原分析源码
-  configs/           # E1、兼容配置、资产、参考与运行清单
-  results/           # 三seed、双选择、均值干预、状态和原始归档
-  analysis/          # 三seed数据分析、图表、仓库复算入口
-```
-
-恢复运行包并复用服务器现有冻结 CLIP 缓存：
-
-```bash
-git lfs pull
-python tools/reproduce.py materialize --line VG-CPOD方案 --stage 06 \
-  --dest /data/xhw/vgcpod_project/replay_06
-conda activate vgcpod_v1
-cd /data/xhw/vgcpod_project/replay_06/vgcpod_v1_roundE
-
-export VG_E_OUT=/data/xhw/vgcpod_v1_runs/replay_06_E
-export VG_E_SESSION=vgcpod_06_E
-bash scripts/start_round_e_tmux.sh \
-  --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14 --gpus 1 2 3 \
-  --a-out /data/xhw/vgcpod_v1_runs/roundA_20261019 \
-  --c-out /data/xhw/vgcpod_v1_runs/roundC_20261020 \
-  --d-out /data/xhw/vgcpod_v1_runs/roundD_20261020
-tmux attach -t vgcpod_06_E
-```
-
-每卡先训练对应 seed，再完成 native／exact 均值评估。`Ctrl+b` 后按 `d` 脱离 tmux。`launcher.exitcode=0` 且三项状态均为 complete 表示整轮完成。引用旧组指标时优先读取对应运行，同包的 14 份标量快照提供汇总参考。训练输入见[外部输入](external_inputs.json)，命令见[runbook.json](runbook.json)。
-
-从仓库保存的预测、权重与缓存元数据复算分析：
-
-```bash
-python VG-CPOD方案/06/analysis/recompute.py
-python tools/reproduce.py verify
-```
-
-复算依赖 NumPy、PyTorch、Matplotlib，输出至 `analysis/recomputed/`；原始分析保存在 `analysis/confirmed/`。原发布 README／公式说明保留原字节，materialize 恢复完整原包及其校验身份。
+完整实际配置和两套指标见实验清单（精简版未保留）。内部 `variant=V1`，动态行为由 `gate_input=local`、`gate_center_modes=true` 显式启用。Wc 从零初始化，Bvis、Au、Av、Wc 同属 CP 参数组。
 
 ## 7. 数据分析与本轮结论
 
@@ -213,6 +172,6 @@ AUC 为面积×100，条件属性使用 GT-object。**E1 相对 D1 的 TEST CW�
 - TEST 未见图像的已见组合概率质量从 D1 的 73.466% 增至 E1 的 73.698%，未见条件属性 NLL 从 2.3763 增至 2.3872。下一轮直接测量支持集损失权重的作用。
 - **下一轮建议 F1：固定 E1 的 ρ=0.15，将 β 从 0.1 调至 0.05，三 seed 各 10 轮。** pair 系数保持 1.5，support 系数从 0.1363636 降至 0.0714286，约为原来的 52.38%。该项属于后续计划，当前归档为已完成 E1。
 
-![三档修正强度的验证与测试表现](analysis/confirmed/figures/01_rho_sweep.png)
+**图（精简版未保留）：** 三档修正强度的验证与测试表现
 
 完整配对差异、双选择核查、动态／均值对比、逐组合变化、训练诊断和下一轮变量推导见[数据分析 README](analysis/README.md)。

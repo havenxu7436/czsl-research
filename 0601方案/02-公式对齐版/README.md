@@ -22,37 +22,6 @@
 2. seed 3351 的 14 组各训练 30 epoch；seed 3352、3353 的 28 组各训练 10 epoch。
 3. 同一选中 checkpoint 评价 VAL/TEST CW/OW，导出原始分数与日志。
 
-## 运行入口
-
-变量与路径对应关系见 [环境说明](../../environment/README.md)。
-
-```bash
-REPLAY=/srv/czsl-reproduce-0601-02
-python tools/reproduce.py materialize --line 0601方案 --stage 02 --dest "$REPLAY"
-WORK3351="$WORK/seed3351-30epoch"
-"$CPF_PY" "$REPLAY/faithful_0601_20261011/prepare.py" --root "$PROJECT" --work "$WORK3351" \
-  --epochs 30 --seeds 3351
-"$CPF_PY" "$REPLAY/faithful_0601_20261011/run_suite.py" --work "$WORK3351" \
-  --gpus "${CZSL_GPUS:?Set physical GPU IDs}" --max-workers 1 --seeds 3351 --export "$WORK3351/results.zip"
-```
-
-seed 3352、3353 使用单独的 10 epoch 运行目录：
-
-```bash
-WORK2="$WORK/seeds3352-3353-10epoch"
-"$CPF_PY" "$REPLAY/faithful_0601_20261011/prepare.py" --root "$PROJECT" --work "$WORK2" \
-  --epochs 10 --seeds 3352,3353
-"$CPF_PY" "$REPLAY/faithful_0601_20261011/run_suite.py" --work "$WORK2" \
-  --gpus "${CZSL_GPUS:?Set physical GPU IDs}" --max-workers 1 --seeds 3352,3353 --export "$WORK2/results.zip"
-```
-
-只读结果校验：
-
-```bash
-python 0601方案/02-公式对齐版/code/epoch_review_20261012/verify_result.py
-python 0601方案/02-公式对齐版/code/epoch_review_20261012/verify_additional_results.py
-```
-
 ## 结果与文件
 
 | seed | 每组实际 epoch | 训练组数 | 评价份数 | 结果入口 |

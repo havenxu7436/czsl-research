@@ -25,7 +25,7 @@ UT-Zappos · seed 3351 · 每组 10 epoch · 2026-10-16
 
 A–H 在此用于对照原设计的研究角色；所有 R 组采用 v2 联合概率与共享任务损失。`Rfull` 同时是 Template-only pair、每类 3 条描述、3 层 OI、mean 聚合、centered prior、固定 λ、默认属性损失的共同参照。
 
-数据入口：[原始 AUC 汇总](raw_export/summary/summary.json)、[32 组指标](README.md)、[模型定义与命名](实验命名对照.md)、[实际开关](../../code/revised_0601_20261014_fix/prepare_revision.py)。
+数据入口：原始 AUC 汇总（精简版未保留）、[32 组指标](README.md)、[模型定义与命名](实验命名对照.md)、[实际开关](../../code/revised_0601_20261014_fix/prepare_revision.py)。
 
 ## 1. 核心模型比较
 
@@ -327,11 +327,11 @@ clamped-log 的 VAL CW/OW 为 −0.23/−0.80，TEST CW/OW 为 +3.97/+3.30。**�
 | 常数 prior 是否产生虚假收益？ | `Rfull_uniform_prior` 对 `Rfull_prior_off` | 四套分数文件完全相同，常数 prior 等价于关闭。 |
 | 知识是否使用了 VAL／TEST 数据构建？ | 资产生成代码、来源记录、冻结输入与选模规则 | 资产生成使用类别标签、固定描述和 GloVe；未读取 VAL／TEST 图像或成绩。当前流程核对未发现该类泄漏；完整数据来源独立审计未开展。 |
 
-来源：[知识资产构建代码](../../code/revised_0601_20261014_fix/build_revision_assets.py)、[知识来源说明](../../inputs.json)、[已有导入与哈希核验](audit.json)。
+来源：[知识资产构建代码](../../code/revised_0601_20261014_fix/build_revision_assets.py)、知识来源说明（精简版未保留）、已有导入与哈希核验（精简版未保留）。
 
 ## 5. 本次补充：seen/unseen 校准与错误分解
 
-本节是 2026-10-16 从已保存的 scores.dat、candidates.json、labels.npz 和 split 只读重算的诊断，不改变 checkpoint 或原始 AUC。派生读数见 [后分析 JSON](v2单seed后分析读数_20261016.json)。
+本节是 2026-10-16 从已保存的 scores.dat、candidates.json、labels.npz 和 split 只读重算的诊断，不改变 checkpoint 或原始 AUC。派生读数见 后分析 JSON（精简版未保留）。
 
 ### 5.1 方法
 
@@ -471,26 +471,20 @@ HM、Seen、Unseen 均为百分数。
 ## 附录 B. 数据与实现入口
 
 - [原始结果页](README.md)
-- [128 份原始指标汇总](raw_export/summary/summary.json)
+- 128 份原始指标汇总（精简版未保留）
 - [逐轮 VAL CW 记录](训练记录.md)
-- [原始分数、标签与样本 ID](raw_export/runs/)
-- [本批实际 protocol](raw_export/protocol.json)
-- [原始 split](raw_export/checks/split_pairs.json)
+- 原始分数、标签与样本 ID（精简版未保留）
+- 本批实际 protocol（精简版未保留）
+- 原始 split（精简版未保留）
 - [模型命名与开关对应](实验命名对照.md)
 - [v2 公式与核心代码](../../复现公式与代码v2.md)
 - [变体构造](../../code/revised_0601_20261014_fix/prepare_revision.py)
 - [语义约束实际实现](../../code/revised_0601_20261014_fix/revision_model.py)
 - [后分析参考协议](../../code/revised_0601_20261014_fix/posthoc_revision.py)
-- [本次派生读数与 uniform／prior-off 哈希核验](v2单seed后分析读数_20261016.json)
-- [本次只读分析脚本](../../../../tools/analyze_v2_seed3351.py)
-- [分析发布与来源校验记录](../../../../provenance/updates/20261016_v2_seed3351_analysis.json)
+- 本次派生读数与 uniform／prior-off 哈希核验（精简版未保留）
+- 本次只读分析脚本（精简版未保留）
+- 分析发布与来源校验记录（精简版未保留）
 
-在仓库根目录安装 NumPy 并拉取 Git LFS 数据后，可重新计算并核对派生 JSON：
-
-```bash
-python tools/analyze_v2_seed3351.py --verify-archived
-```
-
-脚本检查 32 组、128 份评价，核对报告中 13 个模型的 26 行诊断读数；只读归档分数，不启动训练、不修改原始导出。
+历史复算检查了 32 组、128 份评价，并核对报告中 13 个模型的 26 行诊断读数。派生 JSON 与原始分数不在精简版中；本页保留核对后的结果。
 
 原始 summary SHA256：`f7d5b0f8d3ec1fbb750d4636f93dff813496c354852dc144190c7086c837e6f5`。

@@ -19,11 +19,11 @@
 
 每次运行按首次严格最大 VAL CW AUC_native 选模。HM 使用对应 VAL 的 bias，TEST 使用同一份选中权重。
 
-- [原始运行目录](raw_export/roundA_20261019/)：metrics、history、protocol、checkpoints、predictions、curves 与日志。
-- [初始六组 launcher 状态](initial_launch/)与[确认补跑状态](raw_export/roundA_20261019/round_a_status.json)。
-- [完整服务器导出包](archives/vgcpod_roundA_confirm_20261019.tar.gz)与[SHA256](archives/vgcpod_roundA_confirm_20261019.tar.gz.sha256)，由 Git LFS 保存。
-- [训练代码 ZIP](archives/vgcpod_v1_roundA_20261019.zip)与[SHA256](archives/vgcpod_v1_roundA_20261019.zip.sha256)。
-- [原版发布检查记录](package_validation/)与[原始说明文档字节](package_support/)。
-- [三 seed 数据分析](../analysis/README.md)和[文件 SHA256 清单](../file_manifest.json)。
+- 原始运行目录（精简版未保留）：metrics、history、protocol、checkpoints、predictions、curves 与日志。
+- 初始六组 launcher 状态（精简版未保留）与确认补跑状态（精简版未保留）。
+- 完整服务器导出包（精简版未保留）与SHA256（精简版未保留），曾由 Git LFS 保存；精简版未保留。
+- 训练代码 ZIP（精简版未保留）与SHA256（精简版未保留）。
+- 原版发布检查记录（精简版未保留）与原始说明文档字节（精简版未保留）。
+- [三 seed 数据分析](../analysis/README.md)和文件 SHA256 清单（精简版未保留）。
 
 归档的服务器包已包含最初六组结果；seed3351 的 78 个模型成员与初次下载文件一致。A1/A5/A6 的多 seed 结论与 A2/A3/A4 的单 seed 探索结果分开报告。

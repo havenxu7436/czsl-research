@@ -14,6 +14,6 @@
 | 三卡队列与跨平台打包 | GPU1/2/3各负责一个seed；Python UTF-8解压和哈希核验 |
 | 归档重命名 | 仅将pack_results的固定旧包名改为实际目录名，科学运算未改动 |
 
-最后一项的精确补丁见[source_changes.patch](source_changes.patch)；逐文件来源与差异见[server_source_identity.json](../results/server_source_identity.json)。[原始服务器执行源码](../results/raw_export/trustcpf_conditional_v2/ckcpf/)和归档ZIP均保持原字节。
+最后一项的精确补丁见[source_changes.patch](source_changes.patch)；逐文件来源与差异见server_source_identity.json（精简版未保留）。原始服务器执行源码（精简版未保留）和归档ZIP均在历史完整归档中保持原字节（精简版未保留）。
 
 [五项模型/损失/评价测试](vgcpod_v1_roundL/tests/test_experiment.py) · [原G0对照](vgcpod_v1_roundL/tests/reference_g0.py) · [完整公式及核心实现](../FORMULAS_AND_CODE.md)。分析重算脚本位于[analysis/](../analysis/README.md)。

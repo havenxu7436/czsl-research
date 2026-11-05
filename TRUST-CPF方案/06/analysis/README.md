@@ -122,7 +122,7 @@ U-NLL 降低了未校准 NLL，却降低最终 AUC；Competition 的未校准 NL
 | 3353 / Competition | 6 | 44.058 | 44.707 | 42.914 | +0.332 |
 | 3353 / Permuted-Competition | 6 | 43.783 | 44.823 | 43.181 | +1.018 |
 
-![训练曲线](figures/training.png)
+**图（精简版未保留）：** 训练曲线
 
 **将训练提高到 10 epoch 是有价值的。** seed3353 的 Uniform、Competition、Permuted 都在第 6 轮达到最佳；seed3352 的 U-NLL 在第 4 轮达到最佳。上一轮“保留 3 epoch 即可”的判断应据此更新为：**后续统一采用 10 epoch 并保留 epoch 0–10 的 VAL 选模。**
 
@@ -155,7 +155,7 @@ Uniform 三 seed 均值从 **35.481／26.144** 提高到 **35.934／26.532**，�
 | 测量 / Balanced-NLL | +1.797 | +4.281 | +2.290 | +2.789 | +2.926 |
 | 测量 / Competition | +1.813 | +4.017 | +2.233 | +2.688 | +2.788 |
 
-![Q5实际决策结果](figures/q5_decisions.png)
+**图（精简版未保留）：** Q5实际决策结果
 
 Uniform 的 Q5 混合 exact AUC 分别为 **43.554、38.904、42.914**。测量效用三种目标在 **3/3 seed** 都高于 Uniform，也都高于类型内概率置换。以 Competition 为例，三 seed 相对置换分别提高 **1.684、4.341、2.339 点**。这支持效用与具体关系之间的对应包含可用信息，单靠概率的边际分布不能复现这部分收益。
 
@@ -349,17 +349,17 @@ L_{\mathrm{rel}}(\beta)=
 abd07d9bcb98eb77f25e5ea46b433c9ecfcb91ae82e7c1b2cca893ea1cf49844
 ```
 
-- [本轮完成状态](../results/raw_export/trustcpf_competition_v1_10ep/work/status.json)
-- [360 行识别结果](../results/raw_export/trustcpf_competition_v1_10ep/work/summary.csv)
-- [完整训练曲线](../results/raw_export/trustcpf_competition_v1_10ep/work/training_curves.csv)
-- [312 行 Q5 决策记录](../results/raw_export/trustcpf_competition_v1_10ep/work/decision_risks.csv)
-- [完整聚合分析数据](confirmed/analysis.json)
-- [归档、实现与阶段输出核验](confirmed/integrity.json)
-- [180 份预测文件复算结果](confirmed/prediction_verification.json)
-- [效用测量、岭回归及 Q5 审计复算结果](confirmed/mechanism_verification.json)
-- [模型输入变化与重拟合变化诊断](confirmed/transfer_diagnostic.json)
-- [识别复算脚本](../references/original_scripts/verify_results.py.txt)
-- [机制复算脚本](../references/original_scripts/verify_mechanism.py.txt)
+- 本轮完成状态（精简版未保留）
+- 360 行识别结果（精简版未保留）
+- 完整训练曲线（精简版未保留）
+- 312 行 Q5 决策记录（精简版未保留）
+- 完整聚合分析数据（精简版未保留）
+- 归档、实现与阶段输出核验（精简版未保留）
+- 180 份预测文件复算结果（精简版未保留）
+- 效用测量、岭回归及 Q5 审计复算结果（精简版未保留）
+- 模型输入变化与重拟合变化诊断（精简版未保留）
+- 识别复算脚本（精简版未保留）
+- 机制复算脚本（精简版未保留）
 - [此前六路线实验方案](../../05/PLAN.md)
 - [上一轮 Align 分析](../../05/analysis/README.md)
 

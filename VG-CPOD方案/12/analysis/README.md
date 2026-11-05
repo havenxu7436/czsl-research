@@ -36,7 +36,7 @@ K1 相对 J1 的 CW 下降 0.333 点，OW 增加 0.031 点；K2 相对 J1 的 CW
 
 SD 为三个同 seed 差值的样本标准差。K1−K2 的 CW/OW 仅约 +0.071/+0.061 点，这两档构成近似相同的性能区间。继续在 0.1 与 0.3 之间插值，投入价值较低。
 
-![历轮模型与三 seed 结果](confirmed/figures/01_history_plateau.png)
+**图（精简版未保留）：** 历轮模型与三 seed 结果
 
 ### 1.1 双选权重规则也没有改变方向判断
 
@@ -63,7 +63,7 @@ Wd 范数从 20.894 降到 7.708、2.850；自适应步长比从 0.971 降到 0.
 
 与此同时，TEST OW AUC 仍集中在 24.50 左右；动态分数变小没有把模型带到 G0 的 25.184。J1、K1、K2 的 dynamic−mean 随动态分支变弱而下降，这反映各模型对自身动态分支的依赖程度。它与相对独立训练 G0 的收益是两种比较。
 
-![动态更新与输出尺度](confirmed/figures/02_update_scale.png)
+**图（精简版未保留）：** 动态更新与输出尺度
 
 由此应收束三条支线：Wd 学习率细分、门控温度／幅度细分、通过新增缩放系数重新平衡静态与动态分支。这些量已能控制模型作用幅度，当前缺少的是改善组合排序的新信息处理方式。
 
@@ -102,7 +102,7 @@ Wd 范数从 20.894 降到 7.708、2.850；自适应步长比从 0.971 降到 0.
 
 三列“全部未见候选 top-1／同物体内排错／跨物体竞争排错”相加为 100%。G0 的错误由约 30.72% 的同物体属性排序错误和 19.64% 的跨物体竞争错误构成；K1/K2 没有改善这两个部分的整体水平。
 
-![未见候选内的错误分解](confirmed/figures/03_error_decomposition.png)
+**图（精简版未保留）：** 未见候选内的错误分解
 
 **下一阶段把主要投入放在可训练的局部属性判别，并继续衡量跨物体竞争。** 只改变组合先验、统一 seen/unseen 偏置或动态分支幅度，无法直接解决同物体内的未见属性排序。
 
@@ -159,7 +159,7 @@ s(x,a_1,o)-s(x,a_2,o)&=U(x,a_1,o)-U(x,a_2,o).
 
 | 已有工作／思想 | 已有内容 | 本方案具体研究什么 |
 |---|---|---|
-| [FACT 本地复核](../results/package_support/original_reports/VG-CPOD与FACT_创新性复核_含D组_20261020.md.txt) | CP 交互及低秩算子解释 | CP 作为共同评分器；改变其 patch 级输出如何成为属性判别分数 |
+| FACT 本地复核（精简版未保留） | CP 交互及低秩算子解释 | CP 作为共同评分器；改变其 patch 级输出如何成为属性判别分数 |
 | [CANet](https://openaccess.thecvf.com/content/CVPR2023/html/Wang_Learning_Conditional_Attributes_for_Compositional_Zero-Shot_Learning_CVPR_2023_paper.html)、[CPF](https://arxiv.org/html/2507.17377v1) | 物体条件属性学习、条件概率及条件视觉提取 | 在同一物体条件下，以属性对的逐位置差值作为证据单位 |
 | [MSCI](https://arxiv.org/html/2505.10289v1) | 多层 CLIP 特征、跨模态交互与适配 | 首版只读最后一层，研究比较算子；视觉适配本身计入共同基座 |
 | [FILIP](https://arxiv.org/abs/2111.07783) | 视觉／文本 token 的细粒度晚交互 | 将两个属性假设放在同一 patch 上比较，再边缘化局部位置 |
@@ -375,14 +375,13 @@ UT 使用现有文本模板；MIT 使用适合状态—物体组合的模板，�
 
 ### 6.6 下一次代码工作的明确范围
 
-1. **在线视觉训练路径。** 复用本机 `CZSL/src/LOGICZSL_repro/model/troika.py` 中视觉 Adapter 与 CLIP 前向接口，输出 CLS 和最后层 patch；旧 `g/fa/fo` 缓存保留用于历史结果读取。
+1. **在线视觉训练路径。** 复用归档环境 `CZSL/src/LOGICZSL_repro/model/troika.py` 中视觉 Adapter 与 CLIP 前向接口，输出 CLS 和最后层 patch；旧 `g/fa/fo` 缓存保留用于历史结果读取。
 2. **统一评分器与三种读取。** 同一个静态 CP 参数集合实现 R0、R1、R2；将 $`\delta\to m\to Dm`$ 写成独立、可微的算子，不引入新的动态门控。
 3. **固定比较图与分块计算。** 保存词表、文本向量、边方向和 $`D`$；按候选物体、边和 microbatch 分块计算，避免物化完整 $`[B,O,A,A,N]`$ 张量。累积训练梯度时使用重计算控制激活内存，`logsumexp` 和图投影采用 FP32。
 4. **保留评价体系，补充机制记录。** 继续保存图像身份、候选顺序、完整 logits、checkpoint、优化器状态和三 seed 汇总；增加 TRAIN/VAL 固定样本的 patch 响应及最终模型的边证据诊断。
 5. **一次提交上述正式矩阵。** 三张 GPU 独立运行 seed 队列，用 tmux 管理、独立目录保存，全部完成后统一比较。
 
-本次已完成公式性质和非等价性的数值核验，明细见 [proposed_math_checks.json](confirmed/proposed_math_checks.json)。这部分运行的是代数检查；训练代码尚未改动。下一次实现以这里的一套机制和正式比较为范围。
-
+本次已完成公式性质和非等价性的数值核验，明细见 proposed_math_checks.json（精简版未保留）。这部分运行的是代数检查；训练代码尚未改动。下一次实现以这里的一套机制和正式比较为范围。
 
 ## 7. 本次复核与交付
 
@@ -392,16 +391,11 @@ UT 使用现有文本模板；MIT 使用适合状态—物体组合的模板，�
 - 检查两组全部 epoch 的学习率倍率、checkpoint 中 TRAIN 均值、损失恒等式、RMS 和 native/exact 选权重。
 - 逐图计算共同错误、真实物体内未见属性排序和跨物体竞争分解；从真实 checkpoint 重建 J1/K1/K2 的 Adam 更新量。
 
-数据明细：[analysis.json](confirmed/analysis.json)、[audit.json](confirmed/audit.json)、[supplement.json](confirmed/supplement.json)、[tables/](confirmed/tables/)、[figures/](confirmed/figures/)。本报告给出结果判断、近邻文献差异、核心算子推导与正式比较矩阵。训练代码未改动；下一次实现以第 6 节为规格。
+数据明细：analysis.json（精简版未保留）、audit.json（精简版未保留）、supplement.json（精简版未保留）、tables/（精简版未保留）、figures/（精简版未保留）。本报告给出结果判断、近邻文献差异、核心算子推导与正式比较矩阵。训练代码未改动；下一次实现以第 6 节为规格。
 
 ## 8. 仓库复算与网页Markdown核对
 
-[主说明](../README.md)汇总本轮公式、优化器分组和超参数策略；[分析JSON](confirmed/analysis.json)、[预测审计](confirmed/audit.json)、[逐图／候选／优化器补充](confirmed/supplement.json)、[仓库验证](repository_validation.json)和[源码补丁](../code/source_changes.patch)按平行结构保存。
-
-```bash
-python VG-CPOD方案/12/analysis/recompute.py
-python tools/reproduce.py verify
-```
+[主说明](../README.md)汇总本轮公式、优化器分组和超参数策略；分析JSON（精简版未保留）、预测审计（精简版未保留）、逐图／候选／优化器补充（精简版未保留）、仓库验证（精简版未保留）和[源码补丁](../code/source_changes.patch)按平行结构保存。
 
 复算从本轮预测、checkpoint、门控矩重建指标、配对差值、更新幅值和共同错误；历史模型读取已有归档。输出至`recomputed/`，与`confirmed/`中的JSON及CSV逐项比较。已完成K实验与第6节后续研究提案分别记录，原训练包保持字节一致。
 

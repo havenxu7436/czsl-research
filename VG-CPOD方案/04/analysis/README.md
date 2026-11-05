@@ -14,7 +14,7 @@
 
 本表均为 seed3351。C1/C2 由 VAL CW 选中第 8 轮；条件属性给定真实物体，并在全部属性中预测。
 
-![同seed主结果](pilot/figures/01_results.png)
+**图（精简版未保留）：** 同seed主结果
 
 | 比较 | TEST CW AUC | TEST OW AUC | TEST 未见属性 | 未见正确图像数变化 |
 |---|---|---|---|---|
@@ -48,7 +48,7 @@ B3 的训练门控均值约 1.241，对应 ρ≈0.1241；C1 取 ρ=0.125。公�
 
 配对增量的样本标准差为 CW 0.401、OW 0.352。B3/3352 自身 TEST CW/OW 为 35.364/24.493，对应 A5/3352 为 35.623/24.844。两个 seed 均减少 5 张未见属性正确图像，原 B3 不再作为新增训练主线。
 
-![B3两seed配对增量](pilot/figures/03_b3_repetition.png)
+**图（精简版未保留）：** B3两seed配对增量
 
 ## 3. C2的门控行为
 
@@ -62,7 +62,7 @@ B3 的训练门控均值约 1.241，对应 ρ≈0.1241；C1 取 ρ=0.125。公�
 
 C2 跨图像方差为 B3/3351 的 **21.6 倍**，对应变化尺度为 **4.65 倍**。单位模式均值按设计生效，同时图像之间的变化增大。C2 的图像方差占总方差约 2.68%，其余来自 batch 内物体/模式位置的平均差异；后续用均值门控替换进一步测量图像相关调制对预测的贡献。
 
-![训练门控统计](pilot/figures/02_gate_behavior.png)
+**图（精简版未保留）：** 训练门控统计
 
 ## 4. 未见属性与具体组合
 
@@ -103,12 +103,12 @@ C 轮结束时的下一阶段安排为：GPU1 补 C2/3352，GPU2 补 C2/3353，G
 
 ## 6. 数据与复算
 
-- [全部指标](pilot/tables/all_metrics.csv)、[同seed配对增量](pilot/tables/comparisons.csv)、[B3两seed增量汇总](pilot/tables/b3_two_seed_deltas.csv)。
-- [条件属性与概率质量](pilot/tables/diagnostics.csv)、[逐图像预测一致率及修正/退化计数](pilot/tables/similarity.csv)。
-- [逐组合表现](pilot/tables/per_pair.csv)、[逐组合增量](pilot/tables/per_pair_deltas.csv)。
-- [训练历史](pilot/tables/history.csv)、[门控日志](pilot/tables/gates.csv)、[Bvis几何统计](pilot/tables/geometry.csv)。
-- [结构化分析](pilot/analysis.json)、[原复算记录](pilot/audit.json)、[原始分析源码](../code/original_analysis/)。
-- [仓库归档与复算验证](repository_validation.json)、[五份README公式与排版检查](readme_layout_check.json)。
+- 全部指标（精简版未保留）、同seed配对增量（精简版未保留）、B3两seed增量汇总（精简版未保留）。
+- 条件属性与概率质量（精简版未保留）、逐图像预测一致率及修正/退化计数（精简版未保留）。
+- 逐组合表现（精简版未保留）、逐组合增量（精简版未保留）。
+- 训练历史（精简版未保留）、门控日志（精简版未保留）、Bvis几何统计（精简版未保留）。
+- 结构化分析（精简版未保留）、原复算记录（精简版未保留）、原始分析源码（精简版未保留）。
+- 仓库归档与复算验证（精简版未保留）、五份README公式与排版检查（精简版未保留）。
 
 在仓库根目录执行：
 

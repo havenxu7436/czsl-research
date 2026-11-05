@@ -110,13 +110,13 @@ B_{\mathrm{vis}}B_{\mathrm{vis}}^{\top}-I_r\right\rVert_F^2.
 
 | 文件 | 已实施的修改 | 实验作用 |
 |---|---|---|
-| [model.py](code/vgcpod_v1_roundC/vgcpod/model.py) | 新增 `gate_center_modes`；按模式轴中心化 q，再乘 η/2 | C2 实现单位模式均值；默认 false 沿用原 B 公式 |
-| [engine.py](code/vgcpod_v1_roundC/vgcpod/engine.py) | 新增 `gamma_mode_mean_deviation` | 检查每张图像、每个物体的模式均值 |
-| [C1/C2 配置](configs/round_c/) | C1 ρ=0.125；C2 开启中心化、η=0.25、ρ=0.1 | 分开检验幅度与相对模式调制 |
-| [round_c.py](code/vgcpod_v1_roundC/round_c.py) | C1/C2 队列，调用原 B 源码运行 B3；续训、跳过完成项、跨组汇总 | GPU1/2/3 分别执行 C1/3351、C2/3351、B3/3352 |
-| [tmux 脚本](code/vgcpod_v1_roundC/scripts/start_round_c_tmux.sh) | 传入当前 conda 环境的绝对 Python 路径，保存日志与退出码 | 脱离 SSH 后继续训练 |
-| [test_round_c.py](code/vgcpod_v1_roundC/tests/test_round_c.py) | 新增 4 项 C 组检查，累计 26 项 | 幅度等价、中心化、梯度、训练导出与续训 |
-| [references](configs/references/) | 加入已完成 A 组与 B 组指标快照 | 汇总同 seed 参考与原 B3 重复结果 |
+| model.py（精简版未保留） | 新增 `gate_center_modes`；按模式轴中心化 q，再乘 η/2 | C2 实现单位模式均值；默认 false 沿用原 B 公式 |
+| engine.py（精简版未保留） | 新增 `gamma_mode_mean_deviation` | 检查每张图像、每个物体的模式均值 |
+| C1/C2 配置（精简版未保留） | C1 ρ=0.125；C2 开启中心化、η=0.25、ρ=0.1 | 分开检验幅度与相对模式调制 |
+| round_c.py（精简版未保留） | C1/C2 队列，调用原 B 源码运行 B3；续训、跳过完成项、跨组汇总 | GPU1/2/3 分别执行 C1/3351、C2/3351、B3/3352 |
+| tmux 脚本（精简版未保留） | 传入当前 conda 环境的绝对 Python 路径，保存日志与退出码 | 脱离 SSH 后继续训练 |
+| test_round_c.py（精简版未保留） | 新增 4 项 C 组检查，累计 26 项 | 幅度等价、中心化、梯度、训练导出与续训 |
+| references（精简版未保留） | 加入已完成 A 组与 B 组指标快照 | 汇总同 seed 参考与原 B3 重复结果 |
 
 核心实现直接对应公式：
 
@@ -140,15 +140,15 @@ E_{\mathrm{mode}}=
 
 沿用 03 的 `gamma_image_variance`：对固定物体、模式沿训练 batch 图像轴求总体方差，再按图像数累计；变化尺度为其平方根。日志从梯度图分离。
 
-[相对03的完整补丁](code/source_changes.patch)保存新增公式、配置与调度差异。[原验证](results/package_validation/validation/result.json)包含 26 项测试、12 种旧配置各四次优化更新逐位一致，以及真实三进程 CPU 合成缓存调度。B3/3352 的训练仍使用[03 原 B 源码](../03/code/README.md)。
+相对03的完整补丁（精简版未保留）保存新增公式、配置与调度差异。原验证（精简版未保留）包含 26 项测试、12 种旧配置各四次优化更新逐位一致，以及真实三进程 CPU 合成缓存调度。B3/3352 的训练仍使用[03 原 B 源码](../03/code/README.md)。
 
 ## 5. 超参数选取策略与实际实验矩阵
 
 | 组 | 修正读出 | 门控 | ρ / η | seed | 选中 epoch |
 |---|---|---|---|---|---|
-| [C1](configs/round_c/C1.json) | 全局 g | 静态全 1 | 0.125 / 0 | 3351 | 8 |
-| [C2](configs/round_c/C2.json) | 全局 g | 局部响应，模式均值 1 | 0.1 / 0.25 | 3351 | 8 |
-| [B3 补 seed](configs/round_b/B3.json) | 全局 g | 原 B 组弱门控 | 0.1 / 0.25 | 3352 | 8 |
+| C1（精简版未保留） | 全局 g | 静态全 1 | 0.125 / 0 | 3351 | 8 |
+| C2（精简版未保留） | 全局 g | 局部响应，模式均值 1 | 0.1 / 0.25 | 3351 | 8 |
+| B3 补 seed（精简版未保留） | 全局 g | 原 B 组弱门控 | 0.1 / 0.25 | 3352 | 8 |
 
 1. **采用 A5 的训练基座。** 固定 β=0.1、CP LR=3e-4、适配器 LR=1e-3、rank32 与 10 轮，比较集中于门控与修正幅度。
 2. **C1 的 ρ 来自上一轮观测。** B3 门控均值约 1.241，对应平均静态尺度约 0.1241；取 0.125 形成清晰的 1.25 倍幅度对照。
@@ -167,49 +167,6 @@ E_{\mathrm{mode}}=
 | 总梯度裁剪阈值 / 动态正交项权重 | 1.0 / 0.001 |
 
 Bvis 与 Au、Av、Wc 同属 CP 参数组。C1 的 Bvis 冻结，正交项为零。配置中的 `readout_alpha`、伙伴及原子属性辅助分支参数为历史兼容字段，本轮运行由实际启用分支决定。
-
-## 6. 仓库结构与复现命令
-
-```text
-04/
-  README.md          # 公式、代码修订、超参策略和末节数据分析
-  code/              # 原C训练源码、原分析源码、相对03补丁
-  configs/           # C1/C2、兼容配置、资产与标量参考
-  results/           # C1/C2和B3补seed的完整结果及原归档
-  analysis/          # 配对分析、图表和仓库复算入口
-```
-
-在仓库根目录恢复原 C 运行包及 B3 需要的原 B 包：
-
-```bash
-git lfs pull
-python tools/reproduce.py materialize --line VG-CPOD方案 --stage 04 \
-  --dest /data/xhw/vgcpod_project/replay_04
-conda activate vgcpod_v1
-cd /data/xhw/vgcpod_project/replay_04/vgcpod_v1_roundC
-
-export VG_CACHE=/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14
-export VG_A_OUT=/data/xhw/vgcpod_v1_runs/roundA_20261019
-export VG_B_ROOT=/data/xhw/vgcpod_project/replay_04/companion_03/vgcpod_v1_roundB
-export VG_B_OUT=/data/xhw/vgcpod_v1_runs/replay_04_B
-export VG_C_OUT=/data/xhw/vgcpod_v1_runs/replay_04_C
-export VG_C_SESSION=vgcpod_04
-
-bash scripts/start_round_c_tmux.sh \
-  --gpus 1 2 3 --cases C1 C2 --seeds 3351 --b3-seed 3352
-tmux attach -t vgcpod_04
-```
-
-GPU1=C1/3351、GPU2=C2/3351、GPU3=B3/3352。`Ctrl+b` 后按 `d` 脱离 tmux。队列自动续训并跳过已完成项；本次历史队列的 B3/3352 即为读取已完成结果。恢复过程保留运行文件原字节和配置、资产的原布局。
-
-从保存预测复算本轮分析，在仓库根目录执行：
-
-```bash
-python VG-CPOD方案/04/analysis/recompute.py
-python tools/reproduce.py verify
-```
-
-复算需要 NumPy、PyTorch、Matplotlib，读取 01 的缓存元数据、02 的 A5/A6、03 的 B3/3351 与本轮三份新增运行结果，输出至 `analysis/recomputed/`。
 
 ## 7. 数据分析与本轮结论
 
@@ -231,6 +188,6 @@ python tools/reproduce.py verify
 - C2 相对 A5 的 TEST 未见正确图像从 461 增至 466：修正 7 张、退化 2 张；已见正确数均为 745。TEST CW 基本持平，OW native AUC +0.081 点，固定 VAL bias 的 OW HM −0.158 点。
 - C2 的批内跨图像方差占总方差约 2.68%。下一阶段补 C2/3352、3353，并比较 C2 与 ρ=0.125 的组合；附带训练均值门控替换评估，量化图像相关调制的贡献。这里记录 C 轮结束时的实验建议。
 
-![本轮同seed结果](analysis/pilot/figures/01_results.png)
+**图（精简版未保留）：** 本轮同seed结果
 
 完整配对表、逐组合变化、门控统计和复算误差见[数据分析 README](analysis/README.md)。

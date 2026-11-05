@@ -8,7 +8,7 @@
 
 状态：seed3351的32组矩阵已完成，每组10 epoch，共128份评价，使用20261014修正版。指标表见下方[结果与文件](#结果与文件)；[单 seed 数据分析](results/seed3351-10epoch-20261015/v2单seed数据分析.md)已补充模型比较、原设计问题评估及只读分数诊断。
 
-原20261013发布包及34项CPU验证记录保留不变；修正版原包内仍名为 `revised_0601_20261013`，为避免与旧版覆盖，仓库分区和materialize运行目录单独命名为 `revised_0601_20261014_fix`。修正版随包CPU记录为40项通过，不冒充此次导入重新执行CPU/CUDA测试。
+原20261013发布包及34项CPU验证记录保留不变；修正版原包内仍名为 `revised_0601_20261013`，为避免与旧版覆盖，仓库分区和历史打包流程运行目录单独命名为 `revised_0601_20261014_fix`。修正版随包CPU记录为40项通过，不冒充此次导入重新执行CPU/CUDA测试。
 
 ## 实验设置
 
@@ -20,40 +20,12 @@
 
 ## 流程
 
-1. `materialize` 恢复分区存储的完整包及必要历史工程输入，不会开始训练。
+1. `历史打包流程` 恢复分区存储的完整包及必要历史工程输入，不会开始训练。
 2. 运行 CPU 检查，冻结新 work 下的代码、配置、知识、数据 split 与 hash。
 3. 每个修订模型先进行4张真实 TRAIN 图像的 CUDA smoke；通过才正式训练。
 4. 队列完成后，VAL 固定 bias，分析 TEST primitive 错误与同权重 prior 读出；再次导出汇总。原始服务器快照未包含这些后分析文件；2026-10-16 已从归档分数另行计算 VAL 固定 bias、TEST 错误分解和无 bias 概率读出，同权重 prior 开关诊断尚未完成。
 
 上述是同一完整修正版的验证流程，不是分步修复公式。失败保留证据，不删除旧目录，也不因效果不涨停止。
-
-## 运行入口
-
-变量与路径约定沿用 [环境说明](../../environment/README.md)。在仓库根目录执行，先准备好 `PROJECT` 的原 CPF 源码、UT图像/split、GloVe、ViT权重和原 cache。冻结旧资产中的绝对路径仍需匹配，`materialize` 不自动迁移全部外部输入。
-
-```bash
-REPLAY=/srv/czsl-reproduce-v2
-python tools/reproduce.py materialize --line 0601方案 --stage v2 --dest "$REPLAY"
-V2_PKG="$REPLAY/revised_0601_20261014_fix"
-"$CPF_PY" "$V2_PKG/test_revision.py"
-"$CPF_PY" "$V2_PKG/prepare_revision.py" --root "$PROJECT" --work "$WORK" \
-  --suite all --epochs 10 --seeds 3351
-"$CPF_PY" "$V2_PKG/run_suite.py" --work "$WORK" --seeds 3351 \
-  --gpus "${CZSL_GPUS:?Set physical GPU IDs}" --max-workers 3 \
-  --export "$WORK/results.zip"
-```
-
-以上为前台队列；需脱离 SSH 持续运行时，将最后一条命令在 tmux 中运行。`--gpus` 是候选物理卡，脚本仍检查空闲状态，不终止其他任务。确认无遗留 worker/process group 后才可用 `--resume`；没有完整 last_resume checkpoint 时不得假装无损续训。不可修改冻结代码/配置后继续旧 work。
-
-后分析与再次导出：
-
-```bash
-"$CPF_PY" "$V2_PKG/posthoc_revision.py" --work "$WORK"
-"$CPF_PY" "$V2_PKG/run_suite.py" --work "$WORK" --summarize-only \
-  --export "$WORK/results.zip"
-```
-
-选模仅用 VAL；posthoc bias 在 VAL 上选，TEST只应用。结果ZIP不含模型checkpoint/图像大文件，checkpoint留在服务器。
 
 ## 配置矩阵
 

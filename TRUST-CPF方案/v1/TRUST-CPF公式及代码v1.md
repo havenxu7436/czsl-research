@@ -23,7 +23,7 @@ from torch.nn import functional as F
 
 
 
-[`trustcpf/common.py · unit`](code/trustcpf_clip_v1/trustcpf/common.py#L72)，源码第72行。
+`trustcpf/common.py · unit`（精简版未保留），源码第72行。
 
 ```python
 def unit(x):
@@ -44,7 +44,7 @@ g=\mathcal N(P_v^\top\mathop{\mathrm{LN}}\nolimits_{post}(H_0)),\quad p_\ell=\ma
 
 编码FP32，缓存FP16，输入预处理为官方CLIP的Resize、CenterCrop、RGB和Normalize。
 
-[`trustcpf/features.py · visual_tokens`](code/trustcpf_clip_v1/trustcpf/features.py#L17)，源码第17行。
+`trustcpf/features.py · visual_tokens`（精简版未保留），源码第17行。
 
 ```python
 def visual_tokens(visual, images):
@@ -66,7 +66,7 @@ def visual_tokens(visual, images):
 
 属性、对象、组合文本分别编码为$`e_a,e_o,e_{oa}`$。组合表按对象外层、属性内层reshape为`[O,A,768]`。
 
-[`trustcpf/features.py · prompts`](code/trustcpf_clip_v1/trustcpf/features.py#L37)，源码第37行。
+`trustcpf/features.py · prompts`（精简版未保留），源码第37行。
 
 ```python
 def prompts():
@@ -86,7 +86,7 @@ def prompts():
 
 
 
-[`trustcpf/features.py · query_patches`](code/trustcpf_clip_v1/trustcpf/features.py#L32)，源码第32行。
+`trustcpf/features.py · query_patches`（精简版未保留），源码第32行。
 
 ```python
 def query_patches(patches, queries, tau):
@@ -98,7 +98,7 @@ def query_patches(patches, queries, tau):
 
 缓存中的`g/fa/fo`以FP16保存，数据集读取后转换为FP32。共享适配器首先重新单位化，训练与评价使用相同输入契约。
 
-[`trustcpf/data.py · FeatureDataset`](code/trustcpf_clip_v1/trustcpf/data.py#L99)，源码第99行。
+`trustcpf/data.py · FeatureDataset`（精简版未保留），源码第99行。
 
 ```python
 class FeatureDataset(Dataset):
@@ -136,7 +136,7 @@ A_\theta(z)=\mathcal N(z+0.1U\mathop{\mathrm{GELU}}\nolimits(Dz)),\quad D\in\mat
 
 $`U`$零初始化。该适配器共享于全局、属性查询与对象查询特征。
 
-[`trustcpf/model.py · Adapter`](code/trustcpf_clip_v1/trustcpf/model.py#L8)，源码第8行。
+`trustcpf/model.py · Adapter`（精简版未保留），源码第8行。
 
 ```python
 class Adapter(nn.Module):
@@ -164,7 +164,7 @@ U_{oa}^0&=(c_{xo}^\top e_{oa}+\widetilde f_a^\top e_a)/T_0,\quad T_0=0.07.
 
 对象条件作用同时来自图像上下文$`c_{xo}`$和组合文本$`e_{oa}`$。
 
-[`trustcpf/model.py · TrustCPF.base`](code/trustcpf_clip_v1/trustcpf/model.py#L60)，源码第60行。
+`trustcpf/model.py · TrustCPF.base`（精简版未保留），源码第60行。
 
 ```python
     def base(self, g, fa, fo):
@@ -182,7 +182,7 @@ U_{oa}^0&=(c_{xo}^\top e_{oa}+\widetilde f_a^\top e_a)/T_0,\quad T_0=0.07.
 类型编号OI/OE/AE依次为0/1/2。属性目标节点索引`0..A-1`，对象目标节点索引`A..A+O-1`。
 OI源为父类CLIP文本；OE/AE源为描述CLIP文本。每个描述槽是独立关系。
 
-[`trustcpf/graph.py · graph_records`](code/trustcpf_clip_v1/trustcpf/graph.py#L8)，源码第8行。
+`trustcpf/graph.py · graph_records`（精简版未保留），源码第8行。
 
 ```python
 def graph_records(labels, knowledge):
@@ -212,7 +212,7 @@ d_e=h_u-h_c,\quad W_\rho=I+L_\rho R_\rho,\quad m_e=d_e+L_\rho(R_\rho d_e).
 
 768维下每类型消息矩阵用秩16参数化。$`R_\rho`$零初始化，对应$`W_\rho=I`$。
 
-[`trustcpf/model.py · TypedGraph.messages`](code/trustcpf_clip_v1/trustcpf/model.py#L29)，源码第29行。
+`trustcpf/model.py · TypedGraph.messages`（精简版未保留），源码第29行。
 
 ```python
     def messages(self):
@@ -232,7 +232,7 @@ Z_c(G)=\mathcal N\left(h_c+0.1\sum_\rho\frac{\sum_{e\in N_\rho(c)}b_em_e}{\max(1
 
 程序用关联矩阵乘法实现聚合，每次干预保持候选度数不变。
 
-[`trustcpf/model.py · TypedGraph.forward`](code/trustcpf_clip_v1/trustcpf/model.py#L34)，源码第34行。
+`trustcpf/model.py · TypedGraph.forward`（精简版未保留），源码第34行。
 
 ```python
     def forward(self, edges):
@@ -260,7 +260,7 @@ $`\alpha_g=T_g=0.1`$，$`P_v,P_o,P_a\in\mathbb R^{64\times768}`$。空图时残�
 
 `capacity=True`为容量对照：名称低秩变换取代关系消息，三元头直接作用于名称，不读取OE/AE来源。
 
-[`trustcpf/model.py · TrustCPF.score`](code/trustcpf_clip_v1/trustcpf/model.py#L69)，源码第69行。
+`trustcpf/model.py · TrustCPF.score`（精简版未保留），源码第69行。
 
 ```python
     def score(self, base, edges, capacity=False):
@@ -298,7 +298,7 @@ $`\alpha_g=T_g=0.1`$，$`P_v,P_o,P_a\in\mathbb R^{64\times768}`$。空图时残�
 
 训练候选为自己的Inner，最终适配为官方TRAIN。辅助属性损失读取完整未屏蔽条件概率。
 
-[`trustcpf/model.py · task_loss`](code/trustcpf_clip_v1/trustcpf/model.py#L96)，源码第96行。
+`trustcpf/model.py · task_loss`（精简版未保留），源码第96行。
 
 ```python
 def task_loss(joint, lo, lc, attrs, objs, candidates):
@@ -319,7 +319,7 @@ def task_loss(joint, lo, lc, attrs, objs, candidates):
 
 
 
-[`trustcpf/model.py · TypedGraph.regularizer`](code/trustcpf_clip_v1/trustcpf/model.py#L40)，源码第40行。
+`trustcpf/model.py · TypedGraph.regularizer`（精简版未保留），源码第40行。
 
 ```python
     def regularizer(self):
@@ -338,7 +338,7 @@ def task_loss(joint, lo, lc, attrs, objs, candidates):
 
 分块种子2026，稀有原语对应组合放公共Inner；检查每折Query的属性、对象均在该折Inner出现。
 
-[`trustcpf/folds.py · make_folds`](code/trustcpf_clip_v1/trustcpf/folds.py#L4)，源码第4行。
+`trustcpf/folds.py · make_folds`（精简版未保留），源码第4行。
 
 ```python
 def make_folds(pairs, seed=2026, count=5):
@@ -376,7 +376,7 @@ y_e=M^{-1}\sum_m\Delta_{e,m},\quad\nu_e=\mathop{\mathrm{Var}}\nolimits_{sample}(
 
 
 
-[`trustcpf/utility.py · paired_utility`](code/trustcpf_clip_v1/trustcpf/utility.py#L10)，源码第10行。
+`trustcpf/utility.py · paired_utility`（精简版未保留），源码第10行。
 
 ```python
 @torch.no_grad()
@@ -405,7 +405,7 @@ def paired_utility(model, base, target_local, candidates, edge_ids, weights, bac
 每任务最多8个Query组合、每组合8图、每类型8条边。$`\kappa_e=b_\rho/|E_\rho|`$，背景图$`M=4`$；第5折$`M=16`$。
 拟合三折各512任务，开发和审计各128任务。配对差分、边ID、Query图像ID和抽样概率写入测量文件。
 
-[`trustcpf/stages.py · measure`](code/trustcpf_clip_v1/trustcpf/stages.py#L19)，源码第19行。
+`trustcpf/stages.py · measure`（精简版未保留），源码第19行。
 
 ```python
 def measure(args):
@@ -464,7 +464,7 @@ def measure(args):
 
 每个原语最多16张Inner图像，按组合均值再按上下文等权；对象和属性分别聚合。$`r_c`$为最终单位摘要，$`n_c,k_c`$为图像数、上下文数。
 
-[`trustcpf/utility.py · support_summary`](code/trustcpf_clip_v1/trustcpf/utility.py#L31)，源码第31行。
+`trustcpf/utility.py · support_summary`（精简版未保留），源码第31行。
 
 ```python
 def support_summary(globals_, rows, allowed_ids, na, no, maximum, rng):
@@ -502,7 +502,7 @@ h_e^I&=[r_c;r_u;h_u;h_c;r_c^\top h_u;r_c^\top h_c;\log(1+n_c);\log(1+k_c);m_c;m_
 
 $`z=[k_e;h_e^I]\in\mathbb R^{6157}`$。OI父类的$`r_u`$使用成员Inner证据；描述节点置零并附缺失标记。
 
-[`trustcpf/utility.py · utility_features`](code/trustcpf_clip_v1/trustcpf/utility.py#L52)，源码第52行。
+`trustcpf/utility.py · utility_features`（精简版未保留），源码第52行。
 
 ```python
 def utility_features(bank, summary, semantic_only=False):
@@ -529,7 +529,7 @@ def utility_features(bank, summary, semantic_only=False):
 MLP为6157→256→128→2，隐藏层GELU；均值直接输出，方差$`\mathop{\mathrm{softplus}}\nolimits(v_{raw})+10^{-4}`$。
 输入均值和尺度仅由拟合记录计算。
 
-[`trustcpf/utility.py · UtilityNet`](code/trustcpf_clip_v1/trustcpf/utility.py#L71)，源码第71行。
+`trustcpf/utility.py · UtilityNet`（精简版未保留），源码第71行。
 
 ```python
 class UtilityNet(nn.Module):
@@ -564,7 +564,7 @@ L_e=\tfrac12[\log(v_e+\nu_e)+(y_e-m_e)^2/(v_e+\nu_e)],\quad
 
 
 
-[`trustcpf/utility.py · utility_nll`](code/trustcpf_clip_v1/trustcpf/utility.py#L83)，源码第83行。
+`trustcpf/utility.py · utility_nll`（精简版未保留），源码第83行。
 
 ```python
 def utility_nll(mean, variance, target, noise, inclusion, edges):
@@ -579,7 +579,7 @@ def utility_nll(mean, variance, target, noise, inclusion, edges):
 
 三模型独立种子，以Q4观测NLL选epoch；Q5审计使用选择前的三拟合折模型。最终模型使用五折标签按已选epoch数重新拟合。
 
-[`trustcpf/stages.py · fit_utility`](code/trustcpf_clip_v1/trustcpf/stages.py#L97)，源码第97行。
+`trustcpf/stages.py · fit_utility`（精简版未保留），源码第97行。
 
 ```python
 def fit_utility(args):
@@ -640,7 +640,7 @@ def fit_utility(args):
 
 方差和均值还原至原始NLL增益单位。
 
-[`trustcpf/utility.py · ensemble_moments`](code/trustcpf_clip_v1/trustcpf/utility.py#L91)，源码第91行。
+`trustcpf/utility.py · ensemble_moments`（精简版未保留），源码第91行。
 
 ```python
 @torch.no_grad()
@@ -664,7 +664,7 @@ def ensemble_moments(models, x, scales, types):
 
 所有有限集合上的方差采用分母$`L`$或$`R`$，与程序`unbiased=False`一致。测量噪声$`\nu`$不加入部署风险。
 
-[`trustcpf/utility.py · aggregate_moments`](code/trustcpf_clip_v1/trustcpf/utility.py#L99)，源码第99行。
+`trustcpf/utility.py · aggregate_moments`（精简版未保留），源码第99行。
 
 ```python
 def aggregate_moments(means, variances, ensemble_vars):
@@ -682,7 +682,7 @@ R_e=\widehat\mu_e-\lambda_{var}\sqrt{\widehat\sigma^2_{task,e}}-\lambda_{ens}\sq
 
 `mean`将两个风险权重置零，其余步骤与robust一致。
 
-[`trustcpf/stages.py · make_structure`](code/trustcpf_clip_v1/trustcpf/stages.py#L202)，源码第202行。
+`trustcpf/stages.py · make_structure`（精简版未保留），源码第202行。
 
 ```python
 def make_structure(cfg,bank,moments):
@@ -710,7 +710,7 @@ J(\pi)&=-\sum_e\pi_eR_e+\tau\sum_e[\pi_e\log(\pi_e/p_e^0)+(1-\pi_e)\log((1-\pi_e
 
 约束$`\sum_{e\in E_\rho}\pi_e\le B_\rho`$。$`\tau/[\pi_e(1-\pi_e)]>0`$保证严格凸；未超预算时乘子为0，超限时二分60次。
 
-[`trustcpf/graph.py · solve_budget`](code/trustcpf_clip_v1/trustcpf/graph.py#L59)，源码第59行。
+`trustcpf/graph.py · solve_budget`（精简版未保留），源码第59行。
 
 ```python
 def solve_budget(reward, types, tau, fraction=.5, prior=.5):
@@ -744,7 +744,7 @@ def solve_budget(reward, types, tau, fraction=.5, prior=.5):
 
 顺序选择风险9组、预算3组、温度3组。每个配置真实运行第4折冻结教师，按Query组合等权NLL选择。
 
-[`trustcpf/stages.py · tune`](code/trustcpf_clip_v1/trustcpf/stages.py#L212)，源码第212行。
+`trustcpf/stages.py · tune`（精简版未保留），源码第212行。
 
 ```python
 @torch.no_grad()
@@ -799,7 +799,7 @@ def tune(args):
 
 free结构对照采用score-function：$`\partial_{a_e}\mathbb E L=\mathbb E[(L-b)(b_e-\pi_e)]`$；$`b`$为上一批次EMA，额外KL均值权重0.01、各类型超预算概率均值的平方惩罚权重1。
 
-[`trustcpf/engine.py · train_model`](code/trustcpf_clip_v1/trustcpf/engine.py#L56)，源码第56行。
+`trustcpf/engine.py · train_model`（精简版未保留），源码第56行。
 
 ```python
 def train_model(args,cfg,text,bank,manifest,train_pairs,output,pi=None,initial=None,select=False):
@@ -898,7 +898,7 @@ def train_model(args,cfg,text,bank,manifest,train_pairs,output,pi=None,initial=N
 
 其中$`g_e=\partial L/\partial m_e`$包含固定度数、边开关、概念单位化及三元残差的链式导数。训练使用同一计算图自动回传，并叠加消息正则梯度。
 
-[`trustcpf/model.py · task_logit_gradients`](code/trustcpf_clip_v1/trustcpf/model.py#L109)，源码第109行。
+`trustcpf/model.py · task_logit_gradients`（精简版未保留），源码第109行。
 
 ```python
 def task_logit_gradients(obj_logits, conditional_logits, attrs, objs, candidates):
@@ -937,7 +937,7 @@ V(x)=K^{-1}\sum_k\|p_k-\bar p\|_2^2,\qquad -\log\bar p(y)\le K^{-1}\sum_k[-\log 
 
 
 
-[`trustcpf/model.py · average_graphs`](code/trustcpf_clip_v1/trustcpf/model.py#L126)，源码第126行。
+`trustcpf/model.py · average_graphs`（精简版未保留），源码第126行。
 
 ```python
 def average_graphs(model, batch, pi, candidates, count=16, seed=1701, mode='probability', capacity=False, return_joint=False):
@@ -972,7 +972,7 @@ p_{cal}=\mathop{\mathrm{softmax}}\nolimits(s^{(b)}/T).
 
 VAL选择工作点bias和温度，TEST直接应用。ECE采用15个等宽区间。
 
-[`trustcpf/engine.py · calibration_metrics`](code/trustcpf_clip_v1/trustcpf/engine.py#L132)，源码第132行。
+`trustcpf/engine.py · calibration_metrics`（精简版未保留），源码第132行。
 
 ```python
 def calibration_metrics(logs,truth,seen,bias,temperature):
@@ -995,7 +995,7 @@ def calibration_metrics(logs,truth,seen,bias,temperature):
 
 从正确未见样本的分数差减$`10^{-4}`$后采约20个bias点，加bias1000端点；与现有CPF原生扫描保持同一口径。准确率/AUC展示单位为百分数。
 
-[`trustcpf/metrics.py · native_curve`](code/trustcpf_clip_v1/trustcpf/metrics.py#L11)，源码第11行。
+`trustcpf/metrics.py · native_curve`（精简版未保留），源码第11行。
 
 ```python
 def native_curve(scores, truth, seen_classes):
@@ -1034,7 +1034,7 @@ def native_curve(scores, truth, seen_classes):
 
 每图像最佳seen分数$`s_s`$与最佳unseen分数$`s_u`$在$`b=s_s-s_u`$切换。汇总相同临界点后逐次更新Seen/Unseen计数，区间内部bias用于固定工作点。
 
-[`trustcpf/metrics.py · exact_curve`](code/trustcpf_clip_v1/trustcpf/metrics.py#L43)，源码第43行。
+`trustcpf/metrics.py · exact_curve`（精简版未保留），源码第43行。
 
 ```python
 def exact_curve(scores, truth, seen_classes):
@@ -1077,7 +1077,7 @@ def exact_curve(scores, truth, seen_classes):
 Spearman使用平均秩；方向同时报告全部样本和$`|y|>1.96\sqrt\nu`$子集，可靠子集比例另报。
 90%预测区间为$`m\pm1.645\sqrt{v+\nu}`$，这里传入的$`v`$是条件任务方差与集成分歧之和。
 
-[`trustcpf/utility.py · regression_metrics`](code/trustcpf_clip_v1/trustcpf/utility.py#L111)，源码第111行。
+`trustcpf/utility.py · regression_metrics`（精简版未保留），源码第111行。
 
 ```python
 def regression_metrics(mean,var,y,noise):
@@ -1108,7 +1108,7 @@ def regression_metrics(mean,var,y,noise):
 
 每类型固定随机排序前缀。描述来源用按所属原语分组的块旋转置换，保持被选源句多重集合；OI按父类分组旋转。小样本前缀不足以跨组置换时扩展到首个可置换前缀，保存实际扰动比例。
 
-[`trustcpf/graph.py · permute_bank`](code/trustcpf_clip_v1/trustcpf/graph.py#L86)，源码第86行。
+`trustcpf/graph.py · permute_bank`（精简版未保留），源码第86行。
 
 ```python
 def permute_bank(bank, seed=7101, rate=1., relation=None, deletion=False):
@@ -1153,7 +1153,7 @@ def permute_bank(bank, seed=7101, rate=1., relation=None, deletion=False):
 | 知识变化 | 分类型噪声曲线、实际扰动率、RAUC | `noise_*.json`、`robustness_summary.json` |
 | 随机重复 | seed配对AUC差、均值、样本std | `paired_comparisons.json` |
 
-完整训练和部署命令见[服务器实践命令](服务器实践命令.md)，方法与对照见[CLIP修订实验方案](TRUST-CPF_CLIP_修订实验方案v1.md)。
+方法与对照见[CLIP修订实验方案](TRUST-CPF_CLIP_修订实验方案v1.md)。
 
 ## 12. 源码索引
 

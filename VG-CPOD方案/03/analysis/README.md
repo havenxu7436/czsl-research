@@ -12,7 +12,7 @@
 | B2 | 44.089 | 31.122 | 33.450 | 24.656 | 22.845% |
 | B3 | 43.562 | 30.707 | 34.330 | 26.316 | 24.114% |
 
-![同seed结果](pilot/figures/01_results.png)
+**图（精简版未保留）：** 同seed结果
 
 ## 2. 相对A5的配对增量
 
@@ -44,7 +44,7 @@ B3的TEST CW/OW固定VAL bias HM为48.474 / 43.120，A5为48.407 / 43.187；工�
 
 条件属性准确率给定真实物体，在全部属性中预测。B3与A5的已见正确图像数相同；在1,891张未见图像中恢复7张、退化12张，净减少5张。三个重点负向组合合计减少10张，另外五个组合各增加1张。B3与A5的TEST条件属性top-1预测一致率为98.730%。
 
-![未见组合变化](pilot/figures/03_unseen_changes.png)
+**图（精简版未保留）：** 未见组合变化
 
 ## 4. 门控接近共同放大的证据
 
@@ -59,7 +59,7 @@ B2/B3的归一化平均偏移分别达到0.9780 / 0.9631，接近最大偏移1�
 
 选中epoch的梯度裁剪步骤比例：A5为17.78%，B2为50.28%，B3为29.44%。
 
-![学习曲线与门控](pilot/figures/02_learning_and_gate.png)
+**图（精简版未保留）：** 学习曲线与门控
 
 ## 5. 本轮之后的方向
 
@@ -84,10 +84,10 @@ q_{bjk}&=2\sigma\!\left(\frac{(B_{\mathrm{vis}}f^o_{bj})_k}{\tau_{\gamma}}\right
 
 ## 6. 数据与复算
 
-- [全部指标](pilot/tables/all_metrics.csv)、[同seed增量](pilot/tables/comparisons.csv)。
-- [条件属性修正/退化图像数](pilot/tables/conditional_changes.csv)、[逐组合增量](pilot/tables/per_pair_deltas.csv)。
-- [已见/未见诊断](pilot/tables/diagnostics.csv)、[各轮历史](pilot/tables/history.csv)、[门控统计](pilot/tables/gates.csv)、[Bvis几何统计](pilot/tables/gate_geometry.csv)。
-- [结构化分析](pilot/analysis.json)、[原复算记录](pilot/audit.json)、[原分析源码](../code/original_analysis/)。
+- 全部指标（精简版未保留）、同seed增量（精简版未保留）。
+- 条件属性修正/退化图像数（精简版未保留）、逐组合增量（精简版未保留）。
+- 已见/未见诊断（精简版未保留）、各轮历史（精简版未保留）、门控统计（精简版未保留）、Bvis几何统计（精简版未保留）。
+- 结构化分析（精简版未保留）、原复算记录（精简版未保留）、原分析源码（精简版未保留）。
 
 在仓库根目录执行：
 

@@ -14,24 +14,11 @@
 2. 执行真实图梯度检查，完成四组×三 seed 训练。
 3. 导出 VAL CW/OW 指标、配对差分与逐图分析。
 
-## 运行入口
-
-变量与路径对应关系见 [环境说明](../../environment/README.md)。
-
-```bash
-REPLAY=/srv/czsl-reproduce-04
-python tools/reproduce.py materialize --line 前期实验 --stage 04 --dest "$REPLAY"
-export UT_V2_ROOT="$PROJECT"
-export UT_V2_WORK="$WORK"
-bash "$REPLAY/ut_semantic_v2_20261006/prepare.sh"
-bash "$REPLAY/ut_semantic_v2_20261006/run_paired.sh"
-```
-
 ## 结果与文件
 
 C_text−A_unit 的平均 CW AUC 为 +3.0670 pp；C_text−C_shuffle 为 +0.3789 pp。
 
-- [执行代码](code/ut_semantic_v2_20261006/)
-- [知识、配置与结果索引](inputs.json)
-- [执行命令](runbook.json)
-- [results/experiments/semantic_v2/reports/paired_v2/paired_deltas.csv](<results/experiments/semantic_v2/reports/paired_v2/paired_deltas.csv>)
+- 执行代码（精简版未保留）
+- 知识、配置与结果索引（精简版未保留）
+- 执行命令（精简版未保留）
+- results/experiments/semantic_v2/reports/paired_v2/paired_deltas.csv（精简版未保留）

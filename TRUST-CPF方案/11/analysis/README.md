@@ -437,24 +437,24 @@ G₀ 的部分最佳轮次落在第 10 轮，尤其 C-GQA seed5353，说明本�
 
 **UT-Zappos50K**
 
-- [原始 540 行汇总](<../results/raw_export/trustg0_ut_results/summary.csv>)；[原始主表及五次单独置换结果](<../results/raw_export/trustg0_ut_results/main_table.md.txt>)；[完整核验记录](<confirmed/UT/verification.json>)。
-- [正式配对复算](<confirmed/UT/paired.json>)；[Q5 配对复算](<confirmed/UT/q5_paired.json>)；[已见/未见 NLL 复算](<confirmed/UT/nll_subgroups.json>)。
+- 原始 540 行汇总（精简版未保留）；原始主表及五次单独置换结果（精简版未保留）；完整核验记录（精简版未保留）。
+- 正式配对复算（精简版未保留）；Q5 配对复算（精简版未保留）；已见/未见 NLL 复算（精简版未保留）。
 - 压缩包 SHA256：`6673ba4d5639ddd8c8b4beea11b1746d0b22fb209556a39974421997611e684e`。
 
 **MIT-States**
 
-- [原始 540 行汇总](<../results/raw_export/trustg0_mit_results/summary.csv>)；[原始主表及五次单独置换结果](<../results/raw_export/trustg0_mit_results/main_table.md.txt>)；[完整核验记录](<confirmed/MIT/verification.json>)。
-- [正式配对复算](<confirmed/MIT/paired.json>)；[Q5 配对复算](<confirmed/MIT/q5_paired.json>)；[已见/未见 NLL 复算](<confirmed/MIT/nll_subgroups.json>)。
+- 原始 540 行汇总（精简版未保留）；原始主表及五次单独置换结果（精简版未保留）；完整核验记录（精简版未保留）。
+- 正式配对复算（精简版未保留）；Q5 配对复算（精简版未保留）；已见/未见 NLL 复算（精简版未保留）。
 - 压缩包 SHA256：`ca551b77889b1bdb05ac1376a421f305ff216414c530e7a56e931f4bafe04203`。
 
 **C-GQA**
 
-- [原始 540 行汇总](<../results/raw_export/trustg0_cgqa_results/summary.csv>)；[原始主表及五次单独置换结果](<../results/raw_export/trustg0_cgqa_results/main_table.md.txt>)；[完整核验记录](<confirmed/CGQA/verification.json>)。
-- [正式配对复算](<confirmed/CGQA/paired.json>)；[Q5 配对复算](<confirmed/CGQA/q5_paired.json>)；[已见/未见 NLL 复算](<confirmed/CGQA/nll_subgroups.json>)。
+- 原始 540 行汇总（精简版未保留）；原始主表及五次单独置换结果（精简版未保留）；完整核验记录（精简版未保留）。
+- 正式配对复算（精简版未保留）；Q5 配对复算（精简版未保留）；已见/未见 NLL 复算（精简版未保留）。
 - 压缩包 SHA256：`d95db5c213be8cd62253c8df07820ab4145e0fd30daa40bcf1d4d77cbdf9fe4a`。
 
-- [三数据集代码、配置、原语覆盖及图像划分交叉核验](<confirmed/THREE/cross_dataset_checks.json>)。
-- [共同条件目标预测审计、逐图库差值及选模记录](<confirmed/THREE/joint_evidence.json>)。
-- [本轮原始方案与公式](<../references/original_documents/TRUST-G0_三数据集总实验_方案与公式_20261028.md.txt>)。
-- [前次 UT/MIT 联合分析](<../references/original_documents/TRUST-G0_UT与MIT完整结果联合分析_20261030.md.txt>)；本报告纳入 C-GQA 后更新完整结论。
+- 三数据集代码、配置、原语覆盖及图像划分交叉核验（精简版未保留）。
+- 共同条件目标预测审计、逐图库差值及选模记录（精简版未保留）。
+- 本轮原始方案与公式（精简版未保留）。
+- 前次 UT/MIT 联合分析（精简版未保留）；本报告纳入 C-GQA 后更新完整结论。
 - [历史 A/B/C 分析](<../../10/analysis/README.md>)；[历史 Competition 分析](<../../06/analysis/README.md>)；[历史 R5 分析](<../../07/analysis/README.md>)。

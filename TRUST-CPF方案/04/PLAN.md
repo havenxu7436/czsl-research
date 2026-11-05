@@ -20,9 +20,9 @@ GPU 0、1、2 分别运行 seed 3351、3352、3353；每张卡先运行 Compact�
 
 服务器输入为：
 
-- `/data/xhw/experiments/trustcpf_strong_v1`：五折教师、配对 Query 测量、reference、Drop 与历史强基底结果。
-- `/data/xhw/experiments/trustcpf_modelcond_v1`：每 seed 的五折教师响应与 reference 响应，共 18 份缓存。
-- `/data/xhw/vgcpod_v1_runs/cache_ut_clip_l14`：原始 CLIP 特征缓存。
+- `${PROJECT_STORAGE}/experiments/trustcpf_strong_v1`：五折教师、配对 Query 测量、reference、Drop 与历史强基底结果。
+- `${PROJECT_STORAGE}/experiments/trustcpf_modelcond_v1`：每 seed 的五折教师响应与 reference 响应，共 18 份缓存。
+- `${PROJECT_STORAGE}/vgcpod_v1_runs/cache_ut_clip_l14`：原始 CLIP 特征缓存。
 
 本轮优化集中在四点：
 
@@ -66,7 +66,6 @@ Q5 已用于上一轮的探索性诊断，本轮按同一预定规则复算并�
 已用真实三 seed 归档输入跑通汇总、选模、审计、五折重拟合与选图；选出的正则为 10、100、100，复现上一轮诊断。完整三 seed 模拟流水线覆盖新适配、冻结 CPF、相同预算、原结果复用和续跑。正式 UT-Zappos 识别训练由下述服务器命令执行。
 
 - `FORMULAS_AND_CODE.md`：推导、公式与当前核心实现。
-- `SERVER_COMMANDS.md`：上传、训练、续跑、打包与下载。
 - `trustcpf/compact.py`：新增效用预测、审计、结构与适配。
 - `trustcpf/workflow.py`：导入、阶段恢复和完整汇总。
 - `validation/`：公式测试、真实归档复算、下载和打包验证记录。

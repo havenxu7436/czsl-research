@@ -14,22 +14,10 @@
 2. 执行 CPF 训练，保存配置、日志与 checkpoint。
 3. 按各 run 的评价设置导出指标。
 
-## 运行入口
-
-变量与路径对应关系见 [环境说明](../../environment/README.md)。
-
-```bash
-REPLAY=/srv/czsl-reproduce-01
-python tools/reproduce.py materialize --line 前期实验 --stage 01 --dest "$REPLAY"
-"$CPF_PY" "$PROJECT/src/KCC0601_v1/train.py" --help
-```
-
-训练配置与命令参数见 [inputs.json](inputs.json) 对应源码的参数接口。
-
 ## 结果与文件
 
 各数据集的基线指标与运行配置保存在本阶段结果目录。
 
-- [CPF 源码](../../src/KCC0601_v1/)
-- [知识、配置与结果索引](inputs.json)
-- [执行命令](runbook.json)
+- CPF 源码（精简版未保留）
+- 知识、配置与结果索引（精简版未保留）
+- 执行命令（精简版未保留）

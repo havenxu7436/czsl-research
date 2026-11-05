@@ -20,6 +20,6 @@
 
 ## 数据可用性
 
-当前精简版不包含数据集、知识缓存、模型权重、checkpoint、日志、逐样本预测和压缩包，也不需要执行 `git lfs pull`。历史提交中的 LFS 对象不会因为本次精简自动从 GitHub 配额中消失；详情见 [DATA_AVAILABILITY.md](DATA_AVAILABILITY.md) 与 [CLEANUP_POLICY.md](CLEANUP_POLICY.md)。
+当前精简版不包含数据集、知识缓存、模型权重、checkpoint、日志、逐样本预测和压缩包，当前树也不依赖 Git LFS。历史提交中的 LFS 对象不会因为本次精简自动从 GitHub 配额中消失；详情见 [DATA_AVAILABILITY.md](DATA_AVAILABILITY.md) 与 [CLEANUP_POLICY.md](CLEANUP_POLICY.md)。
 
 环境版本与外部输入约定仍见 [environment/README.md](environment/README.md)。

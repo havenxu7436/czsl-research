@@ -1,65 +1,31 @@
-# 运行环境与输入
+# 实验环境记录
 
-## 软件环境
+## 基础软件
 
-CPF 主线记录：Linux、Python 3.8.18、PyTorch 1.13.1+cu117、torchvision 0.14.1+cu117、NumPy 1.24.4、SciPy 1.10.1，GPU 为 RTX 3090。
-各源码快照与依赖记录保存在 `records/`。CLIP 探针包含固定版本的源码与依赖 wheel。
-
-## 输入文件
-
-| 输入 | 对应要求 |
+| 项目 | 归档实验环境 |
 |---|---|
-| UT-Zappos、MIT-States、C-GQA 图像与 split/metadata | CPF 数据加载器布局与对应原始划分 |
-| `glove.6B.300d.txt` | GloVe 300d；manifest 中的文件 SHA256 |
-| ViT B16 预训练权重 | 对应训练配置的 backbone |
-| 前序 checkpoint | 第 05–09 阶段等使用的选中权重；续训使用完整 model/Adam/RNG 状态 |
-| CLIP ViT-L/14 权重 | 第 14 阶段 protocol 指定的模型与 SHA256 |
+| 操作系统 | Linux |
+| Python | 3.8.18 |
+| PyTorch / CUDA | 1.13.1 + cu117 |
+| torchvision | 0.14.1 + cu117 |
+| NumPy / SciPy | 1.24.4 / 1.10.1 |
+| 训练 GPU | RTX 3090 |
+| CLIP | OpenAI CLIP ViT-L/14 |
 
-外部资源索引见 [external_inputs.csv](../provenance/external_inputs.csv)。图像全集、大模型权重与部分前序 checkpoint 独立于本仓库存储。
+## 数据与模型输入
 
-## 命令变量
-
-| 变量 | 含义 |
+| 路线 | 外部输入 |
 |---|---|
-| `CPF_PY` | 匹配上述环境的 Python 可执行文件 |
-| `PROJECT` | 基础源码、数据与知识的工程根目录 |
-| `WORK` | 本次运行的独立输出目录 |
-| `REPLAY` | `materialize` 生成的执行包目录 |
-| `CZSL_GPU` / `CZSL_GPUS` | 执行使用的物理 GPU 编号 |
-| `CZSL_DEADLINE` | 带时区的 ISO8601 队列截止时间 |
+| 前期实验 / 0601 | UT-Zappos、MIT-States、C-GQA 的图像与原始 split/metadata；GloVe 300d；对应 ViT 权重与前序 checkpoint |
+| VG-CPOD | UT-Zappos natural split、CLIP ViT-L/14 权重与冻结图像/文本特征 |
+| TRUST-CPF | UT-Zappos、MIT-States、C-GQA；CLIP ViT-L/14；各数据集独立冻结特征与 CPF/G₀ 基底 |
 
-```bash
-export CPF_PY=/srv/czsl-env/bin/python
-export PROJECT=/srv/czsl-project
-export WORK=/srv/czsl-runs/0601-02
-```
+数据集图像、预训练模型、冻结特征、知识缓存和 checkpoint 不属于精简仓库。各重点版本的配置文件保留数据集、seed、epoch、选模规则和超参数定义。
 
-Bash 入口中的解释器、输入与输出路径由各包脚本定义。缓存和前序权重的固定输入路径记录在 manifest/protocol 中；运行环境的目录映射与这些记录对应。
-第 14、15 阶段的输出目录名固定在 protocol 中，具体值见各阶段入口。
+## 评价口径
 
-## 运行目录恢复
+- 0601 方案按对应 VAL 规则选择权重，并以同一权重评价 VAL/TEST CW/OW。
+- VG-CPOD 使用首次严格最大 VAL CW AUC 选模，同时记录 native/exact AUC。
+- TRUST-CPF 的正式比较在同 seed、同图库和同一冻结分类器条件下配对；版本 11 对三个数据集分别拟合流水线。
 
-从仓库根目录执行，以0601方案 02为例：
-
-```bash
-python tools/reproduce.py verify
-python tools/reproduce.py materialize --line 0601方案 --stage 02 --dest /srv/czsl-reproduce-0601-02
-python tools/reproduce.py doctor --line 0601方案 --stage 02 --project /srv/czsl-reproduce-0601-02/project
-```
-
-`materialize` 恢复累计源码、知识、配置与包内校验文件；基础工程位于 `project/`。
-`doctor` 输出外部输入和固定路径检查结果。随后执行对应阶段的 prepare、训练或诊断入口。
-
-## 评价记录
-
-记录字段包括 dataset、split、seed、epoch、知识哈希、选模规则与 checkpoint 身份。
-0601方案 01、02按首次严格最大 VAL CW AUC 选模，同一权重评价 VAL/TEST CW/OW。
-分数、指标、逐轮日志和权重身份由各阶段的结果索引关联。
-
-## VG-CPOD独立路线
-
-[VG-CPOD v1](../VG-CPOD方案/v1/README.md)使用冻结CLIP ViT-L/14双编码器，运行输入为UT原图/split与CLIP权重；不需要GloVe或CPF checkpoint。`VG_DATA`、`VG_CLIP`、`VG_WORK`、`VG_GPU`分别指定数据、权重、输出和物理GPU。版本页提供独立materialize与训练入口，现有前两条路线的恢复方式不变。
-
-## TRUST-CPF第四条路线
-
-[TRUST-CPF / CLIP v1](../TRUST-CPF方案/v1/README.md)使用冻结ViT-L/14与UT自然划分，依赖随包requirements保存。`DATA_ROOT`、`CLIP_CKPT`、`CACHE`、`WORK_ROOT`分别指定数据、CLIP权重、冻结特征缓存与seed输出根目录；`CPF_PY`固定已激活CZSL环境解释器，`CUDA_VISIBLE_DEVICES`选择物理GPU。恢复命令为`python tools/reproduce.py materialize --line TRUST-CPF方案 --stage v1 --dest /srv/trustcpf-replay-v1`，随后进入其`trustcpf_clip_v1`执行[服务器命令](../TRUST-CPF方案/v1/服务器实践命令.md)。外部输入哈希见[输入索引](../TRUST-CPF方案/v1/external_inputs.json)。
+精简仓库用于审阅公式、实现与结果，不包含完整训练环境快照或原始实验工作目录。

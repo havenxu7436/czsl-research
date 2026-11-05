@@ -8,7 +8,7 @@
 
 936 行识别、3360 行 Q4、3504 行 Q5、1056 行测量方向曲线、33 行训练曲线；26 个正式策略 × 3 seed × 3 bank，共 234 份正式预测结果、468 个 VAL/TEST 概率文件。
 
-[v8 方案](PLAN.md) · [公式与核心实现](FORMULAS_AND_CODE.md) · [代码](code/README.md) · [配置](configs/README.md) · [完整结果](results/README.md) · [完整分析](analysis/README.md) · [复算](analysis/REPRODUCE.md) · [恢复与服务器命令](SERVER_COMMANDS.md)
+[v8 方案](PLAN.md) · [公式与核心实现](FORMULAS_AND_CODE.md) · [代码](code/README.md) · [配置](configs/README.md) · [结果汇总](results/README.md) · [完整分析](analysis/README.md)
 
 | 方法 | TEST CW native AUC | TEST OW native AUC |
 | --- | --- | --- |
@@ -22,15 +22,3 @@
 先在每个 seed 内平均三图库，再汇总三 seed；± 为样本标准差。AUC 为 0–100，配对差为百分点。三个识别 seed 共享同一预测器。
 
 C 在三个 seed 的 CW/OW 上均超过 Uniform、关系置换均值和情境打乱；平均增量约为 +0.0965 / +0.1093，但均值与 Matched 接近。A 未改善；B 未超过 Matched。完整 Q4/Q5 与下一步建议见分析。
-
-## 恢复同一执行包
-
-```bash
-git lfs pull --include="TRUST-CPF方案/10/**"
-python tools/register_trustcpf_abc.py --check
-python tools/reproduce.py materialize --line TRUST-CPF方案 --stage 10 --dest "$HOME/experiments/trust-10-replay"
-cd "$HOME/experiments/trust-10-replay/trustcpf_abc_v1_10ep"
-python -m unittest discover -s tests -p test_abc.py -v
-```
-
-[执行与评分清单](configs/experiment_inventory.json) · 历史输入/文件指纹/发布成员/raw-export 清单（精简版已移除） · [来源与许可](来源与许可.md)

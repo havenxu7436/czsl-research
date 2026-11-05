@@ -497,8 +497,8 @@ J_{ao}(x)&=\log p(o\mid x)+\log p(a\mid o,x).
 
 ## 7. 归档与复算入口
 
-[全部结果](../results/README.md) · [分析原始数值](confirmed/analysis.json) · [36行指标](confirmed/metrics_verified.csv) · [候选数量诊断](confirmed/candidate_sizes.json) · [下一轮算子数学核验](confirmed/next_operator_math_checks.json) · [代码修订](../code/README.md) · [下一步方向](../NEXT_DIRECTION.md)
+[全部结果](../results/README.md) · 分析原始数值（精简版未保留） · 36行指标（精简版未保留） · 候选数量诊断（精简版未保留） · 下一轮算子数学核验（精简版未保留） · [代码修订](../code/README.md) · [下一步方向](../NEXT_DIRECTION.md)
 
 在仓库根目录执行 `python VG-CPOD方案/13/analysis/recompute.py`，使用安装了 PyTorch 和 NumPy 的 Python。输出位于忽略的 `analysis/recomputed/`；归档确认值位于 `analysis/confirmed/`。重算使用归档原始预测和当时执行的评价源码。
 
-历史参考：[G0汇总](../../12/results/raw_export/roundK_20261021/matched_native_summary.csv) · [此前局部视觉方向](../../12/code/original_analysis/analysis_roundK_results_20261021/research_direction.md) · [TRUST v1完整结果](../../../TRUST-CPF方案/v1/analysis/server-results-20261022/README.md)。
+历史参考：G0汇总（精简版未保留） · [此前局部视觉方向](../../12/code/original_analysis/analysis_roundK_results_20261021/research_direction.md) · [TRUST v1完整结果](../../../TRUST-CPF方案/v1/analysis/server-results-20261022/README.md)。

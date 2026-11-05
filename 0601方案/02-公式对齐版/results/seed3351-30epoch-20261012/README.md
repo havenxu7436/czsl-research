@@ -67,7 +67,7 @@ AUC 单位为百分比；每行的四项指标来自同一选中 checkpoint。
 1672 项检查通过；791 个导出成员完成校验；46 个执行源文件与 r2 对应。
 56 份评价从保存分数复算，原始 0–1 单位的最大数值差为 0。
 
-- [audit.json](audit.json)：指标核验与曲线统计。
-- [raw_export/summary/summary.json](raw_export/summary/summary.json)：原始指标汇总。
-- [raw_export/protocol.json](raw_export/protocol.json)：实际训练协议。
-- [export_member_map.json](export_member_map.json)：导出成员索引。
+- audit.json（精简版未保留）：指标核验与曲线统计。
+- raw_export/summary/summary.json（精简版未保留）：原始指标汇总。
+- raw_export/protocol.json（精简版未保留）：实际训练协议。
+- export_member_map.json（精简版未保留）：导出成员索引。

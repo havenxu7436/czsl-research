@@ -24,7 +24,7 @@
 
 UT标签轴为16属性、12对象，张量顺序`[batch, object, attribute]`，dataset组合元组仍是`(attribute, object)`。训练83组合，图像22998/3214/2914分别对应TRAIN/VAL/TEST。
 
-源知识沿用本机`reviewed-v2`：12条对象父类关系、36条OE、48条AE，共96条候选关系。源文件随包放在`assets/knowledge/`。名称不作为可删边；每条描述与其所属原语构成一个独立干预单位。父类名称作为OI消息源。
+源知识沿用归档环境`reviewed-v2`：12条对象父类关系、36条OE、48条AE，共96条候选关系。源文件随包放在`assets/knowledge/`。名称不作为可删边；每条描述与其所属原语构成一个独立干预单位。父类名称作为OI消息源。
 
 官方候选定义：
 
@@ -346,4 +346,4 @@ RAUC为噪声率0/0.1/0.2/0.3/0.5上AUC的梯形积分除以0.5。每类型5个�
 
 `features → graph → teachers → measure → fit → audit → tune → fit --fit-all → reference → structure → adapt → report`。
 
-对应源码、逐式说明与核心摘录见`TRUST-CPF公式及代码v1.md`。完整服务器命令见`服务器实践命令.md`。实验包提供UT自然划分的可执行流程、源码、知识、配置和测试；真实UT准确率由该服务器队列生成。本地验证区分数学/合成流程测试与正式训练结果，不按AUC阈值设置自动停跑分支。
+对应源码、逐式说明与核心摘录见`TRUST-CPF公式及代码v1.md`。正式 UT 准确率来自完整训练队列；数学/合成流程测试与正式训练结果分开记录，不按 AUC 阈值设置自动停跑分支。

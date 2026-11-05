@@ -116,18 +116,18 @@ t_m^*&=\min\{t\in\{1,\ldots,10\}:A_t^m=\max_{1\le s\le10}A_s^m\},
 
 | 文件 | 具体修订 | 实验作用 |
 |---|---|---|
-| [model.py](code/vgcpod_v1_roundI/vgcpod/model.py) | 新增 `train_centered` 和原幅值 `fo - mean` 分支 | I1去掉逐向量单位化 |
-| [engine.py](code/vgcpod_v1_roundI/vgcpod/engine.py) | 两种残差输入均加载固定TRAIN均值 | 训练构造器支持I1/I2 |
-| [gate_features.py](code/vgcpod_v1_roundI/vgcpod/gate_features.py) | 将H1专用提示改为TRAIN中心化通用提示 | 均值加载计算沿用H版本 |
-| [I1](configs/round_i/I1.json)／[I2](configs/round_i/I2.json) | I1改输入，I2改温度；分别命名 | 其他训练超参同H1 |
-| [round_i.py](code/vgcpod_v1_roundI/round_i.py) | 一次统计／复用均值、三卡各I1→I2、续训、十二项评估 | 六训练及同seed配对汇总 |
-| [ranking_diagnostics.py](code/vgcpod_v1_roundI/ranking_diagnostics.py) | 纳入I1/I2−H1/G0/G1、I1−I2及dynamic−mean | 概率质量与排序诊断 |
-| [历史参考](configs/references/pre_i_complete.json) | 29项历史native及H1/G0/G1的exact指标 | 使用历史已完成结果 |
-| [tmux启动](code/vgcpod_v1_roundI/scripts/start_round_i_tmux.sh)／[I组测试](code/vgcpod_v1_roundI/tests/test_round_i.py) | 三卡队列与四项新增测试 | 累计48项发布测试 |
+| model.py（精简版未保留） | 新增 `train_centered` 和原幅值 `fo - mean` 分支 | I1去掉逐向量单位化 |
+| engine.py（精简版未保留） | 两种残差输入均加载固定TRAIN均值 | 训练构造器支持I1/I2 |
+| gate_features.py（精简版未保留） | 将H1专用提示改为TRAIN中心化通用提示 | 均值加载计算沿用H版本 |
+| I1（精简版未保留）／I2（精简版未保留） | I1改输入，I2改温度；分别命名 | 其他训练超参同H1 |
+| round_i.py（精简版未保留） | 一次统计／复用均值、三卡各I1→I2、续训、十二项评估 | 六训练及同seed配对汇总 |
+| ranking_diagnostics.py（精简版未保留） | 纳入I1/I2−H1/G0/G1、I1−I2及dynamic−mean | 概率质量与排序诊断 |
+| 历史参考（精简版未保留） | 29项历史native及H1/G0/G1的exact指标 | 使用历史已完成结果 |
+| tmux启动（精简版未保留）／I组测试（精简版未保留） | 三卡队列与四项新增测试 | 累计48项发布测试 |
 
-相对09的计算修订位于 model／engine；gate_features 仅修改提示文本，均值加载计算沿用原实现。mean_gate_eval.py 及其 TRAIN 均值替换路径逐字沿用 H 版本。[完整源码补丁](code/source_changes.patch)和[服务器源码身份](results/server_source_identity.json)保留变化范围与原字节核对。
+相对09的计算修订位于 model／engine；gate_features 仅修改提示文本，均值加载计算沿用原实现。mean_gate_eval.py 及其 TRAIN 均值替换路径逐字沿用 H 版本。完整源码补丁（精简版未保留）和服务器源码身份（精简版未保留）保留变化范围与原字节核对。
 
-原发布验证完成48项测试、六项CPU合成训练、十二项均值评估和重复启动复用。测试覆盖 I1 的显式CP／门控、有限差分梯度、代表尺度恒等式、幅值响应、固定buffer与续训。旧H1路径的新旧模型参数、AdamW与Torch RNG逐元素一致。[原验证](results/package_validation/I/validation/result.json)与[仓库复算](analysis/recompute.py)分别保存发布流程和正式数据核查。
+原发布验证完成48项测试、六项CPU合成训练、十二项均值评估和重复启动复用。测试覆盖 I1 的显式CP／门控、有限差分梯度、代表尺度恒等式、幅值响应、固定buffer与续训。旧H1路径的新旧模型参数、AdamW与Torch RNG逐元素一致。原验证（精简版未保留）与仓库复算（精简版未保留）分别保存发布流程和正式数据核查。
 
 ## 5. 超参数选取策略与实际结果
 
@@ -157,53 +157,7 @@ t_m^*&=\min\{t\in\{1,\ldots,10\}:A_t^m=\max_{1\le s\le10}A_s^m\},
 | AdamW β₁、β₂／ε／weight decay | 0.9、0.999 / 1e-8 / 1e-4 |
 | 总梯度裁剪／λorth／eval batch／workers | 1 / 0.001 / 64 / 4 |
 
-CP优化组为Au/Av/Wc/Bvis，`cp_lr_scale=0.3`；`gate_fo_mean`为固定buffer。模板与服务器实际配置分别保存在[round_i](configs/round_i/)与[runtime](configs/runtime/)。
-
-## 6. 仓库结构与复现入口
-
-```text
-10/
-  README.md          # 修订说明、公式、超参策略，末节数据分析
-  code/              # I原源码、相对H补丁与原分析源码
-  configs/           # I1/I2模板、运行配置、资产、参考与清单
-  results/           # 六训练、双选择、十二项评估、均值、日志与原归档
-  analysis/          # 数据分析、图表、预测复算和归档核对
-```
-
-在仓库根目录恢复原运行包，复用服务器已有CLIP缓存及历史对照：
-
-```bash
-git lfs pull
-python tools/reproduce.py materialize --line VG-CPOD方案 --stage 10 \
-  --dest /data/xhw/vgcpod_project/replay_10
-conda activate vgcpod_v1
-cd /data/xhw/vgcpod_project/replay_10/vgcpod_v1_roundI
-
-export VG_I_OUT=/data/xhw/vgcpod_v1_runs/replay_10_I
-export VG_I_SESSION=vgcpod_10_I
-bash scripts/start_round_i_tmux.sh \
-  --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14 --gpus 1 2 3 \
-  --a-out /data/xhw/vgcpod_v1_runs/roundA_20261019 \
-  --c-out /data/xhw/vgcpod_v1_runs/roundC_20261020 \
-  --d-out /data/xhw/vgcpod_v1_runs/roundD_20261020 \
-  --e-out /data/xhw/vgcpod_v1_runs/roundE_20261020 \
-  --f-out /data/xhw/vgcpod_v1_runs/roundF_20261020 \
-  --g-out /data/xhw/vgcpod_v1_runs/roundG_20261020 \
-  --h-out /data/xhw/vgcpod_v1_runs/roundH_20261020
-
-tmux attach -t vgcpod_10_I
-```
-
-脚本先复用／生成一次共享TRAIN均值，再生成I1/I2运行配置并启动三卡队列。Ctrl+b、d脱离tmux。`launcher.exitcode=0`且日志出现`ROUND_I_COMPLETE ... training_jobs 6 mean_gate_jobs 12`表示整轮完成。输入见[external_inputs.json](external_inputs.json)，命令见[runbook.json](runbook.json)。
-
-在仓库根目录复算保存预测的指标、配对差值和图表：
-
-```bash
-python VG-CPOD方案/10/analysis/recompute.py
-python tools/reproduce.py verify
-```
-
-复算依赖NumPy、PyTorch、Matplotlib，输出至`analysis/recomputed/`；原分析保存在`analysis/confirmed/`。materialize按[映射](package_members.json)恢复原包85个成员的布局与字节。
+CP优化组为Au/Av/Wc/Bvis，`cp_lr_scale=0.3`；`gate_fo_mean`为固定buffer。模板与服务器实际配置分别保存在round_i（精简版未保留）与runtime（精简版未保留）。
 
 ## 7. 数据分析与下一轮方向
 
@@ -222,6 +176,6 @@ python tools/reproduce.py verify
 - **完整结果仍低于静态G0。** I2−G0的TEST CW／OW为−0.307／−0.330点；I2 dynamic−mean为+0.428／+0.098点。条件属性与未见组合排序仍有差距。
 - **下一轮建议J1检验读出共享约束。** 沿用I2的τγ=0.56、η=0.25，分别学习静态／动态CP读出，属性／物体因子共享；三seed各10轮。J1为下一轮计划，本阶段正式结果为I1/I2。
 
-![I组与历史对照及双准则选择](analysis/confirmed/figures/01_results_and_selection.png)
+**图（精简版未保留）：** I组与历史对照及双准则选择
 
 完整配对SD、逐seed差值、动态／均值分析、公式核查及J1的推导见[数据分析README](analysis/README.md)。D1继续作为已有性能参照，G0/G1为同β／ρ对照。
