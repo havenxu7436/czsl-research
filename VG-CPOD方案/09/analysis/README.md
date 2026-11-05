@@ -27,7 +27,7 @@ H1 相对 G1 的 TEST CW／OW AUC 下降 **0.902／1.186 点**，三个 seed 的
 | H1-E1 | -0.798 ± 0.366 | -1.310 ± 0.888 | -0.053 个百分点 |
 | H1-F1 | -0.401 ± 0.358 | -0.481 ± 0.658 | -1.868 个百分点 |
 
-![同配置静态、原门控与残差门控的结果](confirmed/figures/01_matched_results.png)
+**图（精简版未保留）：** 同配置静态、原门控与残差门控的结果
 
 H1 的 VAL CW AUC 相对 G1 为 −0.025 点，VAL OW 为 +0.356 点；TEST CW／OW 为 −0.902／−1.186 点。H1 的验证集变化没有转化为测试集排序收益。
 
@@ -79,7 +79,7 @@ V_{\mathrm{total}}&=\mathrm{Var}_{b,j,k}(\gamma_{bjk})=V_{\mathrm{image}}+V_{\ma
 
 H1 的图像方差占比约 99.9%，G1 约 2%；图像标准差平均扩大约 5.8 倍。H1 固定均值偏离 1 的平均绝对值仅约 0.0016–0.0019。输入中心化确实把主要变化转向了图像维度。
 
-![门控变化与动态干预的作用](confirmed/figures/02_gate_and_intervention.png)
+**图（精简版未保留）：** 门控变化与动态干预的作用
 
 H1 使用的两个连续变换为：
 
@@ -102,7 +102,7 @@ H1 使用的两个连续变换为：
 
 Bvis 选中权重的平均行范数由 G1 的约 1.36 增加至 H1 的约 1.70。第 10 轮平均 pair loss 从 1.13608 降到 1.12291，task 从 1.71780 降到 1.69816；梯度裁剪比例从 38.24% 降到 23.43%。H1 的训练拟合增强，日志未呈现优化发散。**输入放大和幅值信息被移除，是下一轮要检验的解释。**
 
-![同 seed 验证轨迹与训练拟合](confirmed/figures/03_history.png)
+**图（精简版未保留）：** 同 seed 验证轨迹与训练拟合
 
 ## 4. 主要下降发生在条件属性与未见组合排序
 
@@ -209,15 +209,10 @@ s_{\mathrm{TRAIN}}\approx\sqrt{\frac{1}{O}\sum_j(1-\lVert\mu_j\rVert_2^2)},
 - 从 float32 归一化概率重算 native 扫描的最大差异为 0.028018 点；主表采用服务器原始分数保存的曲线积分。exact 与 native 均得到本报告中的下降方向。
 - 原始 TRAIN 大特征数组未包含在下载包中；本地核对保存的 TRAIN 均值、身份信息及其 checkpoint 副本。残差 RMS 使用单位特征恒等式估算。
 
-复算程序和明细位于 [confirmed/](confirmed/)，包括 `analysis.json`、`audit.json`、`tables/` 与 `figures/`。本次分析保留现有实验代码，I1／I2 为下一轮实施方案。
+复算程序和明细位于 confirmed/（精简版未保留），包括 `analysis.json`、`audit.json`、`tables/` 与 `figures/`。本次分析保留现有实验代码，I1／I2 为下一轮实施方案。
 
 ## 8. 仓库复算与归档核对
 
-[主说明](../README.md)记录公式、代码修订与超参策略；[原分析数据](confirmed/analysis.json)、[原审计](confirmed/audit.json)、[仓库验证](repository_validation.json)、[源码补丁](../code/source_changes.patch)按平行结构保存。
-
-```bash
-python VG-CPOD方案/09/analysis/recompute.py
-python tools/reproduce.py verify
-```
+[主说明](../README.md)记录公式、代码修订与超参策略；原分析数据（精简版未保留）、原审计（精简版未保留）、仓库验证（精简版未保留）、源码补丁（精简版未保留）按平行结构保存。
 
 复算读取本轮 H1、前序 D/E/F/G、缓存元数据及固定均值，验证 156 份预测、198 行排序诊断和 checkpoint 均值副本，输出至 `recomputed/`。原始字节映射与配置路径适配由复算入口完成。

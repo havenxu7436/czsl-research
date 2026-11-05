@@ -100,17 +100,17 @@ D_b^{\mathrm{extra}}&=\mathbf{1}\!\left[
 
 | 文件 | 本轮具体改动 | 作用 |
 |---|---|---|
-| [G1.json](configs/round_g/G1.json) | β=0.075、experiment_id=G1 | 支持集权重中间点 |
-| [G0.json](configs/round_g/G0.json) | G1 配置的 gate_input 改为 none | 相同目标下的静态训练对照 |
-| [round_g.py](code/vgcpod_v1_roundG/round_g.py) | 每卡 G0→G1 队列、续训、六项均值评估、两组与历史配对汇总 | 六项训练的完整编排 |
-| [ranking_diagnostics.py](code/vgcpod_v1_roundG/ranking_diagnostics.py) | `diagnose()`、逐组合统计、同 seed 诊断差值及 SD | 连接属性、概率质量与组合排序 |
-| [tmux启动](code/vgcpod_v1_roundG/scripts/start_round_g_tmux.sh) | G 组会话、输出目录、日志和退出码 | 三 GPU 各负责一个 seed |
-| [G组测试](code/vgcpod_v1_roundG/tests/test_round_g.py) | 配置范围、静态极限、β=0.075 梯度、排序诊断 | 累计39项发布测试 |
-| [pre_g_complete.json](configs/references/pre_g_complete.json) | 20份已有训练运行的指标快照 | E1/F1 与历史同 seed 对照 |
+| G1.json（精简版未保留） | β=0.075、experiment_id=G1 | 支持集权重中间点 |
+| G0.json（精简版未保留） | G1 配置的 gate_input 改为 none | 相同目标下的静态训练对照 |
+| round_g.py（精简版未保留） | 每卡 G0→G1 队列、续训、六项均值评估、两组与历史配对汇总 | 六项训练的完整编排 |
+| ranking_diagnostics.py（精简版未保留） | `diagnose()`、逐组合统计、同 seed 诊断差值及 SD | 连接属性、概率质量与组合排序 |
+| tmux启动（精简版未保留） | G 组会话、输出目录、日志和退出码 | 三 GPU 各负责一个 seed |
+| G组测试（精简版未保留） | 配置范围、静态极限、β=0.075 梯度、排序诊断 | 累计39项发布测试 |
+| pre_g_complete.json（精简版未保留） | 20份已有训练运行的指标快照 | E1/F1 与历史同 seed 对照 |
 
-[相对07的源码补丁](code/source_changes.patch)记录实际文件差异。模型、objective、优化器与 CLIP 缓存读取沿用 F 包；[服务器身份核对](results/server_source_identity.json)与[原包76成员映射](package_members.json)保留源字节身份。
+相对07的源码补丁（精简版未保留）记录实际文件差异。模型、objective、优化器与 CLIP 缓存读取沿用 F 包；服务器身份核对（精简版未保留）与原包76成员映射（精简版未保留）保留源字节身份。
 
-[原发布验证](results/package_validation/G/validation/result.json)跑通六项训练、六项评估及重复启动复用。与原 F 训练器使用相同 G0/G1 配置比较，native／exact／last 的模型参数、AdamW 状态及 Torch RNG 逐元素一致。新增诊断在 E1/F1 真实预测上复算 36 行，与独立 F 分析的最大差异小于 1e-8。
+原发布验证（精简版未保留）跑通六项训练、六项评估及重复启动复用。与原 F 训练器使用相同 G0/G1 配置比较，native／exact／last 的模型参数、AdamW 状态及 Torch RNG 逐元素一致。新增诊断在 E1/F1 真实预测上复算 36 行，与独立 F 分析的最大差异小于 1e-8。
 
 ## 5. 超参数选取策略与实际矩阵
 
@@ -129,7 +129,7 @@ D_b^{\mathrm{extra}}&=\mathbf{1}\!\left[
 | G1 | 3352 | 8／8 | 41.8392 | 29.7950 | 35.1813 | 23.5737 |
 | G1 | 3353 | 9／6 | 44.7601 | 34.1473 | 34.1965 | 25.4049 |
 
-主表为 native 选择的 native AUC，面积×100。G0/G1 的 native 选中轮次均为8/8/9，exact 均为8/8/6；两种权重完整指标见[六项训练清单](configs/experiment_inventory.json)。
+主表为 native 选择的 native AUC，面积×100。G0/G1 的 native 选中轮次均为8/8/9，exact 均为8/8/6；两种权重完整指标见六项训练清单（精简版未保留）。
 
 | 固定项 | 设置 |
 |---|---|
@@ -143,49 +143,6 @@ D_b^{\mathrm{extra}}&=\mathbf{1}\!\left[
 | eval batch／workers | 64 / 4 |
 
 内部 `variant=V1`；通过 `gate_input=none/local` 区分静态和动态。G0 的 CP 组为 Au/Av/Wc，G1 增加 Bvis；`cp_lr_scale=0.3`，Wc 零初始化。
-
-## 6. 仓库结构与复现入口
-
-```text
-08/
-  README.md          # 修订、公式、超参策略与末节数据分析
-  code/              # 原G代码、相对F补丁、原分析源码
-  configs/           # G0/G1、兼容配置、资产、参考与运行清单
-  results/           # 六次训练、双选择、均值评估、日志及原归档
-  analysis/          # 数据分析、图表、静态等价验证与仓库复算
-```
-
-恢复原运行包并复用服务器现有 CLIP 缓存：
-
-```bash
-git lfs pull
-python tools/reproduce.py materialize --line VG-CPOD方案 --stage 08 \
-  --dest /data/xhw/vgcpod_project/replay_08
-conda activate vgcpod_v1
-cd /data/xhw/vgcpod_project/replay_08/vgcpod_v1_roundG
-
-export VG_G_OUT=/data/xhw/vgcpod_v1_runs/replay_08_G
-export VG_G_SESSION=vgcpod_08_G
-bash scripts/start_round_g_tmux.sh \
-  --cache /data/xhw/vgcpod_v1_runs/cache_ut_clip_l14 --gpus 1 2 3 \
-  --a-out /data/xhw/vgcpod_v1_runs/roundA_20261019 \
-  --c-out /data/xhw/vgcpod_v1_runs/roundC_20261020 \
-  --d-out /data/xhw/vgcpod_v1_runs/roundD_20261020 \
-  --e-out /data/xhw/vgcpod_v1_runs/roundE_20261020 \
-  --f-out /data/xhw/vgcpod_v1_runs/roundF_20261020
-tmux attach -t vgcpod_08_G
-```
-
-每卡顺序完成 G0/G1 及本 seed 的 G1 两项均值评估。按 Ctrl+b、d 脱离 tmux。`launcher.exitcode=0` 且日志出现 `ROUND_G_COMPLETE ... training_jobs 6 mean_gate_jobs 6` 表示整轮完成。外部输入见 [external_inputs.json](external_inputs.json)，命令见 [runbook.json](runbook.json)。
-
-从仓库保存的预测、checkpoint 与缓存元数据复算结果及均值门控的静态等价关系：
-
-```bash
-python VG-CPOD方案/08/analysis/recompute.py
-python tools/reproduce.py verify
-```
-
-复算依赖 NumPy、PyTorch、Matplotlib，输出至 `analysis/recomputed/`，原分析保存在 `analysis/confirmed/`。materialize 按映射恢复原包布局与字节。
 
 ## 7. 数据分析与下一轮方向
 
@@ -204,6 +161,6 @@ python tools/reproduce.py verify
 - **固定均值门控可吸收进静态 CP 物体因子。** 12×768 物体文本矩阵满行秩；六套选中权重的数值验证中，折叠前后的修正 logits 误差小于1e-14。
 - **下一轮建议 H1：用相对 TRAIN 均值的局部视觉残差驱动门控。** 固定 β=0.075、ρ=0.15、η=0.25，检验图像相关成分；H1 为后续表示设计，本阶段实际归档为已完成的 G0/G1。
 
-![同配置静态与动态训练对照](analysis/confirmed/figures/02_matched_static_dynamic.png)
+**图（精简版未保留）：** 同配置静态与动态训练对照
 
 完整分组、双选择、逐组合变化、门控方差与静态等价推导，以及 H1 的公式和实践安排，见[数据分析 README](analysis/README.md)。

@@ -77,7 +77,7 @@ Relative 及其置换在这些指标上也与 Uniform 一致。Absolute 的 raw 
 
 三个 bank 下 Relative 都精确等于 Uniform；Absolute 的 CW、OW 均值都低于 Uniform 及 Permuted-Absolute。结论没有依赖主 bank 的一次抽图。
 
-![Q5 与最终识别的证据对照](figures/evidence.png)
+**图（精简版未保留）：** Q5 与最终识别的证据对照
 
 左图每个点为一个训练 seed 对八个 Q5 图 bank 的均值；右图为主 bank 的三 seed 均值差。两图来自不同模型、不同评价集合，不能把左图增益直接当作最终 TEST 增益。
 
@@ -100,7 +100,7 @@ Relative 九个非零配置的 native AUC 全部低于 Uniform，因此按既定
 
 seed3352 的 Relative κ=1 与 Uniform 只差 −0.007 native AUC，属于很接近的配置。exact AUC 下 κ=0.5 比 Uniform 高 0.00039 点，κ=1 则低 0.216 点；这不构成可重复的正向优势，也不改变原 native 选参结果。3351／3353 的下降更明确。
 
-![冻结 reference 的强度扫描](figures/frozen_scan.png)
+**图（精简版未保留）：** 冻结 reference 的强度扫描
 
 实线为真实分配，虚线为五个类型内概率置换的均值。所有方法每类型期望保留一半关系，OI／OE／AE 分别为 6／18／24 条，总期望 48 条。
 
@@ -229,7 +229,7 @@ OI 的平均排序接近零；OE 有较明确的正相关；AE 排序较弱，�
 | 3352／Permuted-Absolute | 2 | 41.398 | 41.507 | 40.508 | 1.6812／1.6450 |
 | 3353／Uniform | 6 | 44.017 | 44.890 | 43.663 | 1.6807／1.6540 |
 
-![全部不同适配轨迹的验证曲线](figures/training.png)
+**图（精简版未保留）：** 全部不同适配轨迹的验证曲线
 
 圆圈标记 VAL 选中的 epoch。五条轨迹的最优权重在 epoch 2／4／6，epoch10 的 VAL 均低于各自最优点；训练 loss 仍下降，但泛化表现并未持续改善。当前曲线不支持把这一轮的缺乏增益归结为“三轮训练太短”，也没有支持直接延长到更多 epoch。
 
@@ -275,18 +275,18 @@ Uniform 从 epoch0 到 VAL 最优权重的 TEST 平均改善为 +0.337 CW／+0.3
 76f099e6369bd0761d0a4202f41d4000656966eb53ceb7dfe773e2dc633ae92a
 ```
 
-- [本轮原始完成状态](../results/raw_export/trustcpf_r5_v1_10ep/work/status.json)
-- [360 行完整识别结果](../results/raw_export/trustcpf_r5_v1_10ep/work/summary.csv)
-- [168 行 Q5 决策结果](../results/raw_export/trustcpf_r5_v1_10ep/work/decision_risks.csv)
-- [144 行冻结扫描](../results/raw_export/trustcpf_r5_v1_10ep/work/scan.csv)
-- [165 行训练曲线](../results/raw_export/trustcpf_r5_v1_10ep/work/training_curves.csv)
-- [本次聚合分析数据](confirmed/analysis.json)
-- [归档与输出核验](confirmed/integrity.json)
-- [逐图像指标复算](confirmed/prediction_verification.json)
-- [效用模型与决策复算](confirmed/mechanism_verification.json)
-- [边界配置与配对 MCSE](confirmed/diagnostics.json)
-- [识别复算脚本](../references/original_scripts/verify_results.py.txt)
-- [机制复算脚本](../references/original_scripts/verify_mechanism.py.txt)
+- 本轮原始完成状态（精简版未保留）
+- 360 行完整识别结果（精简版未保留）
+- 168 行 Q5 决策结果（精简版未保留）
+- 144 行冻结扫描（精简版未保留）
+- 165 行训练曲线（精简版未保留）
+- 本次聚合分析数据（精简版未保留）
+- 归档与输出核验（精简版未保留）
+- 逐图像指标复算（精简版未保留）
+- 效用模型与决策复算（精简版未保留）
+- 边界配置与配对 MCSE（精简版未保留）
+- 识别复算脚本（精简版未保留）
+- 机制复算脚本（精简版未保留）
 - [前轮 Competition 完整分析](../../06/analysis/README.md)
 - [R5 原方案与公式](../FORMULAS_AND_CODE.md)
 

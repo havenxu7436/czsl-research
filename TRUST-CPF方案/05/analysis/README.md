@@ -38,7 +38,7 @@
 
 这组结果的判断是：**Align 维持了半密度图的整体性能，但学习到的概率分配还没有提供额外的主指标优势。**
 
-![主识别结果与历史参照](figures/recognition.png)
+**图（精简版未保留）：** 主识别结果与历史参照
 
 ### 逐 seed 结果
 
@@ -175,7 +175,7 @@ Compact 预测策略在 **3/3 seed、24/24 评价 bank** 中都降低混合 NLL�
 
 直接测量单图效用的混合 NLL 下降为 0.08751，Compact 为 0.02120，后者约为前者的 **24.2%**，逐 seed 比例为 26.6%、13.7%、42.2%。这给出了清楚的预测提升空间。直接测量策略使用 Q5 测量图像的标签，是诊断参照；该比值描述本次实验差距，不是理论上限。
 
-![Q5 实际风险收益与冻结强度扫描](figures/utility_and_scan.png)
+**图（精简版未保留）：** Q5 实际风险收益与冻结强度扫描
 
 ### 5.2 局部方向同样有效
 
@@ -279,12 +279,12 @@ Compact 预测策略在 **3/3 seed、24/24 评价 bank** 中都降低混合 NLL�
 
 ## 9. 数据与复算文件
 
-- [本轮实验完成状态](../results/raw_export/trustcpf_align_v1/work/status.json)
-- [汇总后的逐项分析数据](confirmed/analysis.json)
-- [归档与阶段输出核验](confirmed/integrity.json)
-- [108 份预测复算记录](confirmed/prediction_verification.json)
-- [原始效用块与实际风险复算记录](confirmed/audit_verification.json)
-- [Q5／reference 排序变化诊断](confirmed/response_shift_diagnostic.json)
-- [可复跑分析脚本](../references/original_scripts/analyze.py.txt)
+- 本轮实验完成状态（精简版未保留）
+- 汇总后的逐项分析数据（精简版未保留）
+- 归档与阶段输出核验（精简版未保留）
+- 108 份预测复算记录（精简版未保留）
+- 原始效用块与实际风险复算记录（精简版未保留）
+- Q5／reference 排序变化诊断（精简版未保留）
+- 可复跑分析脚本（精简版未保留）
 
 所有原始归档和实验代码保持原状，本报告与复算产物单独保存在 `analysis_TRUST_CPF_align_v1_20261024`。

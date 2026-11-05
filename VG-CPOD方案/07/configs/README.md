@@ -2,9 +2,9 @@
 
 | 方案 | 读出 | 门控 | ρ | β | η | 新增seed／native最佳epoch |
 |---|---|---|---|---|---|---|
-| [F1](round_f/F1.json) | 全局 g | 物体查询输入、模式中心化 | 0.15 | **0.05** | 0.25 | 3351/8、3352/8、3353/6 |
+| F1（精简版未保留） | 全局 g | 物体查询输入、模式中心化 | 0.15 | **0.05** | 0.25 | 3351/8、3352/8、3353/6 |
 
-F1 与 [E1](round_e/E1.json) 的完整配置仅 `task_aux_beta` 与 `experiment_id` 不同。三次训练各 10 epochs、3600 次更新；native／exact 均选中 8／8／6 轮。实际全字段与两套指标见[experiment_inventory.json](experiment_inventory.json)。
+F1 与 E1（精简版未保留） 的完整配置仅 `task_aux_beta` 与 `experiment_id` 不同。三次训练各 10 epochs、3600 次更新；native／exact 均选中 8／8／6 轮。实际全字段与两套指标见experiment_inventory.json（精简版未保留）。
 
 ## 选取策略
 
@@ -34,9 +34,9 @@ CP 参数组为 Bvis、Au、Av、Wc，`cp_lr_scale=0.3`，Wc 从零初始化。�
 
 ## 配置、资产与对照索引
 
-- [F1实际配置](round_f/F1.json)、[E1直接对照](round_e/E1.json)、[D1配置](round_d/D1.json)、[C配置](round_c/)、[A配置](round_a/)、[B配置](round_b/)、[默认配置](default.json)。
-- [三项训练清单](experiment_inventory.json)、[六项均值评估清单](intervention_inventory.json)。
-- [F前17份参考指标](references/pre_f_complete.json)、[E前参考](references/pre_e_complete.json)、[A组三seed参考](references/round_a_confirm.json)、[标签资产](assets/)。
-- [外部输入与已有阶段](../external_inputs.json)。缓存 manifest SHA256 为 `bb8b7a8eb8c4e77a14ef65dd5c626aac559880d7c8d642dcc1e9a2a843831d2a`。
+- F1实际配置（精简版未保留）、E1直接对照（精简版未保留）、D1配置（精简版未保留）、C配置（精简版未保留）、A配置（精简版未保留）、B配置（精简版未保留）、默认配置（精简版未保留）。
+- 三项训练清单（精简版未保留）、六项均值评估清单（精简版未保留）。
+- F前17份参考指标（精简版未保留）、E前参考（精简版未保留）、A组三seed参考（精简版未保留）、标签资产（精简版未保留）。
+- 外部输入与已有阶段（精简版未保留）。缓存 manifest SHA256 为 `bb8b7a8eb8c4e77a14ef65dd5c626aac559880d7c8d642dcc1e9a2a843831d2a`。
 
 后续 β=0.075 的系数与对照策略见[数据分析](../analysis/README.md)。

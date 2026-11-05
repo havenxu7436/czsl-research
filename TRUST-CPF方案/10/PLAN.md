@@ -713,7 +713,7 @@ R_M^{\mathrm{ctx}}=\sum_g\omega_gR_{M,g}(\pi_g),
 ```
 
 
-独立情境预算下，若局部目标和 KL 正则都按 $`\omega_g`$ 加权，非空情境中的该权重相消，得到上述逐情境预算求解。不要只将效用乘以组频率而保持 KL 不变，否则会额外压缩低频组动作。
+独立情境预算下，若局部目标和 KL 正则都按 $`\omega_g`$ 加权，非空情境中的该权重相消，得到上述逐情境预算求解。只将效用乘以组频率而保持 KL 不变会额外压缩低频组动作，因此不属于本方案定义。
 
 ## 7. 对照设计与实际选择规则
 
@@ -940,12 +940,12 @@ State／Stage 正式模型完全相同；Stage 新增教师阶段匹配和响应
 
 ### 11.3 主要来源
 
-- [第七版机制分析 PDF](references/source_diagnosis_v7.pdf)：重点参考物理页 9–16 的 A/B/C 方案与页 20 的研究问题。
+- 第七版机制分析 PDF（精简版未保留）：重点参考物理页 9–16 的 A/B/C 方案与页 20 的研究问题。
 - [Stage 第二批完整分析](../09/analysis/README.md)：正式识别、Q5、教师曲线、重复响应与复算入口。
 - [State 第一批完整分析](../08/analysis/README.md)：联合拟合、冻结部署与原有对照。
 - [此前 v6 公式与方案](../08/PLAN.md)：截至 R5 的历史证据及前两批安排。
 - [弱基底完整分析](../v1/analysis/server-results-20261022/README.md)。
-- [静态知识 v2 完整分析](../05/references/history/conditional_v2_analysis.md.txt)。
+- 静态知识 v2 完整分析（精简版未保留）。
 - [强基底完整 TRUST 分析](../02/analysis/README.md)。
 - [模型响应条件化分析](../03/analysis/README.md)。
 - [Compact 完整分析](../04/analysis/README.md)。

@@ -4,17 +4,17 @@
 
 | 内容 | 入口 |
 | --- | --- |
-| 九组summary、聚合与配对结果 | [work/](raw_export/trustcpf_conditional_v2/work/) |
-| 3351 / 3352 / 3353 | [seed3351](raw_export/trustcpf_conditional_v2/work/seed3351/) · [seed3352](raw_export/trustcpf_conditional_v2/work/seed3352/) · [seed3353](raw_export/trustcpf_conditional_v2/work/seed3353/) |
-| 全部训练日志 | [logs/](raw_export/trustcpf_conditional_v2/logs/) |
-| 环境与缓存设置 | [setup.json](raw_export/trustcpf_conditional_v2/setup.json) |
-| 原始服务器压缩包与原发布ZIP | [archives/](archives/) |
-| 原始服务器181成员哈希 | [raw_export_members.json](raw_export_members.json) |
-| 重命名后的部署ZIP | [vgcpod_v1_roundL.zip](deployment/vgcpod_v1_roundL.zip) · [SHA256](deployment/vgcpod_v1_roundL.zip.sha256) |
-| 原发布40成员映射 | [original_release_member_map.json](original_release_member_map.json) |
-| 当前40成员执行包映射 | [package_members.json](../package_members.json) |
-| 代码逐文件身份与差异 | [server_source_identity.json](server_source_identity.json) |
-| 36行统一指标 | [metrics_verified.csv](../analysis/confirmed/metrics_verified.csv) |
+| 九组summary、聚合与配对结果 | work/（精简版未保留） |
+| 3351 / 3352 / 3353 | seed3351（精简版未保留） · seed3352（精简版未保留） · seed3353（精简版未保留） |
+| 全部训练日志 | logs/（精简版未保留） |
+| 环境与缓存设置 | setup.json（精简版未保留） |
+| 原始服务器压缩包与原发布ZIP | archives/（精简版未保留） |
+| 原始服务器181成员哈希 | raw_export_members.json（精简版未保留） |
+| 重命名后的部署ZIP | vgcpod_v1_roundL.zip（精简版未保留） · SHA256（精简版未保留） |
+| 原发布40成员映射 | original_release_member_map.json（精简版未保留） |
+| 当前40成员执行包映射 | package_members.json（精简版未保留） |
+| 代码逐文件身份与差异 | server_source_identity.json（精简版未保留） |
+| 36行统一指标 | metrics_verified.csv（精简版未保留） |
 | 完整数据分析 | [analysis/](../analysis/README.md) |
 
-原始结果包保留历史运行目录名，仅作为数据身份。全部权重、预测与压缩包通过Git LFS保存；克隆后执行`git lfs pull --include="VG-CPOD方案/13/**"`。
+原始结果包的运行目录名仅用于历史数据身份。权重、预测与压缩包不在精简版中；当前页保留实验规模、文件身份说明与分析入口。

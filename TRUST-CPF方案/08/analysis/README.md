@@ -71,7 +71,7 @@ Pooled-Absolute 的 OW HM 比 Uniform 略高约 0.067 点，但 CW／OW AUC 都�
 
 Pooled-Absolute 在 VAL 上约 +0.162 CW，但 TEST 为 −0.112；Pooled-Relative 也出现同样变化。联合拟合改善验证集表现的事实存在，但这部分改善没有迁移到测试组合。因而后续应检验教师与使用阶段、组合覆盖和响应估计，而不是继续依赖在当前 VAL 上细调分配强度。
 
-![本轮结果总览](figures/state_results_overview.png)
+**图（精简版未保留）：** 本轮结果总览
 
 图中黑点分别表示三个 seed。A 图先在 seed 内平均三个正式图 bank，B 图先平均八个 Q5 图 bank；图 bank 不是新增训练 seed。
 
@@ -216,18 +216,18 @@ Pooled-Absolute 的训练后响应重复相关仅 **0.361**，概率平均 RMS �
 
 归档 SHA256：`6a6d7be0d14c2a7f94fe538e54792d742285fe7f253ac757f41749b00313c9aa`。
 
-- [本轮完成状态](../results/raw_export/trustcpf_state_v1_10ep/work/status.json)
-- [1512 行正式识别结果](../results/raw_export/trustcpf_state_v1_10ep/work/summary.csv)
-- [792 行正式配对比较](../results/raw_export/trustcpf_state_v1_10ep/work/paired.csv)
-- [600 行 Q5 决策](../results/raw_export/trustcpf_state_v1_10ep/work/q5_decisions.csv)
-- [192 行 Q5 配对](../results/raw_export/trustcpf_state_v1_10ep/work/q5_paired.csv)
-- [效用预测指标](../results/raw_export/trustcpf_state_v1_10ep/work/utility.csv)
-- [epoch 0–10 曲线](../results/raw_export/trustcpf_state_v1_10ep/work/training_curves.csv)
-- [重复响应诊断](../results/raw_export/trustcpf_state_v1_10ep/work/response_repeats.csv)
-- [跨状态排序](../results/raw_export/trustcpf_state_v1_10ep/work/response_transfer.csv)
-- [概率与覆盖](../results/raw_export/trustcpf_state_v1_10ep/work/deployment.csv)
-- [阶段耗时](../results/raw_export/trustcpf_state_v1_10ep/work/costs.csv)
+- 本轮完成状态（精简版未保留）
+- 1512 行正式识别结果（精简版未保留）
+- 792 行正式配对比较（精简版未保留）
+- 600 行 Q5 决策（精简版未保留）
+- 192 行 Q5 配对（精简版未保留）
+- 效用预测指标（精简版未保留）
+- epoch 0–10 曲线（精简版未保留）
+- 重复响应诊断（精简版未保留）
+- 跨状态排序（精简版未保留）
+- 概率与覆盖（精简版未保留）
+- 阶段耗时（精简版未保留）
 
-- [预测与完整性复算](confirmed/verification.json)
-- [效用和 Q5 复算](confirmed/mechanism_verification.json)
-- [配对及聚合表复算](confirmed/table_verification.json)
+- 预测与完整性复算（精简版未保留）
+- 效用和 Q5 复算（精简版未保留）
+- 配对及聚合表复算（精简版未保留）

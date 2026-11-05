@@ -33,7 +33,7 @@ D1 的 TEST CW／OW 为 34.791／25.453，继续作为当前性能参照。G0／
 | I1-G1 | -0.374 ± 0.423 | -0.268 ± 0.469 | -0.723 个百分点 |
 | I2-G1 | -0.326 ± 0.373 | -0.204 ± 0.485 | -0.635 个百分点 |
 
-![完整结果及两种选权重路径](confirmed/figures/01_results_and_selection.png)
+**图（精简版未保留）：** 完整结果及两种选权重路径
 
 I2 的 VAL CW 比 I1 高 0.005 点，VAL OW 低 0.051 点；TEST CW／OW 高 0.048／0.064 点。两组输入尺度相近后，保留幅值与使用单位方向得到非常接近的结果。
 
@@ -71,7 +71,7 @@ I1 的 seed3351 出现 native 第 8 轮、exact 第 10 轮的差异。I2 两种�
 
 H1 的图像门控标准差约 0.066，I1/I2 降至约 0.027–0.028，图像方差占比仍接近 100%。本轮调低了实际图像调制尺度，同时保留了中心化门控的动态图像成分。
 
-![门控变化与推理干预收益](confirmed/figures/02_gate_effects.png)
+**图（精简版未保留）：** 门控变化与推理干预收益
 
 I2 的 CW dynamic−mean 增量为 +0.325／+0.400／+0.559 点，三个 seed 为正；OW 为 −0.053／+0.300／+0.048 点。未见属性正确数净变化为 +10／−3／+5，三 seed 平均提高 0.212 个百分点。
 
@@ -87,7 +87,7 @@ I2 的 CW dynamic−mean 增量为 +0.325／+0.400／+0.559 点，三个 seed �
 
 均值条件是已训练模型的推理干预；G0 是独立训练的静态模型。这两项比较分别显示同一模型中的动态贡献和整个训练方案的表现。它们提出下一轮的具体假设：**给静态和动态修正各自的读出矩阵，能否改善整体排序，同时保留动态图像贡献。**
 
-![均值条件、动态贡献和完整训练效果](confirmed/figures/03_static_dynamic_effects.png)
+**图（精简版未保留）：** 均值条件、动态贡献和完整训练效果
 
 ## 4. 属性迁移与组合排序的剩余差距
 
@@ -229,15 +229,10 @@ $`b_k`$ 是视觉门控矩阵第 $`k`$ 行的转置。η 保持 0.25，门控 γ
 - float32 归一化概率重算 native 扫描的最大差异为 0.028018 点，主表使用原始分数保存的曲线积分。native／exact 两类结果均在报告中保留。
 - 下载包包含 TRAIN 均值与身份信息；原始大特征数组仍保存在服务器。本次复算依据 checkpoint、预测、曲线和日志。
 
-明细位于 [confirmed/](confirmed/)：`analysis.json`、`audit.json`、`next_equations_audit.json`、`tables/` 和 `figures/`。
+明细位于 confirmed/（精简版未保留）：`analysis.json`、`audit.json`、`next_equations_audit.json`、`tables/` 和 `figures/`。
 
 ## 8. 仓库复算与归档核对
 
-[主说明](../README.md)记录本轮公式、代码修订与超参策略；[分析明细](confirmed/analysis.json)、[预测审计](confirmed/audit.json)、[下一轮公式数值核查](confirmed/next_equations_audit.json)、[仓库验证](repository_validation.json)与[源码补丁](../code/source_changes.patch)按平行结构保存。
-
-```bash
-python VG-CPOD方案/10/analysis/recompute.py
-python tools/reproduce.py verify
-```
+[主说明](../README.md)记录本轮公式、代码修订与超参策略；分析明细（精简版未保留）、预测审计（精简版未保留）、下一轮公式数值核查（精简版未保留）、仓库验证（精简版未保留）与源码补丁（精简版未保留）按平行结构保存。
 
 复算读取本轮I1/I2、前序D/E/F/G/H、缓存元数据和共享均值，覆盖252个预测文件、306行排序诊断及checkpoint均值副本。输出至`recomputed/`，与原分析JSON及CSV逐字比较。J1的数值核查使用真实I2权重和合成输入；J1为下一轮结构建议。

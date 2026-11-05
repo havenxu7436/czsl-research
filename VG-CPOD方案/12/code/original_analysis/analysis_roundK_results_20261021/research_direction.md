@@ -1,3 +1,5 @@
+# VG-CPOD K 轮后的研究方向
+
 ## 5. 大路径决策与创新定位
 
 **下一阶段的主问题：让模型学习“哪些局部视觉证据能区分两个属性在同一物体上的组合”。方法核心是改变比较与汇聚的顺序。** CLIP 视觉适配负责让 token 接受任务梯度，静态 CP 提供已有组合参数化；研究贡献集中在局部判别算子。
@@ -18,7 +20,7 @@
 
 | 已有工作／思想 | 已有内容 | 本方案具体研究什么 |
 |---|---|---|
-| [FACT 本地复核](VG-CPOD与FACT_创新性复核_含D组_20261020.md) | CP 交互及低秩算子解释 | CP 作为共同评分器；改变其 patch 级输出如何成为属性判别分数 |
+| FACT 本地复核（历史文档未随归档保留） | CP 交互及低秩算子解释 | CP 作为共同评分器；改变其 patch 级输出如何成为属性判别分数 |
 | [CANet](https://openaccess.thecvf.com/content/CVPR2023/html/Wang_Learning_Conditional_Attributes_for_Compositional_Zero-Shot_Learning_CVPR_2023_paper.html)、[CPF](https://arxiv.org/html/2507.17377v1) | 物体条件属性学习、条件概率及条件视觉提取 | 在同一物体条件下，以属性对的逐位置差值作为证据单位 |
 | [MSCI](https://arxiv.org/html/2505.10289v1) | 多层 CLIP 特征、跨模态交互与适配 | 首版只读最后一层，研究比较算子；视觉适配本身计入共同基座 |
 | [FILIP](https://arxiv.org/abs/2111.07783) | 视觉／文本 token 的细粒度晚交互 | 将两个属性假设放在同一 patch 上比较，再边缘化局部位置 |
@@ -234,7 +236,7 @@ UT 使用现有文本模板；MIT 使用适合状态—物体组合的模板，�
 
 ### 6.6 下一次代码工作的明确范围
 
-1. **在线视觉训练路径。** 复用本机 `CZSL/src/LOGICZSL_repro/model/troika.py` 中视觉 Adapter 与 CLIP 前向接口，输出 CLS 和最后层 patch；旧 `g/fa/fo` 缓存保留用于历史结果读取。
+1. **在线视觉训练路径。** 复用归档环境 `CZSL/src/LOGICZSL_repro/model/troika.py` 中视觉 Adapter 与 CLIP 前向接口，输出 CLS 和最后层 patch；旧 `g/fa/fo` 缓存保留用于历史结果读取。
 2. **统一评分器与三种读取。** 同一个静态 CP 参数集合实现 R0、R1、R2；将 $\delta\to m\to Dm$ 写成独立、可微的算子，不引入新的动态门控。
 3. **固定比较图与分块计算。** 保存词表、文本向量、边方向和 $D$；按候选物体、边和 microbatch 分块计算，避免物化完整 $[B,O,A,A,N]$ 张量。累积训练梯度时使用重计算控制激活内存，`logsumexp` 和图投影采用 FP32。
 4. **保留评价体系，补充机制记录。** 继续保存图像身份、候选顺序、完整 logits、checkpoint、优化器状态和三 seed 汇总；增加 TRAIN/VAL 固定样本的 patch 响应及最终模型的边证据诊断。

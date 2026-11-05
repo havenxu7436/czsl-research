@@ -26,7 +26,7 @@ G1 相对 F1 的 TEST CW／OW AUC 提高 **0.501／0.705 点**，属性与排序
 | G1-D1 | -0.261 ± 0.267 | -0.396 ± 0.504 | +0.353 个百分点 |
 | G1-G0 | +0.019 ± 0.037 | -0.127 ± 0.098 | -0.035 个百分点 |
 
-![三档 beta 与两种选权重路径](confirmed/figures/01_beta_and_selection.png)
+**图（精简版未保留）：** 三档 beta 与两种选权重路径
 
 G1 相对 F1 的 OW AUC 增量在三个 seed 上分别为 **+0.678／+0.703／+0.735 点**，方向一致。G1 相对 E1 的 CW AUC 为 +0.103 点、OW AUC 为 −0.124 点，未见条件属性提高 1.322 个百分点。
 
@@ -46,7 +46,7 @@ G0 与 G1 使用同一 β=0.075、ρ=0.15、CLIP、rank 和优化设置；G0 的
 
 G1−G0 的 VAL CW AUC 为 **+0.200 ± 0.072 点**，TEST CW 为 **+0.019 ± 0.037 点**，TEST OW 为 **−0.127 ± 0.098 点**。三个 seed 的 OW AUC 均下降。未见条件属性正确数净变化为 +1／−3／0，平均 −0.035 个百分点。
 
-![同配置动态与静态训练对比](confirmed/figures/02_matched_static_dynamic.png)
+**图（精简版未保留）：** 同配置动态与静态训练对比
 
 下面将“选权重依据”和“评价 AUC 的方式”分别列出，数值均为 G1−G0 的三 seed 平均：
 
@@ -68,7 +68,7 @@ G0、G1 的 seed3351/3352 均选择第 8 轮；seed3353 的 native 选择第 9 �
 | G1 | native | 9 | 44.7601 | 44.9489 | 34.1965 | 25.4049 |
 | G1 | exact | 6 | 44.6295 | 45.2592 | 33.6163 | 24.7593 |
 
-![seed3353 的两种 VAL AUC 与选中轮次](confirmed/figures/04_selection_divergence.png)
+**图（精简版未保留）：** seed3353 的两种 VAL AUC 与选中轮次
 
 native 使用既有有限 bias 扫描，exact 使用完整临界 bias 曲线。G1/3353 的第 9 轮 native VAL AUC 比第 6 轮高 0.1306 点，而第 6 轮 exact VAL AUC 比第 9 轮高 0.3103 点；二者因此保存不同权重。
 
@@ -119,7 +119,7 @@ dynamic−TRAIN mean 的三 seed 平均为：
 - TEST OW native AUC：**−0.037 ± 0.187 点**；exact AUC 为 −0.037 点。
 - TEST 未见条件属性：**−0.088 个百分点**，正确数变化为 0／−4／−1。
 
-![门控方差分解与均值替换效果](confirmed/figures/03_gate_variance_and_effect.png)
+**图（精简版未保留）：** 门控方差分解与均值替换效果
 
 G1 exact 选中权重的动态−均值 TEST CW／OW native AUC 为 **+0.063／−0.068 点**。两条选择路径都将下一轮的重点指向图像相关门控成分。
 
@@ -205,19 +205,14 @@ G 组退出码为 0，六项训练与六项均值评估均完成。核查 **26 �
 
 服务器保存的 228 行排序诊断均已复算一致；G 组源代码包的 75 份清单文件 SHA256 一致。固定 VAL bias 的 HM 与条件属性准确率复算一致；exact AUC 最大误差约 0.000049 点，native AUC 最大误差约 0.0280 点。正文主指标采用服务器保存值，配对 SD 从同 seed 差值计算。
 
-- [完整指标](confirmed/tables/metrics.csv)、[均值与标准差](confirmed/tables/means.csv)、[同 seed 差值](confirmed/tables/comparisons.csv)、[配对汇总](confirmed/tables/paired_means.csv)。
-- [排序诊断](confirmed/tables/ranking_diagnostics.csv)、[排序诊断配对汇总](confirmed/tables/ranking_diagnostic_paired_mean_sd.csv)、[逐组合增量](confirmed/tables/pair_deltas.csv)。
-- [TRAIN 门控统计](confirmed/tables/moments.csv)、[训练历史](confirmed/tables/history.csv)、[结构化分析](confirmed/analysis.json)、[预测复算记录](confirmed/audit.json)、[源代码与静态等价验证](confirmed/supplementary_audit.json)。
-- [复算脚本](../code/original_analysis/analysis_roundG_results_20261020/analyze_g.py)、[静态等价与诊断核查脚本](../code/original_analysis/analysis_roundG_results_20261020/supplementary_analysis.py)。
+- 完整指标（精简版未保留）、均值与标准差（精简版未保留）、同 seed 差值（精简版未保留）、配对汇总（精简版未保留）。
+- 排序诊断（精简版未保留）、排序诊断配对汇总（精简版未保留）、逐组合增量（精简版未保留）。
+- TRAIN 门控统计（精简版未保留）、训练历史（精简版未保留）、结构化分析（精简版未保留）、预测复算记录（精简版未保留）、源代码与静态等价验证（精简版未保留）。
+- 复算脚本（精简版未保留）、静态等价与诊断核查脚本（精简版未保留）。
 
 ## 9. 仓库复算与归档核查
 
-- [复算入口](recompute.py)顺序运行[预测与指标](recompute_metrics.py)、[排序诊断及静态CP等价](recompute_supplementary.py)、[图表](recompute_figures.py)。读取02/04/05/06/07已有结果、08新增结果与01缓存元数据。
-- [仓库验证](repository_validation.json)核对原包成员、TAR结果、README数值、公式及链接和运行包恢复；[原始复算记录](confirmed/audit.json)、[诊断及等价验证](confirmed/supplementary_audit.json)。
-
-```bash
-python VG-CPOD方案/08/analysis/recompute.py
-python tools/reproduce.py verify
-```
+- 复算入口（精简版未保留）顺序运行预测与指标（精简版未保留）、排序诊断及静态CP等价（精简版未保留）、图表（精简版未保留）。读取02/04/05/06/07已有结果、08新增结果与01缓存元数据。
+- 仓库验证（精简版未保留）核对原包成员、TAR结果、README数值、公式及链接和运行包恢复；原始复算记录（精简版未保留）、诊断及等价验证（精简版未保留）。
 
 输出至analysis/recomputed，原分析在analysis/confirmed。本阶段实际完成G0/G1各三seed，H1为后续输入表示实验建议。

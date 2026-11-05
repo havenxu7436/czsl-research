@@ -1,21 +1,24 @@
-# VG-CPOD方案
+# VG-CPOD 方案
 
-CLIP 图文框架上的组合评分、条件知识对照与视觉判别研究。
+这条路线从 CLIP 组合评分逐步推进到动态视觉读出与条件知识残差。精简版保留 v1、02–11 的分析性 Markdown 作为演进证据，只保留最后两个完整机制实验的执行文件。
 
-**[完整公式及核心代码v1](v1/VG-CPOD公式及代码v1.md)** · [数学与实验设计](v1/数学与实验设计_v1.md)
+## 重点版本
 
-| 编号 | 实验 | 入口 |
-|---|---|---|
-| 01 | CLIP ViT-L/14；UT-Zappos natural split | [版本索引](v1/README.md) · [结果](v1/results/ut-zap50k-3seeds-20261018/README.md) |
-| 02 | 支持损失重加权与 CP 分组学习率（A 组）；12 次训练，A1/A5/A6 三 seed | [修订说明](02/README.md) · [代码](02/code/README.md) · [配置](02/configs/README.md) · [结果](02/results/README.md) · [数据分析](02/analysis/README.md) |
-| 03 | 读出解耦与局部弱门控（B 组）；B1/B2/B3 各 seed3351，3 次训练 | [修订说明](03/README.md) · [代码](03/code/README.md) · [配置](03/configs/README.md) · [结果](03/results/README.md) · [数据分析](03/analysis/README.md) |
-| 04 | 静态幅度对照与模式中心化门控（C 组）；C1/C2 各 seed3351，另纳入 B3/3352 | [修订说明](04/README.md) · [代码](04/code/README.md) · [配置](04/configs/README.md) · [结果](04/results/README.md) · [数据分析](04/analysis/README.md) |
-| 05 | 中心化 CP 幅度联动与均值门控评估（D 组）；D1 三 seed，C2 两个补 seed、C1/3352，六 checkpoint 干预 | [修订说明](05/README.md) · [代码](05/code/README.md) · [配置](05/configs/README.md) · [结果](05/results/README.md) · [数据分析](05/analysis/README.md) |
-| 06 | 中心化 CP 强度扩展与双准则选权重（E 组）；E1 三 seed、两套最优权重及六项均值评估 | [修订说明](06/README.md) · [代码](06/code/README.md) · [配置](06/configs/README.md) · [结果](06/results/README.md) · [数据分析](06/analysis/README.md) |
-| 07 | 支持集权重下调与跨组合排序诊断（F 组）；F1 三 seed、加权损失日志、双准则选权重及六项均值评估 | [修订说明](07/README.md) · [代码](07/code/README.md) · [配置](07/configs/README.md) · [结果](07/results/README.md) · [数据分析](07/analysis/README.md) |
-| 08 | 支持集权重折中与门控训练对照（G 组）；G0/G1各三seed、β=0.075、双准则选择与六项均值评估 | [修订说明](08/README.md) · [代码](08/code/README.md) · [配置](08/configs/README.md) · [结果](08/results/README.md) · [数据分析](08/analysis/README.md) |
-| 09 | 训练均值中心化与归一化残差门控（H 组）；H1三seed、共享TRAIN均值、双准则选择与六项均值评估 | [修订说明](09/README.md) · [代码](09/code/README.md) · [配置](09/configs/README.md) · [结果](09/results/README.md) · [数据分析](09/analysis/README.md) |
-| 10 | 残差幅值保留与门控温度对照（I 组）；I1/I2各三seed、双准则选择与十二项均值评估 | [修订说明](10/README.md) · [代码](10/code/README.md) · [配置](10/configs/README.md) · [结果](10/results/README.md) · [数据分析](10/analysis/README.md) |
-| 11 | 静态与动态CP独立读出（J 组）；J1三seed、双准则选择与六项均值评估 | [修订说明](11/README.md) · [代码](11/code/README.md) · [配置](11/configs/README.md) · [结果](11/results/README.md) · [数据分析](11/analysis/README.md) |
-| 12 | 动态读出学习率分组与更新尺度对照（K 组）；K1/K2各三seed、双准则及十二项均值评估 | [修订说明](12/README.md) · [代码](12/code/README.md) · [配置](12/configs/README.md) · [结果](12/results/README.md) · [数据分析](12/analysis/README.md) |
-| 13 | G0条件知识残差与语义附件对照（L组）；L0/L1/L2各三seed，九组完整训练 | [实验入口](13/README.md) · [公式代码](13/FORMULAS_AND_CODE.md) · [结果](13/results/README.md) · [数据分析](13/analysis/README.md) · [下一步方向](13/NEXT_DIRECTION.md) |
+| 版本 | 完整性 | 核心结论 | 入口 |
+|---|---|---|---|
+| 12：动态读出学习率与更新尺度 | K1/K2 各 3 seed，双准则与 12 项均值评价 | 学习率分组能控制动态读出的更新尺度，但没有改善整体泛化；此后冻结 Wd 学习率/门控搜索 | [阶段](12/README.md) · [结果](12/results/README.md) · [分析](12/analysis/README.md) |
+| 13：条件知识残差 | L0 Base、L1 Knowledge、L2 Shuffle 各 3 seed，共 9 次完整训练 | Knowledge 优于 Base，但不及 Shuffle，未证明语义知识优势 | [阶段](13/README.md) · [公式代码](13/FORMULAS_AND_CODE.md) · [结果](13/results/README.md) · [分析](13/analysis/README.md) |
+
+版本 13 三 seed 均值：
+
+| 组 | CW AUC | OW AUC |
+|---|---:|---:|
+| L0 Base | 34.4384 ± 0.6282 | 25.1400 ± 0.9063 |
+| L1 Knowledge | 35.0555 ± 0.7869 | 25.7402 ± 0.8549 |
+| L2 Shuffle | **35.3067 ± 0.7471** | **25.9153 ± 0.5651** |
+
+## 历史索引
+
+[v1](v1/README.md) · [02](02/README.md) · [03](03/README.md) · [04](04/README.md) · [05](05/README.md) · [06](06/README.md) · [07](07/README.md) · [08](08/README.md) · [09](09/README.md) · [10](10/README.md) · [11](11/README.md)
+
+历史版本的代码和原始数据已由后续版本覆盖；其阶段说明、结果表和分析结论仍保留。

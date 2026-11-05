@@ -1,43 +1,25 @@
-# CZSL 研究：实验记录与复现
+# CZSL 研究：精简实验档案
 
-## 目录
+本仓库保留 **方案演进、最终公式、核心代码与完整分析结论**，不再把训练数据、checkpoint、逐样本导出和运行日志当作 GitHub 仓库内容。这样可直接阅读每条研究路线的证据链，同时避免用 Git/LFS 承担数十 GiB 的实验产物。
 
-```text
-前期实验/      01–15 阶段的说明、代码、配置与结果
-0601方案/      01–03 与 v2 的评分实现、配置与结果
-VG-CPOD方案/   独立CLIP路线；v1方案、公式、代码、配置与验证
-TRUST-CPF方案/ 第四条路线；CLIP关系效用、风险预算、公式与完整实验代码
-src/           CPF / LogiCZSL 基础源码快照
-knowledge/     按数据集、类型和版本组织的知识资产
-environment/   环境版本、外部输入与路径配置
-tools/         文件校验与运行目录恢复
-provenance/    文件来源、路径映射与 SHA256
-```
+## 最终保留路线
 
-## 实验路线
+| 路线 | 重点版本 | 为什么保留 | 入口 |
+|---|---|---|---|
+| 前期验证 | 01–15 的 Markdown 证据链 | 记录从 CPF 基线到冻结 CLIP 探针的关键否定/正向证据 | [索引](前期实验/README.md) · [汇总](前期实验/RESULTS_SUMMARY.md) |
+| 0601 | 02 公式对齐版 + v2 统一修订版 | 02 有三 seed 完整复现；v2 是最新统一公式实现 | [路线说明](0601方案/README.md) |
+| VG-CPOD | 12 动态读出 + 13 知识残差 | 12 完成更新尺度诊断；13 是最后的三 seed 语义对照 | [路线说明](VG-CPOD方案/README.md) |
+| TRUST-CPF | 10 完整 ABC + 11 三数据集独立流水线 | 10 完成机制拆解；11 是覆盖 UT/MIT/C-GQA 的最终泛化实验 | [路线说明](TRUST-CPF方案/README.md) |
 
-| 实验路线 | 实验编号 | 入口 |
-|---|---|---|
-| 前期实验 | 01–15 | [实验索引](前期实验/README.md) |
-| 0601方案 | 01–04 | [方案索引](0601方案/README.md) |
-| VG-CPOD | 01–13 | [方案索引](VG-CPOD方案/README.md) |
-| TRUST-CPF / CLIP | 01–11 | [方案索引](TRUST-CPF方案/README.md) |
+## 阅读方式
 
-## 使用流程
+1. 先看各路线 README 的版本选择与结论。
+2. 进入重点版本的 `analysis/README.md`、`results/README.md` 或公式文档查看完整表格。
+3. 最终版本保留可审阅的 `code/` 与 `configs/`；旧版本只保留分析性 Markdown。
+4. CW/OW 分别表示 closed-world/open-world。训练组按对应 VAL 规则选模，选中权重用于结果评价。
 
-```bash
-git lfs install
-git clone -c core.longpaths=true https://github.com/havenxu7436/czsl-research.git
-cd czsl-research
-git lfs pull
-python tools/reproduce.py verify
-```
+## 数据可用性
 
-1. [环境说明](environment/README.md)定义软件版本、外部输入与命令变量。
-2. [知识说明](knowledge/README.md)定义资产分区与版本。
-3. 各阶段 README 提供实验设置、关键流程、入口和结果链接。
-4. `inputs.json` 索引知识、配置和结果；`runbook.json` 保存该阶段的执行命令。
+当前精简版不包含数据集、知识缓存、模型权重、checkpoint、日志、逐样本预测和压缩包，当前树也不依赖 Git LFS。历史提交中的 LFS 对象不会因为本次精简自动从 GitHub 配额中消失；详情见 [DATA_AVAILABILITY.md](DATA_AVAILABILITY.md) 与 [CLEANUP_POLICY.md](CLEANUP_POLICY.md)。
 
-评价中的 CW/OW 分别表示 closed-world/open-world。训练组按对应 VAL 规则选模，选中权重用于结果评价。
-
-文件来源与 SHA256 见 `provenance/`。
+环境版本与外部输入约定仍见 [environment/README.md](environment/README.md)。

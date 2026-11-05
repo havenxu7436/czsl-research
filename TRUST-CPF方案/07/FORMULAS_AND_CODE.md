@@ -183,7 +183,7 @@ E_4(\alpha)=\frac13\sum_{t=0}^{2}\frac1{n_t}
 
 审计预测器只拟合 Q1–Q3，Q5 用于独立决策评价。最终部署分别使用各自已选 α，在 Q1–Q5 上重拟合；此时两方法共同重算五折 c、s、a_t，再对全 TRAIN reference 响应预测效用。
 
-`utility/absolute_reproduction.json` 核对 Absolute 的 α、Q5预测、reference预测与上一轮 U-NLL 一致。真实数据上的三 seed 和全部四个强度的 Absolute 概率均已在本机复算通过。
+`utility/absolute_reproduction.json` 核对 Absolute 的 α、Q5预测、reference预测与上一轮 U-NLL 一致。真实数据上的三 seed 和全部四个强度的 Absolute 概率均已在归档环境复算通过。
 
 ## 6. 概率分配与公平置换
 
@@ -249,4 +249,4 @@ r_e=\frac{\widehat u_e-\overline{\widehat u}_t}
 
 本地验证包含数学恒等式、三个截距消除、类型预算、置换集合一致、CRLF／LF源码比较，以及三seed完整小规模队列、10epoch完成、结果复用、源目录不变、阶段续跑与指标输出。35项测试中34项通过；1项CLIP重新提取测试因本轮复用已有特征而跳过。真实数据CPU核验覆盖三seed的Absolute回归、α及四个强度的概率复现，并核对Relative系数有限。正式UT识别训练由服务器命令执行。
 
-运行命令见同目录 `SERVER_COMMANDS.md`。上传ZIP与结果tar.gz均以SHA256校验，结果通过JSON描述文件确定路径并由Python按UTF-8解压。
+历史结果包曾以 SHA256 校验；精简档案保留公式、实现说明和汇总指标。

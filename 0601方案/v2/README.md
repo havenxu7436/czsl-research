@@ -1,12 +1,14 @@
 # v2 · 0601 统一修订版
 
+> **精简归档说明：** 本版本保留最新统一公式、seed 3351 的完整分析、核心代码和配置；checkpoint、日志、逐样本结果与打包文件已移出 GitHub。
+
 > **[复现公式与代码v2：完整公式与核心代码](复现公式与代码v2.md)** · [v1修订意见：逐项审计与修订依据](v1修订意见.md)
 >
 > 全部已识别公式问题在同一版本统一修订。v1、r2 与已有结果保持不变；v2 是修订后的新模型，不是原 LogiCZSL 数据/成绩的完整复现。
 
 状态：seed3351的32组矩阵已完成，每组10 epoch，共128份评价，使用20261014修正版。指标表见下方[结果与文件](#结果与文件)；[单 seed 数据分析](results/seed3351-10epoch-20261015/v2单seed数据分析.md)已补充模型比较、原设计问题评估及只读分数诊断。
 
-原20261013发布包及34项CPU验证记录保留不变；修正版原包内仍名为 `revised_0601_20261013`，为避免与旧版覆盖，仓库分区和materialize运行目录单独命名为 `revised_0601_20261014_fix`。修正版随包CPU记录为40项通过，不冒充此次导入重新执行CPU/CUDA测试。
+原20261013发布包及34项CPU验证记录保留不变；修正版原包内仍名为 `revised_0601_20261013`，为避免与旧版覆盖，仓库分区和历史打包流程运行目录单独命名为 `revised_0601_20261014_fix`。修正版随包CPU记录为40项通过，不冒充此次导入重新执行CPU/CUDA测试。
 
 ## 实验设置
 
@@ -18,40 +20,12 @@
 
 ## 流程
 
-1. `materialize` 恢复分区存储的完整包及必要历史工程输入，不会开始训练。
+1. `历史打包流程` 恢复分区存储的完整包及必要历史工程输入，不会开始训练。
 2. 运行 CPU 检查，冻结新 work 下的代码、配置、知识、数据 split 与 hash。
 3. 每个修订模型先进行4张真实 TRAIN 图像的 CUDA smoke；通过才正式训练。
 4. 队列完成后，VAL 固定 bias，分析 TEST primitive 错误与同权重 prior 读出；再次导出汇总。原始服务器快照未包含这些后分析文件；2026-10-16 已从归档分数另行计算 VAL 固定 bias、TEST 错误分解和无 bias 概率读出，同权重 prior 开关诊断尚未完成。
 
 上述是同一完整修正版的验证流程，不是分步修复公式。失败保留证据，不删除旧目录，也不因效果不涨停止。
-
-## 运行入口
-
-变量与路径约定沿用 [环境说明](../../environment/README.md)。在仓库根目录执行，先准备好 `PROJECT` 的原 CPF 源码、UT图像/split、GloVe、ViT权重和原 cache。冻结旧资产中的绝对路径仍需匹配，`materialize` 不自动迁移全部外部输入。
-
-```bash
-REPLAY=/srv/czsl-reproduce-v2
-python tools/reproduce.py materialize --line 0601方案 --stage v2 --dest "$REPLAY"
-V2_PKG="$REPLAY/revised_0601_20261014_fix"
-"$CPF_PY" "$V2_PKG/test_revision.py"
-"$CPF_PY" "$V2_PKG/prepare_revision.py" --root "$PROJECT" --work "$WORK" \
-  --suite all --epochs 10 --seeds 3351
-"$CPF_PY" "$V2_PKG/run_suite.py" --work "$WORK" --seeds 3351 \
-  --gpus "${CZSL_GPUS:?Set physical GPU IDs}" --max-workers 3 \
-  --export "$WORK/results.zip"
-```
-
-以上为前台队列；需脱离 SSH 持续运行时，将最后一条命令在 tmux 中运行。`--gpus` 是候选物理卡，脚本仍检查空闲状态，不终止其他任务。确认无遗留 worker/process group 后才可用 `--resume`；没有完整 last_resume checkpoint 时不得假装无损续训。不可修改冻结代码/配置后继续旧 work。
-
-后分析与再次导出：
-
-```bash
-"$CPF_PY" "$V2_PKG/posthoc_revision.py" --work "$WORK"
-"$CPF_PY" "$V2_PKG/run_suite.py" --work "$WORK" --summarize-only \
-  --export "$WORK/results.zip"
-```
-
-选模仅用 VAL；posthoc bias 在 VAL 上选，TEST只应用。结果ZIP不含模型checkpoint/图像大文件，checkpoint留在服务器。
 
 ## 配置矩阵
 
@@ -80,20 +54,18 @@ seed3351按首次严格最大VAL CW AUC选模，同一权重评价VAL/TEST CW/OW
 - [原始冻结work配置](configs/seed3351-10epoch-20261015/configs/)
 - [seed3351：指标与训练记录](results/seed3351-10epoch-20261015/README.md)
 - [seed3351：单 seed 数据分析](results/seed3351-10epoch-20261015/v2单seed数据分析.md)
-- [seed3351：派生诊断读数](results/seed3351-10epoch-20261015/v2单seed后分析读数_20261016.json)
-- [只读分析复核脚本](../../tools/analyze_v2_seed3351.py)与[分析发布记录](../../provenance/updates/20261016_v2_seed3351_analysis.json)
+- seed3351 历史派生诊断：`v2单seed后分析读数_20261016.json`（原始 JSON 已移除，结论保留在分析 Markdown）
+- 历史复核脚本 `analyze_v2_seed3351.py` 与发布记录 `20261016_v2_seed3351_analysis.json`（精简版已移除）
 - [seed3351：128份完整评价指标](results/seed3351-10epoch-20261015/完整评价指标.md)
 - [seed3351：原实验设计命名对照](results/seed3351-10epoch-20261015/实验命名对照.md)
 - [seed3351：归档与校验说明](results/seed3351-10epoch-20261015/归档与校验.md)
-- [知识、配置与来源索引](inputs.json)
-- [具体执行命令](runbook.json)
+- 历史知识、配置与来源索引：`inputs.json`（精简版已移除）
+- 历史执行清单：`runbook.json`（精简版已移除）
 - [本地CPU检查与独立解压验证](results/README.md)
-- [原部署ZIP（Git LFS）](results/deployment/0601_unified_revision_20261013.zip)
-- [部署ZIP SHA256](results/deployment/0601_unified_revision_20261013.zip.sha256)
-- [本批实际使用的20261014修正版部署ZIP（Git LFS）](results/deployment/0601_unified_revision_20261014_fix.zip)
-- [修正版部署ZIP SHA256](results/deployment/0601_unified_revision_20261014_fix.zip.sha256)
+- 原部署包：`0601_unified_revision_20261013.zip` 及 SHA256（精简版已移除）
+- 本批实际使用的修正版：`0601_unified_revision_20261014_fix.zip` 及 SHA256（精简版已移除）
 
-原包README和旧引用资料以原字节保存于 package support；仓库说明只使用相对链接与可配置路径。`materialize --stage v2` 分别恢复旧包、修正版和本批work快照，修正版125项manifest及导出1765项manifest可独立校验。原发布记录与公式文档不覆盖，本批[导入记录](../../provenance/updates/20261015_v2_seed3351.json)另存。恢复的work含原服务器绝对路径且不含checkpoint，不应当作可直接无损续训的备份。
+原完整归档曾以 package support 保存原包 README 和旧引用资料；精简版已移除该重复副本、manifest 和导入记录。原发布记录与公式文档的研究结论未被覆盖。历史 work 含原服务器绝对路径且不含 checkpoint，本来也不应当作可直接无损续训的备份。
 
 ## 未完成范围
 

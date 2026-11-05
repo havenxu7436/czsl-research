@@ -1,6 +1,6 @@
 # v2 · 结果与验证记录
 
-状态：[seed3351正式训练结果](seed3351-10epoch-20261015/README.md)已归档：32组×10 epoch、128份评价。使用20261014修正版，原始score、标签、日志、配置和checkpoint身份记录均保留。
+状态：[seed3351正式训练结果](seed3351-10epoch-20261015/README.md)完成 32组×10 epoch、128份评价，使用20261014修正版。精简版保留指标、逐轮摘要、配置与 checkpoint 身份说明，不保留原始 score、日志或 checkpoint。
 
 ## 结果与文件
 
@@ -23,22 +23,22 @@
 |---|---|---|
 | 本地 CPU 测试 | 34项通过 | 概率代数、梯度、synthetic模型/资产/配置与后分析接线 |
 | 独立解压后的 CPU 测试 | 34项通过 | 同一ZIP的独立恢复执行检查 |
-| 仓库分区恢复后的执行 | 7046项复制校验、原包123项manifest通过；34项CPU测试通过 | `materialize --line 0601方案 --stage v2` 实际恢复后的检查 |
+| 仓库分区恢复后的执行 | 7046项复制校验、原包123项manifest通过；34项CPU测试通过 | `历史打包流程 --line 0601方案 --stage v2` 实际恢复后的检查 |
 | 原包完整性 | SHA256固定 | 原部署包不因仓库文档排版而重打包 |
 | Python3.8语法、JSON/YAML、Bash语法 | 通过 | 不是torch1.13 CUDA运行保证 |
 | 桌面/GitHub公式内容与KaTeX | 两版均28行内+17块公式，零解析错误 | 使用已安装VS Code内置KaTeX0.16.21；不是实际界面/截图检查完成声明 |
 | 20261014修正版真实TRAIN图像/CUDA smoke、正式训练 | seed3351的32组通过smoke和optimizer/resume acceptance，均完成10轮 | 依据本次导出的smoke.json、train.log与train_complete.json；不是导入时新启动训练 |
 | 本批导出完整性 | 1766份成员全部映射；1765项导出manifest及125项修正版release manifest通过 | 另核对344项冻结输入、50份执行source和128份同checkpoint评价，见本批audit.json |
 
-- [本地记录](revised_0601_20261013/local_revision_test.json)
-- [独立解压记录](独立解压CPU检查.json)
-- [仓库materialize后的CPU记录](materialized_repo_cpu_check.json)
-- [原release manifest](revised_0601_20261013/release_manifest.json)
-- [原部署包](deployment/0601_unified_revision_20261013.zip)
-- [公式内容、分隔符和排版一致性](math_format_check.json)
-- [实际VS Code KaTeX解析记录](katex_render_check.json)
+- 本地记录（精简版未保留）
+- 独立解压记录（精简版未保留）
+- 仓库历史打包流程后的CPU记录（精简版未保留）
+- 原release manifest（精简版未保留）
+- 原部署包（精简版未保留）
+- 公式内容、分隔符和排版一致性（精简版未保留）
+- 实际VS Code KaTeX解析记录（精简版未保留）
 - [seed3351数据范围、完整文件入口与恢复方法](seed3351-10epoch-20261015/README.md)
-- [本批完整性与训练证据核对](seed3351-10epoch-20261015/audit.json)
+- 本批完整性与训练证据核对（精简版未保留）
 
 桌面版使用 `$...$` / `$$...$$`，GitHub版沿用 `$`加反引号的行内形式和 fenced `math`。长公式用 `aligned` 在原式分组边界换行，不改变数学内容。用户按Escape中止了computer-use界面检查，因此实际VS Code/GitHub窗口的视觉复核未完成；未继续操作窗口，不将解析通过冒充视觉复核完成。
 

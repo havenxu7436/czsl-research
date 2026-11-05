@@ -4,7 +4,7 @@
 
 114/114 个阶段、30 份模型或读出结果、12 份效用审计、1,800 条噪声评估。30 份结果由三 seed 的 r0、六类适配、shuffled 以及两种读出组成；读出与 r0 不计为新适配训练。
 
-[方案](PLAN.md) · [公式与核心实现](FORMULAS_AND_CODE.md) · [代码](code/README.md) · [配置与实验清单](configs/README.md) · [完整结果](results/README.md) · [完整分析及下一步](analysis/README.md) · [服务器与本地恢复命令](SERVER_COMMANDS.md)
+[方案](PLAN.md) · [公式与核心实现](FORMULAS_AND_CODE.md) · [代码](code/README.md) · [配置与实验清单](configs/README.md) · [完整结果](results/README.md) · [完整分析及下一步](analysis/README.md) · 服务器与本地恢复命令（精简版未保留）
 
 | 方法 | TEST CW AUC | TEST OW AUC | 结果性质 |
 | --- | --- | --- | --- |
@@ -22,17 +22,3 @@
 数值为原工程百分数尺度的 native AUC，均值 ± 三 seed 样本标准差。选模使用 VAL CW AUC，同一权重评价 CW/OW；HM、NLL、ECE 保留 VAL 确定的校准参数。
 
 强 CPF 上 robust 达到 35.2015 / 26.1491，超过 r0；capacity 和 dense 的识别均值仍然更高。噪声、知识打乱、semantic / unmeasured 审计和读出对照均已归档。
-
-## 恢复执行包
-
-在仓库根目录执行：
-
-```bash
-git lfs pull --include="TRUST-CPF方案/02/**"
-python tools/register_trustcpf_strong_series.py --stage 02 --check
-python tools/reproduce.py materialize --line TRUST-CPF方案 --stage 02 --dest "$HOME/experiments/trust-02-replay"
-cd "$HOME/experiments/trust-02-replay/trustcpf_strong_v1"
-python -m unittest discover -s tests -v
-```
-
-[文件清单](file_manifest.json) · [原包成员映射](package_members.json) · [原始服务器成员映射](results/raw_export_members.json) · [来源与许可](来源与许可.md) · [外部输入](external_inputs.json)

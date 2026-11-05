@@ -1,17 +1,17 @@
 # 05 · 代码与修订
 
-原 D 训练包源码位于 [vgcpod_v1_roundD](vgcpod_v1_roundD/)，补充轮启动器位于 [vgcpod_next_v1_20261020](vgcpod_next_v1_20261020/)。配置、资产、原说明和验证记录分区保存，通过仓库 materialize 恢复原布局。C1/C2 使用 [04 原 C 源码](../../04/code/README.md)。
+原 D 训练包源码位于 vgcpod_v1_roundD（精简版未保留），补充轮启动器位于 vgcpod_next_v1_20261020（精简版未保留）。配置、资产、原说明和验证记录分区保存，通过仓库 历史打包流程 恢复原布局。C1/C2 使用 [04 原 C 源码](../../04/code/README.md)。
 
 | 入口 | 具体内容 |
 |---|---|
-| [模型与损失](vgcpod_v1_roundD/vgcpod/model.py) | 与 C 版本相同，沿用中心化门控和 β 归一化目标 |
-| [训练与评价](vgcpod_v1_roundD/vgcpod/engine.py) | 与 C 版本相同，保留原 checkpoint 规则、优化器、日志和预测导出 |
-| [D1配置](../configs/round_d/D1.json) | 相对 C2 只改变 rho 和 experiment_id |
-| [均值门控评估](vgcpod_v1_roundD/mean_gate_eval.py) | TRAIN 全集均值／方差、动态与固定均值条件、独立 VAL bias |
-| [首轮D调度](vgcpod_v1_roundD/round_d.py) | 两张卡调用原 C 补 C2，一张卡训练 D1；训练后进行均值替换 |
-| [补充轮调度](vgcpod_next_v1_20261020/next_round.py) | D1 两个新 seed、C1/3352，自动生成同 seed 交互差 |
-| [首轮tmux](vgcpod_v1_roundD/scripts/start_round_d_tmux.sh)／[补充轮tmux](vgcpod_next_v1_20261020/start_tmux.sh) | 当前环境绝对 Python 路径、日志、退出码、任务复用与续训 |
-| [D组测试](vgcpod_v1_roundD/tests/test_round_d.py) | 四项新增检查，累计 30 项测试 |
+| 模型与损失（精简版未保留） | 与 C 版本相同，沿用中心化门控和 β 归一化目标 |
+| 训练与评价（精简版未保留） | 与 C 版本相同，保留原 checkpoint 规则、优化器、日志和预测导出 |
+| D1配置（精简版未保留） | 相对 C2 只改变 rho 和 experiment_id |
+| 均值门控评估（精简版未保留） | TRAIN 全集均值／方差、动态与固定均值条件、独立 VAL bias |
+| 首轮D调度（精简版未保留） | 两张卡调用原 C 补 C2，一张卡训练 D1；训练后进行均值替换 |
+| 补充轮调度（精简版未保留） | D1 两个新 seed、C1/3352，自动生成同 seed 交互差 |
+| 首轮tmux（精简版未保留）／补充轮tmux（精简版未保留） | 当前环境绝对 Python 路径、日志、退出码、任务复用与续训 |
+| D组测试（精简版未保留） | 四项新增检查，累计 30 项测试 |
 
 ## 已实施的代码改动
 
@@ -39,10 +39,10 @@ joint = log_o[:, :, None] + log_a
 
 ## 源码、验证与复算
 
-- [相对04补丁](source_changes.patch)包含新配置、评估、测试和调度。D 的 `vgcpod/*.py` 与 `run.py` 和 04 相同，核对结果见[服务器源码身份](../results/server_source_identity.json)。
-- [30项测试日志](../results/package_validation/D/validation/unit_tests.txt)、[首轮CPU流程](../results/package_validation/D/validation/result.json)、[首轮三进程日志](../results/package_validation/D/validation/cli_output.txt)。
-- [补充轮CPU验证](../results/package_validation/next/validation.json)、[重复启动日志](../results/package_validation/next/validation_cli.txt)：三项训练和两项均值评估，重复启动时分别跳过。
-- [原分析代码](original_analysis/)、[仓库复算](../analysis/recompute.py)、[bias复算](../analysis/recompute_bias.py)。
-- [D包成员映射](../package_members.json)、[补充轮成员映射](../next_package_members.json)、[完整原包](../results/archives/)。
+- 相对04补丁（精简版未保留）包含新配置、评估、测试和调度。D 的 `vgcpod/*.py` 与 `run.py` 和 04 相同，核对结果见服务器源码身份（精简版未保留）。
+- 30项测试日志（精简版未保留）、首轮CPU流程（精简版未保留）、首轮三进程日志（精简版未保留）。
+- 补充轮CPU验证（精简版未保留）、重复启动日志（精简版未保留）：三项训练和两项均值评估，重复启动时分别跳过。
+- 原分析代码（精简版未保留）、仓库复算（精简版未保留）、bias复算（精简版未保留）。
+- D包成员映射（精简版未保留）、补充轮成员映射（精简版未保留）、完整原包（精简版未保留）。
 
-CLIP 许可保留于 [CLIP_LICENSE](vgcpod_v1_roundD/vendor/CLIP_LICENSE)。服务器使用 Python 3.8.18、PyTorch 1.13.1+cu117、RTX 3090；原本地数学和调度验证使用 CPU 合成特征缓存。E1 ρ=0.15 及双 native/exact 最优权重保存为下一轮计划。
+CLIP 许可保留于 CLIP_LICENSE（精简版未保留）。服务器使用 Python 3.8.18、PyTorch 1.13.1+cu117、RTX 3090；原本地数学和调度验证使用 CPU 合成特征缓存。E1 ρ=0.15 及双 native/exact 最优权重保存为下一轮计划。

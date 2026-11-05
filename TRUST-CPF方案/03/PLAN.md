@@ -162,7 +162,7 @@ GPU 1/2/3 各运行一个 seed。各进程逻辑 cuda:0 对应 CUDA_VISIBLE_DEVI
 
 ## 6. 数据组织
 
-旧数据在 /data/xhw/experiments/trustcpf_strong_v1/work；新数据在 /data/xhw/experiments/trustcpf_modelcond_v1/work。
+旧数据在 ${PROJECT_STORAGE}/experiments/trustcpf_strong_v1/work；新数据在 ${PROJECT_STORAGE}/experiments/trustcpf_modelcond_v1/work。
 
 - reuse.json 和进度 identity.json：原输入路径及教师、配对标签、对照文件哈希。
 - responses/fold1.pt…fold5.pt、reference.pt：96×8 特征、支持图像编号、权重、教师哈希。
@@ -173,7 +173,7 @@ GPU 1/2/3 各运行一个 seed。各进程逻辑 cuda:0 对应 CUDA_VISIBLE_DEVI
 
 打包包含本轮全部新增结果、六组复用对照、执行代码与溯源信息。原始大体积教师和配对输入继续保存在 Strong v1 目录及先前下载的归档中。新下载包通过 JSON 清单定位，SHA-256 校验后用 Python 解压。
 
-## 7. 本机验证
+## 7. 归档环境验证
 
 已检查公式、支持加权、响应的模型依赖性、分批一致性、预算 KKT、Query 标签复用、三 seed 全流程、冻结 CPF、旧结果不改写及续跑。另用归档真实教师权重验证 96×8 计算，并对三个实际 seed 验证预算恢复。
 

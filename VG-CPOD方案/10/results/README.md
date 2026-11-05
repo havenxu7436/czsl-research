@@ -30,12 +30,12 @@ I1/3351的native选择第8轮，exact选择第10轮。其余五次训练的两�
 
 ## 3. 原运行、共享均值与汇总
 
-- [I1三seed](raw_export/roundI_20261021/I1/ut-zap50k/V1/)与[I2三seed](raw_export/roundI_20261021/I2/ut-zap50k/V1/)：protocol、history、metrics、曲线、预测、四份checkpoint和exact_selection。
-- [共享TRAIN均值](raw_export/roundI_20261021/feature_statistics/)、[运行配置](raw_export/roundI_20261021/configs/)：22,998张图像、12个查询，float64累计，float32模型buffer。
-- [三卡状态](raw_export/roundI_20261021/round_i_status.json)、[任务表](raw_export/roundI_20261021/round_i_jobs.json)、[主日志](raw_export/roundI_20261021/launcher.log)、[退出码0](raw_export/roundI_20261021/launcher.exitcode)。
-- [主结果](raw_export/roundI_20261021/round_i_summary.json)、[均值与SD](raw_export/roundI_20261021/round_i_mean_sd.csv)、[配对差值](raw_export/roundI_20261021/round_i_paired_deltas.csv)、[配对汇总](raw_export/roundI_20261021/round_i_paired_mean_sd.csv)。
-- [同ρ／β主表](raw_export/roundI_20261021/matched_native_summary.csv)、[支持损失](raw_export/roundI_20261021/support_training_summary.csv)、[exact指标](raw_export/roundI_20261021/exact_selection_summary.csv)、[exact历史配对](raw_export/roundI_20261021/exact_reference_paired_mean_sd.csv)。
-- [排序诊断](raw_export/roundI_20261021/ranking_diagnostics.json)、[诊断配对汇总](raw_export/roundI_20261021/ranking_diagnostic_paired_mean_sd.csv)、[逐组合概率](raw_export/roundI_20261021/pair_probability_diagnostics.csv)、[逐组合增量](raw_export/roundI_20261021/per_pair_gains.csv)。
+- I1三seed（精简版未保留）与I2三seed（精简版未保留）：protocol、history、metrics、曲线、预测、四份checkpoint和exact_selection。
+- 共享TRAIN均值（精简版未保留）、运行配置（精简版未保留）：22,998张图像、12个查询，float64累计，float32模型buffer。
+- 三卡状态（精简版未保留）、任务表（精简版未保留）、主日志（精简版未保留）、退出码0（精简版未保留）。
+- 主结果（精简版未保留）、均值与SD（精简版未保留）、配对差值（精简版未保留）、配对汇总（精简版未保留）。
+- 同ρ／β主表（精简版未保留）、支持损失（精简版未保留）、exact指标（精简版未保留）、exact历史配对（精简版未保留）。
+- 排序诊断（精简版未保留）、诊断配对汇总（精简版未保留）、逐组合概率（精简版未保留）、逐组合增量（精简版未保留）。
 
 ## 4. 动态与TRAIN均值替换
 
@@ -48,14 +48,14 @@ I1/3351的native选择第8轮，exact选择第10轮。其余五次训练的两�
 | I2 | 3352 | +0.4003 | +0.3004 | -3 |
 | I2 | 3353 | +0.5592 | +0.0484 | +5 |
 
-[native评估](raw_export/roundI_20261021/mean_gate/)与[exact评估](raw_export/roundI_20261021/mean_gate_exact/)保存TRAIN门控均值[12,32]、方差以及dynamic/train_mean两条件的四种评价、预测与曲线。每项统计全部TRAIN图像，优化步数为零，各条件使用自己的VAL bias。
+native评估（精简版未保留）与exact评估（精简版未保留）保存TRAIN门控均值[12,32]、方差以及dynamic/train_mean两条件的四种评价、预测与曲线。每项统计全部TRAIN图像，优化步数为零，各条件使用自己的VAL bias。
 
 ## 5. 原交付、来源与数据分析
 
-- [原服务器TAR](archives/vgcpod_roundI_results_20261021.tar.gz)、[原I训练ZIP](archives/vgcpod_v1_roundI_20261021.zip)，旁附SHA256；二进制沿用Git LFS。
-- [原发布验证](package_validation/I/)、[原包说明字节](package_support/I/)、[原实施和分析报告字节](package_support/original_reports/)。
-- [原包85个成员映射](../package_members.json)、[结果成员与哈希](raw_export_members.json)、[服务器源码身份](server_source_identity.json)、[历史引用](reused_reference_members.json)、[阶段SHA256](../file_manifest.json)。
+- 原服务器TAR（精简版未保留）、原I训练ZIP（精简版未保留），旁附SHA256；二进制曾曾沿用 Git LFS；精简版未保留；精简版未保留。
+- 原发布验证（精简版未保留）、原包说明字节（精简版未保留）、原实施和分析报告字节（精简版未保留）。
+- 原包85个成员映射（精简版未保留）、结果成员与哈希（精简版未保留）、服务器源码身份（精简版未保留）、历史引用（精简版未保留）、阶段SHA256（精简版未保留）。
 - 原TAR的C/D/E/F/G/H历史结果映射到[04](../../04/results/README.md)、[05](../../05/results/README.md)、[06](../../06/results/README.md)、[07](../../07/results/README.md)、[08](../../08/results/README.md)、[09](../../09/results/README.md)；A5/A6引用[02](../../02/results/README.md)。
-- [仓库复算与归档核对](../analysis/repository_validation.json)、[完整数据分析](../analysis/README.md)。
+- 仓库复算与归档核对（精简版未保留）、[完整数据分析](../analysis/README.md)。
 
 I2相对H1的TEST CW／OW回升0.576／0.983点，相对G0仍低0.307／0.330点。I1/I2差异较小；下一轮建议J1检验静态与动态CP读出分别学习的效果。

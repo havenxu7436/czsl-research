@@ -1,16 +1,37 @@
-# Generated state, caches and credentials
+# Python and local environments
 **/__pycache__/
 *.py[cod]
 **/.pytest_cache/
 **/.venv/
-**/node_modules/
-**/*_deps/
-/tmp/
-/output/
-/archive_inputs/
 .env
 .env.*
 !.env.example
+
+# Experiment artifacts: keep summaries in Markdown, not raw payloads
+checkpoints/
+logs/
+outputs/
+output/
+predictions/
+raw_export/
+package_support/
+*.pt
+*.pth
+*.ckpt
+*.pkl
+*.npy
+*.npz
+*.dat
+*.zip
+*.tar
+*.tar.gz
+*.gz
+
+# Generated state and credentials
+**/node_modules/
+**/*_deps/
+/tmp/
+/archive_inputs/
 *.pem
 *.key
 .git-credentials

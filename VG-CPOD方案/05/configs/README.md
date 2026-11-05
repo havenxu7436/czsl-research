@@ -2,11 +2,11 @@
 
 | 方案 | 读出 | 门控 | ρ | η | 本阶段新增 seed／最佳epoch |
 |---|---|---|---|---|---|
-| [D1](round_d/D1.json) | 全局 g | 物体查询输入，模式中心化 | 0.125 | 0.25 | 3351/10、3352/8、3353/9 |
-| [C2补充](round_c/C2.json) | 全局 g | 物体查询输入，模式中心化 | 0.1 | 0.25 | 3352/8、3353/6 |
-| [C1补充](round_c/C1.json) | 全局 g | 静态全 1 | 0.125 | 0 | 3352/8 |
+| D1（精简版未保留） | 全局 g | 物体查询输入，模式中心化 | 0.125 | 0.25 | 3351/10、3352/8、3353/9 |
+| C2补充（精简版未保留） | 全局 g | 物体查询输入，模式中心化 | 0.1 | 0.25 | 3352/8、3353/6 |
+| C1补充（精简版未保留） | 全局 g | 静态全 1 | 0.125 | 0 | 3352/8 |
 
-C1/C2 的 seed3351 保存在 [04](../../04/results/README.md)。D1 与 C2 的完整配置只在 `rho` 和 `experiment_id` 不同。六次新增训练的全部字段、指标、运行路径与实际源代码阶段见[experiment_inventory.json](experiment_inventory.json)。
+C1/C2 的 seed3351 保存在 [04](../../04/results/README.md)。D1 与 C2 的完整配置只在 `rho` 和 `experiment_id` 不同。六次新增训练的全部字段、指标、运行路径与实际源代码阶段见experiment_inventory.json（精简版未保留）。
 
 ## 选取策略
 
@@ -30,9 +30,9 @@ D1 的 Bvis、Au、Av、Wc 同属 CP 参数组；Wc 从零初始化。原子属�
 
 ## 配置、资产与评估索引
 
-- [D1配置](round_d/D1.json)、[C配置](round_c/)、[A/B兼容配置](round_a/)、[默认配置](default.json)。
-- [六次新增训练清单](experiment_inventory.json)、[六个checkpoint干预清单](intervention_inventory.json)。
-- [A组三seed参考](references/round_a_confirm.json)、[B组首seed参考](references/round_b_pilot.json)、[C组首seed参考](references/round_c_pilot.json)。
-- [标签和命名资产](assets/)、[外部输入及跨阶段引用](../external_inputs.json)。
+- D1配置（精简版未保留）、C配置（精简版未保留）、A/B兼容配置（精简版未保留）、默认配置（精简版未保留）。
+- 六次新增训练清单（精简版未保留）、六个checkpoint干预清单（精简版未保留）。
+- A组三seed参考（精简版未保留）、B组首seed参考（精简版未保留）、C组首seed参考（精简版未保留）。
+- 标签和命名资产（精简版未保留）、外部输入及跨阶段引用（精简版未保留）。
 
 下一轮计划 E1 取 ρ=0.15，其他参数保持 D1，直接与现成三 seed 的 ρ=0.1、0.125 配对。本目录保存本轮实际训练配置。

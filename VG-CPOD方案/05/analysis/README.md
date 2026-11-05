@@ -28,7 +28,7 @@ D1 的 CW AUC 三 seed 均值为 34.791，OW 为 25.453，均高于 A5、C2。�
 | 3352 | 8 | -0.257 | -0.430 | -0.763 | -4 |
 | 3353 | 9 | +0.570 | +0.499 | -1.151 | +40 |
 
-![同 seed 的 TEST AUC 增量](confirmed/figures/01_paired_results.png)
+**图（精简版未保留）：** 同 seed 的 TEST AUC 增量
 
 seed3351、3353 的 AUC 提高，3352 下降；未见条件属性正确数依次为 **+4、−4、+40**。三个 seed 的平均净增为 13.33 张，主要由 seed3353 的变化贡献。
 
@@ -60,7 +60,7 @@ D1 的 dynamic−mean 三 seed 平均结果：
 - 未见条件属性：平均 **+0.071 个百分点**，每个 seed 的净正确数为 +3、−1、+2。
 - OW HM：平均 −0.006 点。
 
-![D1 动态输入相对 TRAIN 均值替换的增量](confirmed/figures/02_dynamic_effect.png)
+**图（精简版未保留）：** D1 动态输入相对 TRAIN 均值替换的增量
 
 D1_mean 相对 A5 的平均 CW/OW AUC 仍有 **+0.264／+0.211 点**，未见条件属性提高 **0.635 个百分点**。D1 训练得到的分类器在固定物体模式系数下保留了平均收益。
 
@@ -111,7 +111,7 @@ I=(\mathrm{D1}-\mathrm{C2})-(\mathrm{C1}-\mathrm{A5}).
 | 3351 | +0.488 | +0.283 | +0.394 | +0.367 |
 | 3352 | +0.132 | -0.103 | +0.155 | -0.104 |
 
-![两 seed 的修正强度与中心化模块交互](confirmed/figures/03_interactions.png)
+**图（精简版未保留）：** 两 seed 的修正强度与中心化模块交互
 
 CW 交互两次都为正，均值 +0.310 点；OW 一正一负，均值 +0.090 点。单独提高静态 CP 的 ρ，两个 seed 平均 CW/OW AUC 为 +0.045／−0.032 点；保留中心化动态训练后，提高 ρ 的三 seed 增量 D1−C2 为 +0.463／+0.323 点。
 
@@ -145,7 +145,7 @@ D1/seed3353 的 native AUC 选中 epoch9，exact AUC 的峰值在 epoch6：
 
 native 使用有限 bias 扫描，exact 使用完整临界点曲线。本例中 epoch9 的 native 比 epoch6 高约 0.060 点，而 epoch6 的 exact 比 epoch9 高约 0.477 点。现有 TEST 结果均来自原规则选中的 epoch9。
 
-![各 seed 的 native／exact 验证曲线与原选中轮数](confirmed/figures/04_epoch_selection.png)
+**图（精简版未保留）：** 各 seed 的 native／exact 验证曲线与原选中轮数
 
 下一轮在一次训练中同步保存 `best_native.pt`、`best_exact.pt` 和 `last.pt`。主表继续按既定 native 规则选择，exact 权重作为附加输出。这项改动只增加保存点，使后续能直接分析完整积分指标对应的权重。
 
@@ -198,16 +198,16 @@ seed3353 的 +40 张净增主要来自 Suede / Boots.Mid-Calf、Canvas / Shoes.L
 
 固定 VAL bias 的 HM 和条件属性准确率复算一致；exact AUC 最大误差约 0.000049 点，native AUC 最大误差约 0.00864 点。正文使用服务器保存指标，跨 seed 标准差使用配对差值计算。
 
-- [全部指标](confirmed/tables/metrics.csv)、[均值与标准差](confirmed/tables/means.csv)、[同 seed 增量](confirmed/tables/comparisons.csv)、[配对均值与标准差](confirmed/tables/paired_means.csv)。
-- [四格交互](confirmed/tables/interactions.csv)、[条件属性诊断](confirmed/tables/diagnostics.csv)、[预测修正与退化计数](confirmed/tables/similarity.csv)、[逐组合增量](confirmed/tables/pair_deltas.csv)。
-- [门控 TRAIN 统计](confirmed/tables/moments.csv)、[训练历史](confirmed/tables/history.csv)、[VAL bias 复算](confirmed/tables/val_bias_comparison.csv)。
-- [结构化分析](confirmed/analysis.json)、[复算记录](confirmed/audit.json)、[主分析脚本](../code/original_analysis/analysis_next_results_20261020/analyze_next.py)、[bias 分析脚本](../code/original_analysis/analysis_next_results_20261020/analyze_bias.py)、[报告生成脚本](../code/original_analysis/analysis_next_results_20261020/build_report.py)。
+- 全部指标（精简版未保留）、均值与标准差（精简版未保留）、同 seed 增量（精简版未保留）、配对均值与标准差（精简版未保留）。
+- 四格交互（精简版未保留）、条件属性诊断（精简版未保留）、预测修正与退化计数（精简版未保留）、逐组合增量（精简版未保留）。
+- 门控 TRAIN 统计（精简版未保留）、训练历史（精简版未保留）、VAL bias 复算（精简版未保留）。
+- 结构化分析（精简版未保留）、复算记录（精简版未保留）、主分析脚本（精简版未保留）、bias 分析脚本（精简版未保留）、报告生成脚本（精简版未保留）。
 
 
 ## 9. 仓库复算与首轮记录
 
-- [首轮D分析](pilot/analysis.json)、[首轮逐运行指标](pilot/tables/metrics.csv)保留 D1/3351 时的分析阶段。
-- [三seed分析](confirmed/analysis.json)、[原复算记录](confirmed/audit.json)、[仓库复算核查](repository_validation.json)、[五份README公式与排版](readme_layout_check.json)。
+- 首轮D分析（精简版未保留）、首轮逐运行指标（精简版未保留）保留 D1/3351 时的分析阶段。
+- 三seed分析（精简版未保留）、原复算记录（精简版未保留）、仓库复算核查（精简版未保留）、五份README公式与排版（精简版未保留）。
 
 在仓库根目录执行：
 
