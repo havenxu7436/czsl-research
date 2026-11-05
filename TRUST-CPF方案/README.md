@@ -1,17 +1,35 @@
 # TRUST-CPF 方案
 
-Teacher-supervised Relation Utility for Semantic Transfer（Trust）实验归档.
+Teacher-supervised Relation Utility for Semantic Transfer（TRUST）的最终证据由版本 10 的机制拆解和版本 11 的三数据集独立流水线组成。精简版保留 v1、02–09 的分析性 Markdown，只保留 10、11 的核心代码与配置。
 
-| 编号 | 实验 | 已完成内容 | 入口 |
-| --- | --- | --- | --- |
-| 01 | 初始 CLIP 基底 | 21 组主实验、知识打乱、效用消融、600 条噪声评估 | [方案与结果](v1/README.md) |
-| 02 | 强 CPF 基底完整 TRUST | 30 份识别/读出、12 份效用审计、1,800 条噪声评估 | [阶段首页](02/README.md) · [分析](02/analysis/README.md) |
-| 03 | 模型响应条件化 | 3 次新增适配、6 份复用对照 | [阶段首页](03/README.md) · [分析](03/analysis/README.md) |
-| 04 | Compact 紧凑效用监督 | 6 次新增适配、3 份复用 Drop | [阶段首页](04/README.md) · [分析](04/analysis/README.md) |
-| 05 | Align 半密度对齐 | 9 份识别、5 次实际适配、216 行识别、312 行 Q5 风险 | [阶段首页](05/README.md) · [分析](05/analysis/README.md) |
-| 06 | Competition 三目标 / 10 epoch | 15 个新教师、15 份识别、6 次实际适配、312 行 Q5 风险、165 行曲线 | [阶段首页](06/README.md) · [分析](06/analysis/README.md) |
-| 07 | R5 相对效用拟合 / 10 epoch | 27 阶段、15 份结果标签、1 次新适配；168 行 Q5 风险 | [阶段首页](07/README.md) · [分析](07/analysis/README.md) |
-| 08 | State 第一批 / 10 epoch | 3 条 Uniform 重训、1512 行识别、600 行 Q5、756 份预测 | [阶段首页](08/README.md) · [分析](08/analysis/README.md) |
-| 09 | Stage 第二批 / 10 epoch | 15 个教师追加训练、972 行识别、744 行 Q5、486 份预测 | [阶段首页](09/README.md) · [分析](09/analysis/README.md) |
-| 10 | A/B/C 幅度、混合与情境效用 / 10 epoch | 36 阶段、936 行识别、3360 行 Q4、3504 行 Q5、1056 行方向曲线 | [阶段首页](10/README.md) · [分析](10/analysis/README.md) |
-| 11 | G₀ 三数据集完整独立流水线 / 10 epoch | 165任务、450段训练、1,620行识别、378行Q5；三数据集×三seed独立拟合 | [阶段首页](11/README.md) · [分析](11/analysis/README.md) |
+## 重点版本
+
+| 版本 | 完整性 | 主要结论 | 入口 |
+|---|---|---|---|
+| 10：A/B/C 幅度、混合与情境效用 | UT，3 seed，36/36 阶段、936 行识别结果 | 各效用变体与 Uniform 差异很小；Context 有轻微均值优势但未形成强机制证据 | [阶段](10/README.md) · [分析](10/analysis/README.md) |
+| 11：三数据集独立流水线 | UT/MIT/C-GQA×3 seed；165 任务、450 段训练、1,620 行识别 | Context 相对 Uniform 只在 UT 有小幅提升，在 MIT/C-GQA 基本为零，跨数据集泛化证据有限 | [阶段](11/README.md) · [分析](11/analysis/README.md) |
+
+版本 10（CW/OW AUC，3 seed 均值）：
+
+| 组 | CW | OW |
+|---|---:|---:|
+| Uniform | 36.0506 ± 0.7217 | 26.6377 ± 1.5274 |
+| Matched | 36.1478 ± 0.8664 | 26.7437 ± 1.7058 |
+| Amplitude | 36.0475 ± 0.7103 | 26.6260 ± 1.5108 |
+| Mix16 | 36.1193 ± 0.8915 | 26.7136 ± 1.7347 |
+| Context | 36.1472 ± 0.7079 | 26.7471 ± 1.5190 |
+| Context Shuffle | 35.9785 ± 0.7695 | 26.5752 ± 1.5447 |
+
+版本 11 的 Context − Uniform（均值 ± seed 标准差）：
+
+| 数据集 | ΔCW | ΔOW |
+|---|---:|---:|
+| UT | +0.1499 ± 0.2065 | +0.1676 ± 0.3682 |
+| MIT | −0.0108 ± 0.1047 | −0.0122 ± 0.0431 |
+| C-GQA | +0.0333 ± 0.0853 | +0.0106 ± 0.0121 |
+
+## 历史索引
+
+[v1](v1/README.md) · [02](02/README.md) · [03](03/README.md) · [04](04/README.md) · [05](05/README.md) · [06](06/README.md) · [07](07/README.md) · [08](08/README.md) · [09](09/README.md)
+
+原始 checkpoint、训练日志、逐样本预测和打包数据已移除，数值结果与机制分析保留在 Markdown 中。

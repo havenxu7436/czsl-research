@@ -1,5 +1,7 @@
 # 12 · 动态读出学习率分组与更新尺度对照
 
+> **精简归档说明：** 数值结论、公式、核心代码与配置仍在；下文所述预测/checkpoint 是历史实验规模记录，原始文件已从 GitHub 精简版移除。
+
 **K 组实验，VG-CPOD v1，归档日期 2026-10-21。** 使用冻结 OpenAI CLIP ViT-L/14 与 UT-Zappos natural split。K1/K2 各三个 seed、各十轮，共六次训练、60 个模型 epoch；native/exact 各24份预测，十二项动态／TRAIN均值评估保存96份预测，共 **144份预测文件、24份checkpoint文件**。
 
 [代码与具体改动](code/README.md) · [超参数配置](configs/README.md) · [全部训练结果](results/README.md) · [数据分析](analysis/README.md) · [11 J组](../11/README.md) · [08 G组](../08/README.md)
@@ -186,9 +188,9 @@ dynamic/mean 分别重算条件 softmax、联合概率和 CW/OW 曲线，并各�
 | [tmux脚本](code/vgcpod_v1_roundK/scripts/start_round_k_tmux.sh) | 三卡seed队列、日志、退出码、续训 | GPU1/2/3分别对应3351/3352/3353 |
 | [K组测试](code/vgcpod_v1_roundK/tests/test_round_k.py) | 参数分组、Adam更新、历史兼容、配置与流程验证 | 发布前检查 |
 
-相对11的完整变更见[源码补丁](code/source_changes.patch)。训练核心文件中只有engine改变；model.py与mean_gate_eval.py保留J版原字节。[服务器源码身份](results/server_source_identity.json)记录原包与服务器文件的核对。
+相对11的完整变更见[源码补丁](code/source_changes.patch)。训练核心文件中只有engine改变；model.py与mean_gate_eval.py保留J版原字节。历史服务器源码身份核对记录 `server_source_identity.json` 已从精简版移除。
 
-原发布 **61项测试通过**；CPU合成CLIP缓存完成六训练、十二评估；重复启动跳过已完成任务。旧J1配置在新旧训练器中的模型参数、AdamW和Torch RNG逐元素相同。证据见[发布验证](results/package_validation/K/validation/result.json)与[测试摘要](results/package_validation/K/validation/unit_test_summary.json)。本次仓库归档复算正式结果，不启动服务器训练。
+原发布 **61项测试通过**；CPU合成CLIP缓存完成六训练、十二评估；重复启动跳过已完成任务。旧J1配置在新旧训练器中的模型参数、AdamW和Torch RNG逐元素相同。历史发布验证 JSON 与单元测试 JSON 已从精简版移除；本次保留其结论，不启动服务器训练。
 
 ## 4. 超参数选取策略与固定设置
 
@@ -254,7 +256,7 @@ bash scripts/start_round_k_tmux.sh \
 tmux attach -t vgcpod_12_K
 ```
 
-Ctrl+b、d脱离tmux；主日志出现`ROUND_K_COMPLETE ... training_jobs 6 mean_gate_jobs 12`且`launcher.exitcode`为0表示队列完成。其余历史对照默认读取原服务器目录，路径见[外部输入](external_inputs.json)，提取命令见[runbook.json](runbook.json)。
+Ctrl+b、d脱离tmux；主日志出现`ROUND_K_COMPLETE ... training_jobs 6 mean_gate_jobs 12`且`launcher.exitcode`为0表示队列完成。其余历史对照默认读取原服务器目录；外部输入索引与历史 runbook 已从精简版移除。
 
 在仓库根目录复算结果：
 
@@ -263,7 +265,7 @@ python VG-CPOD方案/12/analysis/recompute.py
 python tools/reproduce.py verify
 ```
 
-依赖NumPy、PyTorch、Matplotlib。复算输出到`analysis/recomputed/`；正式分析位于`analysis/confirmed/`。materialize按[成员映射](package_members.json)恢复原K包99个文件的字节和布局。
+依赖NumPy、PyTorch、Matplotlib。复算输出到`analysis/recomputed/`；正式分析位于`analysis/confirmed/`。历史 materialize 成员映射已从精简版移除。
 
 ## 7. 数据分析与后续主线
 
@@ -282,6 +284,6 @@ K1相对J1的TEST CW下降0.333点、OW提高0.031点；K2的CW/OW均下降。K1
 
 **本轮收束冻结缓存头上的Wd学习率与门控强度搜索。下一步研究“物体条件的局部判别证据”：同一patch先比较两个属性，再边缘化位置并形成条件概率。** CLIP视觉Adapter和静态CP作为共同基座。R0全局、R1普通局部、R2新算子，在UT/MIT各三seed，共18次完整训练；主要机制比较为R2−R1。该方向属于后续研究提案，本轮已完成实验为K1/K2。
 
-![更新量、动态输出与OW结果](analysis/confirmed/figures/02_update_scale.png)
+历史图 `02_update_scale.png` 已移除；更新量、动态输出与 OW 数值保留在本页表格和[完整分析](analysis/README.md)中。
 
 [完整数据分析](analysis/README.md)集中给出同seed差值、选权重比较、共同错误、候选排序、近邻文献差异，以及下一步算子推导和正式实验规格。

@@ -1,5 +1,7 @@
 # v2 · 0601 统一修订版
 
+> **精简归档说明：** 本版本保留最新统一公式、seed 3351 的完整分析、核心代码和配置；checkpoint、日志、逐样本结果与打包文件已移出 GitHub。
+
 > **[复现公式与代码v2：完整公式与核心代码](复现公式与代码v2.md)** · [v1修订意见：逐项审计与修订依据](v1修订意见.md)
 >
 > 全部已识别公式问题在同一版本统一修订。v1、r2 与已有结果保持不变；v2 是修订后的新模型，不是原 LogiCZSL 数据/成绩的完整复现。
@@ -80,20 +82,18 @@ seed3351按首次严格最大VAL CW AUC选模，同一权重评价VAL/TEST CW/OW
 - [原始冻结work配置](configs/seed3351-10epoch-20261015/configs/)
 - [seed3351：指标与训练记录](results/seed3351-10epoch-20261015/README.md)
 - [seed3351：单 seed 数据分析](results/seed3351-10epoch-20261015/v2单seed数据分析.md)
-- [seed3351：派生诊断读数](results/seed3351-10epoch-20261015/v2单seed后分析读数_20261016.json)
-- [只读分析复核脚本](../../tools/analyze_v2_seed3351.py)与[分析发布记录](../../provenance/updates/20261016_v2_seed3351_analysis.json)
+- seed3351 历史派生诊断：`v2单seed后分析读数_20261016.json`（原始 JSON 已移除，结论保留在分析 Markdown）
+- 历史复核脚本 `analyze_v2_seed3351.py` 与发布记录 `20261016_v2_seed3351_analysis.json`（精简版已移除）
 - [seed3351：128份完整评价指标](results/seed3351-10epoch-20261015/完整评价指标.md)
 - [seed3351：原实验设计命名对照](results/seed3351-10epoch-20261015/实验命名对照.md)
 - [seed3351：归档与校验说明](results/seed3351-10epoch-20261015/归档与校验.md)
-- [知识、配置与来源索引](inputs.json)
-- [具体执行命令](runbook.json)
+- 历史知识、配置与来源索引：`inputs.json`（精简版已移除）
+- 历史执行清单：`runbook.json`（精简版已移除）
 - [本地CPU检查与独立解压验证](results/README.md)
-- [原部署ZIP（Git LFS）](results/deployment/0601_unified_revision_20261013.zip)
-- [部署ZIP SHA256](results/deployment/0601_unified_revision_20261013.zip.sha256)
-- [本批实际使用的20261014修正版部署ZIP（Git LFS）](results/deployment/0601_unified_revision_20261014_fix.zip)
-- [修正版部署ZIP SHA256](results/deployment/0601_unified_revision_20261014_fix.zip.sha256)
+- 原部署包：`0601_unified_revision_20261013.zip` 及 SHA256（精简版已移除）
+- 本批实际使用的修正版：`0601_unified_revision_20261014_fix.zip` 及 SHA256（精简版已移除）
 
-原包README和旧引用资料以原字节保存于 package support；仓库说明只使用相对链接与可配置路径。`materialize --stage v2` 分别恢复旧包、修正版和本批work快照，修正版125项manifest及导出1765项manifest可独立校验。原发布记录与公式文档不覆盖，本批[导入记录](../../provenance/updates/20261015_v2_seed3351.json)另存。恢复的work含原服务器绝对路径且不含checkpoint，不应当作可直接无损续训的备份。
+原完整归档曾以 package support 保存原包 README 和旧引用资料；精简版已移除该重复副本、manifest 和导入记录。原发布记录与公式文档的研究结论未被覆盖。历史 work 含原服务器绝对路径且不含 checkpoint，本来也不应当作可直接无损续训的备份。
 
 ## 未完成范围
 

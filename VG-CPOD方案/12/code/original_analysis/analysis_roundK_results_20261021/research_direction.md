@@ -18,7 +18,7 @@
 
 | 已有工作／思想 | 已有内容 | 本方案具体研究什么 |
 |---|---|---|
-| [FACT 本地复核](VG-CPOD与FACT_创新性复核_含D组_20261020.md) | CP 交互及低秩算子解释 | CP 作为共同评分器；改变其 patch 级输出如何成为属性判别分数 |
+| FACT 本地复核（历史文档未随归档保留） | CP 交互及低秩算子解释 | CP 作为共同评分器；改变其 patch 级输出如何成为属性判别分数 |
 | [CANet](https://openaccess.thecvf.com/content/CVPR2023/html/Wang_Learning_Conditional_Attributes_for_Compositional_Zero-Shot_Learning_CVPR_2023_paper.html)、[CPF](https://arxiv.org/html/2507.17377v1) | 物体条件属性学习、条件概率及条件视觉提取 | 在同一物体条件下，以属性对的逐位置差值作为证据单位 |
 | [MSCI](https://arxiv.org/html/2505.10289v1) | 多层 CLIP 特征、跨模态交互与适配 | 首版只读最后一层，研究比较算子；视觉适配本身计入共同基座 |
 | [FILIP](https://arxiv.org/abs/2111.07783) | 视觉／文本 token 的细粒度晚交互 | 将两个属性假设放在同一 patch 上比较，再边缘化局部位置 |

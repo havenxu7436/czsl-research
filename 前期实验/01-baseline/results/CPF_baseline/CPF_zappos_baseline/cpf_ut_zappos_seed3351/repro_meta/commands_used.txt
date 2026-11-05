@@ -1,5 +1,0 @@
-[TRAIN]
-python -u train.py --cfg config/ut-zappos.yml DATASET.root_dir /data/xhw/czsl_repro/data/ut-zap50k TRAIN.log_dir /data/xhw/czsl_repro/runs/cpf_ut_zappos_seed3351/logs TRAIN.checkpoint_dir /data/xhw/czsl_repro/runs/cpf_ut_zappos_seed3351/checkpoints TRAIN.num_workers 4 TRAIN.batch_size 64 TRAIN.test_batch_size 64 TRAIN.seed 3351 TRAIN.start_epoch_validate 1 TRAIN.eval_every_epoch 1 TRAIN.max_epoch 10 TRAIN.final_max_epoch 10
-
-[OPEN WORLD EVALUATION]
-python -u test.py --cfg config/ut-zappos.yml --load /data/xhw/czsl_repro/runs/cpf_ut_zappos_seed3351/checkpoints/ut-zappos-czsl_final_predcition_mul/best_auc.pth DATASET.root_dir /data/xhw/czsl_repro/data/ut-zap50k TRAIN.num_workers 4 TRAIN.test_batch_size 64 EVAL.open_world True

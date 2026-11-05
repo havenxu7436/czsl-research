@@ -1,5 +1,7 @@
 # 13 · G0条件知识残差与语义附件对照
 
+> **精简归档说明：** 九组训练的汇总证据、公式、核心代码与配置仍在；下文所述预测/checkpoint 是历史实验规模记录，原始文件已从 GitHub 精简版移除。
+
 **L组，VG-CPOD v1；实验2026-10-22完成，2026-10-23归档。** 冻结OpenAI CLIP ViT-L/14，UT-Zappos natural split。L0/L1/L2各三个seed、每组10 epochs，共9次训练、90个模型epoch；全部18份VAL/TEST预测、18个best/last checkpoint与3个G0初始权重已归档。
 
 [修订实验方案](REVISED_PLAN.md) · [公式与核心实现](FORMULAS_AND_CODE.md) · [所有代码修订](code/README.md) · [配置](configs/README.md) · [完整结果](results/README.md) · [完整数据分析](analysis/README.md) · [下一步方向](NEXT_DIRECTION.md) · [服务器命令](SERVER_COMMANDS.md)
@@ -40,4 +42,4 @@ python -m unittest discover -s tests -v
 
 ## 校验记录
 
-[全仓库校验](analysis/repository_qa/repository_verify.json) · [GitHub网页公式与表格核验](analysis/repository_qa/github/checks.json) · [复算与单元验证](analysis/confirmed/reproduction_checks.json)
+历史全仓库 QA、GitHub 网页核验与复算 JSON 已从精简版移除；公式、表格与结论保留在本页和分析 Markdown。

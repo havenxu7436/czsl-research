@@ -1,5 +1,7 @@
 # 10 · A/B/C：幅度、混合与情境效用 / 10 epoch
 
+> **精简归档说明：** 完整统计表、机制分析、核心代码与配置仍在；逐样本预测、checkpoint、训练日志和 raw export 已从 GitHub 精简版移除。
+
 实验完成及归档日期：2026-10-27。UT-Zappos natural split；冻结 CLIP ViT-L/14 特征与强 CPF；seed 3351 / 3352 / 3353，物理 GPU 1 / 2 / 3。
 
 36/36 阶段；三条新 Uniform 轨迹各训练完整 10 epoch，best epoch 为 5 / 2 / 2。复用 Stage 的 15 个教师，由其中九个 Q1–Q3 教师拟合一套共享效用预测器；所有策略共用各 seed 的同一 best 分类器。
@@ -31,4 +33,4 @@ cd "$HOME/experiments/trust-10-replay/trustcpf_abc_v1_10ep"
 python -m unittest discover -s tests -p test_abc.py -v
 ```
 
-[执行与评分清单](configs/experiment_inventory.json) · [输入及状态](inputs.json) · [文件 SHA256](file_manifest.json) · [发布成员](package_members.json) · [服务器成员](results/raw_export_members.json) · [来源与许可](来源与许可.md)
+[执行与评分清单](configs/experiment_inventory.json) · 历史输入/文件指纹/发布成员/raw-export 清单（精简版已移除） · [来源与许可](来源与许可.md)
