@@ -16,7 +16,6 @@
 
 关键比较为 Competition−Balanced、Competition−Uniform、Competition−Permuted；同时保留 Balanced−U-NLL 和 Competition−U-NLL。
 
-- 完整上传、服务器训练和下载命令（精简版未保留）
 - 公式、实现与核心指标（精简版未保留）
 - 默认配置（精简版未保留）
 

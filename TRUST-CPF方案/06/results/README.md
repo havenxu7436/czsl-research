@@ -8,7 +8,6 @@
 - 部署 ZIP（精简版未保留） 与 SHA256（精简版未保留）。
 - 原始归档索引（精简版未保留）：1,552,879,972 字节，两个不超过 1 GiB 的 LFS 分片。
 
-二进制曾由 Git LFS 保存；精简版未保留。历史完整归档曾同时保存原始 Markdown；精简版只保留阅读版。
 
 ```bash
 python tools/register_trustcpf_followup.py --stage 06 --restore-archive "$HOME/archives/trust-06-saved"

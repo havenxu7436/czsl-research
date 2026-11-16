@@ -4,7 +4,6 @@
 |---|---|
 | [server-results-20261022/](server-results-20261022/README.md) | 434个服务器成员、21组主实验、知识打乱、效用消融、完整OW噪声恢复、权重与图像 |
 | local-validation-20261021/（精简版未保留） | 发布包原有13项测试、CUDA、CLIP tokenizer、公式和文档检查 |
-| repository-validation-20261021/（精简版未保留） | 仓库分区后的恢复、重复测试、链接与GitHub数学检查 |
 | deployment/（精简版未保留） | 完整服务器ZIP与SHA256 |
 | release_member_map.json（精简版未保留） | 53成员→仓库位置→运行位置映射 |
 | trustcpf_clip_v1/（精简版未保留） | release manifest、provenance与CLIP BPE词表 |
@@ -15,5 +14,3 @@
 正式UT主矩阵已完成21组，另有1组知识打乱终端模型、2项效用消融审计及600次噪声评估。完整结果见 [2026-10-22批次](server-results-20261022/README.md)。
 
 仓库新增的文档检查器（精简版未保留）复核链接、Python3.8语法、原始代码摘录与等价公式；数学渲染检查器（精简版未保留）使用KaTeX复核全部数学表达式。全仓库校验已通过，全仓库6787个规范文件的哈希检查通过。
-
-GitHub网页排版已复核：网页布局记录（精简版未保留）与实际截图（精简版未保留）。修订方案的21个公式采用外置Markdown编号，避免浏览器MathML不支持的编号表格元素；53个行内公式、表格、数学内容及源码对应关系均已检查。

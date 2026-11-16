@@ -21,7 +21,6 @@
 
 - 原始运行目录（精简版未保留）：metrics、history、protocol、checkpoints、predictions、curves 与日志。
 - 初始六组 launcher 状态（精简版未保留）与确认补跑状态（精简版未保留）。
-- 完整服务器导出包（精简版未保留）与SHA256（精简版未保留），曾由 Git LFS 保存；精简版未保留。
 - 训练代码 ZIP（精简版未保留）与SHA256（精简版未保留）。
 - 原版发布检查记录（精简版未保留）与原始说明文档字节（精简版未保留）。
 - [三 seed 数据分析](../analysis/README.md)和文件 SHA256 清单（精简版未保留）。
