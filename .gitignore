@@ -7,11 +7,9 @@
 .env.*
 !.env.example
 
-# Experiment artifacts: keep summaries in Markdown, not raw payloads
+# Experiment artifacts: keep compact Markdown/CSV/JSON tables and result figures
 checkpoints/
 logs/
-outputs/
-output/
 predictions/
 raw_export/
 package_support/
@@ -26,6 +24,20 @@ package_support/
 *.tar
 *.tar.gz
 *.gz
+*.safetensors
+*.onnx
+*.pickle
+*.bin
+*.h5
+*.hdf5
+*.bz2
+*.xz
+*.7z
+*.rar
+*.whl
+*.log
+*.tmp
+*.bak
 
 # Generated state and credentials
 **/node_modules/
@@ -37,4 +49,5 @@ package_support/
 .git-credentials
 Thumbs.db
 .DS_Store
+.ipynb_checkpoints/
 

@@ -33,4 +33,12 @@ Markdown 中的数值表、公式、实验设计和结论均保留。对前期�
 
 ## Git LFS 限制
 
-本分支的新树不再跟踪 LFS 产物，但 Git 历史中的 LFS 对象仍可能占用 GitHub 配额。彻底释放远端 LFS 存储通常需要另建干净仓库/重写历史后替换仓库，或联系 GitHub Support；这应在精简分支审核通过后单独执行。
+2026-11-16 清理以精简主分支的 953 个文件为保留清单，保留核心文档、代码、配置和结果说明的内容及相关提交演进；从可达历史中移除其他路径、LFS 指针及旧 LFS 跟踪规则。已合入主线的归档分支和旧归档标签不再保留，避免从旧引用重新拉取大型实验历史。
+
+清理前 Git 历史引用了 18,480 个不同的 LFS 对象，声明大小合计 71,548,755,602 字节（约 66.64 GiB）。这是历史引用统计，不是 GitHub 账单的实时用量。当前核心文件合计约 7.53 MiB，均可由普通 Git 保存。
+
+`.gitattributes` 显式禁用 LFS 过滤器；`.gitignore` 排除权重、缓存、压缩包和运行日志，但允许小型结果表。启用 `.githooks` 后，提交前检查暂存文件，推送前检查待推送提交，阻止 LFS 指针、原始产物和超过 10 MiB 的文件重新进入仓库。
+
+**重写历史不会自动释放 GitHub 后台 LFS 存储。** GitHub 官方说明，已移除的对象仍可能计入配额；需要 GitHub Support 清理，或删除并重建仓库。删除重建会影响仓库元数据，不能把它视为普通文件清理。本次仓库内容清理的目标是让今后的代码和小型结果上传不依赖 LFS，不代表账单配额已经归零。
+
+参考：[GitHub — Removing files from Git Large File Storage](https://docs.github.com/en/repositories/working-with-files/managing-large-files/removing-files-from-git-large-file-storage)。

@@ -20,6 +20,27 @@
 
 ## 数据可用性
 
-当前精简版不包含数据集、知识缓存、模型权重、checkpoint、日志、逐样本预测和压缩包，当前树也不依赖 Git LFS。历史提交中的 LFS 对象不会因为本次精简自动从 GitHub 配额中消失；详情见 [DATA_AVAILABILITY.md](DATA_AVAILABILITY.md) 与 [CLEANUP_POLICY.md](CLEANUP_POLICY.md)。
+当前精简版不包含数据集、知识缓存、模型权重、checkpoint、日志、逐样本预测和压缩包。Git 历史仅保留当前核心文件的演进，已移除 LFS 指针与跟踪规则；代码、文档与小型结果文件通过普通 Git 上传。GitHub 后台已有的 LFS 对象不会因此自动返还配额，详情见 [CLEANUP_POLICY.md](CLEANUP_POLICY.md)。
 
 环境版本与外部输入约定仍见 [environment/README.md](environment/README.md)。
+
+## 上传代码与结果
+
+清理历史后，请重新克隆仓库；旧工作目录中的未提交代码和结果先另存，再按文件复制到新克隆中。不要合并旧分支、推送旧标签或使用 `git push --all`，否则可能重新引入已删除的大文件历史。
+
+```bash
+git clone https://github.com/havenxu7436/czsl-research.git
+cd czsl-research
+git config --local core.hooksPath .githooks
+```
+
+安装 Python 3 后，提交与推送时会自动检查 LFS 指针、原始实验产物和超过 10 MiB 的文件。保留源码及必要配置、核心 Markdown、CSV/JSON/TSV 结果表和小型结果图；建议将结果放在对应路线的 `results/` 下。权重、数据集、缓存、运行日志与压缩包不进入本仓库。
+
+```bash
+git add <代码或结果文件路径>
+python tools/check_repository.py
+git commit -m "更新代码与实验结果"
+git push origin main
+```
+
+本仓库不需要执行 `git lfs track` 或 `git lfs push`。上述限制是仓库的体积策略，不是 GitHub 单文件上限。
